@@ -1,0 +1,134 @@
+"""SIGNAL 파이프라인 설정.
+
+수집원, 자산 사전, 분류 키워드, 측정 구간을 한곳에 모은다.
+여기 값만 바꾸면 동작이 바뀌도록 다른 모듈에는 상수를 두지 않는다.
+"""
+
+import os
+
+SITE_URL = (os.environ.get("SIGNAL_SITE_URL") or "https://mash1384.github.io/signal-desk").rstrip("/")
+SITE_BASE = os.environ.get("SIGNAL_SITE_BASE") or "/signal-desk/"
+SITE_NAME = "SIGNAL"
+USER_AGENT = "Mozilla/5.0 (compatible; SIGNAL-bot/1.0; +" + SITE_URL + "/about/)"
+
+# 보관 정책
+KEEP_DAYS = 30
+MAX_ARTICLES = 4000
+INGEST_MAX_AGE_HOURS = 72
+PER_SOURCE_LIMIT = 30
+FEED_JSON_LIMIT = 300
+HOME_RENDER_LIMIT = 40
+
+# 임팩트 측정 구간 (초)
+WINDOWS = [("15m", 900), ("1h", 3600), ("24h", 86400)]
+GRADE_STRONG = 3.0
+GRADE_MEDIUM = 2.0
+CONCURRENT_EVENT_SECONDS = 900
+
+# 수집원. hint: 기본 카테고리, require: True면 키워드가 맞는 기사만 남긴다
+SOURCES = [
+    {"id": "coindesk", "name": "CoinDesk", "url": "https://www.coindesk.com/arc/outboundfeeds/rss", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "cointelegraph", "name": "Cointelegraph", "url": "https://cointelegraph.com/rss", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "decrypt", "name": "Decrypt", "url": "https://decrypt.co/feed", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "theblock", "name": "The Block", "url": "https://www.theblock.co/rss.xml", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "blockmedia", "name": "블록미디어", "url": "https://www.blockmedia.co.kr/feed", "lang": "ko", "hint": "crypto", "require": False},
+    {"id": "tokenpost", "name": "토큰포스트", "url": "https://www.tokenpost.kr/rss", "lang": "ko", "hint": "crypto", "require": False},
+    {"id": "techcrunch-ai", "name": "TechCrunch AI", "url": "https://techcrunch.com/category/artificial-intelligence/feed/", "lang": "en", "hint": "ai", "require": False},
+    {"id": "verge-ai", "name": "The Verge AI", "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", "lang": "en", "hint": "ai", "require": False},
+    {"id": "aitimes", "name": "AI타임스", "url": "https://www.aitimes.com/rss/allArticle.xml", "lang": "ko", "hint": "ai", "require": False},
+    {"id": "digitaltoday", "name": "디지털투데이", "url": "https://www.digitaltoday.co.kr/rss/allArticle.xml", "lang": "ko", "hint": None, "require": True},
+    {"id": "cnbc-economy", "name": "CNBC Economy", "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html", "lang": "en", "hint": "macro", "require": False},
+    {"id": "marketwatch", "name": "MarketWatch", "url": "https://feeds.marketwatch.com/marketwatch/topstories/", "lang": "en", "hint": "macro", "require": True},
+    {"id": "yna-economy", "name": "연합뉴스 경제", "url": "https://www.yna.co.kr/rss/economy.xml", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "hankyung-economy", "name": "한국경제 경제", "url": "https://www.hankyung.com/feed/economy", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "hankyung-finance", "name": "한국경제 증권", "url": "https://www.hankyung.com/feed/finance", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "mk-economy", "name": "매일경제 경제", "url": "https://www.mk.co.kr/rss/30100041/", "lang": "ko", "hint": "macro", "require": True},
+]
+
+# 소스별 가중치 (중요도 계산에 더함)
+SOURCE_WEIGHT = {"coindesk": 1, "theblock": 1, "cnbc-economy": 1, "yna-economy": 1}
+
+# 임팩트를 잴 수 있는 자산 사전. names는 기사에서 찾을 이름(소문자 비교)
+ASSETS = {
+    "BTC": {"names": ["bitcoin", "btc", "비트코인"], "binance": "BTCUSDT", "coinbase": "BTC-USD", "upbit": "KRW-BTC"},
+    "ETH": {"names": ["ethereum", "ether", "eth", "이더리움"], "binance": "ETHUSDT", "coinbase": "ETH-USD", "upbit": "KRW-ETH"},
+    "SOL": {"names": ["solana", "sol", "솔라나"], "binance": "SOLUSDT", "coinbase": "SOL-USD", "upbit": "KRW-SOL"},
+    "XRP": {"names": ["xrp", "ripple", "리플"], "binance": "XRPUSDT", "coinbase": "XRP-USD", "upbit": "KRW-XRP"},
+    "BNB": {"names": ["bnb", "binance coin", "바이낸스코인"], "binance": "BNBUSDT", "coinbase": None, "upbit": None},
+    "DOGE": {"names": ["dogecoin", "doge", "도지코인", "도지"], "binance": "DOGEUSDT", "coinbase": "DOGE-USD", "upbit": "KRW-DOGE"},
+    "ADA": {"names": ["cardano", "ada", "카르다노", "에이다"], "binance": "ADAUSDT", "coinbase": "ADA-USD", "upbit": "KRW-ADA"},
+    "LINK": {"names": ["chainlink", "체인링크"], "binance": "LINKUSDT", "coinbase": "LINK-USD", "upbit": "KRW-LINK"},
+    "AVAX": {"names": ["avalanche", "avax", "아발란체"], "binance": "AVAXUSDT", "coinbase": "AVAX-USD", "upbit": "KRW-AVAX"},
+    "SUI": {"names": ["sui network", "수이"], "binance": "SUIUSDT", "coinbase": "SUI-USD", "upbit": "KRW-SUI"},
+    "TON": {"names": ["toncoin", "톤코인"], "binance": "TONUSDT", "coinbase": None, "upbit": None},
+    "DOT": {"names": ["polkadot", "폴카닷"], "binance": "DOTUSDT", "coinbase": "DOT-USD", "upbit": "KRW-DOT"},
+}
+MARKET_ASSETS = ["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "LINK", "AVAX", "SUI", "TON", "DOT"]
+MAX_ASSETS_PER_ARTICLE = 4
+
+# 카테고리 키워드 (소문자 부분 일치). 영어 단어는 앞뒤 경계를 확인한다
+CATEGORY_KEYWORDS = {
+    "crypto": [
+        "bitcoin", "crypto", "blockchain", "stablecoin", "ethereum", "defi", "token", "web3", "nft", "altcoin", "mining",
+        "비트코인", "가상자산", "암호화폐", "코인", "블록체인", "스테이블코인", "이더리움", "디파이", "토큰", "채굴", "업비트", "빗썸", "바이낸스",
+    ],
+    "ai": [
+        "artificial intelligence", "ai", "llm", "openai", "anthropic", "chatgpt", "claude", "gemini", "nvidia", "gpu",
+        "model", "machine learning", "data center", "datacenter", "chip",
+        "인공지능", "생성형", "에이아이", "엔비디아", "데이터센터", "반도체", "llm", "gpu", "챗gpt", "딥러닝",
+    ],
+    "macro": [
+        "fed", "fomc", "inflation", "cpi", "pce", "interest rate", "rate cut", "rate hike", "treasury", "yield", "jobs report",
+        "payroll", "unemployment", "gdp", "recession", "tariff", "dollar", "oil", "gold", "stocks", "s&p", "nasdaq", "dow",
+        "연준", "기준금리", "금리", "물가", "인플레이션", "소비자물가", "고용지표", "실업률", "국채", "환율", "달러", "유가",
+        "금값", "증시", "코스피", "코스닥", "나스닥", "관세", "한은", "한국은행", "외국인 순매도", "외국인 순매수", "fomc", "cpi",
+    ],
+}
+
+# 중요도 3을 주는 키워드
+HIGH_KEYWORDS = [
+    "fomc", "cpi", "rate decision", "rate cut", "rate hike", "jobs report", "nonfarm", "etf approval", "etf approved",
+    "hack", "exploit", "bankrupt", "bankruptcy", "sec", "lawsuit",
+    "기준금리", "금리 인하", "금리 인상", "소비자물가", "고용보고서", "etf 승인", "해킹", "파산",
+]
+# 크립토 기사에서만 중요도 3을 주는 키워드 (주식 상장과 구분)
+HIGH_KEYWORDS_CRYPTO = ["listing", "listings", "delist", "delisting", "상장", "유의 종목", "거래 지원 종료", "디지털 자산 추가"]
+
+# 제목이 이렇게 시작하면 버린다 (인사·표·부고 같은 공지성 기사)
+TITLE_BLOCK_PREFIX = ["[인사]", "[표]", "[부고]", "[게시판]", "[포토]", "[사진]", "[알림]", "[신간]", "[날씨]", "[운세]", "[오늘의 운세]"]
+
+# /impact 통계용 이벤트 유형 (먼저 맞는 것)
+EVENT_TYPES = [
+    ("fomc", "FOMC·연준", ["fomc", "federal reserve", "fed chair", "powell", "연준", "파월", "fomc"]),
+    ("cpi", "물가 지표", ["cpi", "pce", "inflation", "소비자물가", "물가", "인플레이션"]),
+    ("jobs", "고용 지표", ["jobs report", "payroll", "payrolls", "unemployment", "jobless", "고용지표", "고용보고서", "실업률", "취업자"]),
+    ("etf", "ETF", ["etf"]),
+    ("listing", "상장·상폐", ["listing", "listings", "delist", "delisting", "상장", "거래 지원 종료", "유의 종목", "디지털 자산 추가"]),
+    ("hack", "해킹·사고", ["hack", "hacked", "hacker", "exploit", "exploited", "breach", "stolen", "해킹", "탈취", "유출"]),
+    ("regulation", "규제·소송", ["sec", "regulation", "regulator", "regulators", "regulatory", "lawsuit", "court", "bill", "규제", "법안", "소송", "금융위", "금감원"]),
+    ("ai-model", "AI 모델·제품", ["launch", "launches", "release", "releases", "model", "models", "출시", "공개", "모델"]),
+    ("earnings", "실적", ["earnings", "revenue", "quarterly", "실적", "매출", "영업이익"]),
+]
+
+# 분류 결과 라벨
+CATEGORY_LABEL = {"crypto": "크립토", "ai": "AI", "macro": "매크로"}
+
+# 외부 데이터 소스
+BINANCE_HOSTS = ["https://data-api.binance.vision", "https://api.binance.com"]
+COINBASE_HOST = "https://api.exchange.coinbase.com"
+UPBIT_TICKER = "https://api.upbit.com/v1/ticker"
+UPBIT_NOTICES = "https://api-manager.upbit.com/api/v1/announcements?os=web&page=1&per_page=20&category=trade"
+FNG_URL = "https://api.alternative.me/fng/?limit=30"
+FX_URL = "https://open.er-api.com/v6/latest/USD"
+CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+
+# 알림 정책
+ALERT_DAILY_CAP = 12
+ALERT_DEDUPE_SECONDS = 1800
+QUIET_HOURS_KST = (1, 7)  # 01:00 이상 07:00 미만
+KIMP_ALERT_DELTA = 3.0  # %p, 1시간 안 변화
+
+# LLM 요약 (키가 있을 때만 동작)
+LLM_MODEL = os.environ.get("SIGNAL_LLM_MODEL") or "claude-opus-5-5"
+LLM_EFFORT = os.environ.get("SIGNAL_LLM_EFFORT") or "low"
+LLM_MAX_PER_RUN = int(os.environ.get("SIGNAL_LLM_MAX_PER_RUN") or "20")
