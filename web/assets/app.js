@@ -92,6 +92,7 @@
       try { localStorage.setItem('signal-theme', next); } catch (e) {}
       sync();
       if (flow) flow.refresh();
+      if (sphere) sphere.refresh();
     });
   }
 
@@ -195,6 +196,14 @@
     return null;
   }
   function applyLive(tick) {
+    var hb = $('#heroBtc');
+    if (hb && tick.BTC) {
+      hb.textContent = '$' + price(tick.BTC.price);
+      var hc = $('#heroBtcChg');
+      hc.className = tick.BTC.chg >= 0 ? 'up' : 'down';
+      hc.textContent = pct(tick.BTC.chg);
+      if (sphere) sphere.price(tick.BTC.price);
+    }
     SYMS.forEach(function (s) {
       var t = tick[s];
       if (!t) return;
@@ -683,6 +692,250 @@
     flow = { refresh: function () { read(); if (!running) draw(); } };
   }
 
+  /* ---------- 랜딩 ---------- */
+  function cssColor(name) {
+    var probe = document.createElement('i');
+    document.body.appendChild(probe);
+    probe.style.color = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    var c = getComputedStyle(probe).color;
+    probe.remove();
+    return c;
+  }
+  var sphere = null;
+  function initSphere() {
+    var canvas = $('#sphereCanvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var data = S.landing || {};
+    var shares = data.shares || { crypto: 1, ai: 1, macro: 1 };
+    var total = (shares.crypto || 0) + (shares.ai || 0) + (shares.macro || 0) || 1;
+    var spark = (data.spark || []).slice();
+    var w = 0, h = 0, cx = 0, cy = 0, R = 0, lineX0 = 0, lineX1 = 0, lineY = 0, lineH = 0;
+    var pts = [], pulses = [], ripples = [], col = {}, running = false, visible = true, last = 0, rot = 0, spawnAcc = 0;
+    var tilt = { x: 0, y: 0, vx: 0, vy: 0 }, aim = { x: 0, y: 0 };
+    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var readColors = function () {
+      col = { crypto: cssColor('--crypto'), ai: cssColor('--ai'), macro: cssColor('--macro'), accent: cssColor('--accent-ink'), line: cssColor('--text-3'), text: cssColor('--text') };
+    };
+    var build = function () {
+      var n = w < 760 ? 520 : 1100, golden = Math.PI * (3 - Math.sqrt(5));
+      var cutC = (shares.crypto || 0) / total, cutA = cutC + (shares.ai || 0) / total;
+      pts = [];
+      for (var i = 0; i < n; i++) {
+        var y = 1 - 2 * (i + 0.5) / n, r = Math.sqrt(1 - y * y), phi = i * golden;
+        // 위도 띠가 생기지 않도록 점마다 고정된 의사 난수로 카테고리를 섞는다
+        var u = Math.abs(Math.sin(i * 12.9898 + 78.233) * 43758.5453) % 1;
+        pts.push({ x: Math.cos(phi) * r, y: y, z: Math.sin(phi) * r, c: u < cutC ? 'crypto' : u < cutA ? 'ai' : 'macro', flash: 0 });
+      }
+    };
+    var layout = function () {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2), rect = canvas.getBoundingClientRect();
+      w = rect.width; h = rect.height;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (w >= 900) { cx = w * 0.71; cy = h * 0.42; R = Math.min(h * 0.33, w * 0.22); lineX0 = w * 0.46; lineX1 = w * 0.98; lineY = h * 0.86; lineH = h * 0.08; }
+      else { cx = w * 0.5; cy = Math.min(h * 0.2, 190); R = Math.min(w * 0.3, 120); lineX0 = w * 0.06; lineX1 = w * 0.94; lineY = cy + R * 1.6; lineH = 36; }
+      build();
+      if (!running) draw(0);
+    };
+    var project = function (p) {
+      var cosY = Math.cos(rot + tilt.x), sinY = Math.sin(rot + tilt.x), cosX = Math.cos(0.35 + tilt.y), sinX = Math.sin(0.35 + tilt.y);
+      var x = p.x * cosY - p.z * sinY, z = p.x * sinY + p.z * cosY;
+      var y = p.y * cosX - z * sinX; z = p.y * sinX + z * cosX;
+      var k = 1 / (1.6 - z * 0.45);
+      return { x: cx + x * R * k * 1.6, y: cy + y * R * k * 1.6, z: z };
+    };
+    var lineAt = function (t) {
+      // 0~1 위치의 가격선 좌표
+      if (spark.length < 2) return { x: lineX0 + t * (lineX1 - lineX0), y: lineY };
+      var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark), span = max - min || 1;
+      var f = t * (spark.length - 1), i = Math.floor(f), j = Math.min(spark.length - 1, i + 1), v = spark[i] + (spark[j] - spark[i]) * (f - i);
+      return { x: lineX0 + t * (lineX1 - lineX0), y: lineY + lineH / 2 - (v - min) / span * lineH };
+    };
+    var draw = function (dt) {
+      ctx.clearRect(0, 0, w, h);
+      // 가격선
+      ctx.globalAlpha = 0.55; ctx.strokeStyle = col.line; ctx.lineWidth = 1.2; ctx.beginPath();
+      for (var s = 0; s <= 60; s++) { var q = lineAt(s / 60); if (s) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }
+      ctx.stroke();
+      var end = lineAt(1);
+      ctx.globalAlpha = 1; ctx.fillStyle = col.accent; ctx.beginPath(); ctx.arc(end.x, end.y, 3, 0, Math.PI * 2); ctx.fill();
+      // 점
+      for (var i = 0; i < pts.length; i++) {
+        var p = pts[i], q2 = project(p), front = (q2.z + 1) / 2;
+        p.sx = q2.x; p.sy = q2.y; p.sz = q2.z;
+        if (p.flash > 0) p.flash = Math.max(0, p.flash - dt * 1.6);
+        ctx.globalAlpha = 0.12 + front * 0.62 + p.flash * 0.4;
+        ctx.fillStyle = col[p.c];
+        var r = 0.8 + front * 1.6 + p.flash * 2.2;
+        ctx.beginPath(); ctx.arc(q2.x, q2.y, r, 0, Math.PI * 2); ctx.fill();
+      }
+      // 펄스: 점 → 가격선
+      for (var k = pulses.length - 1; k >= 0; k--) {
+        var u = pulses[k];
+        u.t += dt / u.dur;
+        if (u.t >= 1) { ripples.push({ x: u.tx, y: u.ty, t: 0, c: u.c }); pulses.splice(k, 1); continue; }
+        for (var tail = 0; tail < 5; tail++) {
+          var tt = Math.max(0, u.t - tail * 0.035), e = 1 - Math.pow(1 - tt, 3);
+          var bx = (1 - e) * (1 - e) * u.sx + 2 * (1 - e) * e * u.mx + e * e * u.tx;
+          var by = (1 - e) * (1 - e) * u.sy + 2 * (1 - e) * e * u.my + e * e * u.ty;
+          ctx.globalAlpha = (1 - tail / 5) * 0.9; ctx.fillStyle = col[u.c];
+          ctx.beginPath(); ctx.arc(bx, by, 2.2 - tail * 0.35, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      for (var m = ripples.length - 1; m >= 0; m--) {
+        var rp = ripples[m];
+        rp.t += dt / 0.9;
+        if (rp.t >= 1) { ripples.splice(m, 1); continue; }
+        ctx.globalAlpha = (1 - rp.t) * 0.7; ctx.strokeStyle = col[rp.c]; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(rp.x, rp.y, 3 + rp.t * 16, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    };
+    var spawn = function () {
+      for (var tries = 0; tries < 12; tries++) {
+        var p = pts[Math.floor(Math.random() * pts.length)];
+        if (p.sz > 0.35) {
+          var t = 0.15 + Math.random() * 0.85, tgt = lineAt(t);
+          p.flash = 1;
+          pulses.push({ sx: p.sx, sy: p.sy, tx: tgt.x, ty: tgt.y, mx: (p.sx + tgt.x) / 2 + (Math.random() - 0.5) * 80, my: Math.min(p.sy, tgt.y) - 40 - Math.random() * 60, t: 0, dur: 1.1 + Math.random() * 0.6, c: p.c });
+          return;
+        }
+      }
+    };
+    var loop = function (ts) {
+      if (!running) return;
+      var dt = Math.min(0.033, last ? (ts - last) / 1000 : 0.016);
+      last = ts;
+      rot += dt * 0.12;
+      ['x', 'y'].forEach(function (a) {
+        var acc = -40 * (tilt[a] - aim[a]) - 10 * tilt['v' + a];
+        tilt['v' + a] += acc * dt; tilt[a] += tilt['v' + a] * dt;
+      });
+      spawnAcc += dt;
+      if (spawnAcc > 0.22 && pulses.length < 14) { spawnAcc = 0; spawn(); }
+      draw(dt);
+      requestAnimationFrame(loop);
+    };
+    var start = function () { if (running || reduced() || !visible || document.hidden) return; running = true; last = 0; requestAnimationFrame(loop); };
+    var stop = function () { running = false; };
+    readColors(); layout();
+    window.addEventListener('resize', layout);
+    if (fine) {
+      canvas.parentElement.addEventListener('pointermove', function (e) {
+        aim.x = (e.clientX / window.innerWidth - 0.5) * 0.9;
+        aim.y = (e.clientY / window.innerHeight - 0.5) * 0.5;
+      });
+      canvas.parentElement.addEventListener('pointerleave', function () { aim.x = 0; aim.y = 0; });
+    }
+    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) start(); else stop(); }).observe(canvas);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else start(); });
+    start();
+    sphere = {
+      refresh: function () { readColors(); if (!running) draw(0); },
+      price: function (pr) { if (spark.length) { spark[spark.length - 1] = pr; } }
+    };
+  }
+
+  function countUp() {
+    if (reduced()) return;
+    $$('.count[data-to]').forEach(function (el, i) {
+      var to = +el.dataset.to, t0 = performance.now() + 500 + i * 120;
+      var step = function (now2) {
+        var k = Math.min(1, Math.max(0, (now2 - t0) / 1400));
+        el.textContent = Math.round(to * (1 - Math.pow(1 - k, 4))).toLocaleString('en-US');
+        if (k < 1) requestAnimationFrame(step);
+      };
+      el.textContent = '0';
+      requestAnimationFrame(step);
+    });
+  }
+
+  function initHow() {
+    var sec = $('#how');
+    if (!sec) return;
+    var data = S.landing || {};
+    var steps = $$('.flow__steps li', sec), cards = $$('.fc', sec), chart = $('#flowChart'), needle = $('#flowNeedle'), fill = $('#flowGaugeFill'), zEl = $('#flowZ');
+    var spark = data.spark || [];
+    var z = Math.abs(data.z || 0), zCap = Math.min(z / 6, 1);
+    if (spark.length > 1) {
+      var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark), span = max - min || 1;
+      var P = spark.map(function (v, i) { return [(i / (spark.length - 1)) * 400, 148 - (v - min) / span * 128]; });
+      var d = P.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
+      chart.innerHTML = '<path class="fl-area" d="' + d + ' L400 160 L0 160 Z" opacity="0"/><path class="fl-line" d="' + d + '" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/><line class="fl-t0" x1="280" x2="280" y1="0" y2="160" opacity="0"/>';
+    }
+    var line = $('.fl-line', chart), area = $('.fl-area', chart), t0 = $('.fl-t0', chart);
+    var clamp = function (v) { return Math.max(0, Math.min(1, v)); };
+    var update = function (p) {
+      var a = clamp(p / 0.3), b = clamp((p - 0.33) / 0.3), c = clamp((p - 0.66) / 0.28);
+      cards.forEach(function (el, k) {
+        var l = clamp(a * 1.8 - k * 0.25);
+        el.style.opacity = String(0.15 + 0.85 * l);
+        el.style.transform = 'translateX(' + ((1 - l) * -28).toFixed(1) + 'px)';
+      });
+      if (line) { line.setAttribute('stroke-dashoffset', String(1 - b)); area.setAttribute('opacity', String(b)); t0.setAttribute('opacity', b > 0.6 ? '1' : '0'); }
+      needle.style.transform = 'rotate(' + (-90 + c * zCap * 180).toFixed(1) + 'deg)';
+      fill.style.strokeDashoffset = String(100 - c * zCap * 100);
+      zEl.textContent = 'z ' + (c * z).toFixed(1) + (c >= 1 && data.g ? ' · ' + data.g : '');
+      var on = p < 0.33 ? 0 : p < 0.66 ? 1 : 2;
+      steps.forEach(function (li, i) { li.classList.toggle('is-on', i === on); });
+    };
+    if (reduced()) { update(1); return; }
+    var ticking = false;
+    var onScroll = function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        var r = sec.getBoundingClientRect(), range = sec.offsetHeight - window.innerHeight;
+        update(clamp(-r.top / (range || 1)));
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+  }
+
+  function initProofs() {
+    var boxes = $$('.proof__chart[data-sym]');
+    if (!boxes.length) return;
+    var io = new IntersectionObserver(function (en) {
+      en.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        var box = e.target, sym = box.dataset.sym, t0 = +box.dataset.t0;
+        candles(sym, t0 - 1800, Math.min(now(), t0 + 3600)).then(function (data) {
+          if (!data || data.rows.length < 3) { box.textContent = '차트를 불러오지 못했어요'; return; }
+          var rows = data.rows, cl = rows.map(function (r) { return r[2]; });
+          var min = Math.min.apply(null, cl), max = Math.max.apply(null, cl), span = max - min || max * 0.001;
+          var x = function (ts) { return (ts - (t0 - 1800)) / 5400 * 300; };
+          var pts = rows.map(function (r) { return x(r[0] + data.iv).toFixed(1) + ',' + (90 - (r[2] - min) / span * 84).toFixed(1); }).join(' ');
+          var at = rows.filter(function (r) { return r[0] >= t0; });
+          var dir = at.length && at[at.length - 1][2] >= at[0][1] ? 'is-up' : 'is-down';
+          box.classList.add(dir);
+          box.innerHTML = '<svg viewBox="0 0 300 96" preserveAspectRatio="none"><line class="pc-t0" x1="' + x(t0).toFixed(1) + '" x2="' + x(t0).toFixed(1) + '" y1="0" y2="96"/><polyline class="pc-line" points="' + pts + '"/></svg>';
+          var pl = $('.pc-line', box);
+          if (!reduced() && pl.getTotalLength) {
+            var len = Math.ceil(pl.getTotalLength() * 4);
+            pl.style.setProperty('--len', len);
+            pl.style.strokeDasharray = len;
+            box.classList.add('is-drawn');
+          }
+        });
+      });
+    }, { rootMargin: '0px 0px -10% 0px' });
+    boxes.forEach(function (b) { io.observe(b); });
+  }
+
+  function initBars() {
+    var bars = $('#tbars');
+    if (!bars) return;
+    var io = new IntersectionObserver(function (en) {
+      if (en[0].isIntersecting) { bars.classList.add('is-in'); io.disconnect(); }
+    }, { threshold: 0.3 });
+    io.observe(bars);
+  }
+
   /* ---------- 시작 ---------- */
   function boot() {
     initTheme();
@@ -697,6 +950,11 @@
     initPredict();
     initMe();
     initFlow();
+    initSphere();
+    countUp();
+    initHow();
+    initProofs();
+    initBars();
     updateTimes();
     setInterval(updateTimes, 30000);
   }
