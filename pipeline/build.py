@@ -531,14 +531,60 @@ def page_about(health, now):
     return shell("about", "소개·방법론", "SIGNAL이 뉴스를 모으고 가격 반응을 재는 방법과 데이터 출처.", B + "about/", body, now)
 
 
+WIN_KO = {"15m": "15분", "1h": "1시간", "24h": "24시간"}
+NOISE_ROWS = 12
+
+
+def scatter_chars(text):
+    """글자마다 흩어진 출발 위치를 정한다. 매 빌드 같은 값이 나오도록 위치만으로 계산한다."""
+    out = []
+    for i, ch in enumerate(text):
+        if ch == " ":
+            out.append(" ")
+            continue
+        x = ((i * 7919 + 13) % 61 - 30) / 30 * 0.55
+        y = ((i * 104729 + 7) % 53 - 26) / 26 * 0.45
+        r = (i * 31 + 5) % 41 - 20
+        out.append('<span class="c" style="--x:%.2fem;--y:%.2fem;--r:%ddeg;--i:%d">%s</span>' % (x, y, r, i, h(ch)))
+    return "".join(out)
+
+
+def noise_field(articles, sigs):
+    """배경 글자 줄: 최근 기사 제목들(노이즈) 사이에 실제로 가격이 크게 움직인 기사(시그널)를 섞는다."""
+    sig_ids = {r["id"] for r in sigs}
+    pool = [a for a in articles[:90] if a["id"] not in sig_ids][:72]
+    rows = [[] for _ in range(NOISE_ROWS)]
+    for i, a in enumerate(pool):
+        rows[i % NOISE_ROWS].append('<span class="nz__i">%s</span>' % h(a["title"]))
+    for k, r in enumerate(sigs):
+        title = r["title"] if len(r["title"]) <= 60 else r["title"][:58].rstrip() + "…"
+        span = '<span class="nz__i nz__i--sig" data-k="%d"><b>%s %s %s</b>%s</span>' % (
+            k, h(r["asset"]), WIN_KO.get(r["win"], r["win"]), pct(r["r"]), h(title))
+        # 시그널 하나를 두 줄에 나눠 넣어, 화면 어디서든 곧 하나가 보이게 한다
+        for j, at in enumerate(((k * 5 + 1) % NOISE_ROWS, (k * 5 + 7) % NOISE_ROWS)):
+            row = rows[at]
+            row.insert(min(len(row), (0 if k % 2 == 0 else 2) if j == 0 else 1 + k % 3), span)
+    sep = '<i>/</i>'
+    return "".join('<div class="nz__row" style="--dur:%ds"><div class="nz__track">%s</div></div>'
+                   % (90 + (i * 37) % 80, (sep.join(row) + sep) * 2) for i, row in enumerate(rows) if row)
+
+
+def sig_readout(r):
+    if not r:
+        return '<p class="lread__big">측정 대기</p><p class="lread__meta">반응이 측정되면 여기에 크게 표시됩니다.</p>'
+    return ('<p class="lread__big"><span class="lread__asset">{asset}</span><span class="lread__r {d}">{r}</span></p>'
+            '<p class="lread__meta">기사 후 {win} · z {z}{g}</p><a class="lread__title" href="{B}a/{id}/">{title}</a>').format(
+        asset=h(r["asset"]), d="up" if r["r"] >= 0 else "down", r=pct(r["r"]), win=WIN_KO.get(r["win"], r["win"]), z=("%.1f" % r["z"]).replace("-", "−"),
+        g=(" · " + r["g"]) if r.get("g") else "", B=B, id=h(r["id"]), title=h(r["title"]))
+
+
 def page_landing(articles, market, imp, now):
     """첫 화면: 브랜드·모션 그래픽·실데이터 증거. 숫자는 모두 실제 수집·측정값이다."""
     day = [a for a in articles if now - a["t0"] < 86400]
     n24 = len(day)
     measured = sum(1 for a in articles if a.get("headline"))
-    shares = {c: sum(1 for a in day if a["category"] == c) for c in ("crypto", "ai", "macro")}
-    total = sum(shares.values()) or 1
-    share_pct = {c: round(v * 100 / total) for c, v in shares.items()}
+    sigs = [{k: r[k] for k in ("id", "title", "asset", "win", "r", "z", "g")} for r in imp.get("strongest", [])[:6]]
+    noise, readout = noise_field(articles, sigs), sig_readout(sigs[0] if sigs else None)
     strong = [r for r in imp.get("strongest", []) if r.get("g") in ("강", "중")][:3] or imp.get("strongest", [])[:3]
     latest = [{"title": a["title"], "src": a["source_name"], "cat": a["category"]} for a in articles[:4]]
     btc = (market.get("tickers") or {}).get("BTC") or {}
@@ -559,11 +605,11 @@ def page_landing(articles, market, imp, now):
     s0 = strong[0] if strong else None
     body = """
 <section class="lhero" aria-labelledby="lheroTitle">
-  <canvas class="lhero__canvas" id="sphereCanvas" aria-hidden="true"></canvas>
+  <div class="nz" id="noise" aria-hidden="true">{noise}</div>
   <div class="wrap lhero__inner">
     <div class="lhero__copy">
       <p class="eyebrow eyebrow--live reveal-in" style="--d:0"><span class="live-dot" aria-hidden="true"></span>LIVE · 15분마다 수집 · 마지막 <time data-ts="{now}">{now_hm}</time></p>
-      <h1 class="lhero__title" id="lheroTitle"><span class="w" style="--d:1">Noise</span> <span class="w" style="--d:2">out,</span><br><span class="w" style="--d:3"><em>Signal</em></span> <span class="w" style="--d:4">in.</span></h1>
+      <h1 class="lhero__title" id="lheroTitle" aria-label="Noise out, Signal in."><span class="ln ln--noise" aria-hidden="true">{title_noise}</span><span class="ln ln--sig" aria-hidden="true"><span><em>Signal</em> in.</span></span></h1>
       <p class="lhero__lede reveal-in" style="--d:5">크립토·AI·매크로 뉴스를 모으고, 뉴스마다 비트코인이 <b>실제로 얼마나 움직였는지</b> 잽니다. 감이 아니라 측정값으로.</p>
       <div class="lhero__actions reveal-in" style="--d:6"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 열기 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h10m-4-4 4 4-4 4"/></svg></a><a class="btn btn--ghost btn--lg" href="{B}impact/">임팩트 리포트</a></div>
       <dl class="lhero__stats reveal-in" style="--d:7">
@@ -572,12 +618,11 @@ def page_landing(articles, market, imp, now):
         <div><dt>반응 측정 기사</dt><dd><span class="count" data-to="{measured}">{measured}</span></dd></div>
       </dl>
     </div>
-    <div class="lhero__legend reveal-in" style="--d:8" aria-label="그래픽 설명">
-      <p class="mono-label">SIGNAL FIELD · 최근 24시간</p>
-      <ul><li><i class="dot dot--crypto"></i>크립토 {pc}%</li><li><i class="dot dot--ai"></i>AI {pa}%</li><li><i class="dot dot--macro"></i>매크로 {pm}%</li></ul>
-      <p class="muted small">점 하나가 기사 하나의 자리입니다. 펄스는 뉴스가 가격선에 닿는 모습을 나타냅니다.</p>
-      <p class="lhero__btc"><span class="muted small">BTC</span> <b id="heroBtc">{btc}</b> <span id="heroBtcChg" class="{bdir}">{bchg}</span></p>
-    </div>
+    <aside class="lread reveal-in" style="--d:8" aria-label="최근 강한 가격 반응">
+      <p class="lread__head"><span class="mono-label">SIGNAL · 최근 7일</span><span class="lread__btc">BTC <b id="heroBtc">{btc}</b> <span id="heroBtcChg" class="{bdir}">{bchg}</span></span></p>
+      <div class="lread__slot" id="lreadSlot">{readout}</div>
+      <p class="lread__foot"><span class="lread__dots" id="lreadDots" aria-hidden="true">{dots}</span><span class="muted small">뒤 배경은 실제 수집한 기사 제목입니다</span></p>
+    </aside>
   </div>
   <a class="lhero__scroll" href="#how" aria-label="아래로">SCROLL<i></i></a>
 </section>
@@ -641,11 +686,12 @@ def page_landing(articles, market, imp, now):
   </div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, n24=n24, nsrc=len(config.SOURCES), measured=measured,
-        pc=share_pct["crypto"], pa=share_pct["ai"], pm=share_pct["macro"],
+        noise=noise, readout=readout, title_noise=scatter_chars("Noise out,"),
+        dots="".join('<i class="is-on"></i>' if k == 0 else "<i></i>" for k in range(len(sigs))),
         btc=("$" + price(btc["price"])) if btc.get("price") else "–", bdir="up" if btc.get("chg", 0) >= 0 else "down", bchg=pct(btc.get("chg")) if btc else "",
         flow_cards=flow_cards, s0label=("예: " + h(s0["title"][:30]) + ("…" if len(s0["title"]) > 30 else "") + " · " + s0["asset"] + " " + s0["win"]) if s0 else "측정 대기",
         proof=proof, bars=bars, kimp=pct(((market.get("kimp") or {}).get("BTC") or {}).get("premium")))
-    data = {"landing": {"shares": shares, "spark": btc.get("spark") or [], "z": s0["z"] if s0 else 0, "g": s0["g"] if s0 else None}}
+    data = {"landing": {"sigs": sigs, "spark": btc.get("spark") or [], "z": s0["z"] if s0 else 0, "g": s0["g"] if s0 else None}}
     return shell("home", "SIGNAL — 뉴스가 움직인 가격까지", "크립토·AI·매크로 뉴스를 모으고, 뉴스마다 비트코인 가격이 실제로 얼마나 움직였는지 실측해 보여 줍니다.",
                  B, body, now, data=data)
 
