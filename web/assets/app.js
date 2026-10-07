@@ -92,7 +92,6 @@
       try { localStorage.setItem('signal-theme', next); } catch (e) {}
       sync();
       if (flow) flow.refresh();
-      if (sphere) sphere.refresh();
     });
   }
 
@@ -202,7 +201,6 @@
       var hc = $('#heroBtcChg');
       hc.className = tick.BTC.chg >= 0 ? 'up' : 'down';
       hc.textContent = pct(tick.BTC.chg);
-      if (sphere) sphere.price(tick.BTC.price);
     }
     SYMS.forEach(function (s) {
       var t = tick[s];
@@ -693,148 +691,73 @@
   }
 
   /* ---------- 랜딩 ---------- */
-  function cssColor(name) {
-    var probe = document.createElement('i');
-    document.body.appendChild(probe);
-    probe.style.color = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    var c = getComputedStyle(probe).color;
-    probe.remove();
-    return c;
-  }
-  var sphere = null;
-  function initSphere() {
-    var canvas = $('#sphereCanvas');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var data = S.landing || {};
-    var shares = data.shares || { crypto: 1, ai: 1, macro: 1 };
-    var total = (shares.crypto || 0) + (shares.ai || 0) + (shares.macro || 0) || 1;
-    var spark = (data.spark || []).slice();
-    var w = 0, h = 0, cx = 0, cy = 0, R = 0, lineX0 = 0, lineX1 = 0, lineY = 0, lineH = 0;
-    var pts = [], pulses = [], ripples = [], col = {}, running = false, visible = true, last = 0, rot = 0, spawnAcc = 0;
-    var tilt = { x: 0, y: 0, vx: 0, vy: 0 }, aim = { x: 0, y: 0 };
-    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    var readColors = function () {
-      col = { crypto: cssColor('--crypto'), ai: cssColor('--ai'), macro: cssColor('--macro'), accent: cssColor('--accent-ink'), line: cssColor('--text-3'), text: cssColor('--text') };
+  // 배경 기사 제목 가운데 실제로 가격이 크게 움직인 기사에 차례로 형광펜을 긋고, 그 수치를 오른쪽에 크게 보여 준다
+  function initNoise() {
+    var hero = $('.lhero'), slot = $('#lreadSlot');
+    if (!hero || !slot) return;
+    var sigs = (S.landing || {}).sigs || [];
+    var dots = $$('#lreadDots i');
+    var WIN = { '15m': '15분', '1h': '1시간', '24h': '24시간' };
+    var k = 0, hit = null, last = null, timer = null, visible = true;
+    var show = function (i, animate) {
+      var s = sigs[i];
+      if (!s) return;
+      slot.innerHTML = '<p class="lread__big"><span class="lread__asset">' + esc(s.asset) + '</span><span class="lread__r ' + (s.r >= 0 ? 'up' : 'down') + '">' + pct(animate ? 0 : s.r) + '</span></p>' +
+        '<p class="lread__meta">기사 후 ' + (WIN[s.win] || esc(s.win)) + ' · z ' + Number(s.z).toFixed(1).replace('-', '−') + (s.g ? ' · ' + esc(s.g) : '') + '</p>' +
+        '<a class="lread__title" href="' + BASE + 'a/' + esc(s.id) + '/">' + esc(s.title) + '</a>';
+      dots.forEach(function (d, j) { d.classList.toggle('is-on', j === i); });
+      if (!animate) return;
+      slot.classList.remove('is-in'); void slot.offsetWidth; slot.classList.add('is-in');
+      var el = $('.lread__r', slot), t0 = performance.now();
+      var step = function (t) {
+        var p = Math.min(1, (t - t0) / 900);
+        el.textContent = pct(s.r * (1 - Math.pow(1 - p, 4)));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
     };
-    var build = function () {
-      var n = w < 760 ? 520 : 1100, golden = Math.PI * (3 - Math.sqrt(5));
-      var cutC = (shares.crypto || 0) / total, cutA = cutC + (shares.ai || 0) / total;
-      pts = [];
-      for (var i = 0; i < n; i++) {
-        var y = 1 - 2 * (i + 0.5) / n, r = Math.sqrt(1 - y * y), phi = i * golden;
-        // 위도 띠가 생기지 않도록 점마다 고정된 의사 난수로 카테고리를 섞는다
-        var u = Math.abs(Math.sin(i * 12.9898 + 78.233) * 43758.5453) % 1;
-        pts.push({ x: Math.cos(phi) * r, y: y, z: Math.sin(phi) * r, c: u < cutC ? 'crypto' : u < cutA ? 'ai' : 'macro', flash: 0 });
-      }
+    var blocked = function () {
+      return ['.eyebrow--live', '.lhero__title', '.lhero__lede', '.lhero__actions', '.lhero__stats', '.lread', '.lhero__scroll'].map(function (q) { var e = $(q, hero); return e && e.getBoundingClientRect(); }).filter(Boolean);
     };
-    var layout = function () {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2), rect = canvas.getBoundingClientRect();
-      w = rect.width; h = rect.height;
-      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (w >= 900) { cx = w * 0.71; cy = h * 0.42; R = Math.min(h * 0.33, w * 0.22); lineX0 = w * 0.46; lineX1 = w * 0.98; lineY = h * 0.86; lineH = h * 0.08; }
-      else { cx = w * 0.5; cy = Math.min(h * 0.2, 190); R = Math.min(w * 0.3, 120); lineX0 = w * 0.06; lineX1 = w * 0.94; lineY = cy + R * 1.6; lineH = 36; }
-      build();
-      if (!running) draw(0);
+    var release = function () {
+      if (!hit) return;
+      hit.classList.remove('is-hit');
+      hit.closest('.nz__row').classList.remove('is-held');
+      hit = null;
     };
-    var project = function (p) {
-      var cosY = Math.cos(rot + tilt.x), sinY = Math.sin(rot + tilt.x), cosX = Math.cos(0.35 + tilt.y), sinX = Math.sin(0.35 + tilt.y);
-      var x = p.x * cosY - p.z * sinY, z = p.x * sinY + p.z * cosY;
-      var y = p.y * cosX - z * sinX; z = p.y * sinX + z * cosX;
-      var k = 1 / (1.6 - z * 0.45);
-      return { x: cx + x * R * k * 1.6, y: cy + y * R * k * 1.6, z: z };
-    };
-    var lineAt = function (t) {
-      // 0~1 위치의 가격선 좌표
-      if (spark.length < 2) return { x: lineX0 + t * (lineX1 - lineX0), y: lineY };
-      var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark), span = max - min || 1;
-      var f = t * (spark.length - 1), i = Math.floor(f), j = Math.min(spark.length - 1, i + 1), v = spark[i] + (spark[j] - spark[i]) * (f - i);
-      return { x: lineX0 + t * (lineX1 - lineX0), y: lineY + lineH / 2 - (v - min) / span * lineH };
-    };
-    var draw = function (dt) {
-      ctx.clearRect(0, 0, w, h);
-      // 가격선
-      ctx.globalAlpha = 0.55; ctx.strokeStyle = col.line; ctx.lineWidth = 1.2; ctx.beginPath();
-      for (var s = 0; s <= 60; s++) { var q = lineAt(s / 60); if (s) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }
-      ctx.stroke();
-      var end = lineAt(1);
-      ctx.globalAlpha = 1; ctx.fillStyle = col.accent; ctx.beginPath(); ctx.arc(end.x, end.y, 3, 0, Math.PI * 2); ctx.fill();
-      // 점
-      for (var i = 0; i < pts.length; i++) {
-        var p = pts[i], q2 = project(p), front = (q2.z + 1) / 2;
-        p.sx = q2.x; p.sy = q2.y; p.sz = q2.z;
-        if (p.flash > 0) p.flash = Math.max(0, p.flash - dt * 1.6);
-        ctx.globalAlpha = 0.12 + front * 0.62 + p.flash * 0.4;
-        ctx.fillStyle = col[p.c];
-        var r = 0.8 + front * 1.6 + p.flash * 2.2;
-        ctx.beginPath(); ctx.arc(q2.x, q2.y, r, 0, Math.PI * 2); ctx.fill();
-      }
-      // 펄스: 점 → 가격선
-      for (var k = pulses.length - 1; k >= 0; k--) {
-        var u = pulses[k];
-        u.t += dt / u.dur;
-        if (u.t >= 1) { ripples.push({ x: u.tx, y: u.ty, t: 0, c: u.c }); pulses.splice(k, 1); continue; }
-        for (var tail = 0; tail < 5; tail++) {
-          var tt = Math.max(0, u.t - tail * 0.035), e = 1 - Math.pow(1 - tt, 3);
-          var bx = (1 - e) * (1 - e) * u.sx + 2 * (1 - e) * e * u.mx + e * e * u.tx;
-          var by = (1 - e) * (1 - e) * u.sy + 2 * (1 - e) * e * u.my + e * e * u.ty;
-          ctx.globalAlpha = (1 - tail / 5) * 0.9; ctx.fillStyle = col[u.c];
-          ctx.beginPath(); ctx.arc(bx, by, 2.2 - tail * 0.35, 0, Math.PI * 2); ctx.fill();
-        }
-      }
-      for (var m = ripples.length - 1; m >= 0; m--) {
-        var rp = ripples[m];
-        rp.t += dt / 0.9;
-        if (rp.t >= 1) { ripples.splice(m, 1); continue; }
-        ctx.globalAlpha = (1 - rp.t) * 0.7; ctx.strokeStyle = col[rp.c]; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.arc(rp.x, rp.y, 3 + rp.t * 16, 0, Math.PI * 2); ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-    };
-    var spawn = function () {
-      for (var tries = 0; tries < 12; tries++) {
-        var p = pts[Math.floor(Math.random() * pts.length)];
-        if (p.sz > 0.35) {
-          var t = 0.15 + Math.random() * 0.85, tgt = lineAt(t);
-          p.flash = 1;
-          pulses.push({ sx: p.sx, sy: p.sy, tx: tgt.x, ty: tgt.y, mx: (p.sx + tgt.x) / 2 + (Math.random() - 0.5) * 80, my: Math.min(p.sy, tgt.y) - 40 - Math.random() * 60, t: 0, dur: 1.1 + Math.random() * 0.6, c: p.c });
-          return;
-        }
-      }
-    };
-    var loop = function (ts) {
-      if (!running) return;
-      var dt = Math.min(0.033, last ? (ts - last) / 1000 : 0.016);
-      last = ts;
-      rot += dt * 0.12;
-      ['x', 'y'].forEach(function (a) {
-        var acc = -40 * (tilt[a] - aim[a]) - 10 * tilt['v' + a];
-        tilt['v' + a] += acc * dt; tilt[a] += tilt['v' + a] * dt;
+    var next = function () {
+      release();
+      if (!sigs.length) return;
+      var box = hero.getBoundingClientRect(), stops = blocked(), vw = window.innerWidth;
+      var free = $$('.nz__i--sig', hero).filter(function (el) {
+        var r = el.getBoundingClientRect(), left = Math.max(r.left, 0), right = Math.min(r.right, vw);
+        // 보이는 부분이 충분히 길고, 글자 덩어리(제목·버튼·판독 카드)와 겹치지 않는 것만
+        if (right - left < Math.min(220, r.width) || r.top < box.top + 4 || r.bottom > box.bottom - 72) return false;
+        return !stops.some(function (b) { return left < b.right + 10 && right > b.left - 10 && r.top < b.bottom + 6 && r.bottom > b.top - 6; });
       });
-      spawnAcc += dt;
-      if (spawnAcc > 0.22 && pulses.length < 14) { spawnAcc = 0; spawn(); }
-      draw(dt);
-      requestAnimationFrame(loop);
+      // 앞에 붙는 수치 배지까지 보이는 것을 먼저 고른다
+      var whole = free.filter(function (el) { var r = el.getBoundingClientRect(); return r.left >= 12 && r.left <= vw - 240; });
+      var pool = whole.length ? whole : free;
+      if (pool.length > 1) pool = pool.filter(function (el) { return el !== last; });
+      var pick = pool.filter(function (el) { return +el.dataset.k === k; })[0] || pool[Math.floor(Math.random() * pool.length)];
+      if (pick) {
+        k = +pick.dataset.k;
+        hit = last = pick;
+        pick.closest('.nz__row').classList.add('is-held');
+        pick.classList.add('is-hit');
+      }
+      show(k, true);
+      k = (k + 1) % sigs.length;
     };
-    var start = function () { if (running || reduced() || !visible || document.hidden) return; running = true; last = 0; requestAnimationFrame(loop); };
-    var stop = function () { running = false; };
-    readColors(); layout();
-    window.addEventListener('resize', layout);
-    if (fine) {
-      canvas.parentElement.addEventListener('pointermove', function (e) {
-        aim.x = (e.clientX / window.innerWidth - 0.5) * 0.9;
-        aim.y = (e.clientY / window.innerHeight - 0.5) * 0.5;
-      });
-      canvas.parentElement.addEventListener('pointerleave', function () { aim.x = 0; aim.y = 0; });
-    }
-    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) start(); else stop(); }).observe(canvas);
-    document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else start(); });
-    start();
-    sphere = {
-      refresh: function () { readColors(); if (!running) draw(0); },
-      price: function (pr) { if (spark.length) { spark[spark.length - 1] = pr; } }
-    };
+    if (reduced()) return;
+    var run = function () { if (!timer && visible && !document.hidden) { timer = setInterval(next, 3600); setTimeout(next, 1600); } };
+    var halt = function () { clearInterval(timer); timer = null; };
+    new IntersectionObserver(function (en) {
+      visible = en[0].isIntersecting;
+      hero.classList.toggle('is-paused', !visible);
+      if (visible) run(); else halt();
+    }).observe(hero);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) halt(); else run(); });
   }
 
   function countUp() {
@@ -950,7 +873,7 @@
     initPredict();
     initMe();
     initFlow();
-    initSphere();
+    initNoise();
     countUp();
     initHow();
     initProofs();
