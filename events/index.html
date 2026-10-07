@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>이벤트 리스크 — 발표별 과거 흔들림 · SIGNAL</title>
+<meta name="description" content="다가오는 미국 주요 경제 발표에서 비트코인이 과거에 얼마나 흔들렸는지 봅니다.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://mash1384.github.io/signal-desk/events/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SIGNAL">
+<meta property="og:title" content="이벤트 리스크 — 발표별 과거 흔들림 · SIGNAL">
+<meta property="og:description" content="다가오는 미국 주요 경제 발표에서 비트코인이 과거에 얼마나 흔들렸는지 봅니다.">
+<meta property="og:url" content="https://mash1384.github.io/signal-desk/events/">
+<meta property="og:image" content="https://mash1384.github.io/signal-desk/og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d0d10">
+<link rel="icon" href="/signal-desk/assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/signal-desk/assets/styles.css?v=7e227b14">
+<script>(function(){try{var t=localStorage.getItem('signal-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+<script type="module" src="/signal-desk/assets/events.js?v=7e227b14"></script>
+</head>
+<body class="p-events">
+<a class="skip-link" href="#main">본문으로 건너뛰기</a>
+<div class="ticker" role="region" aria-label="시세">
+  <div class="ticker__status" id="feedStatus" data-state="snapshot"><span class="dot" aria-hidden="true"></span><span class="ticker__label">시세</span></div>
+  <div class="ticker__viewport"><div class="ticker__track" id="tickerTrack"></div></div>
+</div>
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="brand" href="/signal-desk/" aria-label="SIGNAL 홈">
+      <svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="0.5" y="0.5" width="27" height="27" rx="8" fill="currentColor"/><path d="M5 15h4l2.5-6 4 11 2.5-5H23" fill="none" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand__word">SIGNAL<span class="brand__slash">/</span></span>
+    </a>
+    <nav class="nav__links" aria-label="주 메뉴"><a class="nav__link" href="/signal-desk/map/">시그널 보드</a><a class="nav__link" href="/signal-desk/live/">라이브</a><a class="nav__link" href="/signal-desk/listings/">상장 레이더</a><a class="nav__link" href="/signal-desk/events/" aria-current="page">이벤트 리스크</a><a class="nav__link" href="/signal-desk/patterns/">패턴</a></nav>
+    <div class="nav__actions">
+      <button class="search-btn" id="openSearch" type="button" aria-label="검색 (⌘K)"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><span class="search-btn__label">검색</span><kbd>⌘K</kbd></button>
+      <a class="icon-btn nav__me" href="/signal-desk/me/" aria-label="마이"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M3.8 16.5c.9-3 3.3-4.6 6.2-4.6s5.3 1.6 6.2 4.6"/></svg></a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="라이트 모드로 전환"><svg class="i-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.5"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1"/></svg><svg class="i-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16 12.3A6.5 6.5 0 0 1 7.7 4a6.5 6.5 0 1 0 8.3 8.3Z"/></svg></button>
+    </div>
+  </div>
+</header>
+<main id="main" class="main">
+
+<div class="wrap evp">
+  <header class="phead"><h1 class="phead__title">이벤트 리스크</h1><p class="muted">다가오는 미국 주요 발표에서 BTC가 과거에 얼마나 흔들렸는지 봅니다. 시각은 한국 시간.</p></header>
+  <section class="evp__top">
+    <div class="radar" id="radar"><canvas id="radarCanvas" aria-hidden="true"></canvas><div class="radar__center" id="radarCenter" aria-live="polite"></div></div>
+    <div class="evp__legend">
+      <div class="mseg" role="group" aria-label="레이더 범위"><button type="button" class="mseg__b" data-span="24" aria-pressed="true">다음 24시간</button><button type="button" class="mseg__b" data-span="168" aria-pressed="false">7일</button></div>
+      <p class="small muted">시계 12시 방향이 지금이고, 시계 방향으로 시간이 흐릅니다. 원의 크기는 과거 같은 발표 뒤 BTC 1시간 변동폭의 중앙값입니다. 원을 누르면 그 발표 카드로 갑니다.</p>
+      <p class="small muted">과거 같은 발표 직후 BTC가 움직인 폭이며, 발표가 원인이라는 뜻은 아닙니다.</p>
+    </div>
+  </section>
+  <section class="evp__cards"><article class="evr" id="ev-cpi-1791981000" data-ts="1791981000"><header class="evr__head"><span class="lvb lvb--3">상</span>
+  <h3 class="evr__name">소비자물가(CPI)</h3><p class="evr__when"><time>10.14(수) 21:30</time> · <span class="evr__left" data-left="1791981000"></span></p></header>
+  <div class="evr__stats">
+  <div class="evr__max"><dt>과거 1시간 최대 폭</dt><dd>±1.88%</dd></div>
+  <dl class="evr__grid"><div><dt>1시간 중앙값</dt><dd>±0.57%</dd></div><div><dt>1시간 90%</dt><dd>±1.49%</dd></div><div><dt>15분 중앙값</dt><dd>±0.47%</dd></div><div><dt>상승 비율</dt><dd>65%</dd></div></dl>
+  <div class="evr__bars" aria-label="최근 12회 발표 1시간 변동"><i class="down" style="--v:0.308" title="2025.09.11 −0.58%"></i><i class="up" style="--v:0.110" title="2025.10.24 +0.21%"></i><i class="up" style="--v:0.536" title="2025.12.18 +1.00%"></i><i class="up" style="--v:0.170" title="2026.01.13 +0.32%"></i><i class="down" style="--v:0.020" title="2026.02.13 −0.04%"></i><i class="up" style="--v:0.609" title="2026.03.11 +1.14%"></i><i class="up" style="--v:0.090" title="2026.04.10 +0.17%"></i><i class="down" style="--v:0.105" title="2026.05.12 −0.20%"></i><i class="up" style="--v:0.336" title="2026.06.10 +0.63%"></i><i class="up" style="--v:0.848" title="2026.07.14 +1.59%"></i><i class="down" style="--v:0.374" title="2026.08.12 −0.70%"></i><i class="up" style="--v:0.298" title="2026.09.11 +0.56%"></i></div>
+  <p class="small muted">최근 20회 발표 기준 BTC · 가장 컸던 날 2025.02.12 (−1.87%) <span class="evr__vs">평소 같은 시간대의 <b>5.3배</b></span></p></div></article><article class="evr" id="ev-ppi-1792067400" data-ts="1792067400"><header class="evr__head"><span class="lvb lvb--2">중</span>
+  <h3 class="evr__name">생산자물가(PPI)</h3><p class="evr__when"><time>10.15(목) 21:30</time> · <span class="evr__left" data-left="1792067400"></span></p></header>
+  <div class="evr__stats">
+  <div class="evr__max"><dt>과거 1시간 최대 폭</dt><dd>±2.40%</dd></div>
+  <dl class="evr__grid"><div><dt>1시간 중앙값</dt><dd>±0.30%</dd></div><div><dt>1시간 90%</dt><dd>±0.98%</dd></div><div><dt>15분 중앙값</dt><dd>±0.26%</dd></div><div><dt>상승 비율</dt><dd>55%</dd></div></dl>
+  <div class="evr__bars" aria-label="최근 12회 발표 1시간 변동"><i class="up" style="--v:0.402" title="2025.09.10 +0.96%"></i><i class="down" style="--v:0.212" title="2025.11.25 −0.51%"></i><i class="up" style="--v:0.191" title="2026.01.14 +0.46%"></i><i class="up" style="--v:0.134" title="2026.01.30 +0.32%"></i><i class="up" style="--v:0.063" title="2026.02.27 +0.15%"></i><i class="down" style="--v:0.197" title="2026.03.18 −0.47%"></i><i class="up" style="--v:0.116" title="2026.04.14 +0.28%"></i><i class="down" style="--v:0.103" title="2026.05.13 −0.25%"></i><i class="up" style="--v:0.087" title="2026.06.11 +0.21%"></i><i class="up" style="--v:0.402" title="2026.07.15 +0.96%"></i><i class="up" style="--v:0.017" title="2026.08.13 +0.04%"></i><i class="down" style="--v:0.462" title="2026.09.10 −1.11%"></i></div>
+  <p class="small muted">최근 20회 발표 기준 BTC · 가장 컸던 날 2025.08.14 (−2.40%) <span class="evr__vs">평소 같은 시간대의 <b>2.8배</b></span></p></div></article><article class="evr" id="ev-retail-1792067400" data-ts="1792067400"><header class="evr__head"><span class="lvb lvb--2">중</span>
+  <h3 class="evr__name">소매판매</h3><p class="evr__when"><time>10.15(목) 21:30</time> · <span class="evr__left" data-left="1792067400"></span></p></header>
+  <div class="evr__stats">
+  <div class="evr__max"><dt>과거 1시간 최대 폭</dt><dd>±1.02%</dd></div>
+  <dl class="evr__grid"><div><dt>1시간 중앙값</dt><dd>±0.37%</dd></div><div><dt>1시간 90%</dt><dd>±0.70%</dd></div><div><dt>15분 중앙값</dt><dd>±0.30%</dd></div><div><dt>상승 비율</dt><dd>56%</dd></div></dl>
+  <div class="evr__bars" aria-label="최근 12회 발표 1시간 변동"><i class="down" style="--v:0.483" title="2025.12.16 −0.49%"></i><i class="up" style="--v:0.448" title="2026.01.14 +0.46%"></i><i class="up" style="--v:0.696" title="2026.02.10 +0.71%"></i><i class="up" style="--v:0.079" title="2026.03.06 +0.08%"></i><i class="up" style="--v:0.045" title="2026.04.01 +0.05%"></i><i class="down" style="--v:0.449" title="2026.04.21 −0.46%"></i><i class="up" style="--v:0.642" title="2026.05.14 +0.66%"></i><i class="up" style="--v:0.362" title="2026.06.17 +0.37%"></i><i class="up" style="--v:0.100" title="2026.07.16 +0.10%"></i><i class="down" style="--v:0.170" title="2026.08.14 −0.17%"></i><i class="down" style="--v:0.211" title="2026.09.16 −0.22%"></i><i class="down" style="--v:0.725" title="2026.09.28 −0.74%"></i></div>
+  <p class="small muted">최근 23회 발표 기준 BTC · 가장 컸던 날 2025.04.25 (+1.03%) <span class="evr__vs">평소 같은 시간대의 <b>3.5배</b></span></p></div></article><article class="evr" id="ev-claims-1792067400" data-ts="1792067400"><header class="evr__head"><span class="lvb lvb--2">중</span>
+  <h3 class="evr__name">신규 실업수당 청구</h3><p class="evr__when"><time>10.15(목) 21:30</time> · <span class="evr__left" data-left="1792067400"></span></p></header>
+  <div class="evr__stats">
+  <div class="evr__max"><dt>과거 1시간 최대 폭</dt><dd>±2.40%</dd></div>
+  <dl class="evr__grid"><div><dt>1시간 중앙값</dt><dd>±0.25%</dd></div><div><dt>1시간 90%</dt><dd>±0.68%</dd></div><div><dt>15분 중앙값</dt><dd>±0.16%</dd></div><div><dt>상승 비율</dt><dd>46%</dd></div></dl>
+  <div class="evr__bars" aria-label="최근 12회 발표 1시간 변동"><i class="down" style="--v:0.256" title="2026.07.23 −0.62%"></i><i class="down" style="--v:0.036" title="2026.07.30 −0.09%"></i><i class="down" style="--v:0.195" title="2026.08.06 −0.47%"></i><i class="up" style="--v:0.017" title="2026.08.13 +0.04%"></i><i class="up" style="--v:0.070" title="2026.08.20 +0.17%"></i><i class="down" style="--v:0.104" title="2026.08.27 −0.25%"></i><i class="up" style="--v:0.280" title="2026.09.03 +0.67%"></i><i class="down" style="--v:0.462" title="2026.09.10 −1.11%"></i><i class="down" style="--v:0.284" title="2026.09.17 −0.68%"></i><i class="up" style="--v:0.115" title="2026.09.24 +0.28%"></i><i class="down" style="--v:0.216" title="2026.10.01 −0.52%"></i><i class="down" style="--v:0.056" title="2026.10.08 −0.13%"></i></div>
+  <p class="small muted">최근 86회 발표 기준 BTC · 가장 컸던 날 2025.08.14 (−2.40%) <span class="evr__vs">평소 같은 시간대의 <b>2.4배</b></span></p></div></article></section>
+  <section class="panel evp__kinds"><h2 class="panel__title">발표 종류별 과거 흔들림(BTC 1시간)</h2>
+    <div class="lst__tablewrap"><table class="mtable"><thead><tr><th scope="col">발표</th><th scope="col">표본</th><th scope="col">중앙값</th><th scope="col">90%</th><th scope="col">최대</th><th scope="col">상승 비율</th></tr></thead><tbody><tr><th scope="row">소비자물가(CPI)</th><td>20</td><td>±0.57%</td><td>±1.49%</td><td>±1.88%</td><td>65%</td></tr><tr><th scope="row">생산자물가(PPI)</th><td>20</td><td>±0.30%</td><td>±0.98%</td><td>±2.40%</td><td>55%</td></tr><tr><th scope="row">고용보고서(비농업 고용·실업률)</th><td>21</td><td>±0.34%</td><td>±1.53%</td><td>±2.49%</td><td>43%</td></tr><tr><th scope="row">PCE 물가</th><td>21</td><td>±0.23%</td><td>±0.84%</td><td>±1.49%</td><td>38%</td></tr><tr><th scope="row">GDP</th><td>20</td><td>±0.32%</td><td>±0.85%</td><td>±1.49%</td><td>25%</td></tr><tr><th scope="row">소매판매</th><td>23</td><td>±0.37%</td><td>±0.70%</td><td>±1.02%</td><td>56%</td></tr><tr><th scope="row">신규 실업수당 청구</th><td>86</td><td>±0.25%</td><td>±0.68%</td><td>±2.40%</td><td>46%</td></tr><tr><th scope="row">FOMC 금리 결정</th><td>47</td><td>±0.96%</td><td>±2.42%</td><td>±4.32%</td><td>49%</td></tr><tr><th scope="row">FOMC 기자회견</th><td>45</td><td>±0.96%</td><td>±2.75%</td><td>±5.57%</td><td>53%</td></tr><tr><th scope="row">FOMC 의사록</th><td>46</td><td>±0.33%</td><td>±1.00%</td><td>±3.58%</td><td>48%</td></tr><tr><th scope="row">ISM 제조업 PMI</th><td>0</td><td>–</td><td>–</td><td>–</td><td>–</td></tr><tr><th scope="row">ISM 서비스업 PMI</th><td>1</td><td>±0.91%</td><td>±0.91%</td><td>±0.91%</td><td>0%</td></tr></tbody></table></div>
+    <p class="small muted">출처: FRED 발표 일정(CPI·PPI·고용·PCE·GDP·소매판매·실업수당), 연준 FOMC 일정, 이후 회차는 Forex Factory 주간 일정. ISM은 과거 일정을 받을 수 없어 매주 쌓이는 회차만 셉니다. 발표 직전 1분 종가 대비 바이낸스 BTC 변화입니다.</p></section>
+</div>
+</main>
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div><span class="brand__word">SIGNAL<span class="brand__slash">/</span></span><p class="muted">해외 속보를 한국어로, 그리고 그 뉴스가 실제로 가격을 얼마나 움직였는지까지.</p></div>
+    <nav class="footer__nav" aria-label="푸터"><a href="/signal-desk/about/">소개·방법론</a><a href="/signal-desk/about/#sources">데이터 출처</a><a href="/signal-desk/patterns/">패턴</a><a href="/signal-desk/sitemap.xml">사이트맵</a></nav>
+    <p class="footer__note">기사 저작권은 각 원문 매체에 있으며 SIGNAL은 제목·요약·원문 링크만 제공합니다. 시세와 반응 수치는 정보 제공용이며 투자 조언이 아닙니다. 가격 반응은 상관을 측정한 값이고 인과를 뜻하지 않습니다.</p>
+  </div>
+</footer>
+<nav class="tabbar" aria-label="하단 메뉴"><a class="tab" href="/signal-desk/map/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5h14"/><rect x="3.5" y="9" width="3" height="5" rx="0.8"/><rect x="8.5" y="4.5" width="3" height="6" rx="0.8"/><rect x="13.5" y="7" width="3" height="7.5" rx="0.8"/></svg><span>시그널</span></a><a class="tab" href="/signal-desk/live/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10.5h3l2-5 3.5 10 2-5h4.5"/></svg><span>라이브</span></a><a class="tab" href="/signal-desk/listings/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5 7 12.5M10 3c3.5 1 6 3.5 7 7l-5.5 5.5-7-7zM12.5 7.5h.01"/><path d="M6.5 9.5 4 9l-1 2 3 .5M10.5 13.5l.5 2.5-2 1-.5-3"/></svg><span>상장</span></a><a class="tab" href="/signal-desk/events/" aria-current="page"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.8"/><path d="M10 6v4.2l2.8 1.8"/></svg><span>이벤트</span></a><a class="tab" href="/signal-desk/patterns/"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="3.5" y="11" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="11" width="5.5" height="5.5" rx="1.2"/></svg><span>패턴</span></a></nav>
+<div class="cmdk" id="cmdk" hidden>
+  <div class="cmdk__scrim" data-close></div>
+  <div class="cmdk__panel" role="dialog" aria-modal="true" aria-label="검색">
+    <div class="cmdk__input"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><input id="cmdkInput" type="search" placeholder="키워드, 티커, 매체 검색…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="cmdkList"><kbd>ESC</kbd></div>
+    <ul class="cmdk__list" id="cmdkList" role="listbox"></ul>
+  </div>
+</div>
+<ol class="toasts" id="toasts" aria-live="polite"></ol>
+<script>window.SIGNAL={"base": "/signal-desk/", "page": "events", "radar": [{"ts": 1791981000, "name": "소비자물가(CPI)", "level": 3, "id": "ev-cpi-1791981000", "med": 0.569}, {"ts": 1792067400, "name": "생산자물가(PPI)", "level": 2, "id": "ev-ppi-1792067400", "med": 0.3}, {"ts": 1792067400, "name": "소매판매", "level": 2, "id": "ev-retail-1792067400", "med": 0.368}, {"ts": 1792067400, "name": "신규 실업수당 청구", "level": 2, "id": "ev-claims-1792067400", "med": 0.251}]};</script>
+<script src="/signal-desk/assets/app.js?v=7e227b14" defer></script>
+</body>
+</html>

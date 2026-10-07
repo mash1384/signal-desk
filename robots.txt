@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mash1384.github.io/signal-desk/sitemap.xml

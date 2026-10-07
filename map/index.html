@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>시그널 보드 — 지금 평소와 다른 코인 · SIGNAL</title>
+<meta name="description" content="코인 24개의 시장 대비 움직임, 업비트 거래대금, 김프 변화, 뉴스 양 중 평소와 다른 것을 한눈에 보여 줍니다.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://mash1384.github.io/signal-desk/map/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SIGNAL">
+<meta property="og:title" content="시그널 보드 — 지금 평소와 다른 코인 · SIGNAL">
+<meta property="og:description" content="코인 24개의 시장 대비 움직임, 업비트 거래대금, 김프 변화, 뉴스 양 중 평소와 다른 것을 한눈에 보여 줍니다.">
+<meta property="og:url" content="https://mash1384.github.io/signal-desk/map/">
+<meta property="og:image" content="https://mash1384.github.io/signal-desk/og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d0d10">
+<link rel="icon" href="/signal-desk/assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/signal-desk/assets/styles.css?v=7e227b14">
+<script>(function(){try{var t=localStorage.getItem('signal-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+<script type="module" src="/signal-desk/assets/signals.js?v=7e227b14"></script>
+</head>
+<body class="p-map">
+<a class="skip-link" href="#main">본문으로 건너뛰기</a>
+<div class="ticker" role="region" aria-label="시세">
+  <div class="ticker__status" id="feedStatus" data-state="snapshot"><span class="dot" aria-hidden="true"></span><span class="ticker__label">시세</span></div>
+  <div class="ticker__viewport"><div class="ticker__track" id="tickerTrack"></div></div>
+</div>
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="brand" href="/signal-desk/" aria-label="SIGNAL 홈">
+      <svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="0.5" y="0.5" width="27" height="27" rx="8" fill="currentColor"/><path d="M5 15h4l2.5-6 4 11 2.5-5H23" fill="none" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand__word">SIGNAL<span class="brand__slash">/</span></span>
+    </a>
+    <nav class="nav__links" aria-label="주 메뉴"><a class="nav__link" href="/signal-desk/map/" aria-current="page">시그널 보드</a><a class="nav__link" href="/signal-desk/live/">라이브</a><a class="nav__link" href="/signal-desk/listings/">상장 레이더</a><a class="nav__link" href="/signal-desk/events/">이벤트 리스크</a><a class="nav__link" href="/signal-desk/patterns/">패턴</a></nav>
+    <div class="nav__actions">
+      <button class="search-btn" id="openSearch" type="button" aria-label="검색 (⌘K)"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><span class="search-btn__label">검색</span><kbd>⌘K</kbd></button>
+      <a class="icon-btn nav__me" href="/signal-desk/me/" aria-label="마이"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M3.8 16.5c.9-3 3.3-4.6 6.2-4.6s5.3 1.6 6.2 4.6"/></svg></a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="라이트 모드로 전환"><svg class="i-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.5"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1"/></svg><svg class="i-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16 12.3A6.5 6.5 0 0 1 7.7 4a6.5 6.5 0 1 0 8.3 8.3Z"/></svg></button>
+    </div>
+  </div>
+</header>
+<main id="main" class="main">
+
+<section class="sb wrap" id="sb" data-src="/signal-desk/data/signals.json" data-icons="AAVE,ADA,APT,AVAX,BNB,BTC,DOGE,DOT,ETH,FET,HBAR,LINK,LTC,NEAR,SOL,SUI,TAO,TRX,UNI,XRP,ZEC" aria-labelledby="sbTitle">
+  <header class="sb-hero">
+    <p class="sb-asof" id="sbAsof"></p>
+    <h1 class="sb-title" id="sbTitle">지금 평소와 다른 코인</h1>
+    <p class="sb-lede" id="sbLede"></p>
+  </header>
+  <div class="sb-bar">
+    <div class="sb-seg" role="group" aria-label="기간"><button type="button" data-w="1h" aria-pressed="false">1시간</button><button type="button" data-w="4h" aria-pressed="false">4시간</button><button type="button" data-w="24h" aria-pressed="true">24시간</button></div>
+    <div class="sb-seg" role="group" aria-label="보기"><button type="button" data-f="flag" aria-pressed="true">신호 있는 코인</button><button type="button" data-f="all" aria-pressed="false">전체</button></div>
+    <p class="sb-key"><i></i>평소와 다름</p>
+  </div>
+  <p class="sb-empty" id="sbEmpty" hidden>데이터를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
+  <div class="sb-board" role="table" aria-label="코인별 신호">
+    <div class="sb-head" role="row"><span role="columnheader">코인</span><span role="columnheader">시장 대비 움직임</span><span role="columnheader">업비트 거래대금 <small>평소 대비</small></span><span role="columnheader">김프 변화</span><span role="columnheader">뉴스 양</span><span role="columnheader">왜? (그 코인 뉴스)</span></div>
+    <div id="sbRows" role="rowgroup"></div>
+  </div>
+  <p class="sb-quiet" id="sbQuiet" hidden></p>
+  <details class="sb-how">
+    <summary>신호는 이렇게 정합니다</summary>
+    <ol class="sb-steps">
+      <li><span><b>시장 대비 움직임</b>실제 등락 − 시장대로였다면(그 코인을 뺀 나머지 코인 24개의 움직임 × 그 코인이 평소 시장을 따라가는 정도). 평소 흔들림의 2배를 넘거나, 1시간 2%·4시간 3.5%·24시간 6% 이상이면 신호.</span></li>
+      <li><span><b>업비트 거래대금</b>최근 구간 원화 거래대금 ÷ 지난 7일 같은 길이 구간의 중앙값. 2배 이상이면 신호. 업비트 원화 마켓에 없는 코인은 비웁니다.</span></li>
+      <li><span><b>김프 변화</b>업비트 원화 가격 ÷ (바이낸스 가격 × 원/달러) − 1 이 구간 동안 바뀐 정도. 1시간 0.8%p·4시간 1%p·24시간 1.5%p 이상이면 신호.</span></li>
+      <li><span><b>뉴스 양</b>전체 기사 중 그 코인을 언급한 기사 비중이 평소의 2배 이상이고 3건 이상이면 신호. ‘왜?’ 칸에는 가격 정리 기사를 뺀 가장 중요한 그 코인 뉴스를 붙입니다.</span></li>
+    </ol>
+    <p class="sb-note">신호는 ‘평소와 다르다’는 뜻일 뿐 매수·매도 추천이 아니며, 뉴스는 같은 시간대의 연관이지 원인이라는 뜻이 아닙니다. <a href="/signal-desk/about/#method">계산 방법 자세히</a></p>
+  </details>
+</section>
+</main>
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div><span class="brand__word">SIGNAL<span class="brand__slash">/</span></span><p class="muted">해외 속보를 한국어로, 그리고 그 뉴스가 실제로 가격을 얼마나 움직였는지까지.</p></div>
+    <nav class="footer__nav" aria-label="푸터"><a href="/signal-desk/about/">소개·방법론</a><a href="/signal-desk/about/#sources">데이터 출처</a><a href="/signal-desk/patterns/">패턴</a><a href="/signal-desk/sitemap.xml">사이트맵</a></nav>
+    <p class="footer__note">기사 저작권은 각 원문 매체에 있으며 SIGNAL은 제목·요약·원문 링크만 제공합니다. 시세와 반응 수치는 정보 제공용이며 투자 조언이 아닙니다. 가격 반응은 상관을 측정한 값이고 인과를 뜻하지 않습니다.</p>
+  </div>
+</footer>
+<nav class="tabbar" aria-label="하단 메뉴"><a class="tab" href="/signal-desk/map/" aria-current="page"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5h14"/><rect x="3.5" y="9" width="3" height="5" rx="0.8"/><rect x="8.5" y="4.5" width="3" height="6" rx="0.8"/><rect x="13.5" y="7" width="3" height="7.5" rx="0.8"/></svg><span>시그널</span></a><a class="tab" href="/signal-desk/live/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10.5h3l2-5 3.5 10 2-5h4.5"/></svg><span>라이브</span></a><a class="tab" href="/signal-desk/listings/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5 7 12.5M10 3c3.5 1 6 3.5 7 7l-5.5 5.5-7-7zM12.5 7.5h.01"/><path d="M6.5 9.5 4 9l-1 2 3 .5M10.5 13.5l.5 2.5-2 1-.5-3"/></svg><span>상장</span></a><a class="tab" href="/signal-desk/events/"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.8"/><path d="M10 6v4.2l2.8 1.8"/></svg><span>이벤트</span></a><a class="tab" href="/signal-desk/patterns/"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="3.5" y="11" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="11" width="5.5" height="5.5" rx="1.2"/></svg><span>패턴</span></a></nav>
+<div class="cmdk" id="cmdk" hidden>
+  <div class="cmdk__scrim" data-close></div>
+  <div class="cmdk__panel" role="dialog" aria-modal="true" aria-label="검색">
+    <div class="cmdk__input"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><input id="cmdkInput" type="search" placeholder="키워드, 티커, 매체 검색…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="cmdkList"><kbd>ESC</kbd></div>
+    <ul class="cmdk__list" id="cmdkList" role="listbox"></ul>
+  </div>
+</div>
+<ol class="toasts" id="toasts" aria-live="polite"></ol>
+<script>window.SIGNAL={"base": "/signal-desk/", "page": "map"};</script>
+<script src="/signal-desk/assets/app.js?v=7e227b14" defer></script>
+</body>
+</html>

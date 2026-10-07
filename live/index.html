@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>라이브 — 지금 터진 뉴스와 가격 반응 · SIGNAL</title>
+<meta name="description" content="크립토·AI·매크로 뉴스를 실시간으로 모으고 기사마다 15분·1시간·24시간 가격 반응을 실측해 보여 줍니다.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://mash1384.github.io/signal-desk/live/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SIGNAL">
+<meta property="og:title" content="라이브 — 지금 터진 뉴스와 가격 반응 · SIGNAL">
+<meta property="og:description" content="크립토·AI·매크로 뉴스를 실시간으로 모으고 기사마다 15분·1시간·24시간 가격 반응을 실측해 보여 줍니다.">
+<meta property="og:url" content="https://mash1384.github.io/signal-desk/live/">
+<meta property="og:image" content="https://mash1384.github.io/signal-desk/og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d0d10">
+<link rel="icon" href="/signal-desk/assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/signal-desk/assets/styles.css?v=7e227b14">
+<script>(function(){try{var t=localStorage.getItem('signal-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+
+</head>
+<body class="p-live">
+<a class="skip-link" href="#main">본문으로 건너뛰기</a>
+<div class="ticker" role="region" aria-label="시세">
+  <div class="ticker__status" id="feedStatus" data-state="snapshot"><span class="dot" aria-hidden="true"></span><span class="ticker__label">시세</span></div>
+  <div class="ticker__viewport"><div class="ticker__track" id="tickerTrack"></div></div>
+</div>
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="brand" href="/signal-desk/" aria-label="SIGNAL 홈">
+      <svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="0.5" y="0.5" width="27" height="27" rx="8" fill="currentColor"/><path d="M5 15h4l2.5-6 4 11 2.5-5H23" fill="none" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand__word">SIGNAL<span class="brand__slash">/</span></span>
+    </a>
+    <nav class="nav__links" aria-label="주 메뉴"><a class="nav__link" href="/signal-desk/map/">시그널 보드</a><a class="nav__link" href="/signal-desk/live/" aria-current="page">라이브</a><a class="nav__link" href="/signal-desk/listings/">상장 레이더</a><a class="nav__link" href="/signal-desk/events/">이벤트 리스크</a><a class="nav__link" href="/signal-desk/patterns/">패턴</a></nav>
+    <div class="nav__actions">
+      <button class="search-btn" id="openSearch" type="button" aria-label="검색 (⌘K)"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><span class="search-btn__label">검색</span><kbd>⌘K</kbd></button>
+      <a class="icon-btn nav__me" href="/signal-desk/me/" aria-label="마이"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M3.8 16.5c.9-3 3.3-4.6 6.2-4.6s5.3 1.6 6.2 4.6"/></svg></a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="라이트 모드로 전환"><svg class="i-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.5"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1"/></svg><svg class="i-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16 12.3A6.5 6.5 0 0 1 7.7 4a6.5 6.5 0 1 0 8.3 8.3Z"/></svg></button>
+    </div>
+  </div>
+</header>
+<main id="main" class="main">
+
+<div class="wrap layout3">
+  <aside class="filters" aria-label="피드 필터">
+    <div class="fgroup" role="radiogroup" aria-label="카테고리" id="catFilter">
+      <button class="fbtn" type="button" role="radio" aria-checked="true" data-cat="all">전체</button>
+      <button class="fbtn" type="button" role="radio" aria-checked="false" data-cat="crypto"><i class="dot dot--crypto"></i>크립토</button>
+      <button class="fbtn" type="button" role="radio" aria-checked="false" data-cat="ai"><i class="dot dot--ai"></i>AI</button>
+      <button class="fbtn" type="button" role="radio" aria-checked="false" data-cat="macro"><i class="dot dot--macro"></i>매크로</button>
+    </div>
+    <div class="fgroup fgroup--opts">
+      <label class="switch"><input type="checkbox" id="optMajor"><span>주요 기사만</span></label>
+      <label class="switch"><input type="checkbox" id="optStrong"><span>반응 강·중만</span></label>
+      <label class="switch"><input type="checkbox" id="optWatch"><span>내 종목만</span></label>
+      <label class="switch"><input type="checkbox" id="optKo"><span>한국어 기사만</span></label>
+    </div>
+  </aside>
+  <section class="feed" aria-labelledby="feedTitle">
+    <div class="feed__head">
+      <h1 id="feedTitle" class="feed__title">라이브</h1>
+      <p class="muted feed__upd">마지막 수집 <time data-ts="1791673372">10.11 08:02</time> · 15분마다 갱신</p>
+    </div>
+    
+    <section class="brk" aria-labelledby="brkTitle"><h2 class="brk__title" id="brkTitle"><span class="live-dot" aria-hidden="true"></span>지금 터진 뉴스 <span class="muted small">최근 60분 · 반응 중 이상 또는 재는 중</span></h2><ol class="brk__list"><li class="brk__i"><a href="/signal-desk/a/20261011-fa42a318/"><span class="brk__m"><span class="chip cat cat--crypto">크립토</span><time data-ts="1791673228">08:00</time></span><b>Bitcoin defends $80K — Relief bounce or deeper $77K test next?</b><span class="ib ib--wait" data-t0="1791673228">반응 측정 중</span></a></li><li class="brk__i"><a href="/signal-desk/a/20261011-2cc1c85e/"><span class="brk__m"><span class="chip cat cat--crypto">크립토</span><time data-ts="1791672420">07:47</time></span><b>월가, 이더리움서 자금 회수…공매도 규모 50억달러</b><span class="ib ib--wait" data-t0="1791672420">반응 측정 중</span></a></li></ol></section>
+    <button class="new-pill" id="newPill" type="button" hidden></button>
+    <div class="feed__list" id="feedList">
+<article class="fcard" data-id="20261011-fa42a318" data-cat="crypto" data-assets="BTC" data-imp="2" data-t0="1791673228">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">AMBCrypto</span><time datetime="2026-10-10T23:00:28Z" data-ts="1791673228">10.11 08:00</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-fa42a318/">Bitcoin defends $80K — Relief bounce or deeper $77K test next?</a></h3>
+  <p class="fcard__ex">Despite the decline in stress and the overall bullish swing structure, a short-term cautious outlook is warranted. <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="BTC 시장 대비 반응"><span class="rxcells__s">BTC<small>시장 대비</small></span><span class="rxc is-wait"><b>15분</b><em data-due="1791674128">측정 중</em></span><span class="rxc is-wait"><b>1시간</b><em data-due="1791676828">측정 중</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791759628">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--wait" data-t0="1791673228">반응 측정 중</span><span class="achips"><button class="achip" type="button" data-asset="BTC" aria-pressed="false" aria-label="BTC 관심 종목 추가">BTC</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · 크립토 · BTC</summary><p class="fpat__v">BTC 1시간 시장 대비 중앙값 <b class="up">+0.01%</b> · 상승 51% · 중·강 7% <span class="muted">(n=284, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-839a9cf7/">Glassnode Co-Founder Counts 6.26 Million BTC With Exposed Public Keys</a> (BTC +0.70%)</p><p class="small muted">BTC 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-9c226f93" data-cat="crypto" data-assets="BTC,ETH,SUI" data-imp="2" data-t0="1791673099">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">The Defiant</span><time datetime="2026-10-10T22:58:19Z" data-ts="1791673099">10.11 07:58</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-9c226f93/">SUI Gains 54% in Four Weeks, Outpacing Bitcoin and Ether</a></h3>
+  <p class="fcard__ex">Sui’s DeFi liquidity also expanded, but more slowly than its token price, while a recent pullback interrupted the rally. <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"><button class="achip" type="button" data-asset="BTC" aria-pressed="false" aria-label="BTC 관심 종목 추가">BTC</button><button class="achip" type="button" data-asset="ETH" aria-pressed="false" aria-label="ETH 관심 종목 추가">ETH</button><button class="achip" type="button" data-asset="SUI" aria-pressed="false" aria-label="SUI 관심 종목 추가">SUI</button></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-52799c13" data-cat="ai" data-assets="" data-imp="1" data-t0="1791672701">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">토큰포스트</span><time datetime="2026-10-10T22:51:41Z" data-ts="1791672701">10.11 07:51</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-52799c13/">AI 연산용량 1GW 단기 임대료, 연환산 400억달러 수준</a></h3>
+  <p class="fcard__ex">AI 연산용량 1GW의 단기 임대 가격은 연환산 기준 400억달러(약 53조8140억원) 수준이다. 이는 3~6개월 계약 가격을 1년 기준으로 단순 환산한 값으로, 실제 연간 매출이나 장기 수익을 뜻하지 않는다. 코어위브($CRWV)는 2026년 3분기에 체결한 단기 고객 계약 가격이 전력 1MW당 약 4000만달러(약… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-2391cb7d" data-cat="macro" data-assets="" data-imp="2" data-t0="1791672601">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">연합인포맥스</span><time datetime="2026-10-10T22:50:01Z" data-ts="1791672601">10.11 07:50</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-2391cb7d/">&#x27;원화지수&#x27; 개발 필요성 대두…교역에 서학개미까지 담는 환율 잣대</a></h3>
+  <p class="fcard__ex">원화의 상대적 가치를 평가할 새로운 &#x27;원화지수&#x27; 필요성이 대두되고 있다.11일 한국은행에 따르면 원화 가치를 평가할 때 주요 교역 상대국뿐 아니라 증권투자 관계가 밀접한 국가들의 비중도 함께 고려해야 한다는 논의가 진행되고 있다.기존 지표가 폭넓은 교역 관계를 담는 데 유용하지만, 외환 수급에서 포트폴리오 투자 흐름의… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-dc7189d7" data-cat="macro" data-assets="" data-imp="1" data-t0="1791672484">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">매일경제 경제</span><time datetime="2026-10-10T22:48:04Z" data-ts="1791672484">10.11 07:48</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-dc7189d7/">“내년엔 1200원대도 가능”…‘반도체 달러’ 덕에 원화 강세 계속될까</a></h3>
+  <p class="fcard__ex">수출 호조세에 달러 공급 이어져 시장선 원화값 추가 상승 가능성한때 1550원대까지 하락했던 달러당 원화값이 1300원대 중반에서 안정적으로 머물고 있다. 반도체 수출 호황에 달러.. <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-2cc1c85e" data-cat="crypto" data-assets="ETH" data-imp="3" data-t0="1791672420">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">블록미디어</span><time datetime="2026-10-10T22:47:00Z" data-ts="1791672420">10.11 07:47</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-2cc1c85e/">월가, 이더리움서 자금 회수…공매도 규모 50억달러</a></h3>
+  <p class="fcard__ex">[블록미디어 이혜연 기자] 미국 이더리움 현물 상장지수펀드(ETF)에서 9거래일 연속 자금이 빠져나간 반면, 파생상품시장에서는 이더리움 가격 하락에 베팅하는 공매도 포지션이 50억달러 규모로 불어났다. 기관 자금 이탈과 현물 수요 약화가 이어지는 가운데 이더리움의 추가 하락 가능성에 시장의 관심이 쏠리고 있다. 미국… <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="ETH 시장 대비 반응"><span class="rxcells__s">ETH<small>시장 대비</small></span><span class="rxc is-wait"><b>15분</b><em data-due="1791673320">측정 중</em></span><span class="rxc is-wait"><b>1시간</b><em data-due="1791676020">측정 중</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791758820">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--wait" data-t0="1791672420">반응 측정 중</span><span class="achips"><button class="achip" type="button" data-asset="ETH" aria-pressed="false" aria-label="ETH 관심 종목 추가">ETH</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · 크립토 · ETH</summary><p class="fpat__v">ETH 1시간 시장 대비 중앙값 <b class="up">+0.04%</b> · 상승 59% · 중·강 1% <span class="muted">(n=87, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-d421ab47/">Wallet Shifts 150 Million USDT From Aave to Spark Savings</a> (ETH −1.17%)</p><p class="small muted">ETH 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-3835edd1" data-cat="crypto" data-assets="BTC" data-imp="2" data-t0="1791671423">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">토큰포스트</span><time datetime="2026-10-10T22:30:23Z" data-ts="1791671423">10.11 07:30</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-3835edd1/">[아침 시황] 비트코인 1억1,313만원…빗썸 스타크넷 51% 급등</a></h3>
+  <p class="fcard__ex">10월 11일 오전 7시 30분 오늘 아침 국내 암호화폐 시장은 위험 자산 선호가 살아났다. 24시간 거래대금(업비트·빗썸)은 1.9조원을 기록했으며 거래대금 50억원 이상 종목 52개 중 41개만 올라 상승 종목 비율이 79%에 그쳤다. 대장주는 나란히 올랐다. 비트코인은 1억1,313만원으로 24시간 전보다 0.1%… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"><button class="achip" type="button" data-asset="BTC" aria-pressed="false" aria-label="BTC 관심 종목 추가">BTC</button></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-92a43a5e" data-cat="crypto" data-assets="XRP,AVAX" data-imp="1" data-t0="1791671391">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">비인크립토</span><time datetime="2026-10-10T22:29:51Z" data-ts="1791671391">10.11 07:29</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-92a43a5e/">XRP 레저, AI 취약? 아발란체 창립자 경고</a></h3>
+  <p class="fcard__ex">아발란체 창립자인 에민 귄 시러는 AI가 XRP 레저에서 보안 취약점을 발견할 수 있다고 주장합니다. 그는 이 위협이 기존 암호 기술의 붕괴보다 더 많은 관심을 받아야 한다고 말합니다. 이러한 경고는 XRP 레저가 긴급 소프트웨어 업데이트로 다시 주목을 받고 있는 시점에 나왔습니다. AI가 XRP 레저의 보안 취약점을… <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="XRP 시장 대비 반응"><span class="rxcells__s">XRP<small>시장 대비</small></span><span class="rxc"><b>15분</b><em class="down">−0.08%</em></span><span class="rxc is-wait"><b>1시간</b><em data-due="1791674991">측정 중</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791757791">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--down ib--gw" title="기사 시각부터 15분 동안 XRP 가격 변화에서 시장 몫을 뺀 값"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 1 1.5h8z"/></svg><b>XRP 15m</b> 시장 대비 −0.08% · 약</span><span class="achips"><button class="achip" type="button" data-asset="XRP" aria-pressed="false" aria-label="XRP 관심 종목 추가">XRP</button><button class="achip" type="button" data-asset="AVAX" aria-pressed="false" aria-label="AVAX 관심 종목 추가">AVAX</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · 크립토 · XRP</summary><p class="fpat__v">XRP 1시간 시장 대비 중앙값 <b class="down">−0.03%</b> · 상승 42% · 중·강 1% <span class="muted">(n=76, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-dbaf7367/">슈워츠, 리플 스웰서 XRPL 미래 대담…기조연설은 아니다</a> (XRP +1.21%)</p><p class="small muted">XRP 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-7014c8ba" data-cat="crypto" data-assets="XRP,AVAX" data-imp="1" data-t0="1791671391">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">BeInCrypto</span><time datetime="2026-10-10T22:29:51Z" data-ts="1791671391">10.11 07:29</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-7014c8ba/">Is XRP Ledger Vulnerable to AI? Avalanche Founder Warns of Hidden Flaws</a></h3>
+  <p class="fcard__ex">Avalanche founder Emin Gün Sirer argues that AI could uncover security flaws in the XRP Ledger. He says that threat deserves more attention than the fall of existing cryptography… <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="XRP 시장 대비 반응"><span class="rxcells__s">XRP<small>시장 대비</small></span><span class="rxc"><b>15분</b><em class="down">−0.08%</em></span><span class="rxc is-wait"><b>1시간</b><em data-due="1791674991">측정 중</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791757791">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--down ib--gw" title="기사 시각부터 15분 동안 XRP 가격 변화에서 시장 몫을 뺀 값"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 1 1.5h8z"/></svg><b>XRP 15m</b> 시장 대비 −0.08% · 약</span><span class="achips"><button class="achip" type="button" data-asset="XRP" aria-pressed="false" aria-label="XRP 관심 종목 추가">XRP</button><button class="achip" type="button" data-asset="AVAX" aria-pressed="false" aria-label="AVAX 관심 종목 추가">AVAX</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · 크립토 · XRP</summary><p class="fpat__v">XRP 1시간 시장 대비 중앙값 <b class="down">−0.03%</b> · 상승 42% · 중·강 1% <span class="muted">(n=76, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-dbaf7367/">슈워츠, 리플 스웰서 XRPL 미래 대담…기조연설은 아니다</a> (XRP +1.21%)</p><p class="small muted">XRP 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-9c3ba98f" data-cat="ai" data-assets="" data-imp="1" data-t0="1791671034">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">비인크립토</span><time datetime="2026-10-10T22:23:54Z" data-ts="1791671034">10.11 07:23</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-9c3ba98f/">S&amp;P500 코로나 백신주, 올해 600% 상승</a></h3>
+  <p class="fcard__ex">모더나 주가는 2026년에 663% 상승해 S&amp;P 500에서 AI 종목들을 제치고 선두를 차지했습니다. 완전한 암 백신 데이터는 10월 24일 공개됩니다. BeinCrypto Korea 에서 가장 먼저% %POSTLINK%% <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-e85d86ee" data-cat="macro" data-assets="" data-imp="1" data-t0="1791671034">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">BeInCrypto</span><time datetime="2026-10-10T22:23:54Z" data-ts="1791671034">10.11 07:23</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-e85d86ee/">A COVID Vaccine Stock on the S&amp;P 500 Is Up 600% This Year</a></h3>
+  <p class="fcard__ex">Moderna stock is up 663% in 2026, beating AI names for the S&amp;P 500 lead. Full cancer vaccine data arrives October 24. The post A COVID Vaccine Stock on the S&amp;P 500 Is Up 600% This… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-9a65e94a" data-cat="macro" data-assets="" data-imp="2" data-t0="1791670438">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">토큰포스트</span><time datetime="2026-10-10T22:13:58Z" data-ts="1791670438">10.11 07:13</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-9a65e94a/">월가 5대 은행 시총 2700억달러 감소…3분기 실적 발표 앞둬</a></h3>
+  <p class="fcard__ex">월가 대형은행 5곳의 시가총액이 여름철 고점에서 10월 9일 종가까지 약 2700억달러(약 362조700억원) 줄었다. 3분기 실적 발표를 앞두고 장기금리 상승이 트레이딩과 투자은행 수익, 예금 조달 비용에 미친 영향이 시험대에 올랐다. JP모건체이스, 골드만삭스, 시티그룹은 10월 13일, 뱅크오브아메리카와… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-35dc9169" data-cat="ai" data-assets="" data-imp="1" data-t0="1791670217">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">The Verge AI</span><time datetime="2026-10-10T22:10:17Z" data-ts="1791670217">10.11 07:10</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-35dc9169/">Satya Nadella says we should assume all AI models are ‘compromised’</a></h3>
+  <p class="fcard__ex">In a lengthy post on X, Microsoft&#x27;s CEO laid out his views on the dangers posed by highly advanced AI models and how to confront those risks. Nadella says we can no longer accept… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-a0c57bda" data-cat="macro" data-assets="" data-imp="3" data-t0="1791669618">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합인포맥스</span><time datetime="2026-10-10T22:00:18Z" data-ts="1791669618">10.11 07:00</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-a0c57bda/">[뉴욕증시-주간전망] 실적 시즌 본격화…워시 발언·美 인플레 지표 &#x27;주목&#x27;</a></h3>
+  <p class="fcard__ex">이번 주(10월 12일~10월 16일, 이하 미 동부시간) 뉴욕증시는 미국의 인플레이션 지표와 케빈 워시 연방준비제도(연준·Fed) 의장의 발언에 따라 방향이 결정될 것으로 보인다.미 노동부는 오는 14일 9월 소비자물가지수(CPI), 15일 9월 생산자물가지수(PPI)를 잇달아 발표할 예정이다.미국의 인플레이션이… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-d7403ef0" data-cat="crypto" data-assets="BTC" data-imp="2" data-t0="1791669609">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">AMBCrypto</span><time datetime="2026-10-10T22:00:09Z" data-ts="1791669609">10.11 07:00</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-d7403ef0/">Bitcoin ETFs’ momentum could ‘not last too long’ — Ecoinometrics</a></h3>
+  <p class="fcard__ex">Is Bitcoin ETF losing steam to other altcoin ETFs stealing the spotlight? <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="BTC 시장 대비 반응"><span class="rxcells__s">BTC<small>시장 대비</small></span><span class="rxc"><b>15분</b><em class="up">+0.01%</em></span><span class="rxc"><b>1시간</b><em class="up">+0.04%</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791756009">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--up ib--gw" title="기사 시각부터 1시간 동안 BTC 가격 변화에서 시장 몫을 뺀 값"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5 9 8.5H1z"/></svg><b>BTC 1h</b> 시장 대비 +0.04% · 약</span><span class="achips"><button class="achip" type="button" data-asset="BTC" aria-pressed="false" aria-label="BTC 관심 종목 추가">BTC</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · 크립토 · BTC</summary><p class="fpat__v">BTC 1시간 시장 대비 중앙값 <b class="up">+0.01%</b> · 상승 51% · 중·강 7% <span class="muted">(n=283, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-839a9cf7/">Glassnode Co-Founder Counts 6.26 Million BTC With Exposed Public Keys</a> (BTC +0.70%)</p><p class="small muted">BTC 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-00218c25" data-cat="macro" data-assets="" data-imp="2" data-t0="1791669593">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">블록미디어</span><time datetime="2026-10-10T21:59:53Z" data-ts="1791669593">10.11 06:59</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-00218c25/">월가 5대 은행 시총 2700억달러 증발… 금리 급등에 실적 시험대</a></h3>
+  <p class="fcard__ex">[멕시코=심영재 특파원] 미국 월가 대형은행들이 최근 10여 년 사이 가장 수익성이 높았던 상반기를 보낸 뒤 금리 급등이라는 새로운 변수에 직면했다. 투자은행과 트레이딩 사업의 호황이 둔화될 가능성이 제기되면서 주요 은행 5곳의 시가총액은 여름철 고점 대비 약 2700억달러 감소했다. 이번 주 발표될 3분기 실적이… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-47432967" data-cat="ai" data-assets="" data-imp="1" data-t0="1791668901">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">블록미디어</span><time datetime="2026-10-10T21:48:21Z" data-ts="1791668901">10.11 06:48</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-47432967/">AI가 키운 글로벌 사기 산업… 연간 피해액 4420억달러</a></h3>
+  <p class="fcard__ex">[멕시코=심영재 특파원] 인공지능(AI)과 디지털자산(가상자산)을 악용한 온라인 사기가 전 세계로 확산되고 있다. 과거 동남아시아의 대규모 범죄 단지를 중심으로 운영되던 사기 조직이 AI 도구와 온라인 범죄 서비스 시장을 활용해 소규모 조직으로 분산되고 있다. 사기 수법을 만드는 비용은 낮아진 반면 범죄 조직을 추적하고… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-2c9728d3" data-cat="ai" data-assets="" data-imp="1" data-t0="1791668871">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">TechCrunch AI</span><time datetime="2026-10-10T21:47:51Z" data-ts="1791668871">10.11 06:47</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-2c9728d3/">Microsoft’s Satya Nadella says AI models need an ‘emergency brake’</a></h3>
+  <p class="fcard__ex">In a Saturday morning post, Microsoft&#x27;s CEO wrote that it’s time “to step back and assess the trust architecture” of AI. <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-d68fab97" data-cat="crypto" data-assets="" data-imp="1" data-t0="1791668592">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">Crypto Briefing</span><time datetime="2026-10-10T21:43:12Z" data-ts="1791668592">10.11 06:43</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-d68fab97/">Saudi Arabia evacuates and closes Riyadh airport after missile attack by Yemen’s Houthis</a></h3>
+  <p class="fcard__ex">The attack exacerbates regional instability, potentially altering geopolitical dynamics and influencing prediction markets on future conflicts. The post Saudi Arabia evacuates and… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-1da1e93d" data-cat="crypto" data-assets="" data-imp="1" data-t0="1791667998">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">BeInCrypto</span><time datetime="2026-10-10T21:33:18Z" data-ts="1791667998">10.11 06:33</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-1da1e93d/">Mystery Bets on Trump’s New Press Secretary Could Turn $173 Into $9,600</a></h3>
+  <p class="fcard__ex">Kalshi is probing bets on Trump&#x27;s press secretary pick placed before the news. One $19 wager could pay $1,896. The post Mystery Bets on Trump’s New Press Secretary Could Turn $173… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-bf1a33c3" data-cat="macro" data-assets="" data-imp="1" data-t0="1791667998">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">비인크립토</span><time datetime="2026-10-10T21:33:18Z" data-ts="1791667998">10.11 06:33</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-bf1a33c3/">트럼프 새 대변인 미스터리 베팅 $173→9600</a></h3>
+  <p class="fcard__ex">칼쉬는 트럼프의 대변인 지명 발표 전 베팅에 대한 조사를 진행 중입니다. 한 건당 19달러 베팅이 1,896달러로 돌아올 수 있습니다. BeinCrypto Korea 에서 가장 먼저% %POSTLINK%% <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-159f5e98" data-cat="crypto" data-assets="BTC" data-imp="2" data-t0="1791667792">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">블록미디어</span><time datetime="2026-10-10T21:29:52Z" data-ts="1791667792">10.11 06:29</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-159f5e98/">[뉴욕 코인시황] 190억달러 청산 사태 1년…비트코인, 8.3만달러선 기싸움</a></h3>
+  <p class="fcard__ex">[멕시코=심영재 특파원] 뉴욕 디지털자산(가상자산) 시장이 10일(현지시각) 비트코인 8만3000달러 선을 중심으로 반등을 시도하고 있다. 지난해 같은 날 발생한 190억달러 규모의 대규모 청산 사태가 1주년을 맞은 가운데 주요 디지털자산이 동반 상승했다. 다만 비트코인은 당시 기록한 사상 최고가보다 여전히 34%가량… <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="BTC 시장 대비 반응"><span class="rxcells__s">BTC<small>시장 대비</small></span><span class="rxc"><b>15분</b><em class="up">+0.05%</em></span><span class="rxc"><b>1시간</b><em class="up">+0.01%</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791754192">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--up ib--gw" title="기사 시각부터 1시간 동안 BTC 가격 변화에서 시장 몫을 뺀 값"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5 9 8.5H1z"/></svg><b>BTC 1h</b> 시장 대비 +0.01% · 약</span><span class="achips"><button class="achip" type="button" data-asset="BTC" aria-pressed="false" aria-label="BTC 관심 종목 추가">BTC</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · 크립토 · BTC</summary><p class="fpat__v">BTC 1시간 시장 대비 중앙값 <b class="up">+0.01%</b> · 상승 51% · 중·강 7% <span class="muted">(n=283, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-839a9cf7/">Glassnode Co-Founder Counts 6.26 Million BTC With Exposed Public Keys</a> (BTC +0.70%)</p><p class="small muted">BTC 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-fdb23803" data-cat="crypto" data-assets="BTC" data-imp="2" data-t0="1791667568">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">Bitcoin.com News</span><time datetime="2026-10-10T21:26:08Z" data-ts="1791667568">10.11 06:26</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-fdb23803/">Robinhood Adds BTC To Balance Sheet, ‘Bunker Mode’ Kicks Off, And More – Weekly Recap</a></h3>
+  <p class="fcard__ex">This week’s stories spanned corporate adoption, government crypto flows, security risks and macro concerns. Robinhood added $25 million in bitcoin to its balance sheet, while U.S… <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="BTC 시장 대비 반응"><span class="rxcells__s">BTC<small>시장 대비</small></span><span class="rxc"><b>15분</b><em class="up">+0.05%</em></span><span class="rxc"><b>1시간</b><em class="down">−0.03%</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791753968">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--down ib--gw" title="기사 시각부터 1시간 동안 BTC 가격 변화에서 시장 몫을 뺀 값"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 1 1.5h8z"/></svg><b>BTC 1h</b> 시장 대비 −0.03% · 약</span><span class="achips"><button class="achip" type="button" data-asset="BTC" aria-pressed="false" aria-label="BTC 관심 종목 추가">BTC</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · 크립토 · BTC</summary><p class="fpat__v">BTC 1시간 시장 대비 중앙값 <b class="up">+0.01%</b> · 상승 52% · 중·강 7% <span class="muted">(n=283, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-839a9cf7/">Glassnode Co-Founder Counts 6.26 Million BTC With Exposed Public Keys</a> (BTC +0.70%)</p><p class="small muted">BTC 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-91faa3a0" data-cat="ai" data-assets="" data-imp="1" data-t0="1791667438">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">Crypto Briefing</span><time datetime="2026-10-10T21:23:58Z" data-ts="1791667438">10.11 06:23</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-91faa3a0/">Anthropic AI accessed US government sites, submitted fake police tip</a></h3>
+  <p class="fcard__ex">Anthropic&#x27;s AI mishap may undermine trust and competitiveness, prompting scrutiny on AI safety and impacting market confidence in its models. The post Anthropic AI accessed US… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-113c686b" data-cat="crypto" data-assets="XRP" data-imp="1" data-t0="1791667241">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">토큰포스트</span><time datetime="2026-10-10T21:20:41Z" data-ts="1791667241">10.11 06:20</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-113c686b/">XRP 1.4246달러 거래…주간 6.5% 하락</a></h3>
+  <p class="fcard__ex">XRP는 10월 7일 1.4246달러에 거래됐고, 주간 하락률은 6.5%였다. 인베스팅닷컴은 XRP가 10월 7일 1.4246달러에 거래됐으며, 7일 기준 한 주 동안 6.5% 하락했다고 집계했다. 같은 기간 전체 가상자산 시장 하락률은 0.9%였다. 해당 수치는 특정 시점의 집계로 현재 가격을 뜻하지 않는다. 미국… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"><button class="achip" type="button" data-asset="XRP" aria-pressed="false" aria-label="XRP 관심 종목 추가">XRP</button></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-99611cc8" data-cat="macro" data-assets="" data-imp="3" data-t0="1791667200">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T21:20:00Z" data-ts="1791667200">10.11 06:20</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-99611cc8/">답답한 증시 대신 발행어음?…증권사, 4∼5% 상품 잇달아 출시</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 임은진 기자 = 최근 답답한 흐름을 보이는 코스피에 지친 투자자를 잡기 위해 증권사들이 잇달아 금리 4∼5% 수준의 발행어음 ... <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-4d3d5d1c" data-cat="macro" data-assets="" data-imp="3" data-t0="1791666601">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T21:10:01Z" data-ts="1791666601">10.11 06:10</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-4d3d5d1c/">국채금리 급등에 줄어든 매력에도…개인, 리츠 ETF 순매수액↑</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 고은지 기자 = 최근 국채 금리가 고공행진하면서 리츠(REITs·부동산투자회사) 상장지수펀드(ETF)의 매력이 상대적으로 줄었... <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-23fb6317" data-cat="crypto" data-assets="XRP" data-imp="1" data-t0="1791666019">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">AMBCrypto</span><time datetime="2026-10-10T21:00:19Z" data-ts="1791666019">10.11 06:00</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-23fb6317/">XRP price slips below $1.50 – Can ETF demand fuel a recovery?</a></h3>
+  <p class="fcard__ex">XRP ETF divergence deepens as evernorth and xrpl add to the bull case. <span class="ex-label">원문 발췌</span></p>
+  <div class="rxcells" aria-label="XRP 시장 대비 반응"><span class="rxcells__s">XRP<small>시장 대비</small></span><span class="rxc"><b>15분</b><em class="down">−0.04%</em></span><span class="rxc"><b>1시간</b><em class="down">−0.20%</em></span><span class="rxc is-wait"><b>24시간</b><em data-due="1791752419">측정 중</em></span></div>
+  <div class="fcard__foot"><span class="ib ib--down ib--gw" title="기사 시각부터 1시간 동안 XRP 가격 변화에서 시장 몫을 뺀 값"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 1 1.5h8z"/></svg><b>XRP 1h</b> 시장 대비 −0.20% · 약</span><span class="achips"><button class="achip" type="button" data-asset="XRP" aria-pressed="false" aria-label="XRP 관심 종목 추가">XRP</button></span></div>
+  <details class="fpat"><summary>이런 뉴스는 보통 · ETF · XRP</summary><p class="fpat__v">XRP 1시간 시장 대비 중앙값 <b class="down">−0.01%</b> · 상승 44% · 중·강 0% <span class="muted">(n=9, 최근 30일)</span></p><p class="fpat__top small muted">가장 컸던 사례: <a href="/signal-desk/a/20261009-3f3afbd5/">XRP News: Ripple Challenges Wall Street for a Slice of $256B ETF Market</a> (XRP −0.42%)</p><p class="small muted">XRP 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>
+</article>
+<article class="fcard" data-id="20261011-1f35a19b" data-cat="ai" data-assets="" data-imp="1" data-t0="1791666013">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">Crypto Briefing</span><time datetime="2026-10-10T21:00:13Z" data-ts="1791666013">10.11 06:00</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-1f35a19b/">Goldman says SpaceX’s GPU rental boom exposes AI’s revenue gap</a></h3>
+  <p class="fcard__ex">SpaceX&#x27;s GPU rental surge highlights AI&#x27;s profitability challenges, as high costs and supply constraints threaten sustainable growth. The post Goldman says SpaceX’s GPU rental… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-e6681f9c" data-cat="macro" data-assets="" data-imp="1" data-t0="1791666003">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">한국경제 증권</span><time datetime="2026-10-10T21:00:03Z" data-ts="1791666003">10.11 06:00</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-e6681f9c/">&quot;세종 못가! 한국은행 준비반 갈래&quot;…SKY 경제학도의 변심 [김익환의 부처 핸즈업]</a></h3>
+  
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-c7984573" data-cat="macro" data-assets="" data-imp="3" data-t0="1791666003">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T21:00:03Z" data-ts="1791666003">10.11 06:00</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-c7984573/">[마켓인사이트] 삼성전자 역대급 실적에도 짓눌린 코스피, 반등 가능성은</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 황철환 기자 = 지난 한 주 국내 주식시장은 미국 국채금리 고공행진과 삼성전자 실적발표 직후 셀온(Sell-on·호재 속 가격... <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-9af1b632" data-cat="crypto" data-assets="" data-imp="1" data-t0="1791665865">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">Crypto Briefing</span><time datetime="2026-10-10T20:57:45Z" data-ts="1791665865">10.11 05:57</time><span class="lang">EN</span></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-9af1b632/">Projectile lands near King Fahd International Airport in Dammam, coalition reports</a></h3>
+  <p class="fcard__ex">The incident underscores escalating regional tensions, potentially impacting geopolitical stability and market dynamics in the Middle East. The post Projectile lands near King… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-bff772ad" data-cat="macro" data-assets="" data-imp="3" data-t0="1791665520">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T20:52:00Z" data-ts="1791665520">10.11 05:52</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-bff772ad/">은행 가계대출 57.3%가 변동금리…1년 새 4.3%p 확대</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 이도흔 기자 = 한국은행이 기준금리를 두 차례 연속 인상한 가운데 은행 가계대출 잔액에서 변동금리 대출 비중은 1년 새 더 높... <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-2c7e3e4b" data-cat="macro" data-assets="" data-imp="2" data-t0="1791665460">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="2" role="img" aria-label="중요도 2/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T20:51:00Z" data-ts="1791665460">10.11 05:51</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-2c7e3e4b/">작년 한은 외화자산 운용수익 17조원 육박…역대 최대</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 한지훈 기자 = 한국은행이 지난해 외화자산을 운용해 거둔 수익이 17조원에 육박한 것으로 나타났다. <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-c5bc2538" data-cat="crypto" data-assets="" data-imp="1" data-t0="1791665370">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">블록미디어</span><time datetime="2026-10-10T20:49:30Z" data-ts="1791665370">10.11 05:49</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-c5bc2538/">러시아산 경유 제재 완화 충돌… 트럼프 “젤렌스키 교체돼야”</a></h3>
+  <p class="fcard__ex">[멕시코=심영재 특파원] 도널드 트럼프 미국 대통령이 볼로디미르 젤렌스키 우크라이나 대통령의 교체를 공개적으로 요구했다. 러시아산 경유 공급을 확대하기 위해 일부 제재를 완화한 미국의 결정에 젤렌스키 대통령이 반발하자, 트럼프 대통령은 우크라이나의 러시아 정유시설 공격 중단까지 촉구했다. 미국의 연료 가격 안정 정책과… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-e1389736" data-cat="macro" data-assets="" data-imp="3" data-t0="1791665106">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T20:45:06Z" data-ts="1791665106">10.11 05:45</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-e1389736/">한은·국책은행도 해킹 시도 급증…올해만 100만건 넘어</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 채새롬 기자 = 국내 주요 시중은행 등 금융권을 대상으로 한 대규모 해킹 공격이 잇따른 가운데 국책은행과 한국은행을 향한 해킹... <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-8ca7e965" data-cat="ai" data-assets="" data-imp="3" data-t0="1791665103">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T20:45:03Z" data-ts="1791665103">10.11 05:45</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-8ca7e965/">AI해킹 알고도 당한 금융권…사고 2주전에도 &#x27;노출자산&#x27; 경고</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 채새롬 기자 = 금융권의 대규모 해킹 사고가 발생하기 불과 2주 전 금융보안원이 금융사들에 외부에 노출된 자산 관련 보안 위험... <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-de3a2177" data-cat="ai" data-assets="" data-imp="3" data-t0="1791665101">
+  <div class="fcard__meta"><span class="chip cat cat--ai">AI</span><span class="imp" data-lv="3" role="img" aria-label="중요도 3/3"><i></i><i></i><i></i></span><span class="src">연합뉴스 경제</span><time datetime="2026-10-10T20:45:01Z" data-ts="1791665101">10.11 05:45</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-de3a2177/">은행권 &#x27;AI 방어&#x27; 투자 확대…KB 내년 보안 예산 1천억원대로</a></h3>
+  <p class="fcard__ex">(서울=연합뉴스) 한지훈 채새롬 이도흔 기자 = 최근 금융권 해킹 사고를 계기로 은행들이 보안 투자와 전문 인력 확대에 사활을 거는 분위기다. <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-bf512698" data-cat="crypto" data-assets="" data-imp="1" data-t0="1791664525">
+  <div class="fcard__meta"><span class="chip cat cat--crypto">크립토</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">토큰포스트</span><time datetime="2026-10-10T20:35:25Z" data-ts="1791664525">10.11 05:35</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-bf512698/">시애틀, 개인정보 활용한 식료품 고객별 가격 책정 금지</a></h3>
+  <p class="fcard__ex">시애틀이 개인정보를 분석해 고객별로 식료품 가격을 다르게 책정하는 행위를 금지하는 조례를 통과시켰다. 조례는 2027년 9월 1일 시행되며, 모든 쿠폰과 멤버십 할인을 없애거나 식료품 가격을 일괄 고정하는 조치는 아니다. 시애틀 시의회는 2026년 9월 22일 ‘공정 가격 및 투명성’ 조례안(Council Bill… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+<article class="fcard" data-id="20261011-a8ce9102" data-cat="macro" data-assets="" data-imp="1" data-t0="1791664257">
+  <div class="fcard__meta"><span class="chip cat cat--macro">매크로</span><span class="imp" data-lv="1" role="img" aria-label="중요도 1/3"><i></i><i></i><i></i></span><span class="src">토큰포스트</span><time datetime="2026-10-10T20:30:57Z" data-ts="1791664257">10.11 05:30</time></div>
+  <h3 class="fcard__title"><a href="/signal-desk/a/20261011-a8ce9102/">월 최대 10만달러 제시된 호르무즈 선장…선원 거부 압박도</a></h3>
+  <p class="fcard__ex">호르무즈 해협을 지나는 유조선 선장에게 월 최대 10만달러(약 1억3420만원)를 제시한 사례가 보도됐다. 선원 노조는 일부 선원이 운항을 거부하기 어려운 압박을 받는다고 전했다. 호주 ABC는 인도 선원 노조와 해기사들의 증언을 바탕으로 선장 보수가 월 최대 10만달러에 이르는 사례를 보도했다. 전방선원노조 마노즈… <span class="ex-label">원문 발췌</span></p>
+  
+  <div class="fcard__foot"><span class="achips"></span></div>
+  
+</article>
+    </div>
+    <button class="btn btn--ghost feed__more" id="loadMore" type="button" hidden>더 보기</button>
+  </section>
+  <aside class="rail" aria-label="요약 정보">
+    <section class="panel"><h2 class="panel__title">시장 온도</h2><div id="tempPanel" class="temp"><div class="temp__row"><span>공포·탐욕 지수</span><b>64</b><span class="muted">Greed</span></div><div class="temp__row"><span>BTC 김치 프리미엄</span><b>+1.52%</b><span class="muted">업비트 기준</span></div><div class="temp__row"><span>원/달러</span><b>1,341.6</b><span class="muted">일 1회 갱신</span></div></div></section>
+    <section class="panel"><h2 class="panel__title">다가오는 일정 <a class="panel__more" href="/signal-desk/events/">이벤트 리스크</a></h2><ul class="mini-cal"><li class="muted">이번 주 남은 주요 일정이 없습니다.</li></ul></section>
+    <section class="panel"><h2 class="panel__title">최근 7일 강한 반응 <a class="panel__more" href="/signal-desk/patterns/">패턴</a></h2><ul class="mini-strong"><li><a href="/signal-desk/a/20261006-up6642/">뉴메레르(NMR) KRW, USDT 마켓 디지털 자산 추가</a><span class="ib ib--up ib--gs">NMR 15m +48.19%</span></li><li><a href="/signal-desk/a/20261009-up6645/">카이아(KAIA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)</a><span class="ib ib--up ib--gs">KAIA 15m +26.68%</span></li><li><a href="/signal-desk/a/20261009-fc232f43/">Cardano Foundation Spins Out Veridian With Tokenized Equity</a><span class="ib ib--down ib--gs">ADA 15m −1.92%</span></li><li><a href="/signal-desk/a/20261009-7bd69f40/">EU securities regulator gives crypto platforms 3 months to remove unauthorized stablecoins</a><span class="ib ib--down ib--gs">BTC 15m −0.82%</span></li><li><a href="/signal-desk/a/20261009-839a9cf7/">Glassnode Co-Founder Counts 6.26 Million BTC With Exposed Public Keys</a><span class="ib ib--up ib--gs">BTC 15m +0.42%</span></li></ul></section>
+    <section class="panel"><h2 class="panel__title">오늘의 시그널</h2><a class="brief-img" href="/signal-desk/og/brief.jpg" target="_blank" rel="noopener"><img src="/signal-desk/og/brief.jpg?v=1791673372" alt="오늘의 시그널 요약 이미지" width="1080" height="1080" loading="lazy"></a><p class="muted small">이미지를 길게 눌러 저장하거나 공유하세요.</p></section>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div><span class="brand__word">SIGNAL<span class="brand__slash">/</span></span><p class="muted">해외 속보를 한국어로, 그리고 그 뉴스가 실제로 가격을 얼마나 움직였는지까지.</p></div>
+    <nav class="footer__nav" aria-label="푸터"><a href="/signal-desk/about/">소개·방법론</a><a href="/signal-desk/about/#sources">데이터 출처</a><a href="/signal-desk/patterns/">패턴</a><a href="/signal-desk/sitemap.xml">사이트맵</a></nav>
+    <p class="footer__note">기사 저작권은 각 원문 매체에 있으며 SIGNAL은 제목·요약·원문 링크만 제공합니다. 시세와 반응 수치는 정보 제공용이며 투자 조언이 아닙니다. 가격 반응은 상관을 측정한 값이고 인과를 뜻하지 않습니다.</p>
+  </div>
+</footer>
+<nav class="tabbar" aria-label="하단 메뉴"><a class="tab" href="/signal-desk/map/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5h14"/><rect x="3.5" y="9" width="3" height="5" rx="0.8"/><rect x="8.5" y="4.5" width="3" height="6" rx="0.8"/><rect x="13.5" y="7" width="3" height="7.5" rx="0.8"/></svg><span>시그널</span></a><a class="tab" href="/signal-desk/live/" aria-current="page"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10.5h3l2-5 3.5 10 2-5h4.5"/></svg><span>라이브</span></a><a class="tab" href="/signal-desk/listings/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5 7 12.5M10 3c3.5 1 6 3.5 7 7l-5.5 5.5-7-7zM12.5 7.5h.01"/><path d="M6.5 9.5 4 9l-1 2 3 .5M10.5 13.5l.5 2.5-2 1-.5-3"/></svg><span>상장</span></a><a class="tab" href="/signal-desk/events/"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.8"/><path d="M10 6v4.2l2.8 1.8"/></svg><span>이벤트</span></a><a class="tab" href="/signal-desk/patterns/"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="3.5" y="11" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="11" width="5.5" height="5.5" rx="1.2"/></svg><span>패턴</span></a></nav>
+<div class="cmdk" id="cmdk" hidden>
+  <div class="cmdk__scrim" data-close></div>
+  <div class="cmdk__panel" role="dialog" aria-modal="true" aria-label="검색">
+    <div class="cmdk__input"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><input id="cmdkInput" type="search" placeholder="키워드, 티커, 매체 검색…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="cmdkList"><kbd>ESC</kbd></div>
+    <ul class="cmdk__list" id="cmdkList" role="listbox"></ul>
+  </div>
+</div>
+<ol class="toasts" id="toasts" aria-live="polite"></ol>
+<script>window.SIGNAL={"base": "/signal-desk/", "page": "live"};</script>
+<script src="/signal-desk/assets/app.js?v=7e227b14" defer></script>
+</body>
+</html>
