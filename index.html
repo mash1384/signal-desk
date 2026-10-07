@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIGNAL — 돈이 움직이는 순간을 지난 기록으로</title>
+<meta name="description" content="업비트 상장, 미국 큰 경제 발표, 크립토 뉴스까지. 돈이 크게 움직이는 순간을 지난 기록과 함께 보여 줍니다.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://mash1384.github.io/signal-desk/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SIGNAL">
+<meta property="og:title" content="SIGNAL — 돈이 움직이는 순간을 지난 기록으로">
+<meta property="og:description" content="업비트 상장, 미국 큰 경제 발표, 크립토 뉴스까지. 돈이 크게 움직이는 순간을 지난 기록과 함께 보여 줍니다.">
+<meta property="og:url" content="https://mash1384.github.io/signal-desk/">
+<meta property="og:image" content="https://mash1384.github.io/signal-desk/og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d0d10">
+<link rel="icon" href="/signal-desk/assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/signal-desk/assets/styles.css?v=54c9e220">
+<script>(function(){try{var t=localStorage.getItem('signal-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+<link rel="preload" as="image" href="/signal-desk/assets/hero/ripple-desktop.webp" media="(min-aspect-ratio: 4/5)">
+<link rel="preload" as="image" href="/signal-desk/assets/hero/ripple-mobile.webp" media="(max-aspect-ratio: 4/5)">
+<script type="module" src="/signal-desk/assets/hero.js?v=54c9e220"></script>
+</head>
+<body class="p-home">
+<a class="skip-link" href="#main">본문으로 건너뛰기</a>
+<div class="ticker" role="region" aria-label="시세">
+  <div class="ticker__status" id="feedStatus" data-state="snapshot"><span class="dot" aria-hidden="true"></span><span class="ticker__label">시세</span></div>
+  <div class="ticker__viewport"><div class="ticker__track" id="tickerTrack"></div></div>
+</div>
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="brand" href="/signal-desk/" aria-label="SIGNAL 홈">
+      <svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="0.5" y="0.5" width="27" height="27" rx="8" fill="currentColor"/><path d="M5 15h4l2.5-6 4 11 2.5-5H23" fill="none" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand__word">SIGNAL<span class="brand__slash">/</span></span>
+    </a>
+    <nav class="nav__links" aria-label="주 메뉴"><a class="nav__link" href="/signal-desk/map/">시그널 보드</a><a class="nav__link" href="/signal-desk/live/">라이브</a><a class="nav__link" href="/signal-desk/listings/">상장 레이더</a><a class="nav__link" href="/signal-desk/events/">이벤트 리스크</a></nav>
+    <div class="nav__actions">
+      <button class="search-btn" id="openSearch" type="button" aria-label="검색 (⌘K)"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><span class="search-btn__label">검색</span><kbd>⌘K</kbd></button>
+      <a class="icon-btn nav__me" href="/signal-desk/me/" aria-label="마이"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M3.8 16.5c.9-3 3.3-4.6 6.2-4.6s5.3 1.6 6.2 4.6"/></svg></a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="라이트 모드로 전환"><svg class="i-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.5"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1"/></svg><svg class="i-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16 12.3A6.5 6.5 0 0 1 7.7 4a6.5 6.5 0 1 0 8.3 8.3Z"/></svg></button>
+    </div>
+  </div>
+</header>
+<main id="main" class="main">
+
+<section class="hx" id="hx" data-theme="dark" data-video="/signal-desk/assets/hero/" aria-labelledby="heroTitle">
+  <div class="pin hx__pin">
+    <canvas class="hx__canvas" aria-hidden="true"></canvas>
+    <div class="hx__scrim" aria-hidden="true"></div>
+    <div class="wrap hx__layer">
+      <div class="hx__top" data-beat="-1,0,0.04,0.1">
+        <p class="hero__live in" style="--s:0"><span class="live-dot" aria-hidden="true"></span>실시간 수집 중 · 마지막 <time data-ts="1791892548">10.13 20:55</time></p>
+        <span class="mono-label hx__tag in" style="--s:1">News → Price reaction</span>
+      </div>
+      <div class="hx__slot"><p class="hx__word in" style="--s:1" aria-hidden="true"><span>SIG</span><span>NAL</span></p></div>
+      <div class="hx__copy" data-beat="-1,0,0.04,0.1">
+        <h1 class="hx__title in" id="heroTitle" style="--s:3">모든 뉴스는<br>파문을 남깁니다</h1>
+        <div class="hx__side in" style="--s:4">
+          <p class="hx__sub">크립토·AI·매크로 뉴스가 나온 뒤 <span class="nw">15분·1시간·24시간</span> 동안 가격이 얼마나 움직였는지 재서 보여 줍니다.</p>
+          <div class="hero__cta"><a class="btn btn--accent btn--lg" href="/signal-desk/map/">시그널 보드 보기</a><a class="btn btn--ghost btn--lg" href="/signal-desk/live/">라이브 보기</a></div>
+        </div>
+      </div>
+      <div class="hx__cap" data-beat="0.7,0.8,2,3"><span class="mono-label">10.01 – 10.08 · 지난 뉴스 3건의 실제 반응 크기로 떨어뜨린 파문</span><b>SIGNAL은 그 파문의<br>크기를 잽니다.</b></div>
+    </div>
+    <p class="hx__hint" data-beat="-1,0,0.02,0.06" aria-hidden="true">아래로 스크롤</p>
+  </div>
+</section>
+
+<section class="hero hero--stats" aria-label="수집 현황">
+  <div class="wrap">
+    <dl class="hero__stats in" style="--s:9">
+      <div><dt>최근 24시간 기사</dt><dd class="count" data-to="1513">1513</dd></div>
+      <div><dt>수집 매체</dt><dd class="count" data-to="57">57</dd></div>
+      <div><dt>AI가 읽은 기사</dt><dd class="count" data-to="5166">5166</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="lsec wrap moments" aria-labelledby="momTitle">
+  <h2 class="lsec__title" id="momTitle" data-reveal>돈이 크게 움직이는 두 순간</h2>
+  <p class="lsec__lede" data-reveal style="--i:1">지난 기록으로 미리 알아 두면 덜 잃습니다.</p>
+  <div class="moments__grid"><a class="mom" data-reveal style="--i:0" href="/signal-desk/listings/"><p class="mom__k">상장 레이더</p><p class="mom__q">새로 상장된 코인, 거래 시작 10분 뒤에 따라 샀다면</p><p class="mom__big"><small>100명 중</small><b class="down">86</b><small>명이 하루 뒤 손해</small></p><p class="mom__s">가운데 값 −17.4% · 업비트 원화 상장 230건 · 수수료 포함</p><span class="mom__go">상장 레이더 보기 →</span></a><a class="mom" data-reveal style="--i:1" href="/signal-desk/events/"><p class="mom__k">이벤트 리스크</p><p class="mom__q">다음 큰 발표 · 소비자물가(CPI)</p><p class="mom__big"><b class="mom__left" data-left="1791981000">10.14 21:30</b></p><p class="mom__s">발표 뒤 1시간 비트코인은 평소의 <b>5.0배</b>로 흔들렸어요 · 보통 ±0.6%, 크면 ±1.5%</p><span class="mom__go">이벤트 리스크 보기 →</span></a></div>
+</section>
+
+<section class="lsec wrap" aria-labelledby="featTitle">
+  <h2 class="lsec__title" id="featTitle" data-reveal>매일 확인할 것들</h2>
+  <p class="lsec__lede" data-reveal style="--i:1">아래 숫자는 모두 지금 수집된 실제 데이터입니다.</p>
+
+  <div class="bento">
+    <a class="bx bx--feed" data-reveal style="--i:0" href="/signal-desk/live/">
+      <div class="bx__head"><b class="bx__title">라이브</b><span class="mono-label">최근 24시간 1513건</span></div>
+      <p class="bx__desc">카테고리·관심 종목으로 걸러 봅니다. 새 기사가 들어오면 맨 위에 알려 줍니다.</p>
+      <div class="catshare" aria-hidden="true"><i class="cat-bar cat-bar--crypto" style="flex-grow:723"></i><i class="cat-bar cat-bar--ai" style="flex-grow:437"></i><i class="cat-bar cat-bar--macro" style="flex-grow:353"></i></div>
+      <ul class="catlegend"><li><i class="dot dot--crypto"></i>크립토 <b>723</b></li><li><i class="dot dot--ai"></i>AI <b>437</b></li><li><i class="dot dot--macro"></i>매크로 <b>353</b></li></ul>
+      <ol class="bx__latest"><li><span class="chip cat cat--ai">AI</span><span>Ledger Finds LTE Implant That Stole Recovery Phrases in Suspected $86M Drain</span></li><li><span class="chip cat cat--crypto">크립토</span><span>솔라나, 24시간 DEX 거래량 22억3200만달러로 1위</span></li><li><span class="chip cat cat--macro">매크로</span><span>신현송 &quot;인플레 취약계층에 가장 큰 타격…물가안정 확신 들 때까지 긴축&quot;</span></li></ol>
+    </a>
+    <a class="bx bx--cal" data-reveal style="--i:1" href="/signal-desk/events/">
+      <div class="bx__head"><b class="bx__title">이벤트 리스크</b><span class="mono-label">다음 발표까지</span></div>
+      <p class="bx__count" id="calCount" data-ts="1791981000">--:--:--</p>
+      <ol class="mcal"><li><time>10.14 21:30</time><span>근원 소비자물가(전월비)</span><i class="lv lv--3" aria-label="중요도 상"></i></li><li><time>10.14 21:30</time><span>근원 소비자물가(전년비)</span><i class="lv lv--3" aria-label="중요도 상"></i></li><li><time>10.14 21:30</time><span>소비자물가지수(전월비)</span><i class="lv lv--3" aria-label="중요도 상"></i></li></ol>
+      <p class="bx__desc">발표마다 과거에 BTC가 얼마나 흔들렸는지 함께 보여 줍니다.</p>
+    </a>
+    <a class="bx" data-reveal style="--i:2" href="/signal-desk/live/">
+      <div class="bx__head"><b class="bx__title">김치 프리미엄</b><span class="mono-label">업비트 대비 해외</span></div>
+      <ul class="mkimp"><li><b>BTC</b><span class="kb"><i class="up" style="--v:0.966"></i></span><em class="up">+1.32%</em></li><li><b>ETH</b><span class="kb"><i class="up" style="--v:1.000"></i></span><em class="up">+1.37%</em></li><li><b>XRP</b><span class="kb"><i class="up" style="--v:0.946"></i></span><em class="up">+1.29%</em></li><li><b>SOL</b><span class="kb"><i class="up" style="--v:0.982"></i></span><em class="up">+1.34%</em></li><li><b>DOGE</b><span class="kb"><i class="up" style="--v:0.956"></i></span><em class="up">+1.31%</em></li></ul>
+    </a>
+    <a class="bx" data-reveal style="--i:3" href="/signal-desk/live/">
+      <div class="bx__head"><b class="bx__title">공포·탐욕 지수</b><span class="mono-label">30일</span></div>
+      <div class="mfng"><svg viewBox="0 0 120 66" aria-hidden="true"><path class="mfng__track" d="M10 60a50 50 0 0 1 100 0" pathLength="100"/><path class="mfng__fill" d="M10 60a50 50 0 0 1 100 0" pathLength="100" style="--v:57"/></svg><p><b>57</b><span>탐욕</span></p></div>
+      <div class="mfng__hist" aria-hidden="true"><i style="--v:0.57;--k:0"></i><i style="--v:0.69;--k:1"></i><i style="--v:0.51;--k:2"></i><i style="--v:0.50;--k:3"></i><i style="--v:0.56;--k:4"></i><i style="--v:0.71;--k:5"></i><i style="--v:0.71;--k:6"></i><i style="--v:0.70;--k:7"></i><i style="--v:0.78;--k:8"></i><i style="--v:0.71;--k:9"></i><i style="--v:0.71;--k:10"></i><i style="--v:0.71;--k:11"></i><i style="--v:0.74;--k:12"></i><i style="--v:0.70;--k:13"></i><i style="--v:0.74;--k:14"></i><i style="--v:0.73;--k:15"></i><i style="--v:0.71;--k:16"></i><i style="--v:0.74;--k:17"></i><i style="--v:0.72;--k:18"></i><i style="--v:0.67;--k:19"></i><i style="--v:0.65;--k:20"></i><i style="--v:0.70;--k:21"></i><i style="--v:0.73;--k:22"></i><i style="--v:0.71;--k:23"></i><i style="--v:0.64;--k:24"></i><i style="--v:0.59;--k:25"></i><i style="--v:0.64;--k:26"></i><i style="--v:0.61;--k:27"></i><i style="--v:0.69;--k:28"></i><i style="--v:0.57;--k:29"></i></div>
+    </a>
+    <a class="bx" data-reveal style="--i:4" href="/signal-desk/listings/">
+      <div class="bx__head"><b class="bx__title">상장 레이더</b><span class="mono-label">따라 사면?</span></div>
+      <p class="bx__q">거래 시작 10분 뒤 따라 샀다면 100명 중 86명이 하루 뒤 손해<span>가운데 값 −17.4% · 업비트 원화 상장 230건</span></p>
+    </a>
+    <a class="bx" data-reveal style="--i:5" href="/signal-desk/me/">
+      <div class="bx__head"><b class="bx__title">관심 종목</b><span class="mono-label">로그인 없이 저장</span></div>
+      <div class="mwatch" aria-hidden="true"><span>BTC</span><span class="is-on">ETH ★</span><span>SOL</span><span>XRP</span></div>
+      <p class="mwatch__card"><span class="chip">ETH</span><span>솔라나, 24시간 DEX 거래량 22억3200만달러로 1위</span></p>
+    </a>
+  </div>
+</section>
+
+<section class="say" id="sayPin" aria-label="SIGNAL이 하는 일">
+  <div class="pin say__pin"><div class="wrap"><p class="say__text"><span class="sw">뉴스는</span> <span class="sw">매일</span> <span class="sw">수백</span> <span class="sw">건씩</span> <span class="sw">쏟아집니다.</span> <span class="sw">그중</span> <span class="sw sw--hot">내</span> <span class="sw sw--hot">돈에</span> <span class="sw sw--hot">영향을</span> <span class="sw sw--hot">주는</span> <span class="sw">순간은</span> <span class="sw">몇</span> <span class="sw">번뿐입니다.</span> <span class="sw">SIGNAL은</span> <span class="sw">그</span> <span class="sw">순간을</span> <span class="sw sw--hot">지난</span> <span class="sw sw--hot">기록과</span> <span class="sw sw--hot">함께</span> <span class="sw">보여</span> <span class="sw">줍니다.</span></p></div></div>
+</section>
+
+<section class="outro" id="outro" data-theme="dark" aria-labelledby="ctaTitle">
+  <div class="pin outro__pin">
+    <div class="outro__wall" aria-hidden="true"><div class="ow__row" style="--t:108s;--fs:24"><div class="ow__track"><span class="ow__i">THEO Bridge Exploit After $1.76M ETH Transfer, Price Drops 92%</span><span class="ow__i">Senior staff departures shake up Dan Osborn’s Nebraska Senate…</span><span class="ow__i">Bitcoin ETF Outflows Reach $65 Million as BlackRock Bleeds Cash</span><span class="ow__i is-sig">Strategy Buys More Bitcoin and Retires Nearly 2M STRC Shares<b>BTC 1h −0.36%</b></span><span class="ow__i">Blur’s website closure – Blend borrowers have until November 1…</span><span class="ow__i is-sig">솔라나 ETF 몸집 커진다…홍콩서 두 번째 현물 상품 출격<b>SOL 1h −1.06%</b></span><span class="ow__i">제미니 2.19% 올라…미국 장전 가상자산주 등락 엇갈려</span><span class="ow__i">THEO Bridge Exploit After $1.76M ETH Transfer, Price Drops 92%</span><span class="ow__i">Senior staff departures shake up Dan Osborn’s Nebraska Senate…</span><span class="ow__i">Bitcoin ETF Outflows Reach $65 Million as BlackRock Bleeds Cash</span><span class="ow__i is-sig">Strategy Buys More Bitcoin and Retires Nearly 2M STRC Shares<b>BTC 1h −0.36%</b></span><span class="ow__i">Blur’s website closure – Blend borrowers have until November 1…</span><span class="ow__i is-sig">솔라나 ETF 몸집 커진다…홍콩서 두 번째 현물 상품 출격<b>SOL 1h −1.06%</b></span><span class="ow__i">제미니 2.19% 올라…미국 장전 가상자산주 등락 엇갈려</span></div></div><div class="ow__row" style="--t:99s;--fs:16"><div class="ow__track"><span class="ow__i">메타는 개인용 뮤즈, 오픈AI는 구독자·기업에 닷츠 제공</span><span class="ow__i is-sig">CFTC, 소매 가상자산 거래 규제 의견수렴…마감일 12월 14일<b>BTC 1h −0.87%</b></span><span class="ow__i is-sig">프랑스 냉장고 해킹…음식 폐기, 화재 발생<b>BTC 15m +0.47%</b></span><span class="ow__i is-sig">“스테이블코인, 현금성 자산 된다”…미국 FASB 회계기준 개정 추진<b>BTC 1h +0.82%</b></span><span class="ow__i">ENS seeks DAO approval to activate upgraded Ethereum naming sy…</span><span class="ow__i">Russia’s largest bank Sberbank secures approval to trade crypto</span><span class="ow__i">신현송 &quot;인플레 취약계층에 가장 큰 타격…물가안정 확신 들 때까지 긴축&quot;</span><span class="ow__i">메타는 개인용 뮤즈, 오픈AI는 구독자·기업에 닷츠 제공</span><span class="ow__i is-sig">CFTC, 소매 가상자산 거래 규제 의견수렴…마감일 12월 14일<b>BTC 1h −0.87%</b></span><span class="ow__i is-sig">프랑스 냉장고 해킹…음식 폐기, 화재 발생<b>BTC 15m +0.47%</b></span><span class="ow__i is-sig">“스테이블코인, 현금성 자산 된다”…미국 FASB 회계기준 개정 추진<b>BTC 1h +0.82%</b></span><span class="ow__i">ENS seeks DAO approval to activate upgraded Ethereum naming sy…</span><span class="ow__i">Russia’s largest bank Sberbank secures approval to trade crypto</span><span class="ow__i">신현송 &quot;인플레 취약계층에 가장 큰 타격…물가안정 확신 들 때까지 긴축&quot;</span></div></div><div class="ow__row" style="--t:146s;--fs:36"><div class="ow__track"><span class="ow__i">Meta and OpenAI’s AI agents target different customer bases</span><span class="ow__i is-sig">비트마인, 이더리움 1만2532개 추가 매입…공급량 5% 확보 눈앞<b>ETH 1h −0.75%</b></span><span class="ow__i">Binance to shut down mining pool, cloud mining and related ser…</span><span class="ow__i">머스크 “칩 제조 경험 없어도 생산 방식 개선”</span><span class="ow__i">COIN Stock Prediction Ahead of Wednesday’s US CPI Report</span><span class="ow__i">[크립토 에코맵] 소셜 +25%…NFT 애플리케이션 -14%로 하락 확산</span><span class="ow__i">Fridges Hacked, Food Ruined, Fires Sparked: France’s Strangest…</span><span class="ow__i">Meta and OpenAI’s AI agents target different customer bases</span><span class="ow__i is-sig">비트마인, 이더리움 1만2532개 추가 매입…공급량 5% 확보 눈앞<b>ETH 1h −0.75%</b></span><span class="ow__i">Binance to shut down mining pool, cloud mining and related ser…</span><span class="ow__i">머스크 “칩 제조 경험 없어도 생산 방식 개선”</span><span class="ow__i">COIN Stock Prediction Ahead of Wednesday’s US CPI Report</span><span class="ow__i">[크립토 에코맵] 소셜 +25%…NFT 애플리케이션 -14%로 하락 확산</span><span class="ow__i">Fridges Hacked, Food Ruined, Fires Sparked: France’s Strangest…</span></div></div><div class="ow__row" style="--t:104s;--fs:19"><div class="ow__track"><span class="ow__i">Anthropic IPO Polymarket Odds: Valuation Bet Faces a 21.5% Ban…</span><span class="ow__i">Morning Minute: Bitcoin Gets Spooked as ‘Uptober’ Lets Down</span><span class="ow__i is-sig">&#x27;월마트 경기침체 신호&#x27; 다시 급등…&quot;연준 금리 인하 전환 가능성&quot;<b>BTC 1h +1.15%</b></span><span class="ow__i is-sig">Strategy Buys 250 Bitcoin and Repurchases $192 Million in Pref…<b>BTC 1h −0.36%</b></span><span class="ow__i">AI 거래 에이전트 네오트레이드, 알리바바 클라우드와 협력</span><span class="ow__i">[트렌딩 나우] 글로벌 XDP 1위…한국은 RSR 중심 단독 종목 강세</span><span class="ow__i is-sig">이더리움, 15일 개발자 회의서 업그레이드 논의<b>ETH 1h −0.42%</b></span><span class="ow__i">Anthropic IPO Polymarket Odds: Valuation Bet Faces a 21.5% Ban…</span><span class="ow__i">Morning Minute: Bitcoin Gets Spooked as ‘Uptober’ Lets Down</span><span class="ow__i is-sig">&#x27;월마트 경기침체 신호&#x27; 다시 급등…&quot;연준 금리 인하 전환 가능성&quot;<b>BTC 1h +1.15%</b></span><span class="ow__i is-sig">Strategy Buys 250 Bitcoin and Repurchases $192 Million in Pref…<b>BTC 1h −0.36%</b></span><span class="ow__i">AI 거래 에이전트 네오트레이드, 알리바바 클라우드와 협력</span><span class="ow__i">[트렌딩 나우] 글로벌 XDP 1위…한국은 RSR 중심 단독 종목 강세</span><span class="ow__i is-sig">이더리움, 15일 개발자 회의서 업그레이드 논의<b>ETH 1h −0.42%</b></span></div></div><div class="ow__row" style="--t:103s;--fs:15"><div class="ow__track"><span class="ow__i">스페이스엑스 주가 10월 6~12일 5거래일간 4.95% 하락</span><span class="ow__i">Why the UK May Keep £3.8 Billion Bitcoin Funded by Chinese Fra…</span><span class="ow__i">U.S. wealth has shifted to stocks from homes. There are big re…</span><span class="ow__i">코스피는 폭락했는데…올해만 &#x27;5000%&#x27; 폭등한 ETF 정체는?</span><span class="ow__i">하이퍼리퀴드 고래 73개 계정, 롱 포지션 2억9200만달러 늘려</span><span class="ow__i is-sig">블러(BLUR) 거래 유의 종목 지정 안내<b>BLUR 1h −6.27%</b></span><span class="ow__i">UK High Court rules Chinese law governs claims over $5 billion…</span><span class="ow__i">스페이스엑스 주가 10월 6~12일 5거래일간 4.95% 하락</span><span class="ow__i">Why the UK May Keep £3.8 Billion Bitcoin Funded by Chinese Fra…</span><span class="ow__i">U.S. wealth has shifted to stocks from homes. There are big re…</span><span class="ow__i">코스피는 폭락했는데…올해만 &#x27;5000%&#x27; 폭등한 ETF 정체는?</span><span class="ow__i">하이퍼리퀴드 고래 73개 계정, 롱 포지션 2억9200만달러 늘려</span><span class="ow__i is-sig">블러(BLUR) 거래 유의 종목 지정 안내<b>BLUR 1h −6.27%</b></span><span class="ow__i">UK High Court rules Chinese law governs claims over $5 billion…</span></div></div><div class="ow__row" style="--t:123s;--fs:29"><div class="ow__track"><span class="ow__i">Breaking: Metaplanet Launches 51.9 Billion Yen Bonds To Buy Mo…</span><span class="ow__i">The Key Catalyst That Could Unlock Bitcoin’s Next Rally: Analyst</span><span class="ow__i">Ugandan Central Bank Calls Special Meeting After Shilling Sinks</span><span class="ow__i">Stacks&#x27; STX, a Bitcoin layer-2 token, has surged by 50% in fou…</span><span class="ow__i">굴스비 “AI 인프라 비용, 미국 물가 압력 키울 우려”</span><span class="ow__i">Now Accepting Bitcoin: Moonflower Coffee and 300+ Colorado Bit…</span><span class="ow__i">A $377M Bitcoin Whale Wakes up While Another Dumps BTC for Ether</span><span class="ow__i">Breaking: Metaplanet Launches 51.9 Billion Yen Bonds To Buy Mo…</span><span class="ow__i">The Key Catalyst That Could Unlock Bitcoin’s Next Rally: Analyst</span><span class="ow__i">Ugandan Central Bank Calls Special Meeting After Shilling Sinks</span><span class="ow__i">Stacks&#x27; STX, a Bitcoin layer-2 token, has surged by 50% in fou…</span><span class="ow__i">굴스비 “AI 인프라 비용, 미국 물가 압력 키울 우려”</span><span class="ow__i">Now Accepting Bitcoin: Moonflower Coffee and 300+ Colorado Bit…</span><span class="ow__i">A $377M Bitcoin Whale Wakes up While Another Dumps BTC for Ether</span></div></div><div class="ow__row" style="--t:106s;--fs:17"><div class="ow__track"><span class="ow__i is-sig">‘There’s always room for more orange’: Michael Saylor’s Strate…<b>BTC 1h −0.39%</b></span><span class="ow__i">브룩필드 AI 인프라 1000억달러 구상, 전력·데이터센터 포함</span><span class="ow__i">Bitcoin, ether slip and rebound as South Korean stocks slide o…</span><span class="ow__i">Solana price slips below $110 – Can SOL recover amid SkyAI’s s…</span><span class="ow__i is-sig">Solana treasury firm SkyAI sells 1 million SOL, plans $201 mil…<b>SOL 1h −0.99%</b></span><span class="ow__i">Ledger Finds LTE Implant That Stole Recovery Phrases in Suspec…</span><span class="ow__i">Financial imbalances and AI boom</span><span class="ow__i is-sig">‘There’s always room for more orange’: Michael Saylor’s Strate…<b>BTC 1h −0.39%</b></span><span class="ow__i">브룩필드 AI 인프라 1000억달러 구상, 전력·데이터센터 포함</span><span class="ow__i">Bitcoin, ether slip and rebound as South Korean stocks slide o…</span><span class="ow__i">Solana price slips below $110 – Can SOL recover amid SkyAI’s s…</span><span class="ow__i is-sig">Solana treasury firm SkyAI sells 1 million SOL, plans $201 mil…<b>SOL 1h −0.99%</b></span><span class="ow__i">Ledger Finds LTE Implant That Stole Recovery Phrases in Suspec…</span><span class="ow__i">Financial imbalances and AI boom</span></div></div><div class="ow__row" style="--t:108s;--fs:22"><div class="ow__track"><span class="ow__i">[비트코인은 지금] 8만3133달러 약보합…거래량 급증 속 탐욕 완화</span><span class="ow__i">Why the AI Boom Is Papering Over Cracks in Global Economy</span><span class="ow__i">Anthropic says it cut Claude reasoning token theft by up to 99…</span><span class="ow__i">Citi says Galaxy Digital stands to gain as crypto rebounds</span><span class="ow__i">Czech Core Inflation Quickens as Central Bank Mulls Another Hike</span><span class="ow__i">Wikipedians Believed AI Would Come and Go. They Were Wrong</span><span class="ow__i">Micron Stock Slips as China’s CXMT Threatens the AI Memory Boom</span><span class="ow__i">[비트코인은 지금] 8만3133달러 약보합…거래량 급증 속 탐욕 완화</span><span class="ow__i">Why the AI Boom Is Papering Over Cracks in Global Economy</span><span class="ow__i">Anthropic says it cut Claude reasoning token theft by up to 99…</span><span class="ow__i">Citi says Galaxy Digital stands to gain as crypto rebounds</span><span class="ow__i">Czech Core Inflation Quickens as Central Bank Mulls Another Hike</span><span class="ow__i">Wikipedians Believed AI Would Come and Go. They Were Wrong</span><span class="ow__i">Micron Stock Slips as China’s CXMT Threatens the AI Memory Boom</span></div></div><div class="ow__row" style="--t:135s;--fs:32"><div class="ow__track"><span class="ow__i">XRP News: Evernorth’s Listing Exposes a $677M Gap</span><span class="ow__i">DOJ Reviewing Whether Binance Broke Its $4,300,000,000 Plea De…</span><span class="ow__i">솔라나, 24시간 DEX 거래량 22억3200만달러로 1위</span><span class="ow__i">머스크 &quot;스타십 다음 비행서 우주선까지 회수 도전&quot;...로켓 전체 재사용 목표</span><span class="ow__i">영국, 중국 피해자 £38억 비트코인 계속 보유하나</span><span class="ow__i">Strategy spent nearly nine times as much on STRC buybacks as B…</span><span class="ow__i">[美특징주]제이피모간체이스, 채권 트레이딩 부진에 실적 하회…주가는 1%↑</span><span class="ow__i">XRP News: Evernorth’s Listing Exposes a $677M Gap</span><span class="ow__i">DOJ Reviewing Whether Binance Broke Its $4,300,000,000 Plea De…</span><span class="ow__i">솔라나, 24시간 DEX 거래량 22억3200만달러로 1위</span><span class="ow__i">머스크 &quot;스타십 다음 비행서 우주선까지 회수 도전&quot;...로켓 전체 재사용 목표</span><span class="ow__i">영국, 중국 피해자 £38억 비트코인 계속 보유하나</span><span class="ow__i">Strategy spent nearly nine times as much on STRC buybacks as B…</span><span class="ow__i">[美특징주]제이피모간체이스, 채권 트레이딩 부진에 실적 하회…주가는 1%↑</span></div></div></div>
+    <div class="outro__veil" aria-hidden="true"></div>
+    <div class="wrap outro__body">
+      <p class="mono-label outro__kicker">최근 24시간 기사 1513건 · 15분마다 갱신</p>
+      <h2 class="outro__title" id="ctaTitle"><span class="ot__l ot__l--noise"><span>Noise out.</span></span><span class="ot__l ot__l--sig"><span><em class="ot__fill" style="--fill:url(/signal-desk/assets/hero/ripple-desktop.webp)">Signal</em> in.</span></span></h2>
+      <div class="outro__foot">
+        <p>회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
+        <div class="outro__cta"><a class="btn btn--accent btn--lg" href="/signal-desk/map/">시그널 보드 보기</a><a class="btn btn--ghost btn--lg" href="/signal-desk/live/">라이브 보기</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div><span class="brand__word">SIGNAL<span class="brand__slash">/</span></span><p class="muted">상장·큰 발표·뉴스, 돈이 움직이는 순간을 지난 기록과 함께.</p></div>
+    <nav class="footer__nav" aria-label="푸터"><a href="/signal-desk/about/">소개·방법론</a><a href="/signal-desk/about/#sources">데이터 출처</a><a href="/signal-desk/sitemap.xml">사이트맵</a></nav>
+    <p class="footer__note">기사 저작권은 각 원문 매체에 있으며 SIGNAL은 제목·요약·원문 링크만 제공합니다. 시세와 과거 기록은 정보 제공용이며 투자 조언이 아닙니다. 지난 기록이 앞으로도 같다는 뜻은 아닙니다.</p>
+  </div>
+</footer>
+<nav class="tabbar" aria-label="하단 메뉴"><a class="tab" href="/signal-desk/map/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5h14"/><rect x="3.5" y="9" width="3" height="5" rx="0.8"/><rect x="8.5" y="4.5" width="3" height="6" rx="0.8"/><rect x="13.5" y="7" width="3" height="7.5" rx="0.8"/></svg><span>시그널</span></a><a class="tab" href="/signal-desk/live/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10.5h3l2-5 3.5 10 2-5h4.5"/></svg><span>라이브</span></a><a class="tab" href="/signal-desk/listings/"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5 7 12.5M10 3c3.5 1 6 3.5 7 7l-5.5 5.5-7-7zM12.5 7.5h.01"/><path d="M6.5 9.5 4 9l-1 2 3 .5M10.5 13.5l.5 2.5-2 1-.5-3"/></svg><span>상장</span></a><a class="tab" href="/signal-desk/events/"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.8"/><path d="M10 6v4.2l2.8 1.8"/></svg><span>이벤트</span></a></nav>
+<div class="cmdk" id="cmdk" hidden>
+  <div class="cmdk__scrim" data-close></div>
+  <div class="cmdk__panel" role="dialog" aria-modal="true" aria-label="검색">
+    <div class="cmdk__input"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><input id="cmdkInput" type="search" placeholder="키워드, 티커, 매체 검색…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="cmdkList"><kbd>ESC</kbd></div>
+    <ul class="cmdk__list" id="cmdkList" role="listbox"></ul>
+  </div>
+</div>
+<ol class="toasts" id="toasts" aria-live="polite"></ol>
+<script>window.SIGNAL={"base": "/signal-desk/", "page": "home", "landing": {"demo": [{"id": "20261012-up6651", "t": "리저브라이트(RSR) KRW, USDT 마켓 디지털 자산 추가", "src": "업비트 공지", "cat": "crypto", "ts": 1791780849, "asset": "RSR", "adj": true, "h": {"asset": "RSR", "win": "1h", "r": 44.509, "g": "강", "adj": true}, "rx": {"15m": {"r": 57.19, "z": 47.44, "g": "강"}, "1h": {"r": 44.509, "z": 18.46, "g": "강"}, "24h": {"r": 29.648, "z": 2.38, "g": "중"}}}, {"id": "20261012-up6653", "t": "깃코인(GTC) KRW, USDT 마켓 디지털 자산 추가", "src": "업비트 공지", "cat": "crypto", "ts": 1791799200, "asset": "GTC", "adj": true, "h": {"asset": "GTC", "win": "1h", "r": 75.008, "g": "강", "adj": true}, "rx": {"15m": {"r": 105.367, "z": 42.38, "g": "강"}, "1h": {"r": 75.008, "z": 15.08, "g": "강"}, "24h": {"r": 46.673, "z": 2.31, "g": "중"}}}, {"id": "20261009-up6645", "t": "카이아(KAIA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)", "src": "업비트 공지", "cat": "crypto", "ts": 1791533206, "asset": "KAIA", "adj": true, "h": {"asset": "KAIA", "win": "1h", "r": 39.267, "g": "강", "adj": true}, "rx": {"15m": {"r": 26.684, "z": 30.71, "g": "강"}, "1h": {"r": 39.267, "z": 22.6, "g": "강"}, "24h": {"r": 53.737, "z": 6.31, "g": "강"}}}, {"id": "20261013-up6656", "t": "블러(BLUR) 거래 유의 종목 지정 안내", "src": "업비트 공지", "cat": "crypto", "ts": 1791871203, "asset": "BLUR", "adj": true, "h": {"asset": "BLUR", "win": "1h", "r": -6.269, "g": "강", "adj": true}, "rx": {"15m": {"r": -3.807, "z": -6.6, "g": "강"}, "1h": {"r": -6.269, "z": -5.44, "g": "강"}, "24h": {"due": 1791957603}}}, {"id": "20261009-fc232f43", "t": "Cardano Foundation Spins Out Veridian With Tokenized Equity", "src": "The Defiant", "cat": "crypto", "ts": 1791472230, "asset": "ADA", "adj": true, "h": {"asset": "ADA", "win": "1h", "r": -2.1, "g": "강", "adj": true}, "rx": {"15m": {"r": -1.923, "z": -6.36, "g": "강"}, "1h": {"r": -2.1, "z": -3.48, "g": "강"}, "24h": {"r": -3.837, "z": -1.3, "g": "약"}}}], "story": {"asset": "RSR", "ts": 1791780849}}};</script>
+<script src="/signal-desk/assets/app.js?v=54c9e220" defer></script>
+</body>
+</html>
