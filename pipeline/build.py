@@ -15,7 +15,7 @@ ASSET_VER = "0"
 B = config.SITE_BASE
 WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
-NAV = [("feed", "", "피드"), ("markets", "markets/", "마켓"), ("calendar", "calendar/", "캘린더"),
+NAV = [("feed", "feed/", "피드"), ("markets", "markets/", "마켓"), ("calendar", "calendar/", "캘린더"),
        ("impact", "impact/", "임팩트"), ("predict", "predict/", "예측"), ("me", "me/", "마이")]
 TABBAR = ["feed", "markets", "calendar", "predict", "me"]
 
@@ -292,8 +292,8 @@ def page_feed(articles, market, cal, imp, now):
   </aside>
 </div>""".format(now=now, now_hm=md_hm(now), cards=cards, cal=cal_html, strong=strong, B=B, temp=temp_panel(market),
            brief=('<section class="panel"><h2 class="panel__title">오늘의 시그널</h2><a class="brief-img" href="%sog/brief.jpg" target="_blank" rel="noopener"><img src="%sog/brief.jpg?v=%d" alt="오늘의 시그널 요약 이미지" width="1080" height="1080" loading="lazy"></a><p class="muted small">이미지를 길게 눌러 저장하거나 공유하세요.</p></section>' % (B, B, now)) if HAS_BRIEF else "")
-    return shell("feed", "SIGNAL — 크립토·AI·매크로 시그널 데스크",
-                 "해외 크립토·AI·경제 속보를 한국어로 모으고, 뉴스가 비트코인 가격을 얼마나 움직였는지 실측해 보여줍니다.", B, body, now)
+    return shell("feed", "실시간 시그널 피드",
+                 "크립토·AI·매크로 뉴스를 실시간으로 모으고 기사마다 비트코인 가격 반응을 실측해 보여 줍니다.", B + "feed/", body, now)
 
 
 def temp_panel(market):
@@ -341,7 +341,7 @@ def page_article(a, related, now):
     primary = assets_for(a)[0]
     body = """
 <div class="wrap art">
-  <nav class="crumbs" aria-label="경로"><a href="{B}">피드</a><span aria-hidden="true">/</span><span>{catlabel}</span></nav>
+  <nav class="crumbs" aria-label="경로"><a href="{B}feed/">피드</a><span aria-hidden="true">/</span><span>{catlabel}</span></nav>
   <header class="art__head">
     <div class="fcard__meta"><span class="chip cat cat--{cat}">{catlabel}</span><span class="src">{src}</span><time datetime="{iso}" data-ts="{t0}">{when} KST</time></div>
     <h1 class="art__title">{title}</h1>
@@ -511,15 +511,7 @@ def page_about(health, now):
         status = ('<span class="ok">정상</span>' if not st.get("error") else '<span class="down">오류</span>') if ok or st.get("error") else '<span class="muted">대기</span>'
         src_rows.append("<tr><th scope=\"row\">%s</th><td>%s</td><td>%s</td><td>%s</td></tr>" % (h(s["name"]), config.CATEGORY_LABEL.get(s["hint"], "자동 분류"), "한국어" if s["lang"] == "ko" else "영어", status))
     body = """
-<section class="hero">
-  <canvas class="hero__canvas" id="flowCanvas" aria-hidden="true"></canvas>
-  <div class="wrap hero__inner">
-    <p class="eyebrow">SIGNAL / 소개</p>
-    <h1 class="hero__title">Noise out,<br><em>Signal</em> in.</h1>
-    <p class="hero__lede">크립토, AI, 거시경제 뉴스를 한곳에 모으고, 각 뉴스 뒤에 비트코인 가격이 실제로 얼마나 움직였는지 함께 보여 줍니다.</p>
-    <div class="hero__actions"><a class="btn btn--accent btn--lg" href="{B}">피드 보기</a><a class="btn btn--ghost btn--lg" href="{B}impact/">임팩트 리포트</a></div>
-  </div>
-</section>
+<div class="wrap narrow"><header class="phead"><h1 class="phead__title">소개·방법론</h1><p class="muted">SIGNAL이 뉴스를 모으고 가격 반응을 재는 방법, 그리고 데이터 출처입니다.</p></header></div>
 <div class="wrap narrow">
   <section class="panel"><h2 class="panel__title">어떻게 동작하나요</h2>
     <ol class="steps"><li>15분마다 국내외 매체 RSS와 업비트 공지를 수집하고 중복을 지웁니다.</li><li>키워드로 크립토·AI·매크로를 나누고 관련 코인을 찾습니다.</li><li>기사 시각 이후 15분·1시간·24시간 가격 변화를 1분봉으로 재고, 평소 변동폭 대비 강도를 매깁니다.</li><li>기사 본문은 저장하지 않습니다. 제목, 짧은 발췌 또는 요약, 원문 링크만 보여 줍니다.</li></ol>
@@ -535,17 +527,136 @@ def page_about(health, now):
     </ul>
   </section>
   <section class="panel"><h2 class="panel__title">유의 사항</h2><p>SIGNAL은 정보를 모아 보여 주는 서비스이며 투자 조언을 하지 않습니다. 가격 반응은 같은 시간대에 일어난 변화를 잰 값으로, 뉴스가 가격을 움직였다는 뜻이 아닙니다.</p></section>
-</div>""".format(B=B, rows="".join(src_rows))
+</div>""".format(rows="".join(src_rows))
     return shell("about", "소개·방법론", "SIGNAL이 뉴스를 모으고 가격 반응을 재는 방법과 데이터 출처.", B + "about/", body, now)
 
 
+def page_landing(articles, market, imp, now):
+    """첫 화면: 브랜드·모션 그래픽·실데이터 증거. 숫자는 모두 실제 수집·측정값이다."""
+    day = [a for a in articles if now - a["t0"] < 86400]
+    n24 = len(day)
+    measured = sum(1 for a in articles if a.get("headline"))
+    shares = {c: sum(1 for a in day if a["category"] == c) for c in ("crypto", "ai", "macro")}
+    total = sum(shares.values()) or 1
+    share_pct = {c: round(v * 100 / total) for c, v in shares.items()}
+    strong = [r for r in imp.get("strongest", []) if r.get("g") in ("강", "중")][:3] or imp.get("strongest", [])[:3]
+    latest = [{"title": a["title"], "src": a["source_name"], "cat": a["category"]} for a in articles[:4]]
+    btc = (market.get("tickers") or {}).get("BTC") or {}
+    types = (imp.get("types") or [])[:6]
+    proof = "".join(
+        '<article class="proof"><div class="proof__meta"><span class="ib ib--{d} ib--g{g}">{asset} {win} {r}{gl}</span><span class="muted small">z {z:.1f} · <time data-ts="{t0}">{when}</time></span></div>'
+        '<h3 class="proof__title"><a href="{B}a/{id}/">{title}</a></h3>'
+        '<div class="proof__chart" data-sym="{asset}" data-t0="{t0}" aria-hidden="true"></div></article>'.format(
+            d="up" if r["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(r["g"], "w"), asset=h(r["asset"]), win=r["win"], r=pct(r["r"]),
+            gl=(" · " + r["g"]) if r.get("g") else "", z=r["z"], t0=r["t0"], when=md_hm(r["t0"]), B=B, id=h(r["id"]), title=h(r["title"]))
+        for r in strong) or '<p class="muted">측정이 쌓이면 실제 사례가 여기에 나타납니다.</p>'
+    top_abs = max([t["mean_abs"] for t in types] or [1]) or 1
+    bars = "".join(
+        '<li class="tbar"><span class="tbar__label">{label}</span><span class="tbar__track"><i style="--v:{v:.3f}"></i></span><span class="tbar__val">{val} <span class="muted">n={n}</span></span></li>'.format(
+            label=h(t["label"]), v=t["mean_abs"] / top_abs, val=pct(t["mean_abs"]).lstrip("+"), n=t["n"]) for t in types) \
+        or '<li class="muted">유형별 표본이 쌓이는 중입니다.</li>'
+    flow_cards = "".join('<div class="fc" style="--k:%d"><i class="dot dot--%s"></i><span>%s</span><em>%s</em></div>' % (i, a["cat"], h(a["title"][:46]), h(a["src"])) for i, a in enumerate(latest))
+    s0 = strong[0] if strong else None
+    body = """
+<section class="lhero" aria-labelledby="lheroTitle">
+  <canvas class="lhero__canvas" id="sphereCanvas" aria-hidden="true"></canvas>
+  <div class="wrap lhero__inner">
+    <div class="lhero__copy">
+      <p class="eyebrow eyebrow--live reveal-in" style="--d:0"><span class="live-dot" aria-hidden="true"></span>LIVE · 15분마다 수집 · 마지막 <time data-ts="{now}">{now_hm}</time></p>
+      <h1 class="lhero__title" id="lheroTitle"><span class="w" style="--d:1">Noise</span> <span class="w" style="--d:2">out,</span><br><span class="w" style="--d:3"><em>Signal</em></span> <span class="w" style="--d:4">in.</span></h1>
+      <p class="lhero__lede reveal-in" style="--d:5">크립토·AI·매크로 뉴스를 모으고, 뉴스마다 비트코인이 <b>실제로 얼마나 움직였는지</b> 잽니다. 감이 아니라 측정값으로.</p>
+      <div class="lhero__actions reveal-in" style="--d:6"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 열기 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h10m-4-4 4 4-4 4"/></svg></a><a class="btn btn--ghost btn--lg" href="{B}impact/">임팩트 리포트</a></div>
+      <dl class="lhero__stats reveal-in" style="--d:7">
+        <div><dt>최근 24시간 기사</dt><dd><span class="count" data-to="{n24}">{n24}</span></dd></div>
+        <div><dt>수집 매체</dt><dd><span class="count" data-to="{nsrc}">{nsrc}</span></dd></div>
+        <div><dt>반응 측정 기사</dt><dd><span class="count" data-to="{measured}">{measured}</span></dd></div>
+      </dl>
+    </div>
+    <div class="lhero__legend reveal-in" style="--d:8" aria-label="그래픽 설명">
+      <p class="mono-label">SIGNAL FIELD · 최근 24시간</p>
+      <ul><li><i class="dot dot--crypto"></i>크립토 {pc}%</li><li><i class="dot dot--ai"></i>AI {pa}%</li><li><i class="dot dot--macro"></i>매크로 {pm}%</li></ul>
+      <p class="muted small">점 하나가 기사 하나의 자리입니다. 펄스는 뉴스가 가격선에 닿는 모습을 나타냅니다.</p>
+      <p class="lhero__btc"><span class="muted small">BTC</span> <b id="heroBtc">{btc}</b> <span id="heroBtcChg" class="{bdir}">{bchg}</span></p>
+    </div>
+  </div>
+  <a class="lhero__scroll" href="#how" aria-label="아래로">SCROLL<i></i></a>
+</section>
+
+<section class="flow" id="how" aria-labelledby="flowTitle">
+  <div class="flow__sticky">
+    <div class="wrap flow__inner">
+      <div class="flow__text">
+        <p class="mono-label">HOW IT WORKS</p>
+        <h2 class="lsec__title" id="flowTitle">뉴스가 시그널이 되기까지</h2>
+        <ol class="flow__steps">
+          <li data-step="0"><b>01 수집</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 걸러 크립토·AI·매크로로 나눕니다.</p></li>
+          <li data-step="1"><b>02 측정</b><p>기사 시각을 기준으로 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p></li>
+          <li data-step="2"><b>03 시그널</b><p>평소 변동폭의 몇 배였는지(z)로 강·중·약을 매깁니다. 상관이지 인과는 아닙니다.</p></li>
+        </ol>
+      </div>
+      <div class="flow__stage" aria-hidden="true">
+        <div class="flow__cards">{flow_cards}</div>
+        <div class="flow__chartbox"><svg class="flow__chart" id="flowChart" viewBox="0 0 400 160" preserveAspectRatio="none"></svg><span class="flow__t0">기사 시각</span></div>
+        <div class="flow__gauge">
+          <svg viewBox="0 0 200 116"><path class="g-track" d="M20 100a80 80 0 0 1 160 0"/><path class="g-fill" id="flowGaugeFill" d="M20 100a80 80 0 0 1 160 0" pathLength="100"/><g class="g-needle" id="flowNeedle"><line x1="100" y1="100" x2="100" y2="34"/><circle cx="100" cy="100" r="5"/></g></svg>
+          <p class="flow__z"><b id="flowZ">z 0.0</b><span>{s0label}</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lsec wrap" aria-labelledby="proofTitle">
+  <p class="mono-label">PROOF · 최근 7일</p>
+  <h2 class="lsec__title" id="proofTitle">실제로 잰 반응</h2>
+  <p class="lsec__lede muted">평소보다 크게 움직인 순간들입니다. 차트의 세로선이 기사 시각입니다.</p>
+  <div class="proofs">{proof}</div>
+</section>
+
+<section class="lsec wrap" aria-labelledby="typesTitle">
+  <div class="lsplit">
+    <div><p class="mono-label">IMPACT REPORT</p><h2 class="lsec__title" id="typesTitle">어떤 뉴스가<br>더 크게 움직였나</h2><p class="lsec__lede muted">이벤트 유형별 BTC 1시간 평균 변동폭. 측정이 쌓일수록 정확해집니다.</p><a class="btn btn--ghost" href="{B}impact/">리포트 전체 보기</a></div>
+    <ol class="tbars" id="tbars">{bars}</ol>
+  </div>
+</section>
+
+<section class="lsec wrap" aria-labelledby="featTitle">
+  <p class="mono-label">FEATURES</p>
+  <h2 class="lsec__title" id="featTitle">매일 들어올 이유</h2>
+  <div class="feats">
+    <a class="feat feat--wide" href="{B}feed/"><span class="feat__vis feat__vis--feed" aria-hidden="true"><i></i><i></i><i></i></span><b>실시간 피드</b><p>카테고리·반응 강도·내 종목으로 걸러 보고, 새 기사가 오면 바로 알려 줍니다.</p></a>
+    <a class="feat" href="{B}calendar/"><span class="feat__vis feat__vis--cal" aria-hidden="true"><i>FOMC</i><i>CPI</i><i>고용</i></span><b>경제 캘린더</b><p>발표 후 BTC 반응까지 기록합니다.</p></a>
+    <a class="feat" href="{B}predict/"><span class="feat__vis feat__vis--vote" aria-hidden="true"><i class="up">위</i><i class="down">아래</i></span><b>방향 예측</b><p>발표 1시간 뒤 방향을 맞혀 보세요. 돈은 걸리지 않습니다.</p></a>
+    <a class="feat" href="{B}markets/"><span class="feat__vis feat__vis--kimp" aria-hidden="true"><b>{kimp}</b><small>BTC 김프</small></span><b>마켓·김프</b><p>12개 코인, 김치 프리미엄, 공포·탐욕.</p></a>
+    <a class="feat" href="{B}me/"><span class="feat__vis feat__vis--star" aria-hidden="true"><i>★</i></span><b>관심 종목</b><p>내 코인 기사를 위로 올려 줍니다.</p></a>
+  </div>
+</section>
+
+<section class="lcta" aria-labelledby="ctaTitle">
+  <div class="lcta__marquee" aria-hidden="true"><div class="lcta__track"><span>BITCOIN</span><span>·</span><span>FOMC</span><span>·</span><span>INFERENCE</span><span>·</span><span>ETF</span><span>·</span><span>CPI</span><span>·</span><span>STABLECOIN</span><span>·</span><span>BITCOIN</span><span>·</span><span>FOMC</span><span>·</span><span>INFERENCE</span><span>·</span><span>ETF</span><span>·</span><span>CPI</span><span>·</span><span>STABLECOIN</span><span>·</span></div></div>
+  <div class="wrap lcta__inner">
+    <h2 class="lcta__title" id="ctaTitle">노이즈는 걸렀습니다.<br><em>시그널</em>만 보세요.</h2>
+    <a class="btn btn--accent btn--lg" href="{B}feed/">피드 열기</a>
+    <p class="muted small">회원가입 없음 · 무료 · 투자 조언이 아닙니다</p>
+  </div>
+</section>""".format(
+        now=now, now_hm=md_hm(now), B=B, n24=n24, nsrc=len(config.SOURCES), measured=measured,
+        pc=share_pct["crypto"], pa=share_pct["ai"], pm=share_pct["macro"],
+        btc=("$" + price(btc["price"])) if btc.get("price") else "–", bdir="up" if btc.get("chg", 0) >= 0 else "down", bchg=pct(btc.get("chg")) if btc else "",
+        flow_cards=flow_cards, s0label=("예: " + h(s0["title"][:30]) + ("…" if len(s0["title"]) > 30 else "") + " · " + s0["asset"] + " " + s0["win"]) if s0 else "측정 대기",
+        proof=proof, bars=bars, kimp=pct(((market.get("kimp") or {}).get("BTC") or {}).get("premium")))
+    data = {"landing": {"shares": shares, "spark": btc.get("spark") or [], "z": s0["z"] if s0 else 0, "g": s0["g"] if s0 else None}}
+    return shell("home", "SIGNAL — 뉴스가 움직인 가격까지", "크립토·AI·매크로 뉴스를 모으고, 뉴스마다 비트코인 가격이 실제로 얼마나 움직였는지 실측해 보여 줍니다.",
+                 B, body, now, data=data)
+
+
 def page_404(now):
-    body = '<div class="wrap narrow phead"><h1 class="phead__title">페이지를 찾을 수 없습니다</h1><p class="muted">30일이 지난 기사는 정리됩니다. <a href="%s">피드로 가기</a></p></div>' % B
+    body = '<div class="wrap narrow phead"><h1 class="phead__title">페이지를 찾을 수 없습니다</h1><p class="muted">30일이 지난 기사는 정리됩니다. <a href="%sfeed/">피드로 가기</a></p></div>' % B
     return shell("404", "페이지 없음", "페이지를 찾을 수 없습니다.", B + "404.html", body, now, robots="noindex")
 
 
 def sitemap(articles, now):
-    urls = [("", now), ("markets/", now), ("calendar/", now), ("impact/", now), ("about/", now)]
+    urls = [("", now), ("feed/", now), ("markets/", now), ("calendar/", now), ("impact/", now), ("about/", now)]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
     return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">%s</urlset>' % body
@@ -573,7 +684,8 @@ def build_site(out, articles, market, cal, imp, health, now):
     HAS_BRIEF = os.path.isfile(os.path.join(out, "og", "brief.jpg"))
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     util.write_text(os.path.join(out, ".nojekyll"), "")
-    util.write_text(os.path.join(out, "index.html"), page_feed(articles, market, cal, imp, now))
+    util.write_text(os.path.join(out, "index.html"), page_landing(articles, market, imp, now))
+    util.write_text(os.path.join(out, "feed", "index.html"), page_feed(articles, market, cal, imp, now))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
     util.write_text(os.path.join(out, "markets", "index.html"), page_markets(market, now))
