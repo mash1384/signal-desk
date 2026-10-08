@@ -594,6 +594,52 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .endcta__title em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--accent-ink); }
 .endcta__sub { color: var(--text-2); margin-bottom: 8px; }
 
+/* 스크롤 등장: 한 번만. 숨김은 스크립트가 켜졌을 때만 적용해 스크립트가 없어도 내용이 보인다 */
+.reveal-on [data-reveal] { opacity: 0; transition-property: opacity, box-shadow; transition-duration: 500ms, 150ms; transition-timing-function: ease-out; transition-delay: calc(var(--i, 0) * 90ms), 0ms; }
+.reveal-on [data-reveal].is-in { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-on [data-reveal] { transform: translateY(20px); filter: blur(4px);
+    transition-property: opacity, transform, filter, box-shadow; transition-duration: 700ms, 700ms, 700ms, 150ms; transition-timing-function: var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), 0ms; }
+  .reveal-on [data-reveal].is-in { transform: none; filter: none; }
+
+  /* 등장한 카드 안의 데이터가 차례로 채워진다 */
+  .steps3__src li { transition: opacity 400ms ease-out, transform 400ms var(--ease-out); transition-delay: calc(300ms + var(--j, 0) * 50ms); }
+  .reveal-on .steps3 li:not(.is-in) .steps3__src li { opacity: 0; transform: translateY(6px); }
+  .steps3__time i { transform-origin: left; transition: transform 500ms var(--ease-in-out); }
+  .steps3__time span { transition: opacity 300ms ease-out; }
+  .steps3__time i:nth-of-type(2) { transition-delay: 350ms; } .steps3__time span:nth-of-type(2) { transition-delay: 650ms; }
+  .steps3__time i:nth-of-type(3) { transition-delay: 750ms; } .steps3__time span:nth-of-type(3) { transition-delay: 1050ms; }
+  .steps3__time i:nth-of-type(4) { transition-delay: 1150ms; } .steps3__time span:nth-of-type(4) { transition-delay: 1450ms; }
+  .reveal-on .steps3 li:not(.is-in) .steps3__time i { transform: scaleX(0); }
+  .reveal-on .steps3 li:not(.is-in) .steps3__time span:not(:first-of-type) { opacity: 0; }
+  .steps3__scale span { transition: opacity 400ms ease-out, transform 400ms var(--ease-out); }
+  .steps3__scale span:nth-child(1) { transition-delay: 400ms; } .steps3__scale span:nth-child(2) { transition-delay: 600ms; } .steps3__scale span:nth-child(3) { transition-delay: 800ms; }
+  .reveal-on .steps3 li:not(.is-in) .steps3__scale span { opacity: 0; transform: scale(0.96); }
+
+  .tbar__track i { transition: transform 900ms var(--ease-in-out); }
+  .tbar:nth-child(2) .tbar__track i { transition-delay: 70ms; } .tbar:nth-child(3) .tbar__track i { transition-delay: 140ms; }
+  .tbar:nth-child(4) .tbar__track i { transition-delay: 210ms; } .tbar:nth-child(5) .tbar__track i { transition-delay: 280ms; } .tbar:nth-child(6) .tbar__track i { transition-delay: 350ms; }
+  .reveal-on .tbars:not(.is-in) .tbar__track i { transform: scaleX(0); }
+
+  .cat-bar { transform-origin: left; transition: transform 800ms var(--ease-in-out) 300ms; }
+  .reveal-on .bx:not(.is-in) .cat-bar { transform: scaleX(0); }
+  .kb i { transition: transform 900ms var(--ease-in-out) 300ms; }
+  .reveal-on .bx:not(.is-in) .kb i { transform: scaleX(0); }
+  .mfng__fill { transition: stroke-dashoffset 1200ms var(--ease-in-out) 300ms; }
+  .reveal-on .bx:not(.is-in) .mfng__fill { stroke-dashoffset: 100; }
+  .mfng__hist i { transform-origin: bottom; transition: transform 600ms var(--ease-out); transition-delay: calc(400ms + var(--k, 0) * 20ms); }
+  .reveal-on .bx:not(.is-in) .mfng__hist i { transform: scaleY(0); }
+}
+
+/* 미리보기 프레임: 스크롤하면 기울어진 화면이 펴진다(지원 브라우저만) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .demo { transform-origin: 50% 0; animation: demo-unfold linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+  }
+}
+@keyframes demo-unfold { from { transform: perspective(1600px) rotateX(16deg) scale(0.94); opacity: 0.55; } to { transform: none; opacity: 1; } }
+
 /* ---------- 반응형 ---------- */
 @media (max-width: 1180px) {
   .layout3 { grid-template-columns: minmax(0, 1fr) 300px; }
