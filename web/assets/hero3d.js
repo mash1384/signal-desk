@@ -1,7 +1,6 @@
-// 첫 화면 3D: 뉴스 입자(노이즈)가 유리 프리즘을 지나면 대부분 흩어지고, 일부만 시그널 빛줄기가 된다.
-// 스크롤하면 카메라가 프리즘을 돌아 빛줄기 하나를 따라가고, 그 빛줄기가 실제 BTC 가격선으로 펴진다.
+// 첫 화면 3D 지형: 최근 7일 BTC 1시간봉으로 산맥을 만든다. 높이는 변동성, 위에 떠 있는 빛줄기는 가격.
+// 반응이 컸던 뉴스는 봉우리에 핀으로 꽂힌다. 스크롤하면 카메라가 낮게 날아가며 핀마다 멈추고, 끝에서 한 주 전체를 내려다본다.
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -10,333 +9,317 @@ import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 
-const clamp = (v) => Math.max(0, Math.min(1, v));
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const seg = (p, a, b) => clamp((p - a) / (b - a));
-const ease = (t) => t * t * (3 - 2 * t);
+const smooth = (t) => t * t * (3 - 2 * t);
+const DAY = 86400, SPAN = 7 * DAY;
+const L = 26, D = 14; // 지형 가로(시간) · 세로(깊이) 길이
 
-// oklch 같은 CSS 색을 sRGB로 바꾼다(캔버스에 한 번 칠해 읽는다)
 function cssColor(str) {
   const c = document.createElement('canvas').getContext('2d');
-  c.fillStyle = str;
-  c.fillRect(0, 0, 1, 1);
+  c.fillStyle = str; c.fillRect(0, 0, 1, 1);
   const d = c.getImageData(0, 0, 1, 1).data;
   return new THREE.Color().setRGB(d[0] / 255, d[1] / 255, d[2] / 255, THREE.SRGBColorSpace);
 }
 
-async function candles(sym, start, end) {
-  const hosts = ['https://data-api.binance.vision', 'https://api.binance.com'];
-  for (const h of hosts) {
+// 값 노이즈 + 프랙털 합: 실제 데이터 사이를 자연스러운 산 모양으로 채운다
+function hash(x, y) { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y) { let s = 0, a = 0.5, f = 1; for (let i = 0; i < 5; i++) { s += a * vnoise(x * f, y * f); f *= 2.03; a *= 0.5; } return s; }
+// 능선형 노이즈: 날카로운 산등성이와 골짜기가 생긴다
+function ridged(x, y) { let s = 0, a = 0.55, f = 1; for (let i = 0; i < 5; i++) { let n = 1 - Math.abs(vnoise(x * f, y * f) * 2 - 1); n *= n; s += a * n; f *= 2.07; a *= 0.48; } return s; }
+
+async function hourly(sym, start, end) {
+  for (const h of ['https://data-api.binance.vision', 'https://api.binance.com']) {
     try {
-      const r = await fetch(`${h}/api/v3/klines?symbol=${sym}USDT&interval=1m&startTime=${start * 1000}&endTime=${end * 1000}&limit=1000`);
+      const r = await fetch(`${h}/api/v3/klines?symbol=${sym}USDT&interval=1h&startTime=${start * 1000}&endTime=${end * 1000}&limit=200`);
       if (!r.ok) continue;
       const rows = await r.json();
-      if (rows.length > 5) return rows.map((k) => [Math.floor(k[0] / 1000), +k[4]]);
-    } catch (e) { /* 다음 주소로 */ }
+      if (rows.length > 24) return rows.map((k) => [Math.floor(k[0] / 1000) + 3600, +k[4]]);
+    } catch (e) { /* 다음 주소 */ }
   }
   return null;
 }
 
-function main() {
+async function main() {
   const sec = document.getElementById('h3d');
   if (!sec) return;
-  const pin = sec.querySelector('.pin');
-  const canvas = sec.querySelector('canvas');
+  const pin = sec.querySelector('.pin'), canvas = sec.querySelector('canvas');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const small = () => innerWidth < 760;
-
   let renderer;
-  try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  } catch (e) {
-    sec.classList.add('no-webgl');
-    return;
-  }
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+  catch (e) { sec.classList.add('no-webgl'); return; }
   sec.classList.add('has-webgl');
   if (!reduced) sec.classList.add('is-pinned');
-
-  const BG = cssColor('oklch(0.155 0.006 275)');
-  const ACCENT = cssColor('oklch(0.92 0.2 120)');
-  const NOISE = cssColor('oklch(0.72 0.01 275)');
-
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMappingExposure = 1.1;
+
+  const BG = cssColor('oklch(0.145 0.006 275)');
+  const BASE = cssColor('oklch(0.3 0.014 275)');
+  const LINE = cssColor('oklch(0.62 0.012 275)');
+  const ACCENT = cssColor('oklch(0.92 0.2 120)');
+
+  const info = (window.SIGNAL && window.SIGNAL.landing && window.SIGNAL.landing.terrain) || { stops: [], now: Date.now() / 1000 };
+  const tEnd = Math.floor(Date.now() / 1000), tStart = tEnd - SPAN;
+  const xOf = (t) => ((t - tStart) / SPAN - 0.5) * L;
+
+  // 데이터: 가격(0~1)과 변동성(0~약 1.3)을 시간 함수로
+  const rows = await hourly('BTC', tStart - 3 * 3600, tEnd);
+  let priceAt = () => 0.5, volAt = (t) => 0.25 + 0.5 * fbm(t / 40000, 3.3) - 0.2;
+  if (rows) {
+    const ps = rows.map((r) => r[1]);
+    const lo = Math.min(...ps), hi = Math.max(...ps), span = hi - lo || 1;
+    const ret = rows.map((r, i) => (i ? Math.abs(Math.log(r[1] / rows[i - 1][1])) : 0));
+    const sm = ret.map((_, i) => { let s = 0, w = 0; for (let j = -9; j <= 9; j++) { const k = i + j; if (k < 0 || k >= ret.length) continue; const g = Math.exp(-(j * j) / 18); s += ret[k] * g; w += g; } return s / w; });
+    const sorted = [...sm].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * 0.95)] || 1e-6;
+    const lerpAt = (arr) => (t) => {
+      const f = (t - rows[0][0]) / 3600, i = clamp(Math.floor(f), 0, arr.length - 2), u = clamp(f - i, 0, 1);
+      return arr[i] + (arr[i + 1] - arr[i]) * u;
+    };
+    const pn = ps.map((p) => (p - lo) / span), vn = sm.map((v) => Math.min(1.35, v / p95));
+    priceAt = lerpAt(pn); volAt = lerpAt(vn);
+  }
+  const stopX = info.stops.map((s) => xOf(s.t0));
+  const heightAt = (x, z) => {
+    const t = tStart + (x / L + 0.5) * SPAN;
+    const v = clamp(volAt(t), 0, 1.35);
+    const env = Math.exp(-((z / 4.2) ** 2));
+    let h = 0.1 + 0.6 * priceAt(t) * Math.exp(-((z / 3.5) ** 2));
+    h += (0.7 + 2.6 * Math.pow(v, 1.2)) * ridged(x * 0.3 + 5.3, z * 0.38 + 1.7) * env;
+    h += (fbm(x * 0.2 + 7, z * 0.26) - 0.4) * 1.5 * (0.45 + 0.55 * Math.exp(-((z / 6) ** 2)));
+    h += (fbm(x * 1.6, z * 1.6 + 3) - 0.5) * 0.1;
+    stopX.forEach((sx) => { h += 0.35 * Math.exp(-((x - sx) ** 2) / 0.25 - (z * z) / 0.8); });
+    h -= 0.9 * smooth(seg(Math.abs(z), 4.5, 7));
+    return h;
+  };
+  const PZ = -5.2; // 가격 빛줄기는 산맥 뒤 하늘선처럼
+  const priceY = (x) => 2.4 + 1.7 * priceAt(tStart + (x / L + 0.5) * SPAN);
 
   const scene = new THREE.Scene();
   scene.background = BG;
-  scene.fog = new THREE.FogExp2(BG, 0.035);
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 120);
 
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-
-  // 프리즘: 정삼각형 단면을 깊이 방향으로 뽑고 모서리를 둥글린다
-  const R = 1.25;
-  const shape = new THREE.Shape();
-  for (let i = 0; i < 3; i++) {
-    const a = Math.PI / 2 + (i * Math.PI * 2) / 3;
-    const x = Math.cos(a) * R, y = Math.sin(a) * R;
-    if (i) shape.lineTo(x, y); else shape.moveTo(x, y);
+  // 지형 메시
+  const rx = small() ? 220 : 340, rz = small() ? 96 : 150;
+  const geo = new THREE.PlaneGeometry(L, D, rx, rz);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position, vol = new Float32Array(pos.count);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    pos.setY(i, heightAt(x, z));
+    vol[i] = clamp(volAt(tStart + (x / L + 0.5) * SPAN), 0, 1.35) * Math.exp(-((z / 2.6) ** 2)) * clamp(pos.getY(i) / 1.6, 0, 1.2);
   }
-  shape.closePath();
-  const pg = new THREE.ExtrudeGeometry(shape, { depth: 1.5, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 6, curveSegments: 1 });
-  pg.center();
-  const glass = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 0, roughness: 0, transmission: 1, thickness: 1.2, ior: 1.62, dispersion: 7,
-    iridescence: 0.5, iridescenceIOR: 1.3, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 2.2, specularIntensity: 1,
-    attenuationColor: new THREE.Color(0xdfe6ff), attenuationDistance: 4,
-  });
-  const prism = new THREE.Mesh(pg, glass);
-  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(pg, 30), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18 }));
-  const prismGroup = new THREE.Group();
-  prismGroup.add(prism, edges);
-  prismGroup.rotation.set(0.12, -0.42, 0);
-  scene.add(prismGroup);
-
-  // 프리즘 뒤의 은은한 빛판: 유리가 이 빛을 굴절시켜 '유리'로 읽히게 한다(불투명 목록이라 굴절 패스에 들어간다)
-  const glowTex = (() => {
-    const c = document.createElement('canvas'); c.width = c.height = 256;
-    const g = c.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-    gr.addColorStop(0, 'rgba(255,255,255,0.55)');
-    gr.addColorStop(0.25, 'rgba(214,245,90,0.28)');
-    gr.addColorStop(0.6, 'rgba(214,245,90,0.06)');
-    gr.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-  })();
-  const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ map: glowTex, blending: THREE.AdditiveBlending, transparent: false, depthWrite: false, toneMapped: false }));
-  backdrop.position.set(0.6, 0.1, -4.5);
-  scene.add(backdrop);
-
-  const key = new THREE.DirectionalLight(0xffffff, 2.2);
-  key.position.set(-4, 5, 6);
-  scene.add(key);
-
-  // 뉴스 입자: 점으로 그리고, 움직임은 셰이더에서 시드값으로 계산한다
-  const makeParticles = (count) => {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
-    const seeds = new Float32Array(count * 4);
-    for (let i = 0; i < count * 4; i++) seeds[i] = Math.random();
-    g.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 4));
-    return g;
+  geo.setAttribute('aVol', new THREE.BufferAttribute(vol, 1));
+  geo.computeVertexNormals();
+  const tUniforms = {
+    uBg: { value: BG }, uBase: { value: BASE }, uLine: { value: LINE }, uAccent: { value: ACCENT },
+    uFogD: { value: 0.034 }, uDay: { value: L / 7 }, uX0: { value: -L / 2 }, uScan: { value: -99 },
   };
-  const pUniforms = {
-    uTime: { value: 0 }, uSig: { value: 0.07 }, uFade: { value: 1 }, uPx: { value: 1 },
-    uNoise: { value: NOISE }, uAccent: { value: ACCENT },
-  };
-  const pMat = new THREE.ShaderMaterial({
-    uniforms: pUniforms,
-    // 투명 목록이 아니라 불투명 목록에서 그려야 유리 굴절 패스에 함께 비친다
-    transparent: false, depthWrite: false, blending: THREE.AdditiveBlending,
+  const terrain = new THREE.Mesh(geo, new THREE.ShaderMaterial({
+    uniforms: tUniforms,
     vertexShader: /* glsl */`
-      uniform float uTime, uSig, uPx;
-      attribute vec4 aSeed;
-      varying float vAlpha; varying float vS;
+      attribute float aVol;
+      varying vec3 vW; varying vec3 vN; varying float vVol;
       void main() {
-        float speed = mix(0.55, 1.15, fract(aSeed.x * 7.13));
-        float L = 19.0;
-        float t = fract(aSeed.x + uTime * speed / L);
-        float x = -11.0 + t * L;
-        float sig = step(aSeed.w, uSig);
-        vec2 lane = (vec2(aSeed.y, aSeed.z) * 2.0 - 1.0) * vec2(3.0, 2.2);
-        float pre = smoothstep(-11.0, 0.0, x);
-        vec2 off = lane * (1.0 - 0.72 * pre * pre);
-        float post = clamp(x / 8.0, 0.0, 1.0);
-        float a = smoothstep(0.0, 0.06, t);
-        if (x > 0.0) {
-          if (sig > 0.5) {
-            off = vec2((aSeed.y - 0.5) * 1.6 * post, (aSeed.z - 0.5) * 0.5 * post);
-            a *= (1.0 - smoothstep(0.85, 1.0, post)) * smoothstep(0.7, 1.6, x);
-          } else {
-            vec2 d = normalize(lane + 0.001);
-            off = lane * 0.28 + d * post * 9.0 + vec2(sin(aSeed.x * 40.0 + x), cos(aSeed.y * 40.0 + x)) * post;
-            a *= 1.0 - smoothstep(0.0, 0.3, post);
-          }
-        }
-        a *= smoothstep(0.7, 1.6, abs(x));
-        vS = (x > 0.0) ? sig : 0.0;
-        vAlpha = a;
-        vec4 mv = modelViewMatrix * vec4(x, off.x, off.y, 1.0);
-        float size = mix(0.022, 0.052, fract(aSeed.y * 5.7)) * (vS > 0.5 ? 1.6 : 1.0);
-        gl_PointSize = uPx * size / -mv.z;
-        gl_Position = projectionMatrix * mv;
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vW = w.xyz; vN = normalize(mat3(modelMatrix) * normal); vVol = aVol;
+        gl_Position = projectionMatrix * viewMatrix * w;
       }`,
     fragmentShader: /* glsl */`
-      uniform vec3 uNoise, uAccent; uniform float uFade;
-      varying float vAlpha; varying float vS;
+      uniform vec3 uBg, uBase, uLine, uAccent; uniform float uFogD, uDay, uX0, uScan;
+      varying vec3 vW; varying vec3 vN; varying float vVol;
+      float grid(float v) { float d = fwidth(v); float f = abs(fract(v - 0.5) - 0.5); return 1.0 - smoothstep(d * 0.35, d * 1.25, f); }
       void main() {
-        float m = 1.0 - smoothstep(0.15, 0.5, length(gl_PointCoord - 0.5));
-        vec3 col = mix(uNoise * 0.6, uAccent * 1.5, vS);
-        gl_FragColor = vec4(col * m * vAlpha * uFade, 1.0);
+        vec3 n = normalize(vN);
+        vec3 v = normalize(cameraPosition - vW);
+        float diff = clamp(dot(n, normalize(vec3(-0.35, 0.9, 0.4))), 0.0, 1.0);
+        float rim = pow(1.0 - clamp(dot(n, v), 0.0, 1.0), 3.0);
+        vec3 col = uBase * (0.25 + 0.95 * diff) + uBase * rim * 0.8;
+        float hot = smoothstep(0.22, 0.85, vVol);
+        vec3 lc = mix(uLine, uAccent, hot);
+        float minor = grid(vW.y * 6.0), major = grid(vW.y * 1.2);
+        col += lc * (minor * (0.2 + 0.5 * hot) + major * (0.38 + 0.6 * hot));
+        col += uLine * grid((vW.x - uX0) / uDay) * 0.10;
+        col += uAccent * hot * 0.06;
+        col *= mix(0.55, 1.0, smoothstep(-0.6, 1.8, vW.y));
+        col += uAccent * 0.35 * exp(-pow((vW.x - uScan) * 2.2, 2.0)) * (0.2 + hot);
+        float d = length(vW - cameraPosition);
+        col = mix(col, uBg, 1.0 - exp(-d * d * uFogD * uFogD));
+        gl_FragColor = vec4(col, 1.0);
       }`,
-  });
-  const particles = new THREE.Points(makeParticles(small() ? 1400 : 3200), pMat);
-  particles.frustumCulled = false;
-  scene.add(particles);
+  }));
+  scene.add(terrain);
 
-  // 시그널 빛줄기: 프리즘 오른쪽에서 부채꼴로 나간다. 가운데 하나가 나중에 가격선이 된다
-  const N = 140, X0 = 0.9, X1 = 8.4;
-  const beamEnds = [-1.15, -0.55, 0, 0.6, 1.2];
-  const beams = beamEnds.map((ye, i) => {
-    const pts = [];
-    for (let k = 0; k < N; k++) {
-      const u = k / (N - 1);
-      pts.push(X0 + u * (X1 - X0), ye * u, (i - 2) * 0.12 * u);
-    }
-    const geo = new LineGeometry();
-    geo.setPositions(pts);
-    const mat = new LineMaterial({ color: ACCENT, linewidth: i === 2 ? 3 : 1.6, transparent: true, opacity: i === 2 ? 0.95 : 0.55, blending: THREE.AdditiveBlending, depthWrite: false });
-    const line = new Line2(geo, mat);
-    line.computeLineDistances();
-    scene.add(line);
-    return { line, geo, mat, pts: Float32Array.from(pts) };
-  });
-  const hero = beams[2];
-  let pricePts = null, t0x = null;
-  const t0Line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -1.6, 0), new THREE.Vector3(0, 1.6, 0)]),
-    new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.08, gapSize: 0.08, transparent: true, opacity: 0 }));
-  t0Line.computeLineDistances();
-  scene.add(t0Line);
-
-  const info = (window.SIGNAL && window.SIGNAL.landing && window.SIGNAL.landing.story) || null;
-  if (info) {
-    const from = info.ts - 1800, to = Math.min(Math.floor(Date.now() / 1000), info.ts + 7200);
-    candles(info.asset, from, to).then((rows) => {
-      if (!rows) return;
-      const ps = rows.map((r) => r[1]);
-      const lo = Math.min(...ps), hi = Math.max(...ps), span = hi - lo || 1;
-      const out = new Float32Array(N * 3);
-      for (let k = 0; k < N; k++) {
-        const u = k / (N - 1);
-        const ts = from + u * (to - from);
-        let j = rows.findIndex((r) => r[0] >= ts);
-        if (j < 0) j = rows.length - 1;
-        out[k * 3] = X0 + u * (X1 - X0);
-        out[k * 3 + 1] = ((rows[j][1] - lo) / span - 0.5) * 2.6;
-        out[k * 3 + 2] = 0;
-      }
-      pricePts = out;
-      t0x = X0 + ((info.ts - from) / (to - from)) * (X1 - X0);
-      t0Line.position.x = t0x;
+  // 가격 빛줄기와 그 아래 옅은 막
+  const NP = 300, pricePts = [];
+  for (let i = 0; i < NP; i++) { const x = -L / 2 + (i / (NP - 1)) * L; pricePts.push(x, priceY(x), PZ); }
+  const lineMats = [];
+  const fatLine = (pts, color, width, opacity) => {
+    const g = new LineGeometry(); g.setPositions(pts);
+    const m = new LineMaterial({ color, linewidth: width, transparent: true, opacity, depthWrite: false });
+    lineMats.push(m);
+    const l = new Line2(g, m); l.computeLineDistances(); scene.add(l); return l;
+  };
+  fatLine(pricePts, ACCENT, 2.4, 1);
+  // 뉴스 핀: 봉우리에서 가격선까지 세로선, 양 끝에 빛나는 점, 바닥에는 퍼지는 고리
+  const dotTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.8)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  })();
+  const pins = stopX.map((x) => {
+    const y0 = heightAt(x, 0), y1 = y0 + 1.5;
+    const stem = fatLine([x, y0, 0, x, y1, 0], 0xffffff, 1.2, 0.6);
+    const dots = [y0, y1].map((y, j) => {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: dotTex, color: j ? ACCENT : 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+      s.position.set(x, y, 0); s.scale.setScalar(j ? 0.2 : 0.16); scene.add(s); return s;
     });
-  }
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.18, 0.22, 48), new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.set(x, y0 + 0.02, 0); scene.add(ring);
+    return { x, y0, y1, dots, ring, stem, on: 0 };
+  });
+  // 지금: 가격선 오른쪽 끝
+  const nowDot = new THREE.Sprite(new THREE.SpriteMaterial({ map: dotTex, color: ACCENT, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  nowDot.position.set(L / 2, priceY(L / 2 - 0.001), PZ); scene.add(nowDot);
 
-  // 카메라 경로: 정면 → 프리즘을 돌아 접근 → 가격선을 정면으로
-  const keys = () => {
-    const lift = H && H / W < 1.45 ? 0.9 : 0; // 세로가 짧은 폰은 프리즘을 더 위로
-    return small()
-    ? [{ p: 0, pos: [0.4, -0.2, 18], at: [0.8, -2.6 - lift, 0] }, { p: 0.5, pos: [2.8, 0.4, 14], at: [1.6, -2.0 - lift, 0] }, { p: 1, pos: [4.8, -0.4, 13.5], at: [4.7, -2.2 - lift, 0] }]
-    : [{ p: 0, pos: [0, 0.4, 11], at: [-1.6, 0.1, 0] }, { p: 0.5, pos: [3.4, 1.3, 7.8], at: [1.2, 0.1, 0] }, { p: 1, pos: [5.4, 0.5, 8.8], at: [4.2, 0.1, 0] }];
+  // 카메라 동선: 들어가기 → 핀마다 멈춤 → 위로 올라 전체 보기
+  const SLOTS = [[0.22, 0.34], [0.44, 0.56], [0.66, 0.78]];
+  const plan = () => {
+    const m = small();
+    const k = [];
+    const intro = m ? { pos: [-L / 2 + 0.2, 4.4, 7.2], at: [-L / 2 + 5.5, -0.6, -1.5] } : { pos: [-L / 2 - 2.2, 1.6, 6.6], at: [-L / 2 + 7.5, 1.7, -1] };
+    k.push({ p: 0, ...intro });
+    k.push({ p: 0.12, pos: [intro.pos[0] + 1.4, intro.pos[1] - 0.2, intro.pos[2] - 0.6], at: intro.at });
+    pins.forEach((pn, i) => {
+      const [a, b] = SLOTS[i] || SLOTS[SLOTS.length - 1];
+      const mid = pn.y0 + 0.6;
+      const dz = m ? 5.6 : 5.4, dx = m ? -0.8 : -3.4, dy = m ? 1.4 : 0.35, ay = m ? -1.3 : 0;
+      k.push({ p: a, pos: [pn.x + dx, mid + dy, dz], at: [pn.x + 0.4, mid + ay, -1] });
+      k.push({ p: b, pos: [pn.x + dx + 0.6, mid + dy + 0.15, dz - 0.4], at: [pn.x + 0.6, mid + ay, -1] });
+    });
+    const over = m ? { pos: [0.5, 14, 19], at: [0.5, -1.2, -1] } : { pos: [0.5, 8, 17], at: [0.5, 1.8, 0] };
+    k.push({ p: 0.9, ...over });
+    k.push({ p: 1, pos: [over.pos[0], over.pos[1] + 0.4, over.pos[2] + 0.4], at: over.at });
+    return k;
   };
   const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
   const camAt = new THREE.Vector3();
   const pose = (p) => {
-    const k = keys();
+    const k = plan();
     let i = 0;
     while (i < k.length - 2 && p > k[i + 1].p) i++;
-    const t = ease(clamp((p - k[i].p) / (k[i + 1].p - k[i].p)));
+    const t = smooth(clamp((p - k[i].p) / (k[i + 1].p - k[i].p)));
     camera.position.copy(v3(k[i].pos).lerp(v3(k[i + 1].pos), t));
     camAt.copy(v3(k[i].at).lerp(v3(k[i + 1].at), t));
   };
 
-  // 후처리: 빛줄기에만 은은한 번짐
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.85, 0.55, 0.62);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.45, 0.35, 0.78);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
-  let W = 0, H = 0, dpr = Math.min(devicePixelRatio || 1, small() ? 1.5 : 2);
+  let W = 0, H = 0, dpr = Math.min(devicePixelRatio || 1, small() ? 1.75 : 2);
   const resize = () => {
     W = pin.clientWidth; H = pin.clientHeight;
-    renderer.setPixelRatio(dpr);
-    renderer.setSize(W, H, false);
-    composer.setPixelRatio(dpr);
-    composer.setSize(W, H);
+    renderer.setPixelRatio(dpr); renderer.setSize(W, H, false);
+    composer.setPixelRatio(dpr); composer.setSize(W, H);
     bloom.resolution.set(W * dpr * 0.5, H * dpr * 0.5);
-    beams.forEach((b) => b.mat.resolution.set(W * dpr, H * dpr));
-    pUniforms.uPx.value = H * dpr / (2 * Math.tan(THREE.MathUtils.degToRad(small() ? 40 : 32) / 2));
-    camera.aspect = W / H;
-    camera.fov = small() ? 40 : 32;
-    camera.updateProjectionMatrix();
+    lineMats.forEach((m) => m.resolution.set(W * dpr, H * dpr));
+    camera.aspect = W / H; camera.fov = small() ? 46 : 36; camera.updateProjectionMatrix();
   };
   new ResizeObserver(resize).observe(pin);
   resize();
 
-  // 커서를 따라 카메라가 살짝 움직인다(스프링)
   const aim = { x: 0, y: 0 }, look = { x: 0, y: 0, vx: 0, vy: 0 };
   if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
-    sec.addEventListener('pointermove', (e) => { aim.x = (e.clientX / innerWidth - 0.5); aim.y = (e.clientY / innerHeight - 0.5); });
+    sec.addEventListener('pointermove', (e) => { aim.x = e.clientX / innerWidth - 0.5; aim.y = e.clientY / innerHeight - 0.5; });
     sec.addEventListener('pointerleave', () => { aim.x = 0; aim.y = 0; });
   }
 
   const caps = [...sec.querySelectorAll('[data-beat]')];
+  const labels = [...sec.querySelectorAll('.tpin')];
   const progress = () => {
     if (!sec.classList.contains('is-pinned')) return 0;
     const r = sec.getBoundingClientRect(), range = sec.offsetHeight - pin.offsetHeight;
     return clamp(-r.top / (range || 1));
   };
-  const showEl = (el, v) => {
+  const show = (el, v) => {
     el.style.opacity = v.toFixed(3);
     el.style.visibility = v < 0.01 ? 'hidden' : 'visible';
-    el.style.transform = v < 1 ? `translateY(${((1 - v) * 16).toFixed(1)}px)` : 'none';
   };
+  const tmp = new THREE.Vector3();
 
   let time = 0, last = 0, frames = 0, slow = 0, running = false, visible = true;
-  const frame = (ts) => {
-    if (!running) return;
-    const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0.016);
-    last = ts;
-    time += dt;
-    // 처음 40프레임이 느리면 화질을 낮춘다
-    if (frames < 40) { frames++; if (dt > 0.026) slow++; if (frames === 40 && slow > 20) { dpr = 1; bloom.enabled = false; resize(); } }
-    render(dt);
-    requestAnimationFrame(frame);
-  };
   const render = (dt) => {
     const p = progress();
     pose(p);
-    look.vx += ((aim.x - look.x) * 30 - look.vx * 9) * dt; look.x += look.vx * dt;
-    look.vy += ((aim.y - look.y) * 30 - look.vy * 9) * dt; look.y += look.vy * dt;
-    camera.position.x += look.x * 0.6;
-    camera.position.y -= look.y * 0.4;
+    look.vx += ((aim.x - look.x) * 26 - look.vx * 8) * dt; look.x += look.vx * dt;
+    look.vy += ((aim.y - look.y) * 26 - look.vy * 8) * dt; look.y += look.vy * dt;
+    camera.position.x += look.x * 0.8 + Math.sin(time * 0.35) * 0.06;
+    camera.position.y += -look.y * 0.5 + Math.sin(time * 0.5) * 0.04;
     camera.lookAt(camAt);
-    prismGroup.rotation.y = -0.42 + Math.sin(time * 0.25) * 0.08 + p * 0.5;
-    prismGroup.rotation.x = 0.12 + Math.sin(time * 0.31) * 0.04;
-    pUniforms.uTime.value = time;
-    // 장면 1→2: 노이즈가 줄고 시그널 비율이 조금 늘어난다. 장면 3: 입자가 물러난다
-    pUniforms.uSig.value = 0.06 + seg(p, 0.25, 0.55) * 0.05;
-    pUniforms.uFade.value = 1 - seg(p, 0.7, 0.95) * 0.75;
-    backdrop.material.opacity = 1; backdrop.material.color.setScalar(1 - seg(p, 0.6, 0.85) * 0.85);
-    const morph = pricePts ? ease(seg(p, 0.6, 0.88)) : 0;
-    beams.forEach((b, i) => {
-      if (b === hero) return;
-      b.mat.opacity = 0.55 * (1 - seg(p, 0.55, 0.75));
+    // 바닥을 훑는 빛: 처음엔 왼쪽에서 오른쪽으로 천천히 지나가고, 스크롤 중에는 카메라 앞을 비춘다
+    tUniforms.uScan.value = p < 0.02 ? -L / 2 + ((time * 2.2) % (L + 8)) - 4 : -99;
+    pins.forEach((pn, i) => {
+      const ph = (time * 0.7 + i * 0.33) % 1;
+      // 지금 보고 있는 핀만 또렷하게
+      const hw = SLOTS[i], active = hw && p > hw[0] - 0.04 && p < hw[1] + 0.04 ? 1 : 0;
+      const anyActive = SLOTS.some((w) => p > w[0] - 0.04 && p < w[1] + 0.04) && p < 0.82;
+      pn.on += ((anyActive ? active : 1) - pn.on) * Math.min(1, dt * 6);
+      const k = 0.3 + 0.7 * pn.on;
+      pn.ring.scale.setScalar(1 + ph * 2.2);
+      pn.ring.material.opacity = 0.6 * (1 - ph) * k;
+      pn.stem.material.opacity = 0.6 * k;
+      pn.dots[0].material.opacity = k;
+      pn.dots[1].material.opacity = (0.8 + 0.2 * Math.sin(time * 3 + i)) * k;
+      pn.dots[1].scale.setScalar(0.2 + 0.08 * pn.on);
     });
-    if (pricePts) {
-      const out = new Float32Array(N * 3);
-      for (let k = 0; k < N * 3; k++) out[k] = hero.pts[k] + (pricePts[k] - hero.pts[k]) * morph;
-      hero.geo.setPositions(out);
-      t0Line.material.opacity = 0.5 * seg(p, 0.8, 0.92);
-    }
+    nowDot.scale.setScalar(0.32 + 0.08 * Math.sin(time * 4));
     caps.forEach((el) => {
       const [a, b, c, d] = el.dataset.beat.split(',').map(Number);
-      showEl(el, Math.min(seg(p, a, b), 1 - seg(p, c, d)));
+      const v = Math.min(seg(p, a, b), 1 - seg(p, c, d));
+      show(el, v);
+      el.style.transform = v < 1 ? `translateY(${((1 - v) * 16).toFixed(1)}px)` : 'none';
+    });
+    labels.forEach((el, i) => {
+      const hw = SLOTS[i], pn = pins[i];
+      if (!hw || !pn) { show(el, 0); return; }
+      const v = Math.min(seg(p, hw[0] - 0.03, hw[0] + 0.02), 1 - seg(p, hw[1] - 0.02, hw[1] + 0.03));
+      show(el, v);
+      if (v > 0 && !small()) {
+        tmp.set(pn.x, pn.y1, 0).project(camera);
+        const sx = (tmp.x * 0.5 + 0.5) * W, sy = (-tmp.y * 0.5 + 0.5) * H;
+        const lw = el.offsetWidth, lh = el.offsetHeight;
+        el.style.left = clamp(sx + 28, 16, W - lw - 16) + 'px';
+        el.style.top = clamp(sy - lh - 18, 16, H - lh - 16) + 'px';
+      }
+      el.style.transform = v < 1 ? `translateY(${((1 - v) * 10).toFixed(1)}px)` : 'none';
     });
     composer.render();
+  };
+  const frame = (ts) => {
+    if (!running) return;
+    const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0.016);
+    last = ts; time += dt;
+    if (frames < 45) { frames++; if (dt > 0.026) slow++; if (frames === 45 && slow > 24) { dpr = 1; bloom.enabled = false; resize(); } }
+    render(dt);
+    requestAnimationFrame(frame);
   };
   const start = () => { if (running || reduced || !visible || document.hidden) return; running = true; last = 0; requestAnimationFrame(frame); };
   const stop = () => { running = false; };
   new IntersectionObserver((en) => { visible = en[0].isIntersecting; if (visible) start(); else stop(); }).observe(sec);
   document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
-  if (reduced) {
-    // 움직임 줄이기: 한 장면만 그린다
-    time = 6;
-    render(0.016);
-  } else {
-    start();
-  }
+  sec.classList.add('is-ready');
+  if (reduced) { time = 3; render(0.016); } else start();
 }
 
 main();
