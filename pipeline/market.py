@@ -170,7 +170,12 @@ def calendar(now):
 
 
 def upbit_notices():
-    data = util.http_json(config.UPBIT_NOTICES, retries=1)
+    try:
+        data = util.http_json(config.UPBIT_NOTICES, retries=1)
+    except Exception:
+        if not config.UPBIT_NOTICES_PROXY:
+            raise
+        data = util.http_json(config.UPBIT_NOTICES_PROXY, retries=1)
     out = []
     for n in (data.get("data") or {}).get("notices") or []:
         title = n.get("title") or ""

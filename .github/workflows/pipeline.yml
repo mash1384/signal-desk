@@ -1,4 +1,5 @@
 # 15분마다 뉴스 수집 → 임팩트 측정 → 정적 사이트 빌드 → gh-pages 배포
+# 정시 실행은 Cloudflare 스케줄러(worker/)가 workflow_dispatch로 건다. 아래 schedule은 그게 멈췄을 때의 예비다
 name: pipeline
 
 on:
@@ -60,6 +61,7 @@ jobs:
           SIGNAL_LLM_MODEL: ${{ vars.SIGNAL_LLM_MODEL }}
           SIGNAL_SITE_URL: ${{ vars.SIGNAL_SITE_URL }}
           SIGNAL_SITE_BASE: ${{ vars.SIGNAL_SITE_BASE }}
+          SIGNAL_UPBIT_PROXY: ${{ vars.SIGNAL_UPBIT_PROXY }}
         run: python -m pipeline.run --prev site --out dist
 
       - name: Publish to gh-pages
