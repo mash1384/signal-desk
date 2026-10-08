@@ -704,9 +704,13 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .hx.is-pinned { height: 340svh; }
 .hx__pin { position: relative; height: calc(100svh - var(--nav-h) - var(--tabbar-h, 0px)); min-height: 560px; overflow: hidden; }
 .hx.is-pinned > .hx__pin { min-height: 0; }
-.hx__canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 400ms ease-out; }
-.hx.is-live .hx__canvas { opacity: 1; }
-.hx__video { position: absolute; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
+.hx__canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.hx > .pin > .hx__canvas { display: none; }
+/* 영상 → 밝힘 막 → 글자 모양으로 뚫린 캔버스. 무대째로 나타나 영상이 덜 가려진 순간이 보이지 않는다 */
+.hx__stage { position: absolute; inset: 0; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity 400ms ease-out; }
+.hx.is-live .hx__stage { opacity: 1; }
+.hx__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.08); will-change: transform; }
+.hx__lift { position: absolute; inset: 0; background: rgb(30 33 40); mix-blend-mode: screen; will-change: opacity; }
 .hx__scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, color-mix(in oklab, var(--bg) 92%, transparent) 0%, transparent 34%); }
 .hx__layer { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; padding-block: clamp(18px, 3.5vh, 36px) clamp(28px, 6vh, 64px); pointer-events: none; }
 .hx__layer > * { grid-column: 1; pointer-events: auto; }
