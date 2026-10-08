@@ -743,6 +743,77 @@
     });
   }
 
+  // 스크롤 고정 섹션: 진행도(0~1)에 따라 세 장면을 바꾸고, 장면 안의 그래픽도 진행도만큼 그린다
+  function initStory() {
+    var sec = $('#story');
+    if (!sec || reduced()) return;
+    var pin = $('.story__pin', sec), steps = $$('.story__steps li', sec), bar = $('.story__bar i', sec), sc = $$('.sc', sec);
+    var chips = $$('.sc1__src li', sec), cards = $$('.sc1__feed li', sec), cnt = $('.sc1__count b', sec), total = +cnt.dataset.to || 0;
+    var chart = $('.sc2__chart', sec), svg = $('svg', chart), t0tag = $('.sc2__t0', chart), marks = $$('.mk', chart);
+    var run = $('.sc3__run', sec), zEl = $('.sc3__z b', sec), zMax = Math.abs(+zEl.dataset.z || 0), pos = +run.dataset.pos || 0, badge = $('.sc3__badge', sec);
+    var info = (S.landing || {}).story;
+    var clamp = function (v) { return Math.max(0, Math.min(1, v)); };
+    var seg = function (p, a, b) { return clamp((p - a) / (b - a)); };
+    var ease = function (t) { return 1 - Math.pow(1 - t, 3); };
+    var markAt = [];
+    if (info) {
+      var from = info.ts - 1800, to = Math.min(now(), info.ts + 7200);
+      candles(info.asset, from, to).then(function (d) {
+        if (!d || d.rows.length < 3) return;
+        var W = 600, H = 240, L = priceLine(d.rows, d.iv, from, to, W, H, 28);
+        var line = L.pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
+        var first = L.pts[0], last = L.pts[L.pts.length - 1], tx = L.x(info.ts);
+        svg.innerHTML = '<path class="c-area" d="' + line + ' L' + last[0].toFixed(1) + ' ' + H + ' L' + first[0].toFixed(1) + ' ' + H + ' Z"/>' +
+          '<line class="c-t0" x1="' + tx.toFixed(1) + '" x2="' + tx.toFixed(1) + '" y1="0" y2="' + H + '"/><path class="c-line" d="' + line + '"/>';
+        var at = d.rows.filter(function (r) { return r[0] >= info.ts; });
+        chart.classList.add(at.length && at[at.length - 1][2] >= at[0][1] ? 'is-up' : 'is-down');
+        t0tag.style.left = (tx / W * 100).toFixed(2) + '%';
+        markAt = marks.map(function (m) {
+          var q = L.at(info.ts + (m.dataset.win === '1h' ? 3600 : 900));
+          if (!q) { m.style.display = 'none'; return 2; }
+          m.style.left = (q[0] / W * 100).toFixed(2) + '%';
+          m.style.top = (q[1] / H * 100).toFixed(2) + '%';
+          return q[0] / W;
+        });
+        update();
+      });
+    }
+    var show = function (el, v) {
+      el.style.opacity = v.toFixed(3);
+      el.style.visibility = v < 0.01 ? 'hidden' : 'visible';
+      el.style.transform = v < 1 ? 'translateY(' + ((1 - v) * 14).toFixed(1) + 'px)' : 'none';
+      el.style.filter = v < 1 ? 'blur(' + ((1 - v) * 4).toFixed(2) + 'px)' : 'none';
+    };
+    var update = function () {
+      var r = sec.getBoundingClientRect(), range = sec.offsetHeight - pin.offsetHeight;
+      var p = clamp(-r.top / (range || 1));
+      show(sc[0], 1 - seg(p, 0.3, 0.36));
+      show(sc[1], Math.min(seg(p, 0.3, 0.36), 1 - seg(p, 0.63, 0.69)));
+      show(sc[2], seg(p, 0.63, 0.69));
+      var l1 = seg(p, 0.02, 0.28), l2 = seg(p, 0.37, 0.6), l3 = seg(p, 0.7, 0.92);
+      chips.forEach(function (c, i) { var t = clamp(l1 * 2.4 - i * 0.12); c.style.opacity = t.toFixed(2); c.style.transform = 'translateY(' + ((1 - t) * 8).toFixed(1) + 'px)'; });
+      cards.forEach(function (c, i) { var t = ease(clamp(l1 * 2 - 0.35 - i * 0.16)); c.style.opacity = t.toFixed(2); c.style.transform = 'translateY(' + ((1 - t) * -18).toFixed(1) + 'px)'; });
+      cnt.textContent = Math.round(total * ease(l1)).toLocaleString('ko-KR');
+      svg.style.clipPath = 'inset(0 ' + ((1 - l2) * 100).toFixed(2) + '% 0 0)';
+      marks.forEach(function (m, i) { m.classList.toggle('is-on', markAt[i] != null && l2 >= markAt[i]); });
+      run.style.transform = 'translateX(' + (ease(l3) * pos * 100).toFixed(2) + '%)';
+      zEl.textContent = (zMax * ease(l3)).toFixed(1);
+      badge.classList.toggle('is-on', l3 > 0.9);
+      var on = p < 0.33 ? 0 : p < 0.66 ? 1 : 2;
+      steps.forEach(function (li, i) { li.classList.toggle('is-on', i === on); });
+      bar.style.transform = 'scaleX(' + p.toFixed(3) + ')';
+    };
+    var ticking = false;
+    var onScroll = function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () { ticking = false; update(); });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  }
+
   // 첫 화면 미리보기: 기사를 고르면 그 기사의 가격 반응을 보여 준다. 몇 초마다 다음 기사로 넘어가고, 사용자가 만지면 멈춘다
   function initDemo() {
     var root = $('#demo');
@@ -866,6 +937,7 @@
     initFlow();
     initReveal();
     countUp();
+    initStory();
     initDemo();
     initCountdown();
     initProofs();
