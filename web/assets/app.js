@@ -814,6 +814,85 @@
     update();
   }
 
+  // 고정 섹션 공통: 섹션 안에서 진행도(0~1)를 계산해 넘긴다
+  function pinScroll(sec, onP) {
+    var pin = $('.pin', sec), ticking = false;
+    var upd = function () {
+      var r = sec.getBoundingClientRect(), range = sec.offsetHeight - pin.offsetHeight;
+      onP(Math.max(0, Math.min(1, -r.top / (range || 1))));
+    };
+    var on = function () { if (ticking) return; ticking = true; requestAnimationFrame(function () { ticking = false; upd(); }); };
+    window.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    upd();
+    return upd;
+  }
+
+  // 실측 사례: 세로 스크롤만큼 카드 줄을 가로로 민다. 섹션 높이 = 고정 영역 + 가로로 갈 거리
+  function initHScroll() {
+    var sec = $('#proofPin');
+    if (!sec || reduced()) return;
+    var vp = $('.hscroll__viewport', sec), track = $('.hscroll__track', sec), cards = $$('.proof', track);
+    var bar = $('.hscroll__bar i', sec), count = $('.hscroll__count b', sec);
+    if (cards.length < 2) return;
+    sec.classList.add('is-pinned');
+    var dist = 0;
+    var size = function () {
+      dist = Math.max(0, track.scrollWidth - vp.clientWidth);
+      sec.style.height = ($('.pin', sec).offsetHeight + dist) + 'px';
+    };
+    size();
+    var upd = pinScroll(sec, function (p) {
+      track.style.transform = 'translateX(' + (-p * dist).toFixed(1) + 'px)';
+      bar.style.transform = 'scaleX(' + p.toFixed(3) + ')';
+      var k = Math.min(cards.length - 1, Math.round(p * (cards.length - 1)));
+      count.textContent = (k < 9 ? '0' : '') + (k + 1);
+    });
+    window.addEventListener('resize', function () { size(); upd(); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { size(); upd(); });
+  }
+
+  // 유형별 순위: 막대가 하나씩 차오르고 왼쪽 숫자가 지금 차오르는 유형을 보여 준다
+  function initRank() {
+    var sec = $('#rankPin');
+    if (!sec || reduced()) return;
+    var rows = $$('.tbar[data-val]', sec);
+    if (rows.length < 2) return;
+    sec.classList.add('is-pinned');
+    sec.style.height = 'calc(' + (100 + rows.length * 28) + 'svh)';
+    var lab = $('.rank__label', sec), val = $('.rank__val', sec), nEl = $('.rank__n', sec), n = rows.length;
+    var bars = rows.map(function (r) { return $('.tbar__track i', r); });
+    var vs = bars.map(function (b) { return +getComputedStyle(b).getPropertyValue('--v') || 0; });
+    pinScroll(sec, function (p) {
+      var x = Math.min(n - 0.001, p * n * 1.08);
+      var cur = Math.floor(x);
+      rows.forEach(function (r, i) {
+        var t = Math.max(0, Math.min(1, x - i));
+        var e = 1 - Math.pow(1 - t, 3);
+        bars[i].style.transform = 'scaleX(' + (e * vs[i]).toFixed(4) + ')';
+        r.classList.toggle('is-on', i === cur);
+        r.classList.toggle('is-done', i < cur);
+      });
+      var row = rows[cur], t2 = Math.max(0, Math.min(1, x - cur));
+      lab.textContent = row.dataset.label;
+      val.textContent = (+row.dataset.val * (1 - Math.pow(1 - t2, 3))).toFixed(2) + '%';
+      nEl.textContent = '표본 ' + row.dataset.n + '건';
+    });
+  }
+
+  // 문장: 진행도만큼 단어를 차례로 켠다
+  function initSay() {
+    var sec = $('#sayPin');
+    if (!sec || reduced()) return;
+    var words = $$('.sw', sec);
+    sec.classList.add('is-pinned');
+    sec.style.height = '220svh';
+    pinScroll(sec, function (p) {
+      var k = p * 1.15 * words.length;
+      words.forEach(function (w, i) { w.classList.toggle('is-on', i < k); });
+    });
+  }
+
   // 첫 화면 미리보기: 기사를 고르면 그 기사의 가격 반응을 보여 준다. 몇 초마다 다음 기사로 넘어가고, 사용자가 만지면 멈춘다
   function initDemo() {
     var root = $('#demo');
@@ -938,6 +1017,9 @@
     initReveal();
     countUp();
     initStory();
+    initHScroll();
+    initRank();
+    initSay();
     initDemo();
     initCountdown();
     initProofs();

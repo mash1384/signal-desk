@@ -677,10 +677,10 @@ def page_landing(articles, market, cal, imp, now):
     day = [a for a in articles if now - a["t0"] < 86400]
     measured = sum(1 for a in articles if a.get("headline"))
     demo = demo_items(articles, imp, now)
-    strong = [r for r in imp.get("strongest", []) if r.get("g") in ("강", "중")][:3] or imp.get("strongest", [])[:3]
+    strong = [r for r in imp.get("strongest", []) if r.get("g") in ("강", "중")][:6] or imp.get("strongest", [])[:6]
     types = (imp.get("types") or [])[:6]
     proof = "".join(
-        '<article class="proof" data-reveal style="--i:{i}"><div class="proof__meta"><span class="ib ib--{d} ib--g{g}">{asset} {win} {r}{gl}</span><span class="muted small">z {z} · <time data-ts="{t0}">{when}</time></span></div>'
+        '<article class="proof"><div class="proof__meta"><span class="ib ib--{d} ib--g{g}">{asset} {win} {r}{gl}</span><span class="muted small">z {z} · <time data-ts="{t0}">{when}</time></span></div>'
         '<h3 class="proof__title"><a href="{B}a/{id}/">{title}</a></h3>'
         '<div class="proof__chart" data-sym="{asset}" data-t0="{t0}" aria-hidden="true"></div></article>'.format(
             d="up" if r["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(r["g"], "w"), asset=h(r["asset"]), win=WIN_KO.get(r["win"], r["win"]), r=pct(r["r"]),
@@ -688,10 +688,19 @@ def page_landing(articles, market, cal, imp, now):
         for i, r in enumerate(strong)) or '<p class="muted">반응이 측정되면 실제 사례가 여기에 나타납니다.</p>'
     top_abs = max([t["mean_abs"] for t in types] or [1]) or 1
     bars = "".join(
-        '<li class="tbar"><span class="tbar__label">{label}</span><span class="tbar__track"><i style="--v:{v:.3f}"></i></span><span class="tbar__val">{val} <span class="muted">n={n}</span></span></li>'.format(
-            label=h(t["label"]), v=t["mean_abs"] / top_abs, val=pct(t["mean_abs"]).lstrip("+"), n=t["n"]) for t in types) \
+        '<li class="tbar" data-label="{label}" data-val="{raw:.3f}" data-n="{n}"><span class="tbar__label">{label}</span><span class="tbar__track"><i style="--v:{v:.3f}"></i></span><span class="tbar__val">{val} <span class="muted">n={n}</span></span></li>'.format(
+            label=h(t["label"]), v=t["mean_abs"] / top_abs, raw=t["mean_abs"], val=pct(t["mean_abs"]).lstrip("+"), n=t["n"]) for t in types) \
         or '<li class="muted">유형별 표본이 쌓이는 중입니다.</li>'
     sc = story_data(articles, demo)
+    say_words = "뉴스는 매일 수백 건씩 쏟아집니다. 그중 [가격을 실제로 움직인] 뉴스는 일부뿐입니다. SIGNAL은 그 일부를 [숫자로] 골라 보여 줍니다.".split(" ")
+    say, hot = [], False
+    for w in say_words:
+        st = w.startswith("[")
+        hot = hot or st
+        say.append('<span class="sw%s">%s</span>' % (" sw--hot" if hot else "", h(w.strip("[]"))))
+        if w.endswith("]"):
+            hot = False
+    rank0 = types[0] if types else None
     words = "뉴스 뒤의 가격 반응까지 한눈에".split(" ")
     title = " ".join('<span class="w" style="--s:%d">%s</span>' % (i + 1, h(w)) for i, w in enumerate(words))
     srcs = "".join('<li style="--j:%d">%s</li>' % (k, h(x["name"])) for k, x in enumerate(config.SOURCES[:8]))
@@ -777,16 +786,25 @@ def page_landing(articles, market, cal, imp, now):
 
 </div>
 
-<section class="lsec wrap" aria-labelledby="proofTitle">
-  <h2 class="lsec__title" id="proofTitle" data-reveal>최근 7일, 크게 움직인 순간</h2>
-  <p class="lsec__lede" data-reveal style="--i:1">차트의 점선이 기사 시각입니다.</p>
-  <div class="proofs">{proof}</div>
+<section class="hscroll" id="proofPin" aria-labelledby="proofTitle">
+  <div class="pin hscroll__pin">
+    <div class="wrap hscroll__head">
+      <div><h2 class="lsec__title" id="proofTitle">최근 7일, 크게 움직인 순간</h2><p class="lsec__lede">반응이 컸던 기사 {nproof}건입니다. 차트의 점선이 기사 시각입니다.</p></div>
+      <p class="hscroll__count" aria-hidden="true"><b>01</b> / {nproof2}</p>
+    </div>
+    <div class="hscroll__viewport"><div class="hscroll__track proofs">{proof}</div></div>
+    <div class="wrap"><div class="hscroll__bar" aria-hidden="true"><i></i></div></div>
+  </div>
 </section>
 
-<section class="lsec wrap" aria-labelledby="typesTitle">
-  <div class="lsplit">
-    <div data-reveal><h2 class="lsec__title" id="typesTitle">어떤 뉴스가 더 크게 움직였나</h2><p class="lsec__lede">이벤트 유형별 BTC 1시간 평균 변동폭입니다. 측정이 쌓일수록 정확해집니다.</p><a class="btn btn--ghost" href="{B}impact/">임팩트 리포트 보기</a></div>
-    <ol class="tbars" id="tbars" data-reveal style="--i:1">{bars}</ol>
+<section class="rank" id="rankPin" aria-labelledby="typesTitle">
+  <div class="pin rank__pin">
+    <div class="wrap lsplit">
+      <div class="rank__side"><h2 class="lsec__title" id="typesTitle">어떤 뉴스가 더 크게 움직였나</h2><p class="lsec__lede">이벤트 유형별 BTC 1시간 평균 변동폭입니다. 측정이 쌓일수록 정확해집니다.</p>
+        <div class="rank__now" aria-hidden="true"><span class="mono-label">유형</span><b class="rank__label">{rank0_label}</b><b class="rank__val">{rank0_val}</b><span class="rank__n">{rank0_n}</span></div>
+        <a class="btn btn--ghost rank__more" href="{B}impact/">임팩트 리포트 보기</a></div>
+      <ol class="tbars" id="tbars">{bars}</ol>
+    </div>
   </div>
 </section>
 
@@ -796,13 +814,20 @@ def page_landing(articles, market, cal, imp, now):
 {feats}
 </section>
 
+<section class="say" id="sayPin" aria-label="SIGNAL이 하는 일">
+  <div class="pin say__pin"><div class="wrap"><p class="say__text">{say}</p></div></div>
+</section>
+
 <section class="endcta wrap" aria-labelledby="ctaTitle">
   <h2 class="endcta__title" id="ctaTitle" data-reveal>Noise out, <em>signal</em> in.</h2>
   <p class="endcta__sub" data-reveal style="--i:1">회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
   <div data-reveal style="--i:2"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a></div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, title=title, s1=len(words) + 1, s2=len(words) + 2, s3=len(words) + 4, demo=demo_html,
-        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), **sc["fmt"])
+        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), say=" ".join(say),
+        nproof=len(strong), nproof2="%02d" % len(strong),
+        rank0_label=h(rank0["label"]) if rank0 else "–", rank0_val=pct(rank0["mean_abs"]).lstrip("+") if rank0 else "–",
+        rank0_n=("표본 %d건" % rank0["n"]) if rank0 else "", **sc["fmt"])
     data = {"landing": {"demo": demo, "story": sc["js"]}}
     return shell("home", "SIGNAL — 뉴스 뒤의 가격 반응까지", "크립토·AI·매크로 뉴스를 모으고, 기사마다 비트코인 가격이 실제로 얼마나 움직였는지 재서 보여 줍니다.",
                  B, body, now, data=data)
