@@ -707,6 +707,42 @@
     } };
   }
 
+  // 차트를 왼쪽부터 드러낸다(한 번). 움직임 줄이기에서는 바로 보인다
+  function revealChart(svg, ms) {
+    if (!svg || reduced() || !svg.animate) return;
+    svg.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: ms, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
+  }
+
+  // 스크롤해서 화면에 들어온 요소를 한 번씩 드러낸다
+  function initReveal() {
+    var els = $$('[data-reveal]');
+    if (!els.length || !('IntersectionObserver' in window)) return;
+    document.documentElement.classList.add('reveal-on');
+    var io = new IntersectionObserver(function (en) {
+      en.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('is-in');
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
+  }
+
+  // 첫 화면 숫자는 0에서 실제 값까지 한 번 올라간다
+  function countUp() {
+    if (reduced()) return;
+    $$('.count[data-to]').forEach(function (el, i) {
+      var to = +el.dataset.to, t0 = performance.now() + 600 + i * 100;
+      el.textContent = '0';
+      var step = function (t) {
+        var k = Math.min(1, Math.max(0, (t - t0) / 1100));
+        el.textContent = Math.round(to * (1 - Math.pow(1 - k, 4))).toLocaleString('ko-KR');
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
   // 첫 화면 미리보기: 기사를 고르면 그 기사의 가격 반응을 보여 준다. 몇 초마다 다음 기사로 넘어가고, 사용자가 만지면 멈춘다
   function initDemo() {
     var root = $('#demo');
@@ -745,6 +781,7 @@
           '<line class="c-t0" x1="' + tx.toFixed(1) + '" x2="' + tx.toFixed(1) + '" y1="0" y2="' + H + '"/><path class="c-line" d="' + line + '"/></svg>' +
           '<span class="dd__tag" style="left:' + (tx / W * 100).toFixed(2) + '%">기사 시각</span>';
         box.innerHTML = html;
+        revealChart($('svg', box), 800);
       };
       if (cache[it.id]) paint(cache[it.id]);
       else candles(it.asset, from, to).then(function (d) { cache[it.id] = d; paint(d); });
@@ -806,6 +843,7 @@
           var tx = L.x(t0).toFixed(1);
           box.innerHTML = '<svg viewBox="0 0 300 96" preserveAspectRatio="none"><line class="pc-t0" x1="' + tx + '" x2="' + tx + '" y1="0" y2="96"/><polyline class="pc-line" points="' +
             L.pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') + '"/></svg>';
+          revealChart($('svg', box), 1100);
         });
       });
     }, { rootMargin: '0px 0px -10% 0px' });
@@ -826,6 +864,8 @@
     initPredict();
     initMe();
     initFlow();
+    initReveal();
+    countUp();
     initDemo();
     initCountdown();
     initProofs();

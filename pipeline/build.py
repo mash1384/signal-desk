@@ -601,40 +601,40 @@ def bento(articles, market, cal, now):
     fng = market.get("fng") or {}
     fv = fng.get("value")
     hist = (fng.get("history") or [])[-30:]
-    fbars = "".join('<i style="--v:%.2f"></i>' % (v / 100) for v in hist)
+    fbars = "".join('<i style="--v:%.2f;--k:%d"></i>' % (v / 100, k) for k, v in enumerate(hist))
     fng_ko = {"Extreme Fear": "극단적 공포", "Fear": "공포", "Neutral": "중립", "Greed": "탐욕", "Extreme Greed": "극단적 탐욕"}.get(fng.get("label"), fng.get("label") or "")
     nxt = up[0] if up else None
     watch_art = next((a for a in articles if "ETH" in a.get("assets", [])), None)
     return """
   <div class="bento">
-    <a class="bx bx--feed" href="{B}feed/">
+    <a class="bx bx--feed" data-reveal style="--i:0" href="{B}feed/">
       <div class="bx__head"><b class="bx__title">실시간 피드</b><span class="mono-label">최근 24시간 {total}건</span></div>
       <p class="bx__desc">카테고리·반응 강도·관심 종목으로 걸러 봅니다. 새 기사가 들어오면 맨 위에 알려 줍니다.</p>
       <div class="catshare" aria-hidden="true">{share}</div>
       <ul class="catlegend">{legend}</ul>
       <ol class="bx__latest">{latest}</ol>
     </a>
-    <a class="bx bx--cal" href="{B}calendar/">
+    <a class="bx bx--cal" data-reveal style="--i:1" href="{B}calendar/">
       <div class="bx__head"><b class="bx__title">경제 캘린더</b><span class="mono-label">다음 발표까지</span></div>
       <p class="bx__count" id="calCount" data-ts="{nts}">{ncount}</p>
       <ol class="mcal">{cal_rows}</ol>
       <p class="bx__desc">발표 뒤 BTC가 어떻게 움직였는지까지 기록합니다.</p>
     </a>
-    <a class="bx" href="{B}markets/">
+    <a class="bx" data-reveal style="--i:2" href="{B}markets/">
       <div class="bx__head"><b class="bx__title">김치 프리미엄</b><span class="mono-label">업비트 대비 해외</span></div>
       <ul class="mkimp">{kbars}</ul>
     </a>
-    <a class="bx" href="{B}markets/">
+    <a class="bx" data-reveal style="--i:3" href="{B}markets/">
       <div class="bx__head"><b class="bx__title">공포·탐욕 지수</b><span class="mono-label">30일</span></div>
       <div class="mfng"><svg viewBox="0 0 120 66" aria-hidden="true"><path class="mfng__track" d="M10 60a50 50 0 0 1 100 0" pathLength="100"/><path class="mfng__fill" d="M10 60a50 50 0 0 1 100 0" pathLength="100" style="--v:{fv100}"/></svg><p><b>{fv}</b><span>{fng_ko}</span></p></div>
       <div class="mfng__hist" aria-hidden="true">{fbars}</div>
     </a>
-    <a class="bx" href="{B}predict/">
+    <a class="bx" data-reveal style="--i:4" href="{B}predict/">
       <div class="bx__head"><b class="bx__title">방향 예측</b><span class="mono-label">무료</span></div>
       <p class="bx__q">{ptitle}<span>발표 1시간 뒤 BTC는 오를까요, 내릴까요?</span></p>
       <div class="mvote" aria-hidden="true"><span class="mvote__b">오른다</span><span class="mvote__b">내린다</span></div>
     </a>
-    <a class="bx" href="{B}me/">
+    <a class="bx" data-reveal style="--i:5" href="{B}me/">
       <div class="bx__head"><b class="bx__title">관심 종목</b><span class="mono-label">로그인 없이 저장</span></div>
       <div class="mwatch" aria-hidden="true"><span>BTC</span><span class="is-on">ETH ★</span><span>SOL</span><span>XRP</span></div>
       <p class="mwatch__card"><span class="chip">ETH</span><span>{wtitle}</span></p>
@@ -654,12 +654,12 @@ def page_landing(articles, market, cal, imp, now):
     strong = [r for r in imp.get("strongest", []) if r.get("g") in ("강", "중")][:3] or imp.get("strongest", [])[:3]
     types = (imp.get("types") or [])[:6]
     proof = "".join(
-        '<article class="proof"><div class="proof__meta"><span class="ib ib--{d} ib--g{g}">{asset} {win} {r}{gl}</span><span class="muted small">z {z} · <time data-ts="{t0}">{when}</time></span></div>'
+        '<article class="proof" data-reveal style="--i:{i}"><div class="proof__meta"><span class="ib ib--{d} ib--g{g}">{asset} {win} {r}{gl}</span><span class="muted small">z {z} · <time data-ts="{t0}">{when}</time></span></div>'
         '<h3 class="proof__title"><a href="{B}a/{id}/">{title}</a></h3>'
         '<div class="proof__chart" data-sym="{asset}" data-t0="{t0}" aria-hidden="true"></div></article>'.format(
             d="up" if r["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(r["g"], "w"), asset=h(r["asset"]), win=WIN_KO.get(r["win"], r["win"]), r=pct(r["r"]),
-            gl=(" · " + r["g"]) if r.get("g") else "", z=("%.1f" % r["z"]).replace("-", "−"), t0=r["t0"], when=md_hm(r["t0"]), B=B, id=h(r["id"]), title=h(r["title"]))
-        for r in strong) or '<p class="muted">반응이 측정되면 실제 사례가 여기에 나타납니다.</p>'
+            gl=(" · " + r["g"]) if r.get("g") else "", z=("%.1f" % r["z"]).replace("-", "−"), t0=r["t0"], when=md_hm(r["t0"]), B=B, id=h(r["id"]), title=h(r["title"]), i=i)
+        for i, r in enumerate(strong)) or '<p class="muted">반응이 측정되면 실제 사례가 여기에 나타납니다.</p>'
     top_abs = max([t["mean_abs"] for t in types] or [1]) or 1
     bars = "".join(
         '<li class="tbar"><span class="tbar__label">{label}</span><span class="tbar__track"><i style="--v:{v:.3f}"></i></span><span class="tbar__val">{val} <span class="muted">n={n}</span></span></li>'.format(
@@ -667,10 +667,10 @@ def page_landing(articles, market, cal, imp, now):
         or '<li class="muted">유형별 표본이 쌓이는 중입니다.</li>'
     words = "뉴스 뒤의 가격 반응까지 한눈에".split(" ")
     title = " ".join('<span class="w" style="--s:%d">%s</span>' % (i + 1, h(w)) for i, w in enumerate(words))
-    srcs = "".join("<li>%s</li>" % h(x["name"]) for x in config.SOURCES[:8])
+    srcs = "".join('<li style="--j:%d">%s</li>' % (k, h(x["name"])) for k, x in enumerate(config.SOURCES[:8]))
     demo_html = """
-  <div class="wrap">
-    <div class="demo in" id="demo" style="--s:{sd}">
+  <div class="wrap in" style="--s:{sd}">
+    <div class="demo" id="demo">
       <div class="demo__inner">
         <div class="demo__bar"><b class="demo__brand">SIGNAL</b><span class="demo__tabs" aria-hidden="true"><span class="is-on">전체</span><span>크립토</span><span>AI</span><span>매크로</span></span><span class="demo__live"><span class="live-dot" aria-hidden="true"></span>실시간</span></div>
         <div class="demo__body">
@@ -691,48 +691,48 @@ def page_landing(articles, market, cal, imp, now):
 {demo}
   <div class="wrap">
     <dl class="hero__stats in" style="--s:{s3}">
-      <div><dt>최근 24시간 기사</dt><dd>{n24}</dd></div>
-      <div><dt>수집 매체</dt><dd>{nsrc}</dd></div>
-      <div><dt>반응을 잰 기사</dt><dd>{measured}</dd></div>
+      <div><dt>최근 24시간 기사</dt><dd class="count" data-to="{n24}">{n24}</dd></div>
+      <div><dt>수집 매체</dt><dd class="count" data-to="{nsrc}">{nsrc}</dd></div>
+      <div><dt>반응을 잰 기사</dt><dd class="count" data-to="{measured}">{measured}</dd></div>
     </dl>
   </div>
 </section>
 
 <section class="lsec wrap" id="how" aria-labelledby="howTitle">
-  <h2 class="lsec__title" id="howTitle">이렇게 잽니다</h2>
-  <p class="lsec__lede">감으로 고른 ‘중요 뉴스’가 아니라, 기사가 나온 뒤 실제 가격 변화를 기준으로 보여 줍니다.</p>
+  <h2 class="lsec__title" id="howTitle" data-reveal>이렇게 잽니다</h2>
+  <p class="lsec__lede" data-reveal style="--i:1">감으로 고른 ‘중요 뉴스’가 아니라, 기사가 나온 뒤 실제 가격 변화를 기준으로 보여 줍니다.</p>
   <ol class="steps3">
-    <li><span class="steps3__n">01</span><b>모으기</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p><ul class="steps3__src" aria-label="수집 매체 일부">{srcs}</ul></li>
-    <li><span class="steps3__n">02</span><b>재기</b><p>기사 시각을 기준으로 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p>
+    <li data-reveal style="--i:0"><span class="steps3__n">01</span><b>모으기</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p><ul class="steps3__src" aria-label="수집 매체 일부">{srcs}</ul></li>
+    <li data-reveal style="--i:1"><span class="steps3__n">02</span><b>재기</b><p>기사 시각을 기준으로 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p>
       <div class="steps3__time" aria-hidden="true"><i class="is-t0"></i><span>기사</span><i></i><span>15분</span><i></i><span>1시간</span><i></i><span>24시간</span></div></li>
-    <li><span class="steps3__n">03</span><b>판정하기</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p>
+    <li data-reveal style="--i:2"><span class="steps3__n">03</span><b>판정하기</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p>
       <div class="steps3__scale" aria-hidden="true"><span>약 <small>|z| 2 미만</small></span><span>중 <small>2–3</small></span><span>강 <small>3 이상</small></span></div></li>
   </ol>
 </section>
 
 <section class="lsec wrap" aria-labelledby="proofTitle">
-  <h2 class="lsec__title" id="proofTitle">최근 7일, 크게 움직인 순간</h2>
-  <p class="lsec__lede">차트의 점선이 기사 시각입니다.</p>
+  <h2 class="lsec__title" id="proofTitle" data-reveal>최근 7일, 크게 움직인 순간</h2>
+  <p class="lsec__lede" data-reveal style="--i:1">차트의 점선이 기사 시각입니다.</p>
   <div class="proofs">{proof}</div>
 </section>
 
 <section class="lsec wrap" aria-labelledby="typesTitle">
   <div class="lsplit">
-    <div><h2 class="lsec__title" id="typesTitle">어떤 뉴스가 더 크게 움직였나</h2><p class="lsec__lede">이벤트 유형별 BTC 1시간 평균 변동폭입니다. 측정이 쌓일수록 정확해집니다.</p><a class="btn btn--ghost" href="{B}impact/">임팩트 리포트 보기</a></div>
-    <ol class="tbars" id="tbars">{bars}</ol>
+    <div data-reveal><h2 class="lsec__title" id="typesTitle">어떤 뉴스가 더 크게 움직였나</h2><p class="lsec__lede">이벤트 유형별 BTC 1시간 평균 변동폭입니다. 측정이 쌓일수록 정확해집니다.</p><a class="btn btn--ghost" href="{B}impact/">임팩트 리포트 보기</a></div>
+    <ol class="tbars" id="tbars" data-reveal style="--i:1">{bars}</ol>
   </div>
 </section>
 
 <section class="lsec wrap" aria-labelledby="featTitle">
-  <h2 class="lsec__title" id="featTitle">매일 확인할 것들</h2>
-  <p class="lsec__lede">아래 숫자는 모두 지금 수집된 실제 데이터입니다.</p>
+  <h2 class="lsec__title" id="featTitle" data-reveal>매일 확인할 것들</h2>
+  <p class="lsec__lede" data-reveal style="--i:1">아래 숫자는 모두 지금 수집된 실제 데이터입니다.</p>
 {feats}
 </section>
 
 <section class="endcta wrap" aria-labelledby="ctaTitle">
-  <h2 class="endcta__title" id="ctaTitle">Noise out, <em>signal</em> in.</h2>
-  <p class="endcta__sub">회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
-  <a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a>
+  <h2 class="endcta__title" id="ctaTitle" data-reveal>Noise out, <em>signal</em> in.</h2>
+  <p class="endcta__sub" data-reveal style="--i:1">회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
+  <div data-reveal style="--i:2"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a></div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, title=title, s1=len(words) + 1, s2=len(words) + 2, s3=len(words) + 4, demo=demo_html,
         n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now))
