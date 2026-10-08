@@ -1,5 +1,6 @@
 """RSS·Atom 수집, 정제, 중복 제거."""
 
+from concurrent.futures import ThreadPoolExecutor
 import html
 import re
 import xml.etree.ElementTree as ET
@@ -157,13 +158,22 @@ def collect(existing, health, now):
     """모든 소스를 돌며 새 기사를 돌려준다. 소스 하나가 실패해도 나머지는 계속한다."""
     fresh = []
     pool = list(existing)
-    for src in config.SOURCES:
-        state = health.setdefault(src["id"], {"name": src["name"], "ok": None, "error": None, "count": 0})
+
+    def fetch(src):
         try:
-            items = parse_feed(util.http_get(src["url"], timeout=20, retries=1))
+            return parse_feed(util.http_get(src["url"], timeout=20, retries=1)), None
         except Exception as e:  # 소스 단위로 격리
-            state.update({"error": str(e)[:200], "failed_at": now})
-            util.log("source failed", src["id"], e)
+            return None, e
+
+    # 피드는 동시에 받고, 중복 판정은 설정 순서대로 한다(결과가 매번 같도록)
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        results = list(ex.map(fetch, config.SOURCES))
+    for src, (items, err) in zip(config.SOURCES, results):
+        state = health.setdefault(src["id"], {"name": src["name"], "ok": None, "error": None, "count": 0})
+        state["name"] = src["name"]
+        if err is not None:
+            state.update({"error": str(err)[:200], "failed_at": now})
+            util.log("source failed", src["id"], err)
             continue
         added = 0
         for raw in items[: config.PER_SOURCE_LIMIT]:
