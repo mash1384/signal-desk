@@ -140,7 +140,7 @@ def shell(page, title, desc, path, body, now, og=None, robots="index,follow", ex
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..600&family=Instrument+Serif&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{B}assets/styles.css?v={ver}">
 <script>(function(){{try{{var t=localStorage.getItem('signal-theme');if(t)document.documentElement.dataset.theme=t;}}catch(e){{}}}})();</script>
 {extra_head}
@@ -681,15 +681,6 @@ def hero_snapshot():
         return json.load(f)
 
 
-def hero_pins(snap):
-    return "".join(
-        '<a class="tpin" data-k="{k}" href="{B}a/{id}/"><span class="mono-label">{when} · {asset} {win}</span><b>{title}</b>'
-        '<span class="ib ib--{d} ib--g{g}">{asset} {win} {r} · {gr}</span></a>'.format(
-            k=k, B=B, id=h(r["id"]), when=md_hm(r["t0"]), asset=h(r["asset"]), win=WIN_KO.get(r["win"], r["win"]), title=h(r["title"]),
-            d="up" if r["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(r.get("g"), "w"), r=pct(r["r"]), gr=h(r.get("g") or ""))
-        for k, r in enumerate(snap["pins"]))
-
-
 def page_landing(articles, market, cal, imp, now):
     """첫 화면. 숫자와 기사는 모두 실제 수집·측정값이다."""
     day = [a for a in articles if now - a["t0"] < 86400]
@@ -711,11 +702,11 @@ def page_landing(articles, market, cal, imp, now):
         or '<li class="muted">유형별 표본이 쌓이는 중입니다.</li>'
     sc = story_data(articles, demo)
     snap = hero_snapshot()
-    tpins = hero_pins(snap) if snap else ""
-    # 렌더 프레임이 아직 없으면(렌더 워크플로 실행 전) 정지 배경으로 둔다
-    frames_ready = all(os.path.isfile(os.path.join(WEB, "assets", "hero", v, "anchors.json")) for v in ("desktop", "mobile"))
-    frames_attr = ' data-frames="%sassets/hero/"' % B if frames_ready else ""
+    # 파문 영상이 아직 없으면(렌더 워크플로 실행 전) 글자만 둔다
+    video_ready = all(os.path.isfile(os.path.join(WEB, "assets", "hero", "ripple-%s.mp4" % v)) for v in ("desktop", "mobile"))
+    video_attr = ' data-video="%sassets/hero/"' % B if video_ready else ""
     span_label = ("%s – %s" % (util.kst(snap["start"]).strftime("%m.%d"), util.kst(snap["end"]).strftime("%m.%d"))) if snap else ""
+    drop_note = ("%s · 지난 뉴스 %d건의 실제 반응 크기로 떨어뜨린 파문" % (span_label, len(snap["pins"]))) if snap else "15분 · 1시간 · 24시간"
     say_words = "뉴스는 매일 수백 건씩 쏟아집니다. 그중 [가격을 실제로 움직인] 뉴스는 일부뿐입니다. SIGNAL은 그 일부를 [숫자로] 골라 보여 줍니다.".split(" ")
     say, hot = [], False
     for w in say_words:
@@ -741,21 +732,26 @@ def page_landing(articles, market, cal, imp, now):
     </div>
   </div>""".format(sd=len(words) + 3, items="".join(demo_item_html(it, k) for k, it in enumerate(demo)), detail=demo_detail_html(demo[0])) if demo else ""
     body = """
-<section class="h3d" id="h3d" data-theme="dark"{frames_attr} aria-labelledby="heroTitle">
-  <div class="pin h3d__pin">
-    <canvas class="h3d__canvas" aria-hidden="true"></canvas>
-    <div class="h3d__scrim" aria-hidden="true"></div>
-    <div class="wrap h3d__layer">
-      <div class="h3d__copy" data-beat="-1,0,0.08,0.14">
+<section class="hx" id="hx" data-theme="dark"{video_attr} aria-labelledby="heroTitle">
+  <div class="pin hx__pin">
+    <canvas class="hx__canvas" aria-hidden="true"></canvas>
+    <div class="hx__scrim" aria-hidden="true"></div>
+    <div class="wrap hx__layer">
+      <div class="hx__top" data-beat="-1,0,0.04,0.1">
         <p class="hero__live in" style="--s:0"><span class="live-dot" aria-hidden="true"></span>실시간 수집 중 · 마지막 <time data-ts="{now}">{now_hm}</time></p>
-        <h1 class="h3d__title" id="heroTitle"><span class="w" style="--s:1">7일,</span> <span class="w" style="--s:2">뉴스가</span><br><span class="w" style="--s:3">만든</span> <span class="w" style="--s:4">지형</span></h1>
-        <p class="h3d__sub in" style="--s:6">{span_label} 비트코인 가격과 변동성으로 빚은 지형입니다. 크게 솟은 봉우리마다 그 순간의 뉴스가 꽂혀 있습니다.</p>
-        <div class="hero__cta in" style="--s:7"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a><a class="btn btn--ghost btn--lg" href="#how">측정 방법 보기</a></div>
+        <span class="mono-label hx__tag in" style="--s:1">News → Price reaction</span>
       </div>
-      <div class="h3d__cap" data-beat="0.86,0.93,2,3"><span class="mono-label">{span_label} · BTC</span><b>봉우리가 높을수록<br>가격이 크게 움직였습니다.</b><p class="h3d__legend"><span><i class="lg-line"></i>BTC 가격</span><span><i class="lg-peak"></i>높이 = 변동성</span><span><i class="lg-pin"></i>그 순간의 뉴스</span></p></div>
+      <div class="hx__slot"><p class="hx__word in" style="--s:1" aria-hidden="true"><span>SIG</span><span>NAL</span></p></div>
+      <div class="hx__copy" data-beat="-1,0,0.04,0.1">
+        <h1 class="hx__title in" id="heroTitle" style="--s:3">모든 뉴스는<br>파문을 남깁니다</h1>
+        <div class="hx__side in" style="--s:4">
+          <p class="hx__sub">크립토·AI·매크로 뉴스가 나온 뒤 <span class="nw">15분·1시간·24시간</span> 동안 가격이 얼마나 움직였는지 재서 보여 줍니다.</p>
+          <div class="hero__cta"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a><a class="btn btn--ghost btn--lg" href="#how">측정 방법 보기</a></div>
+        </div>
+      </div>
+      <div class="hx__cap" data-beat="0.7,0.8,2,3"><span class="mono-label">{drop_note}</span><b>SIGNAL은 그 파문의<br>크기를 잽니다.</b></div>
     </div>
-    <div class="tpins">{tpins}</div>
-    <p class="h3d__hint" data-beat="-1,0,0.03,0.08" aria-hidden="true">아래로 스크롤</p>
+    <p class="hx__hint" data-beat="-1,0,0.02,0.06" aria-hidden="true">아래로 스크롤</p>
   </div>
 </section>
 
@@ -860,14 +856,15 @@ def page_landing(articles, market, cal, imp, now):
   <div data-reveal style="--i:2"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a></div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, title=title, s1=len(words) + 1, s2=len(words) + 2, s3=len(words) + 4, demo=demo_html,
-        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), say=" ".join(say), tpins=tpins, span_label=span_label, frames_attr=frames_attr,
+        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), say=" ".join(say), video_attr=video_attr, drop_note=h(drop_note),
         nproof=len(strong), nproof2="%02d" % len(strong),
         rank0_label=h(rank0["label"]) if rank0 else "–", rank0_val=pct(rank0["mean_abs"]).lstrip("+") if rank0 else "–",
         rank0_n=("표본 %d건" % rank0["n"]) if rank0 else "", **sc["fmt"])
     data = {"landing": {"demo": demo, "story": sc["js"]}}
-    head3d = ('<link rel="preload" as="image" href="%sassets/hero/desktop/f000.webp" media="(min-aspect-ratio: 9/10)">\n'
-              '<link rel="preload" as="image" href="%sassets/hero/mobile/f000.webp" media="(max-aspect-ratio: 9/10)">\n'
-              '<script type="module" src="%sassets/hero3d.js?v=%s"></script>' % (B, B, B, ASSET_VER))
+    head3d = ('<link rel="preload" as="image" href="%sassets/hero/ripple-desktop.webp" media="(min-aspect-ratio: 4/5)">\n'
+              '<link rel="preload" as="image" href="%sassets/hero/ripple-mobile.webp" media="(max-aspect-ratio: 4/5)">\n'
+              '<script type="module" src="%sassets/hero.js?v=%s"></script>' % (B, B, B, ASSET_VER)) if video_ready else (
+              '<script type="module" src="%sassets/hero.js?v=%s"></script>' % (B, ASSET_VER))
     return shell("home", "SIGNAL — 뉴스 뒤의 가격 반응까지", "크립토·AI·매크로 뉴스를 모으고, 기사마다 비트코인 가격이 실제로 얼마나 움직였는지 재서 보여 줍니다.",
                  B, body, now, extra_head=head3d, data=data)
 

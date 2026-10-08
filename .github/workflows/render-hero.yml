@@ -1,7 +1,7 @@
 name: render-hero
 
-# 첫 화면 지형 프레임을 Blender(Cycles, CPU)로 한 번 렌더링해 web/assets/hero/ 에 넣는다.
-# 데이터는 web/assets/hero/snapshot.json 에 고정되어 있다. 손으로 실행할 때만 돈다.
+# 첫 화면 파문 루프를 Blender(Cycles, CPU)로 렌더링해 영상(mp4)과 첫 장면(webp)으로 web/assets/hero/ 에 넣는다.
+# 방울 세기는 web/assets/hero/snapshot.json 에 고정된 데이터를 따른다. 손으로 실행할 때만 돈다.
 on:
   workflow_dispatch:
 
@@ -15,7 +15,8 @@ concurrency:
 
 env:
   BLENDER: "5.2.2"
-  NFRAMES: "96"
+  NFRAMES: "120"
+  PARTS: "8"
 
 jobs:
   render:
@@ -25,7 +26,7 @@ jobs:
       fail-fast: true
       matrix:
         variant: [desktop, mobile]
-        part: [0, 1, 2, 3, 4, 5]
+        part: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@v4
       - name: Install Blender
@@ -38,9 +39,9 @@ jobs:
           tar -xf /tmp/$f -C /tmp && echo "/tmp/blender-${BLENDER}-linux-x64" >> "$GITHUB_PATH"
       - name: Render frames
         run: |
-          frames=$(python3 -c "n=int('${NFRAMES}');p=${{ matrix.part }};print(','.join(str(i) for i in range(n) if i%6==p))")
-          blender --background --factory-startup --python render/terrain.py -- \
-            --variant ${{ matrix.variant }} --out out/${{ matrix.variant }} --device CPU --samples 40 --nframes ${NFRAMES} --frames "$frames" 2>&1 | grep -E "DEVICE|FRAME|DONE|Error|Traceback"
+          frames=$(python3 -c "n=int('${NFRAMES}');k=int('${PARTS}');p=${{ matrix.part }};print(','.join(str(i) for i in range(n) if i%k==p))")
+          blender --background --factory-startup --python render/ripple.py -- \
+            --variant ${{ matrix.variant }} --out out/${{ matrix.variant }} --device CPU --samples 48 --nframes ${NFRAMES} --frames "$frames" 2>&1 | grep -E "DEVICE|FRAME|DONE|Error|Traceback"
           ls out/${{ matrix.variant }} | wc -l
       - uses: actions/upload-artifact@v4
         with:
@@ -56,15 +57,19 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: /tmp/parts
-      - name: Collect frames
+      - name: Encode loop videos
         run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           for v in desktop mobile; do
-            mkdir -p web/assets/hero/$v
-            cp /tmp/parts/hero-$v-*/f*.webp web/assets/hero/$v/
-            cp /tmp/parts/hero-$v-0/anchors.json web/assets/hero/$v/anchors.json
-            n=$(ls web/assets/hero/$v/f*.webp | wc -l)
+            mkdir -p /tmp/f/$v
+            cp /tmp/parts/hero-$v-*/f*.png /tmp/f/$v/
+            n=$(ls /tmp/f/$v/f*.png | wc -l)
             echo "$v: $n frames"; test "$n" -eq "$NFRAMES"
+            ffmpeg -loglevel error -y -framerate 24 -i /tmp/f/$v/f%03d.png -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -movflags +faststart -an web/assets/hero/ripple-$v.mp4
+            ffmpeg -loglevel error -y -i /tmp/f/$v/f000.png -c:v libwebp -quality 82 web/assets/hero/ripple-$v.webp
           done
+          # 지난 지형 프레임은 더 쓰지 않는다
+          git rm -r -q --ignore-unmatch web/assets/hero/desktop web/assets/hero/mobile
           du -sh web/assets/hero
       - name: Commit and deploy
         env:
@@ -72,8 +77,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/assets/hero
-          git commit -m "Add rendered hero terrain frames"
+          git add -A web/assets/hero
+          git commit -m "Add rendered hero ripple loop"
           git push origin HEAD:main
           # 이 커밋은 자동 트리거를 깨우지 않으므로 사이트 빌드를 한 번 직접 건다
           gh workflow run pipeline.yml --repo "$GITHUB_REPOSITORY" --ref main
