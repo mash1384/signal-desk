@@ -722,8 +722,9 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .hx__sub { font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.08rem); line-height: 1.6; color: var(--text-2); word-break: keep-all; text-wrap: pretty; }
 .hx__sub .nw { white-space: nowrap; }
 .hx .hero__cta { margin-top: 20px; }
-.hx__cap { grid-row: 3; display: grid; gap: 14px; justify-items: start; opacity: 0; visibility: hidden; }
-.hx__cap .mono-label { color: var(--text-2); }
+.hx__cap { grid-row: 3; display: grid; gap: 14px; justify-items: start; align-content: end; opacity: 0; visibility: hidden; }
+.hx__cap .mono-label { max-width: 100%; padding: 5px 12px; border-radius: 10px; color: var(--text-2); white-space: normal; line-height: 1.5; word-break: keep-all;
+  background: color-mix(in oklab, var(--bg) 72%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .hx__cap b { font-family: var(--font-display); font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.025em; word-break: keep-all; }
 .hx__hint { position: absolute; right: var(--gutter); bottom: clamp(28px, 6vh, 64px); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--text-3); }
 .hx:not(.is-pinned) .hx__cap, .hx:not(.is-pinned) .hx__hint { display: none; }
