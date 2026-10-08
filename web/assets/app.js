@@ -684,14 +684,6 @@
   }
 
   /* ---------- 랜딩 ---------- */
-  // 화면에 보일 때만 돌리는 반복 작업
-  function whileVisible(el, every, fn) {
-    var timer = null, visible = false;
-    var run = function () { if (!timer && visible && !document.hidden) timer = setInterval(fn, every); };
-    var halt = function () { clearInterval(timer); timer = null; };
-    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) run(); else halt(); }).observe(el);
-    document.addEventListener('visibilitychange', function () { if (document.hidden) halt(); else run(); });
-  }
 
   // 기사 시각 전후 가격선. 좌표는 0~W, 0~H 비율로 돌려준다
   function priceLine(rows, iv, from, to, W, H, pad) {
@@ -893,12 +885,17 @@
     });
   }
 
-  // 첫 화면 미리보기: 기사를 고르면 그 기사의 가격 반응을 보여 준다. 몇 초마다 다음 기사로 넘어가고, 사용자가 만지면 멈춘다
+  // 첫 화면 미리보기: 기사를 고르면 그 기사의 가격 반응을 보여 준다.
+  // 움직임을 허용하면 화면을 고정하고 스크롤로 넘긴다. 기사마다 가격선이 왼쪽부터 그려지고, 선이 15분·1시간 지점을 지날 때 그 반응이 켜진다.
+  // 움직임 줄이기에서는 고정하지 않고 기사를 눌러 고른다
   function initDemo() {
     var root = $('#demo');
     var data = (S.landing || {}).demo || [];
     if (!root || !data.length) return;
-    var items = $$('.demo__item', root), pane = $('#demoDetail'), cur = 0, auto = !reduced(), held = false, cache = {};
+    var sec = $('#demoPin');
+    var items = $$('.demo__item', root), pane = $('#demoDetail'), cache = {};
+    var scrub = !!sec && !reduced();
+    var rev = 1, marks = [0, 1, 1, 1];
     var CL = { crypto: '크립토', ai: 'AI', macro: '매크로' };
     var WIN = [['15m', '15분'], ['1h', '1시간'], ['24h', '24시간']];
     var detailHTML = function (it) {
@@ -914,10 +911,19 @@
         '</span><span>' + esc(it.src) + ' · ' + mdhm(it.ts) + '</span></p><p class="dd__title">' + esc(it.t) + '</p><div class="dd__chart" aria-hidden="true"></div>' +
         '<dl class="dd__rx" aria-label="' + esc(it.asset) + ' 가격 반응">' + cells + '</dl><a class="dd__link" href="' + BASE + 'a/' + esc(it.id) + '/">기사와 차트 자세히 보기</a></div>';
     };
+    var span = function (it) { var from = it.ts - 1800; return [from, Math.min(now(), it.ts + 7200)]; };
+    // 가격선을 rev(0~1)만큼 드러내고, 지나간 시점의 반응을 켠다
+    var applyReveal = function () {
+      if (!scrub) return;
+      var box = $('.dd__chart', pane), svg = box && $('svg', box), tag = box && $('.dd__tag', box);
+      if (svg) svg.style.clipPath = 'inset(0 ' + ((1 - rev) * 100).toFixed(2) + '% 0 0)';
+      if (tag) tag.classList.toggle('is-on', rev >= marks[0]);
+      $$('.dd__rx > div', pane).forEach(function (c, k) { c.classList.toggle('is-lit', rev >= marks[k + 1] - 0.001); });
+    };
     var draw = function (it) {
       var box = $('.dd__chart', pane);
       if (!box) return;
-      var from = it.ts - 1800, to = Math.min(now(), it.ts + 7200);
+      var sp = span(it), from = sp[0], to = sp[1];
       var paint = function (d) {
         if (!box.isConnected) return;
         if (!d || d.rows.length < 3) { box.textContent = '차트를 불러오지 못했습니다'; return; }
@@ -931,36 +937,74 @@
           '<line class="c-t0" x1="' + tx.toFixed(1) + '" x2="' + tx.toFixed(1) + '" y1="0" y2="' + H + '"/><path class="c-line" d="' + line + '"/></svg>' +
           '<span class="dd__tag" style="left:' + (tx / W * 100).toFixed(2) + '%">기사 시각</span>';
         box.innerHTML = html;
-        revealChart($('svg', box), 800);
+        if (scrub) applyReveal();
+        else revealChart($('svg', box), 800);
       };
       if (cache[it.id]) paint(cache[it.id]);
       else candles(it.asset, from, to).then(function (d) { cache[it.id] = d; paint(d); });
     };
     var select = function (i) {
-      cur = i;
-      items.forEach(function (b, j) { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
-      pane.innerHTML = detailHTML(data[i]);
+      items.forEach(function (b, j) {
+        b.setAttribute('aria-pressed', j === i ? 'true' : 'false');
+        b.parentNode.classList.toggle('is-cur', j === i);
+      });
+      var it = data[i], sp = span(it), len = sp[1] - sp[0];
+      // 차트 가로축에서 기사 시각·15분·1시간 지점, 24시간은 선을 다 그린 뒤
+      marks = [1800 / len, Math.min(1, 2700 / len), Math.min(1, 5400 / len), 1];
+      pane.innerHTML = detailHTML(it);
       var dd = $('.dd', pane);
       if (reduced()) dd.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
       else dd.animate([{ opacity: 0, transform: 'translateY(8px)', filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0px)' }], { duration: 300, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
-      draw(data[i]);
+      applyReveal();
+      draw(it);
     };
+
+    if (scrub) {
+      var pin = $('.pin', sec), step = $('.demo__step', root);
+      var narrow = matchMedia('(max-width: 900px)');
+      var count = function () { return narrow.matches ? Math.min(3, items.length) : items.length; };
+      var START = 0.12, END = 0.96;
+      sec.classList.add('is-pinned');
+      root.classList.add('is-scrub');
+      items.forEach(function (b) { var i = document.createElement('i'); i.className = 'demo__prog'; i.setAttribute('aria-hidden', 'true'); b.appendChild(i); });
+      // 기사 하나에 화면 높이의 80%만큼 스크롤
+      var size = function () { sec.style.height = Math.round(pin.offsetHeight + innerHeight * (0.35 + 0.8 * count())) + 'px'; };
+      size();
+      window.addEventListener('resize', size);
+      var shown = -1;
+      var upd = pinScroll(sec, function (p) {
+        var n = count();
+        var u = 1 - Math.pow(1 - Math.min(1, p / START), 3);
+        root.style.transform = u < 1 ? 'perspective(1600px) rotateX(' + (14 * (1 - u)).toFixed(2) + 'deg) scale(' + (0.94 + 0.06 * u).toFixed(4) + ')' : 'none';
+        root.style.opacity = (0.55 + 0.45 * u).toFixed(3);
+        var q = Math.max(0, Math.min(1, (p - START) / (END - START))) * n;
+        var i = Math.min(n - 1, Math.floor(q)), local = Math.min(1, q - i);
+        if (i !== shown) { shown = i; select(i); }
+        rev = Math.min(1, local / 0.75);
+        applyReveal();
+        items.forEach(function (b, j) {
+          var bar = $('.demo__prog', b);
+          bar.style.transform = 'scaleX(' + (j === i ? local : j < i ? 1 : 0).toFixed(3) + ')';
+          bar.style.opacity = j < i ? '0.3' : '1';
+        });
+        step.textContent = '0' + (i + 1) + ' / 0' + n;
+      });
+      // 기사를 누르면 그 기사 구간으로 스크롤한다
+      items.forEach(function (b, i) {
+        b.addEventListener('click', function () {
+          var top = sec.getBoundingClientRect().top + scrollY, range = sec.offsetHeight - pin.offsetHeight;
+          scrollTo({ top: top + range * (START + (END - START) * (i + 0.8) / count()), behavior: 'smooth' });
+        });
+      });
+      upd();
+      return;
+    }
+
+    var cur = 0;
     items.forEach(function (b, i) {
-      b.addEventListener('click', function () { auto = false; if (i !== cur) select(i); });
+      b.addEventListener('click', function () { if (i !== cur) { cur = i; select(i); } });
     });
-    // 읽는 중에는 넘기지 않는다
-    root.addEventListener('pointerenter', function () { held = true; });
-    root.addEventListener('pointerleave', function () { held = false; });
-    root.addEventListener('focusin', function () { held = true; });
-    root.addEventListener('focusout', function () { held = false; });
     draw(data[0]);
-    if (!auto) return;
-    whileVisible(root, 6000, function () {
-      if (!auto || held) return;
-      var shown = items.filter(function (b) { return b.offsetParent !== null; });
-      var k = shown.indexOf(items[cur]);
-      select(items.indexOf(shown[(k + 1) % shown.length]));
-    });
   }
 
   function initCountdown() {

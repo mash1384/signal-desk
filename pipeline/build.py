@@ -723,7 +723,7 @@ def page_landing(articles, market, cal, imp, now):
   <div class="wrap in" style="--s:{sd}">
     <div class="demo" id="demo">
       <div class="demo__inner">
-        <div class="demo__bar"><b class="demo__brand">SIGNAL</b><span class="demo__tabs" aria-hidden="true"><span class="is-on">전체</span><span>크립토</span><span>AI</span><span>매크로</span></span><span class="demo__live"><span class="live-dot" aria-hidden="true"></span>실시간</span></div>
+        <div class="demo__bar"><b class="demo__brand">SIGNAL</b><span class="demo__tabs" aria-hidden="true"><span class="is-on">전체</span><span>크립토</span><span>AI</span><span>매크로</span></span><span class="demo__step" aria-hidden="true"></span><span class="demo__live"><span class="live-dot" aria-hidden="true"></span>실시간</span></div>
         <div class="demo__body">
           <ol class="demo__list" aria-label="반응이 큰 최근 기사">{items}</ol>
           <div class="demo__detail" id="demoDetail">{detail}</div>
@@ -755,8 +755,12 @@ def page_landing(articles, market, cal, imp, now):
   </div>
 </section>
 
-<section class="hero hero--preview" aria-label="제품 미리보기">
+<section class="hero hero--preview" id="demoPin" aria-label="제품 미리보기">
+  <div class="pin demo-pin">
 {demo}
+  </div>
+</section>
+<section class="hero hero--stats" aria-label="수집 현황">
   <div class="wrap">
     <dl class="hero__stats in" style="--s:{s3}">
       <div><dt>최근 24시간 기사</dt><dd class="count" data-to="{n24}">{n24}</dd></div>
