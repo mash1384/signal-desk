@@ -646,6 +646,32 @@ def bento(articles, market, cal, now):
                    wtitle=h(watch_art["title"]) if watch_art else "이더리움 관련 새 기사")
 
 
+def story_data(articles, demo):
+    """스크롤 고정 섹션에 쓸 실제 기사·반응값."""
+    feed = "".join('<li style="--k:%d"><span class="chip cat cat--%s">%s</span><span class="sc1__t">%s</span><em>%s</em></li>'
+                   % (k, a["category"], config.CATEGORY_LABEL[a["category"]], h(a["title"]), h(a["source_name"])) for k, a in enumerate(articles[:6]))
+    src = "".join('<li style="--k:%d">%s</li>' % (k, h(x["name"])) for k, x in enumerate(config.SOURCES[:10]))
+    f = demo[0] if demo else None
+    wins = [(w, f["rx"][w]) for w in ("15m", "1h", "24h") if f and f["rx"].get(w) and "r" in f["rx"][w]] if f else []
+    best = max(wins, key=lambda x: abs(x[1].get("z") or 0)) if wins else None
+    z = abs(best[1].get("z") or 0) if best else 0
+    pos = z / 4 if z <= 3 else 0.75 + min((z - 3) / 6, 1) * 0.25
+    marks = "".join('<span class="mk" data-win="{w}"><i></i><span>{l} <b class="{d}">{r}</b></span></span>'.format(
+        w=w, l=WIN_KO[w], d="up" if v["r"] >= 0 else "down", r=pct(v["r"])) for w, v in wins if w in ("15m", "1h"))
+    if best:
+        w, v = best
+        badge = '<span class="ib ib--{d} ib--g{g}">{a} {w} {r} · {gr}</span>'.format(d="up" if v["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(v.get("g"), "w"),
+                                                                                    a=h(f["asset"]), w=WIN_KO[w], r=pct(v["r"]), gr=h(v.get("g") or ""))
+        cap = "기사 뒤 %s 동안의 움직임이 평소 같은 길이 변동폭의 %.1f배였습니다." % (WIN_KO[w], z)
+    else:
+        badge, cap = "", "반응이 측정되면 여기에 표시됩니다."
+    fmt = {"sc_src": src, "sc_feed": feed, "sc_asset": h(f["asset"]) if f else "BTC", "sc_cat": f["cat"] if f else "crypto",
+           "sc_cl": config.CATEGORY_LABEL.get(f["cat"], "") if f else "", "sc_title": h(f["t"]) if f else "", "sc_marks": marks,
+           "sc_z": ("%.1f" % ((best[1].get("z") or 0) if best else 0)), "sc_cap": cap, "sc_pos": "%.3f" % min(pos, 1), "sc_badge": badge}
+    js = {"asset": f["asset"], "ts": f["ts"]} if f else None
+    return {"fmt": fmt, "js": js}
+
+
 def page_landing(articles, market, cal, imp, now):
     """첫 화면. 숫자와 기사는 모두 실제 수집·측정값이다."""
     day = [a for a in articles if now - a["t0"] < 86400]
@@ -665,6 +691,7 @@ def page_landing(articles, market, cal, imp, now):
         '<li class="tbar"><span class="tbar__label">{label}</span><span class="tbar__track"><i style="--v:{v:.3f}"></i></span><span class="tbar__val">{val} <span class="muted">n={n}</span></span></li>'.format(
             label=h(t["label"]), v=t["mean_abs"] / top_abs, val=pct(t["mean_abs"]).lstrip("+"), n=t["n"]) for t in types) \
         or '<li class="muted">유형별 표본이 쌓이는 중입니다.</li>'
+    sc = story_data(articles, demo)
     words = "뉴스 뒤의 가격 반응까지 한눈에".split(" ")
     title = " ".join('<span class="w" style="--s:%d">%s</span>' % (i + 1, h(w)) for i, w in enumerate(words))
     srcs = "".join('<li style="--j:%d">%s</li>' % (k, h(x["name"])) for k, x in enumerate(config.SOURCES[:8]))
@@ -698,8 +725,46 @@ def page_landing(articles, market, cal, imp, now):
   </div>
 </section>
 
-<section class="lsec wrap" id="how" aria-labelledby="howTitle">
-  <h2 class="lsec__title" id="howTitle" data-reveal>이렇게 잽니다</h2>
+<div id="how" class="how">
+<section class="story" id="story" aria-labelledby="howTitle">
+  <div class="story__pin">
+    <div class="wrap story__grid">
+      <div class="story__text">
+        <h2 class="lsec__title" id="howTitle">이렇게 잽니다</h2>
+        <ol class="story__steps">
+          <li class="is-on"><span class="story__n">01</span><b>모으기</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p></li>
+          <li><span class="story__n">02</span><b>재기</b><p>기사 시각부터 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p></li>
+          <li><span class="story__n">03</span><b>판정하기</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p></li>
+        </ol>
+        <div class="story__bar" aria-hidden="true"><i></i></div>
+      </div>
+      <div class="story__stage" aria-hidden="true">
+        <div class="story__screen">
+          <div class="sc sc1">
+            <p class="sc__label"><span class="live-dot"></span>{nsrc}개 매체에서 수집 중</p>
+            <ul class="sc1__src">{sc_src}</ul>
+            <ol class="sc1__feed">{sc_feed}</ol>
+            <p class="sc1__count"><b data-to="{n24}">{n24}</b><span>최근 24시간 기사</span></p>
+          </div>
+          <div class="sc sc2">
+            <p class="sc__label">기사 시각 기준 {sc_asset} 가격</p>
+            <div class="sc2__card"><span class="chip cat cat--{sc_cat}">{sc_cl}</span><b>{sc_title}</b></div>
+            <div class="sc2__chart"><svg viewBox="0 0 600 240" preserveAspectRatio="none"></svg><span class="sc2__t0">기사 시각</span>{sc_marks}</div>
+          </div>
+          <div class="sc sc3">
+            <p class="sc__label">평소 변동폭과 비교</p>
+            <p class="sc3__z">z <b data-z="{sc_z}">0.0</b></p>
+            <p class="sc3__cap">{sc_cap}</p>
+            <div class="sc3__scale"><span>약</span><span>중</span><span>강</span><div class="sc3__run" data-pos="{sc_pos}"><i></i></div></div>
+            <p class="sc3__badge">{sc_badge}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="lsec wrap how-static" aria-labelledby="howTitle2">
+  <h2 class="lsec__title" id="howTitle2" data-reveal>이렇게 잽니다</h2>
   <p class="lsec__lede" data-reveal style="--i:1">감으로 고른 ‘중요 뉴스’가 아니라, 기사가 나온 뒤 실제 가격 변화를 기준으로 보여 줍니다.</p>
   <ol class="steps3">
     <li data-reveal style="--i:0"><span class="steps3__n">01</span><b>모으기</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p><ul class="steps3__src" aria-label="수집 매체 일부">{srcs}</ul></li>
@@ -709,6 +774,8 @@ def page_landing(articles, market, cal, imp, now):
       <div class="steps3__scale" aria-hidden="true"><span>약 <small>|z| 2 미만</small></span><span>중 <small>2–3</small></span><span>강 <small>3 이상</small></span></div></li>
   </ol>
 </section>
+
+</div>
 
 <section class="lsec wrap" aria-labelledby="proofTitle">
   <h2 class="lsec__title" id="proofTitle" data-reveal>최근 7일, 크게 움직인 순간</h2>
@@ -735,8 +802,8 @@ def page_landing(articles, market, cal, imp, now):
   <div data-reveal style="--i:2"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a></div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, title=title, s1=len(words) + 1, s2=len(words) + 2, s3=len(words) + 4, demo=demo_html,
-        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now))
-    data = {"landing": {"demo": demo}}
+        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), **sc["fmt"])
+    data = {"landing": {"demo": demo, "story": sc["js"]}}
     return shell("home", "SIGNAL — 뉴스 뒤의 가격 반응까지", "크립토·AI·매크로 뉴스를 모으고, 기사마다 비트코인 가격이 실제로 얼마나 움직였는지 재서 보여 줍니다.",
                  B, body, now, data=data)
 
