@@ -717,13 +717,25 @@ def page_landing(articles, market, cal, imp, now):
     </div>
   </div>""".format(sd=len(words) + 3, items="".join(demo_item_html(it, k) for k, it in enumerate(demo)), detail=demo_detail_html(demo[0])) if demo else ""
     body = """
-<section class="hero" aria-labelledby="heroTitle">
-  <div class="wrap hero__head">
-    <p class="hero__live in" style="--s:0"><span class="live-dot" aria-hidden="true"></span>실시간 수집 중 · 마지막 <time data-ts="{now}">{now_hm}</time></p>
-    <h1 class="hero__title" id="heroTitle">{title}</h1>
-    <p class="hero__sub in" style="--s:{s1}">크립토·AI·매크로 뉴스를 15분마다 모으고, 기사마다 비트코인 가격이 15분·1시간·24시간 동안 얼마나 움직였는지 재서 함께 보여 줍니다.</p>
-    <div class="hero__cta in" style="--s:{s2}"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a><a class="btn btn--ghost btn--lg" href="#how">측정 방법 보기</a></div>
+<section class="h3d" id="h3d" data-theme="dark" aria-labelledby="heroTitle">
+  <div class="pin h3d__pin">
+    <canvas class="h3d__canvas" aria-hidden="true"></canvas>
+    <div class="h3d__scrim" aria-hidden="true"></div>
+    <div class="wrap h3d__layer">
+      <div class="h3d__copy" data-beat="-1,0,0.16,0.28">
+        <p class="hero__live in" style="--s:0"><span class="live-dot" aria-hidden="true"></span>실시간 수집 중 · 마지막 <time data-ts="{now}">{now_hm}</time></p>
+        <h1 class="h3d__title" id="heroTitle"><span class="w" style="--s:1">수많은</span> <span class="w" style="--s:2">뉴스</span> <span class="w" style="--s:3">중,</span><br><span class="w" style="--s:4">가격을</span> <span class="w" style="--s:5">움직인</span> <span class="w" style="--s:6">것만.</span></h1>
+        <p class="h3d__sub in" style="--s:7">크립토·AI·매크로 뉴스를 15분마다 모으고, 기사마다 비트코인 가격이 얼마나 움직였는지 잽니다.</p>
+        <div class="hero__cta in" style="--s:8"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a><a class="btn btn--ghost btn--lg" href="#how">측정 방법 보기</a></div>
+      </div>
+      <div class="h3d__cap" data-beat="0.3,0.4,0.56,0.64" aria-hidden="true"><span class="mono-label">Noise → Signal</span><b>대부분은 흩어지고,<br>가격을 움직인 뉴스만 남습니다.</b></div>
+      <div class="h3d__cap h3d__cap--data" data-beat="0.74,0.84,2,3"><span class="mono-label">실제 사례 · 기사 전후 {sc_asset} 가격</span><b>{sc_title}</b>{sc_badge}</div>
+    </div>
+    <p class="h3d__hint" data-beat="-1,0,0.04,0.1" aria-hidden="true">아래로 스크롤</p>
   </div>
+</section>
+
+<section class="hero hero--preview" aria-label="제품 미리보기">
 {demo}
   <div class="wrap">
     <dl class="hero__stats in" style="--s:{s3}">
@@ -829,8 +841,12 @@ def page_landing(articles, market, cal, imp, now):
         rank0_label=h(rank0["label"]) if rank0 else "–", rank0_val=pct(rank0["mean_abs"]).lstrip("+") if rank0 else "–",
         rank0_n=("표본 %d건" % rank0["n"]) if rank0 else "", **sc["fmt"])
     data = {"landing": {"demo": demo, "story": sc["js"]}}
+    head3d = ('<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",'
+              '"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>\n'
+              '<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js">\n'
+              '<script type="module" src="%sassets/hero3d.js?v=%s"></script>' % (B, ASSET_VER))
     return shell("home", "SIGNAL — 뉴스 뒤의 가격 반응까지", "크립토·AI·매크로 뉴스를 모으고, 기사마다 비트코인 가격이 실제로 얼마나 움직였는지 재서 보여 줍니다.",
-                 B, body, now, data=data)
+                 B, body, now, extra_head=head3d, data=data)
 
 
 def page_404(now):

@@ -699,6 +699,45 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
   .sc3__scale > span { padding: 6px 0 4px; font-size: 12px; }
 }
 
+/* 첫 화면 3D 무대: 테마와 관계없이 어두운 무대. 글자는 왼쪽 아래에 겹친다 */
+.h3d { position: relative; background: var(--bg); color: var(--text); }
+.h3d.is-pinned { height: 300svh; }
+.h3d__pin { position: relative; height: calc(100svh - var(--nav-h) - var(--tabbar-h, 0px)); min-height: 520px; overflow: hidden; }
+.h3d.is-pinned > .h3d__pin { min-height: 0; }
+.h3d__canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.h3d:not(.has-webgl) .h3d__canvas { display: none; }
+.h3d:not(.has-webgl) .h3d__pin { background: radial-gradient(60% 50% at 70% 40%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 70%); }
+.h3d__scrim { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, var(--bg) 0%, color-mix(in oklab, var(--bg) 75%, transparent) 25%, transparent 55%), radial-gradient(70% 70% at 0% 100%, color-mix(in oklab, var(--bg) 80%, transparent), transparent 70%); }
+.h3d__layer { position: relative; display: grid; align-items: end; height: 100%; padding-bottom: clamp(28px, 6vh, 64px); pointer-events: none; }
+.h3d__layer > * { grid-area: 1 / 1; max-width: 48rem; pointer-events: auto; }
+.h3d__title { margin-top: 18px; font-family: var(--font-display); font-size: clamp(2.5rem, 1.4rem + 3.8vw, 4.75rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; word-break: keep-all; }
+.h3d__title .w { display: inline-block; animation: fade-in 300ms ease-out both; animation-delay: calc(var(--s, 0) * 80ms + 150ms); }
+@media (prefers-reduced-motion: no-preference) { .h3d__title .w { animation-name: fade-in-up; } }
+.h3d__sub { margin-top: 18px; max-width: 30em; font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem); line-height: 1.6; color: var(--text-2); word-break: keep-all; text-wrap: pretty; }
+.h3d .hero__cta { margin-top: 26px; }
+.h3d__cap { display: grid; gap: 12px; justify-items: start; opacity: 0; visibility: hidden; }
+.h3d__cap b { font-family: var(--font-display); font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.25rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; word-break: keep-all; }
+.h3d__cap--data b { font-size: clamp(1.25rem, 0.95rem + 1.3vw, 2rem); line-height: 1.35; }
+.h3d__cap--data .ib { font-size: 13px; }
+.h3d__hint { position: absolute; right: var(--gutter); bottom: clamp(28px, 6vh, 64px); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--text-3); }
+.h3d:not(.is-pinned) .h3d__cap, .h3d:not(.is-pinned) .h3d__hint { display: none; }
+.hero--preview { padding-top: clamp(40px, 6vw, 72px); }
+.hero--preview .demo { margin-top: 0; }
+@media (max-width: 900px) {
+  .h3d__layer { padding-bottom: 24px; }
+  .h3d__title { font-size: clamp(2.25rem, 1.6rem + 3.6vw, 3rem); }
+  .h3d__scrim { background: linear-gradient(to top, var(--bg) 0%, color-mix(in oklab, var(--bg) 80%, transparent) 38%, transparent 62%); }
+  .h3d__hint { display: none; }
+}
+@media (max-width: 900px) and (max-height: 760px) {
+  .h3d__title { font-size: 2rem; }
+  .h3d__sub { margin-top: 10px; font-size: 0.95rem; }
+  .h3d .hero__cta { margin-top: 16px; }
+  .h3d__cap b { font-size: 1.5rem; }
+  .h3d__cap--data b { font-size: 1.125rem; }
+}
+
 /* 공통 고정 영역: 상단 내비와(모바일) 하단 탭바를 뺀 높이 */
 .pin { position: relative; }
 .is-pinned > .pin { position: sticky; top: var(--nav-h); height: calc(100svh - var(--nav-h) - var(--tabbar-h, 0px)); overflow: hidden; }
