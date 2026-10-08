@@ -764,6 +764,12 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .demo:not(.is-scrub) .demo__prog { display: none; }
 .is-scrub .dd__rx > div { opacity: 0.32; transform: translateY(4px); transition: opacity 250ms ease-out, transform 300ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 250ms ease-out; }
 .is-scrub .dd__rx > div.is-lit { opacity: 1; transform: none; }
+/* 기사별 상세를 겹쳐 두고 지금 기사만 보인다(스크롤 중 다시 그리지 않는다) */
+.is-scrub .demo__detail { display: grid; }
+.is-scrub .demo__detail > .dd { grid-area: 1 / 1; align-content: start; opacity: 0; visibility: hidden; transform: translateY(6px);
+  transition: opacity 200ms ease-out, transform 300ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 200ms; }
+.is-scrub .demo__detail > .dd.is-on { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.is-scrub .dd__chart svg { will-change: clip-path; }
 .is-scrub .dd__tag { opacity: 0; transition: opacity 200ms ease-out; }
 .is-scrub .dd__tag.is-on { opacity: 1; }
 @media (max-width: 900px) {
