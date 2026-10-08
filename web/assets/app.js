@@ -887,6 +887,7 @@
 
   // 첫 화면 미리보기: 기사를 고르면 그 기사의 가격 반응을 보여 준다.
   // 움직임을 허용하면 화면을 고정하고 스크롤로 넘긴다. 기사마다 가격선이 왼쪽부터 그려지고, 선이 15분·1시간 지점을 지날 때 그 반응이 켜진다.
+  // 스크롤 중에는 아무것도 새로 만들지 않는다: 기사별 상세와 차트를 미리 그려 겹쳐 두고, 보이는 것과 드러난 정도만 바꾼다.
   // 움직임 줄이기에서는 고정하지 않고 기사를 눌러 고른다
   function initDemo() {
     var root = $('#demo');
@@ -894,8 +895,6 @@
     if (!root || !data.length) return;
     var sec = $('#demoPin');
     var items = $$('.demo__item', root), pane = $('#demoDetail'), cache = {};
-    var scrub = !!sec && !reduced();
-    var rev = 1, marks = [0, 1, 1, 1];
     var CL = { crypto: '크립토', ai: 'AI', macro: '매크로' };
     var WIN = [['15m', '15분'], ['1h', '1시간'], ['24h', '24시간']];
     var detailHTML = function (it) {
@@ -911,18 +910,9 @@
         '</span><span>' + esc(it.src) + ' · ' + mdhm(it.ts) + '</span></p><p class="dd__title">' + esc(it.t) + '</p><div class="dd__chart" aria-hidden="true"></div>' +
         '<dl class="dd__rx" aria-label="' + esc(it.asset) + ' 가격 반응">' + cells + '</dl><a class="dd__link" href="' + BASE + 'a/' + esc(it.id) + '/">기사와 차트 자세히 보기</a></div>';
     };
-    var span = function (it) { var from = it.ts - 1800; return [from, Math.min(now(), it.ts + 7200)]; };
-    // 가격선을 rev(0~1)만큼 드러내고, 지나간 시점의 반응을 켠다
-    var applyReveal = function () {
-      if (!scrub) return;
-      var box = $('.dd__chart', pane), svg = box && $('svg', box), tag = box && $('.dd__tag', box);
-      if (svg) svg.style.clipPath = 'inset(0 ' + ((1 - rev) * 100).toFixed(2) + '% 0 0)';
-      if (tag) tag.classList.toggle('is-on', rev >= marks[0]);
-      $$('.dd__rx > div', pane).forEach(function (c, k) { c.classList.toggle('is-lit', rev >= marks[k + 1] - 0.001); });
-    };
-    var draw = function (it) {
-      var box = $('.dd__chart', pane);
-      if (!box) return;
+    var span = function (it) { return [it.ts - 1800, Math.min(now(), it.ts + 7200)]; };
+    // 기사 시각 전후 가격선을 box에 그린다. 캔들은 기사마다 한 번만 받는다
+    var drawInto = function (box, it, done) {
       var sp = span(it), from = sp[0], to = sp[1];
       var paint = function (d) {
         if (!box.isConnected) return;
@@ -933,78 +923,127 @@
         var r15 = it.rx['15m'] && it.rx['15m'].r;
         box.className = 'dd__chart ' + ((r15 != null ? r15 : (first[1] - last[1])) >= 0 ? 'is-up' : 'is-down');
         var tx = L.x(it.ts);
-        var html = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><path class="c-area" d="' + line + ' L' + last[0].toFixed(1) + ' ' + H + ' L' + first[0].toFixed(1) + ' ' + H + ' Z"/>' +
+        box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><path class="c-area" d="' + line + ' L' + last[0].toFixed(1) + ' ' + H + ' L' + first[0].toFixed(1) + ' ' + H + ' Z"/>' +
           '<line class="c-t0" x1="' + tx.toFixed(1) + '" x2="' + tx.toFixed(1) + '" y1="0" y2="' + H + '"/><path class="c-line" d="' + line + '"/></svg>' +
           '<span class="dd__tag" style="left:' + (tx / W * 100).toFixed(2) + '%">기사 시각</span>';
-        box.innerHTML = html;
-        if (scrub) applyReveal();
-        else revealChart($('svg', box), 800);
+        if (done) done();
       };
       if (cache[it.id]) paint(cache[it.id]);
       else candles(it.asset, from, to).then(function (d) { cache[it.id] = d; paint(d); });
     };
-    var select = function (i) {
+    var press = function (i) {
       items.forEach(function (b, j) {
         b.setAttribute('aria-pressed', j === i ? 'true' : 'false');
         b.parentNode.classList.toggle('is-cur', j === i);
       });
-      var it = data[i], sp = span(it), len = sp[1] - sp[0];
-      // 차트 가로축에서 기사 시각·15분·1시간 지점, 24시간은 선을 다 그린 뒤
-      marks = [1800 / len, Math.min(1, 2700 / len), Math.min(1, 5400 / len), 1];
-      pane.innerHTML = detailHTML(it);
-      var dd = $('.dd', pane);
-      if (reduced()) dd.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
-      else dd.animate([{ opacity: 0, transform: 'translateY(8px)', filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0px)' }], { duration: 300, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
-      applyReveal();
-      draw(it);
     };
 
-    if (scrub) {
+    if (sec && !reduced()) {
       var pin = $('.pin', sec), step = $('.demo__step', root);
       var narrow = matchMedia('(max-width: 900px)');
       var count = function () { return narrow.matches ? Math.min(3, items.length) : items.length; };
-      var START = 0.12, END = 0.96;
+      var START = 0.12, END = 0.96, LAG = 0.08;
       sec.classList.add('is-pinned');
       root.classList.add('is-scrub');
-      items.forEach(function (b) { var i = document.createElement('i'); i.className = 'demo__prog'; i.setAttribute('aria-hidden', 'true'); b.appendChild(i); });
-      // 기사 하나에 화면 높이의 80%만큼 스크롤
-      var size = function () { sec.style.height = Math.round(pin.offsetHeight + innerHeight * (0.35 + 0.8 * count())) + 'px'; };
-      size();
-      window.addEventListener('resize', size);
-      var shown = -1;
-      var upd = pinScroll(sec, function (p) {
+      var bars = items.map(function (b) { var i = document.createElement('i'); i.className = 'demo__prog'; i.setAttribute('aria-hidden', 'true'); b.appendChild(i); return { el: i, v: -1, o: '' }; });
+      pane.innerHTML = data.map(detailHTML).join('');
+      var views = $$('.dd', pane).map(function (el, k) {
+        var sp = span(data[k]), len = sp[1] - sp[0];
+        // 차트 가로축에서 기사 시각·15분·1시간 지점, 24시간은 선을 다 그린 뒤
+        return { el: el, box: $('.dd__chart', el), cells: $$('.dd__rx > div', el), svg: null, tag: null, clip: '', lit: -1, tagOn: null,
+          marks: [1800 / len, Math.min(1, 2700 / len), Math.min(1, 5400 / len), 1] };
+      });
+      var reveal = function (v, rev) {
+        if (v.svg) {
+          var c = 'inset(0 ' + ((1 - rev) * 100).toFixed(1) + '% 0 0)';
+          if (c !== v.clip) { v.svg.style.clipPath = c; v.clip = c; }
+        }
+        var on = rev >= v.marks[0];
+        if (v.tag && on !== v.tagOn) { v.tag.classList.toggle('is-on', on); v.tagOn = on; }
+        var lit = 0;
+        for (var k = 1; k < 4; k++) if (rev >= v.marks[k] - 0.001) lit = k;
+        if (lit !== v.lit) { v.cells.forEach(function (c, k) { c.classList.toggle('is-lit', k < lit); }); v.lit = lit; }
+      };
+      var shown = -1, rev = 0, tilt = '', label = '';
+      var render = function (p) {
         var n = count();
         var u = 1 - Math.pow(1 - Math.min(1, p / START), 3);
-        root.style.transform = u < 1 ? 'perspective(1600px) rotateX(' + (14 * (1 - u)).toFixed(2) + 'deg) scale(' + (0.94 + 0.06 * u).toFixed(4) + ')' : 'none';
-        root.style.opacity = (0.55 + 0.45 * u).toFixed(3);
+        var t = u < 1 ? 'perspective(1600px) rotateX(' + (14 * (1 - u)).toFixed(2) + 'deg) scale(' + (0.94 + 0.06 * u).toFixed(4) + ')' : 'none';
+        if (t !== tilt) { root.style.transform = t; root.style.opacity = (0.55 + 0.45 * u).toFixed(3); tilt = t; }
         var q = Math.max(0, Math.min(1, (p - START) / (END - START))) * n;
         var i = Math.min(n - 1, Math.floor(q)), local = Math.min(1, q - i);
-        if (i !== shown) { shown = i; select(i); }
+        if (i !== shown) {
+          if (shown >= 0) views[shown].el.classList.remove('is-on');
+          views[i].el.classList.add('is-on');
+          press(i);
+          shown = i;
+        }
         rev = Math.min(1, local / 0.75);
-        applyReveal();
-        items.forEach(function (b, j) {
-          var bar = $('.demo__prog', b);
-          bar.style.transform = 'scaleX(' + (j === i ? local : j < i ? 1 : 0).toFixed(3) + ')';
-          bar.style.opacity = j < i ? '0.3' : '1';
+        reveal(views[i], rev);
+        bars.forEach(function (b, j) {
+          var v = j === i ? Math.round(local * 400) / 400 : j < i ? 1 : 0, o = j < i ? '0.3' : '1';
+          if (v !== b.v) { b.el.style.transform = 'scaleX(' + v + ')'; b.v = v; }
+          if (o !== b.o) { b.el.style.opacity = o; b.o = o; }
         });
-        step.textContent = '0' + (i + 1) + ' / 0' + n;
-      });
+        var l = '0' + (i + 1) + ' / 0' + n;
+        if (l !== label) { step.textContent = l; label = l; }
+      };
+      // 스크롤 위치를 짧은 관성으로 따라간다(휠 한 칸에도 끊기지 않게)
+      var top = 0, range = 1, cur = -1, target = 0, last = 0, raf = 0;
+      var measure = function () {
+        sec.style.height = Math.round(pin.offsetHeight + innerHeight * (0.35 + 0.8 * count())) + 'px';
+        top = sec.getBoundingClientRect().top + scrollY;
+        range = Math.max(1, sec.offsetHeight - pin.offsetHeight);
+      };
+      var read = function () { return Math.max(0, Math.min(1, (scrollY - top) / range)); };
+      var frame = function (t) {
+        raf = 0;
+        var dt = last ? Math.min(0.1, (t - last) / 1000) : 1 / 60;
+        last = t;
+        target = read();
+        cur = cur < 0 ? target : cur + (target - cur) * (1 - Math.exp(-dt / LAG));
+        if (Math.abs(target - cur) < 0.0003) cur = target;
+        render(cur);
+        if (cur !== target) raf = requestAnimationFrame(frame);
+        else last = 0;
+      };
+      var kick = function () { if (!raf) raf = requestAnimationFrame(frame); };
+      window.addEventListener('scroll', kick, { passive: true });
+      window.addEventListener('resize', function () { measure(); cur = -1; kick(); });
+      // 섹션에 닿기 전에 차트를 모두 그려 둔다
+      var io = new IntersectionObserver(function (en) {
+        if (!en[0].isIntersecting) return;
+        io.disconnect();
+        views.forEach(function (v, k) {
+          drawInto(v.box, data[k], function () {
+            v.svg = $('svg', v.box); v.tag = $('.dd__tag', v.box); v.clip = ''; v.tagOn = null;
+            reveal(v, k === shown ? rev : 0);
+          });
+        });
+      }, { rootMargin: '150% 0px' });
+      io.observe(sec);
       // 기사를 누르면 그 기사 구간으로 스크롤한다
       items.forEach(function (b, i) {
         b.addEventListener('click', function () {
-          var top = sec.getBoundingClientRect().top + scrollY, range = sec.offsetHeight - pin.offsetHeight;
           scrollTo({ top: top + range * (START + (END - START) * (i + 0.8) / count()), behavior: 'smooth' });
         });
       });
-      upd();
+      measure();
+      kick();
       return;
     }
 
     var cur = 0;
+    var select = function (i) {
+      press(i);
+      pane.innerHTML = detailHTML(data[i]);
+      $('.dd', pane).animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+      drawInto($('.dd__chart', pane), data[i]);
+    };
     items.forEach(function (b, i) {
       b.addEventListener('click', function () { if (i !== cur) { cur = i; select(i); } });
     });
-    draw(data[0]);
+    drawInto($('.dd__chart', pane), data[0]);
   }
 
   function initCountdown() {
