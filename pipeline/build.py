@@ -672,24 +672,22 @@ def story_data(articles, demo):
     return {"fmt": fmt, "js": js}
 
 
-def terrain_stops(imp, now, n=3):
-    """첫 화면 지형에 꽂을 뉴스: 최근 7일 중 반응이 가장 컸던 기사, 서로 8시간 이상 떨어진 것만. 시간 순서로."""
-    picked = []
-    for r in sorted(imp.get("strongest", []), key=lambda r: -abs(r.get("z") or 0)):
-        if now - r["t0"] > 7 * 86400 or any(abs(r["t0"] - q["t0"]) < 8 * 3600 for q in picked):
-            continue
-        picked.append(r)
-        if len(picked) >= n:
-            break
-    picked.sort(key=lambda r: r["t0"])
-    stops = [{"t0": r["t0"], "id": r["id"]} for r in picked]
-    pins = "".join(
+def hero_snapshot():
+    """첫 화면 렌더에 쓴 고정 데이터(렌더 시점의 7일 BTC·뉴스 핀). 없으면 None."""
+    path = os.path.join(WEB, "assets", "hero", "snapshot.json")
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def hero_pins(snap):
+    return "".join(
         '<a class="tpin" data-k="{k}" href="{B}a/{id}/"><span class="mono-label">{when} · {asset} {win}</span><b>{title}</b>'
         '<span class="ib ib--{d} ib--g{g}">{asset} {win} {r} · {gr}</span></a>'.format(
             k=k, B=B, id=h(r["id"]), when=md_hm(r["t0"]), asset=h(r["asset"]), win=WIN_KO.get(r["win"], r["win"]), title=h(r["title"]),
             d="up" if r["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(r.get("g"), "w"), r=pct(r["r"]), gr=h(r.get("g") or ""))
-        for k, r in enumerate(picked))
-    return stops, pins
+        for k, r in enumerate(snap["pins"]))
 
 
 def page_landing(articles, market, cal, imp, now):
@@ -712,7 +710,12 @@ def page_landing(articles, market, cal, imp, now):
             label=h(t["label"]), v=t["mean_abs"] / top_abs, raw=t["mean_abs"], val=pct(t["mean_abs"]).lstrip("+"), n=t["n"]) for t in types) \
         or '<li class="muted">유형별 표본이 쌓이는 중입니다.</li>'
     sc = story_data(articles, demo)
-    stops, tpins = terrain_stops(imp, now)
+    snap = hero_snapshot()
+    tpins = hero_pins(snap) if snap else ""
+    # 렌더 프레임이 아직 없으면(렌더 워크플로 실행 전) 정지 배경으로 둔다
+    frames_ready = all(os.path.isfile(os.path.join(WEB, "assets", "hero", v, "anchors.json")) for v in ("desktop", "mobile"))
+    frames_attr = ' data-frames="%sassets/hero/"' % B if frames_ready else ""
+    span_label = ("%s – %s" % (util.kst(snap["start"]).strftime("%m.%d"), util.kst(snap["end"]).strftime("%m.%d"))) if snap else ""
     say_words = "뉴스는 매일 수백 건씩 쏟아집니다. 그중 [가격을 실제로 움직인] 뉴스는 일부뿐입니다. SIGNAL은 그 일부를 [숫자로] 골라 보여 줍니다.".split(" ")
     say, hot = [], False
     for w in say_words:
@@ -738,18 +741,18 @@ def page_landing(articles, market, cal, imp, now):
     </div>
   </div>""".format(sd=len(words) + 3, items="".join(demo_item_html(it, k) for k, it in enumerate(demo)), detail=demo_detail_html(demo[0])) if demo else ""
     body = """
-<section class="h3d" id="h3d" data-theme="dark" aria-labelledby="heroTitle">
+<section class="h3d" id="h3d" data-theme="dark"{frames_attr} aria-labelledby="heroTitle">
   <div class="pin h3d__pin">
     <canvas class="h3d__canvas" aria-hidden="true"></canvas>
     <div class="h3d__scrim" aria-hidden="true"></div>
     <div class="wrap h3d__layer">
       <div class="h3d__copy" data-beat="-1,0,0.08,0.14">
         <p class="hero__live in" style="--s:0"><span class="live-dot" aria-hidden="true"></span>실시간 수집 중 · 마지막 <time data-ts="{now}">{now_hm}</time></p>
-        <h1 class="h3d__title" id="heroTitle"><span class="w" style="--s:1">지난</span> <span class="w" style="--s:2">7일,</span><br><span class="w" style="--s:3">뉴스가</span> <span class="w" style="--s:4">만든</span> <span class="w" style="--s:5">지형</span></h1>
-        <p class="h3d__sub in" style="--s:6">비트코인 가격과 변동성으로 그린 지형입니다. 크게 솟은 봉우리마다 그 순간의 뉴스가 꽂혀 있습니다.</p>
+        <h1 class="h3d__title" id="heroTitle"><span class="w" style="--s:1">7일,</span> <span class="w" style="--s:2">뉴스가</span><br><span class="w" style="--s:3">만든</span> <span class="w" style="--s:4">지형</span></h1>
+        <p class="h3d__sub in" style="--s:6">{span_label} 비트코인 가격과 변동성으로 빚은 지형입니다. 크게 솟은 봉우리마다 그 순간의 뉴스가 꽂혀 있습니다.</p>
         <div class="hero__cta in" style="--s:7"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a><a class="btn btn--ghost btn--lg" href="#how">측정 방법 보기</a></div>
       </div>
-      <div class="h3d__cap" data-beat="0.86,0.93,2,3"><span class="mono-label">최근 7일 · BTC</span><b>봉우리가 높을수록<br>가격이 크게 움직였습니다.</b><p class="h3d__legend"><span><i class="lg-line"></i>BTC 가격</span><span><i class="lg-peak"></i>높이 = 변동성</span><span><i class="lg-pin"></i>그 순간의 뉴스</span></p></div>
+      <div class="h3d__cap" data-beat="0.86,0.93,2,3"><span class="mono-label">{span_label} · BTC</span><b>봉우리가 높을수록<br>가격이 크게 움직였습니다.</b><p class="h3d__legend"><span><i class="lg-line"></i>BTC 가격</span><span><i class="lg-peak"></i>높이 = 변동성</span><span><i class="lg-pin"></i>그 순간의 뉴스</span></p></div>
     </div>
     <div class="tpins">{tpins}</div>
     <p class="h3d__hint" data-beat="-1,0,0.03,0.08" aria-hidden="true">아래로 스크롤</p>
@@ -857,15 +860,14 @@ def page_landing(articles, market, cal, imp, now):
   <div data-reveal style="--i:2"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a></div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, title=title, s1=len(words) + 1, s2=len(words) + 2, s3=len(words) + 4, demo=demo_html,
-        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), say=" ".join(say), tpins=tpins,
+        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), say=" ".join(say), tpins=tpins, span_label=span_label, frames_attr=frames_attr,
         nproof=len(strong), nproof2="%02d" % len(strong),
         rank0_label=h(rank0["label"]) if rank0 else "–", rank0_val=pct(rank0["mean_abs"]).lstrip("+") if rank0 else "–",
         rank0_n=("표본 %d건" % rank0["n"]) if rank0 else "", **sc["fmt"])
-    data = {"landing": {"demo": demo, "story": sc["js"], "terrain": {"stops": stops, "now": now}}}
-    head3d = ('<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",'
-              '"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>\n'
-              '<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js">\n'
-              '<script type="module" src="%sassets/hero3d.js?v=%s"></script>' % (B, ASSET_VER))
+    data = {"landing": {"demo": demo, "story": sc["js"]}}
+    head3d = ('<link rel="preload" as="image" href="%sassets/hero/desktop/f000.webp" media="(min-aspect-ratio: 9/10)">\n'
+              '<link rel="preload" as="image" href="%sassets/hero/mobile/f000.webp" media="(max-aspect-ratio: 9/10)">\n'
+              '<script type="module" src="%sassets/hero3d.js?v=%s"></script>' % (B, B, B, ASSET_VER))
     return shell("home", "SIGNAL — 뉴스 뒤의 가격 반응까지", "크립토·AI·매크로 뉴스를 모으고, 기사마다 비트코인 가격이 실제로 얼마나 움직였는지 재서 보여 줍니다.",
                  B, body, now, extra_head=head3d, data=data)
 
@@ -898,6 +900,8 @@ def build_site(out, articles, market, cal, imp, health, now):
     global HAS_BRIEF, ASSET_VER
     digest = []
     for name in sorted(os.listdir(os.path.join(WEB, "assets"))):
+        if os.path.isdir(os.path.join(WEB, "assets", name)):
+            continue
         with open(os.path.join(WEB, "assets", name), "rb") as f:
             digest.append(util.short_hash(f.read().decode("latin-1")))
     ASSET_VER = util.short_hash("".join(digest))
