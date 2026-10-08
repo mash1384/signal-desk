@@ -1,0 +1,79 @@
+name: render-hero
+
+# 첫 화면 지형 프레임을 Blender(Cycles, CPU)로 한 번 렌더링해 web/assets/hero/ 에 넣는다.
+# 데이터는 web/assets/hero/snapshot.json 에 고정되어 있다. 손으로 실행할 때만 돈다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: render-hero
+  cancel-in-progress: false
+
+env:
+  BLENDER: "5.2.2"
+  NFRAMES: "96"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: true
+      matrix:
+        variant: [desktop, mobile]
+        part: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libxi6 libxxf86vm1 libxfixes3 libxrender1 libgl1 libxkbcommon0 libsm6 libegl1 > /dev/null
+          f=blender-${BLENDER}-linux-x64.tar.xz
+          curl -fsSL -o /tmp/$f https://download.blender.org/release/Blender${BLENDER%.*}/$f
+          curl -fsSL -o /tmp/sums https://download.blender.org/release/Blender${BLENDER%.*}/blender-${BLENDER}.sha256
+          (cd /tmp && grep " $f\$" sums | sha256sum -c -)
+          tar -xf /tmp/$f -C /tmp && echo "/tmp/blender-${BLENDER}-linux-x64" >> "$GITHUB_PATH"
+      - name: Render frames
+        run: |
+          frames=$(python3 -c "n=int('${NFRAMES}');p=${{ matrix.part }};print(','.join(str(i) for i in range(n) if i%6==p))")
+          blender --background --factory-startup --python render/terrain.py -- \
+            --variant ${{ matrix.variant }} --out out/${{ matrix.variant }} --device CPU --samples 40 --nframes ${NFRAMES} --frames "$frames" 2>&1 | grep -E "DEVICE|FRAME|DONE|Error|Traceback"
+          ls out/${{ matrix.variant }} | wc -l
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hero-${{ matrix.variant }}-${{ matrix.part }}
+          path: out/${{ matrix.variant }}
+          retention-days: 3
+
+  commit:
+    needs: render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/parts
+      - name: Collect frames
+        run: |
+          for v in desktop mobile; do
+            mkdir -p web/assets/hero/$v
+            cp /tmp/parts/hero-$v-*/f*.webp web/assets/hero/$v/
+            cp /tmp/parts/hero-$v-0/anchors.json web/assets/hero/$v/anchors.json
+            n=$(ls web/assets/hero/$v/f*.webp | wc -l)
+            echo "$v: $n frames"; test "$n" -eq "$NFRAMES"
+          done
+          du -sh web/assets/hero
+      - name: Commit and deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/assets/hero
+          git commit -m "Add rendered hero terrain frames"
+          git push origin HEAD:main
+          # 이 커밋은 자동 트리거를 깨우지 않으므로 사이트 빌드를 한 번 직접 건다
+          gh workflow run pipeline.yml --repo "$GITHUB_REPOSITORY" --ref main
