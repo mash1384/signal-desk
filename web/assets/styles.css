@@ -596,16 +596,16 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .outro__pin { position: relative; display: grid; align-items: center; min-height: min(100svh, 760px); overflow: hidden; }
 .outro.is-pinned > .outro__pin { min-height: 0; }
 .outro__wall { position: absolute; inset: 0; display: grid; align-content: space-evenly; padding-block: 24px; opacity: calc(1 - 0.55 * var(--c)); pointer-events: none; }
-.ow__row { overflow: hidden; white-space: nowrap; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-.ow__track { display: inline-flex; gap: 44px; padding-inline-end: 44px; }
+.ow__row { overflow: hidden; white-space: nowrap; font-size: calc(var(--fs, 16) * (0.45px + 0.038vw)); line-height: 1.25; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.ow__track { display: inline-flex; gap: 1.6em; padding-inline-end: 1.6em; }
 @media (prefers-reduced-motion: no-preference) {
   .ow__track { animation: ow-flow var(--t, 80s) linear infinite; animation-play-state: paused; }
   .ow__row:nth-child(even) .ow__track { animation-direction: reverse; }
   .outro.is-near .ow__track { animation-play-state: running; }
 }
 @keyframes ow-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.ow__i { font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.01em; color: var(--text-3); opacity: calc(0.6 - 0.52 * var(--a)); }
-.ow__i b { margin-inline-start: 10px; font-weight: 600; }
+.ow__i { font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.02em; color: var(--text-3); opacity: calc(0.6 - 0.52 * var(--a)); }
+.ow__i b { margin-inline-start: 0.5em; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .ow__i.is-sig { color: color-mix(in oklab, var(--accent) calc(var(--a) * 100%), var(--text-3)); opacity: calc(0.6 + 0.4 * var(--a)); }
 .ow__i:not(.is-sig) b { display: none; }
 .outro__veil { position: absolute; inset: 0; pointer-events: none; opacity: var(--c);
@@ -623,6 +623,11 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
   background: linear-gradient(color-mix(in oklab, var(--accent) 82%, #000), color-mix(in oklab, var(--accent) 82%, #000)), var(--fill, none) 50% 45% / cover; background-blend-mode: screen; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .outro__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; opacity: var(--d); transform: translateY(calc((1 - var(--d)) * 14px)); }
 .outro__foot p { color: var(--text-2); }
+/* 좁은 화면은 글이 배경 줄과 겹치기 쉬워 마지막에 배경을 더 낮춘다 */
+@media (max-width: 900px) {
+  .outro__wall { opacity: calc(1 - 0.85 * var(--c)); }
+  .outro__veil { background: linear-gradient(to bottom, transparent 4%, color-mix(in oklab, var(--bg) 90%, transparent) 16%, color-mix(in oklab, var(--bg) 90%, transparent) 84%, transparent 96%); }
+}
 
 /* 스크롤 고정 섹션: 화면에 멈춘 채 세 장면이 스크롤에 맞춰 진행된다.
    고정 영역 높이 = 화면 - 상단 내비 - (모바일) 하단 탭바. 내용은 이 안에서만 배치해 잘리지 않게 한다 */

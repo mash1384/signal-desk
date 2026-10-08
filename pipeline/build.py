@@ -691,11 +691,14 @@ def outro_wall(day, rows=9):
         t = a["title"] if len(a["title"]) <= 64 else a["title"][:62].rstrip() + "…"
         tail = '<b>%s %s %s</b>' % (h(hd["asset"]), hd["win"], pct(hd["r"])) if hd else ""
         return '<span class="ow__i%s">%s%s</span>' % (" is-sig" if hd else "", h(t), tail)
+    # 줄마다 글자 크기를 달리해 겹겹이 쌓인 깊이를 준다(1440px 기준 px)
+    sizes = [24, 16, 36, 19, 15, 29, 17, 22, 32]
     out = []
     for r in range(rows):
         line = "".join(item(a) for a in pool[r::rows]) or ""
-        # 같은 줄을 두 번 이어 붙여 끊김 없이 흐르게 한다
-        out.append('<div class="ow__row" style="--t:%ds"><div class="ow__track">%s%s</div></div>' % (70 + (r * 17) % 40, line, line))
+        # 같은 줄을 두 번 이어 붙여 끊김 없이 흐르게 한다. 큰 줄일수록 천천히
+        fs = sizes[r % len(sizes)]
+        out.append('<div class="ow__row" style="--t:%ds;--fs:%d"><div class="ow__track">%s%s</div></div>' % (60 + fs * 2 + (r * 7) % 15, fs, line, line))
     return "".join(out), len(sig)
 
 
