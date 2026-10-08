@@ -13,7 +13,7 @@ USER_AGENT = "Mozilla/5.0 (compatible; SIGNAL-bot/1.0; +" + SITE_URL + "/about/)
 
 # 보관 정책
 KEEP_DAYS = 30
-MAX_ARTICLES = 4000
+MAX_ARTICLES = 6000
 INGEST_MAX_AGE_HOURS = 72
 PER_SOURCE_LIMIT = 30
 FEED_JSON_LIMIT = 300
@@ -43,10 +43,35 @@ SOURCES = [
     {"id": "hankyung-economy", "name": "한국경제 경제", "url": "https://www.hankyung.com/feed/economy", "lang": "ko", "hint": "macro", "require": True},
     {"id": "hankyung-finance", "name": "한국경제 증권", "url": "https://www.hankyung.com/feed/finance", "lang": "ko", "hint": "macro", "require": True},
     {"id": "mk-economy", "name": "매일경제 경제", "url": "https://www.mk.co.kr/rss/30100041/", "lang": "ko", "hint": "macro", "require": True},
+    # 크립토 전문지
+    {"id": "thedefiant", "name": "The Defiant", "url": "https://thedefiant.io/api/feed", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "bitcoinmag", "name": "Bitcoin Magazine", "url": "https://bitcoinmagazine.com/feed", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "cryptoslate", "name": "CryptoSlate", "url": "https://cryptoslate.com/feed/", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "unchained", "name": "Unchained", "url": "https://unchainedcrypto.com/feed/", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "cryptobriefing", "name": "Crypto Briefing", "url": "https://cryptobriefing.com/feed/", "lang": "en", "hint": "crypto", "require": False},
+    # AI: 전문지와 회사 공식 발표
+    {"id": "mittr-ai", "name": "MIT Technology Review", "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed", "lang": "en", "hint": "ai", "require": False},
+    {"id": "ars-ai", "name": "Ars Technica AI", "url": "https://arstechnica.com/ai/feed/", "lang": "en", "hint": "ai", "require": False},
+    {"id": "wired-ai", "name": "WIRED AI", "url": "https://www.wired.com/feed/tag/ai/latest/rss", "lang": "en", "hint": "ai", "require": False},
+    {"id": "thedecoder", "name": "The Decoder", "url": "https://the-decoder.com/feed/", "lang": "en", "hint": "ai", "require": False},
+    {"id": "openai", "name": "OpenAI", "url": "https://openai.com/news/rss.xml", "lang": "en", "hint": "ai", "require": False},
+    {"id": "google-ai", "name": "Google AI", "url": "https://blog.google/technology/ai/rss/", "lang": "en", "hint": "ai", "require": False},
+    {"id": "huggingface", "name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml", "lang": "en", "hint": "ai", "require": False},
+    {"id": "zdnet-kr", "name": "지디넷코리아", "url": "https://feeds.feedburner.com/zdkorea", "lang": "ko", "hint": None, "require": True},
+    {"id": "etnews", "name": "전자신문", "url": "https://rss.etnews.com/Section901.xml", "lang": "ko", "hint": None, "require": True},
+    {"id": "bloter", "name": "블로터", "url": "https://www.bloter.net/rss/allArticle.xml", "lang": "ko", "hint": None, "require": True},
+    # 매크로: 통신·경제지와 중앙은행
+    {"id": "bloomberg-econ", "name": "Bloomberg Economics", "url": "https://feeds.bloomberg.com/economics/news.rss", "lang": "en", "hint": "macro", "require": False},
+    {"id": "bloomberg-markets", "name": "Bloomberg Markets", "url": "https://feeds.bloomberg.com/markets/news.rss", "lang": "en", "hint": "macro", "require": True},
+    {"id": "ft-markets", "name": "Financial Times", "url": "https://www.ft.com/markets?format=rss", "lang": "en", "hint": "macro", "require": True},
+    {"id": "cnbc-markets", "name": "CNBC Markets", "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html", "lang": "en", "hint": "macro", "require": True},
+    {"id": "fed", "name": "Federal Reserve", "url": "https://www.federalreserve.gov/feeds/press_all.xml", "lang": "en", "hint": "macro", "require": True},
+    {"id": "einfomax", "name": "연합인포맥스", "url": "https://news.einfomax.co.kr/rss/allArticle.xml", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "edaily", "name": "이데일리", "url": "http://rss.edaily.co.kr/edaily_news.xml", "lang": "ko", "hint": "macro", "require": True},
 ]
 
 # 소스별 가중치 (중요도 계산에 더함)
-SOURCE_WEIGHT = {"coindesk": 1, "theblock": 1, "cnbc-economy": 1, "yna-economy": 1}
+SOURCE_WEIGHT = {"coindesk": 1, "theblock": 1, "cnbc-economy": 1, "yna-economy": 1, "bloomberg-econ": 1, "bloomberg-markets": 1, "ft-markets": 1, "fed": 1, "openai": 1}
 
 # 임팩트를 잴 수 있는 자산 사전. names는 기사에서 찾을 이름(소문자 비교)
 ASSETS = {
@@ -80,8 +105,11 @@ CATEGORY_KEYWORDS = {
     "macro": [
         "fed", "fomc", "inflation", "cpi", "pce", "interest rate", "rate cut", "rate hike", "treasury", "yield", "jobs report",
         "payroll", "unemployment", "gdp", "recession", "tariff", "dollar", "oil", "gold", "stocks", "s&p", "nasdaq", "dow",
+        "federal reserve", "central bank", "ecb", "bank of japan", "powell", "bond", "bonds", "economy", "jobless", "wall street",
+        "equities", "yen", "euro", "crude", "opec", "trade war", "stimulus", "rates",
         "연준", "기준금리", "금리", "물가", "인플레이션", "소비자물가", "고용지표", "실업률", "국채", "환율", "달러", "유가",
         "금값", "증시", "코스피", "코스닥", "나스닥", "관세", "한은", "한국은행", "외국인 순매도", "외국인 순매수", "fomc", "cpi",
+        "파월", "국고채", "채권", "엔화", "원·달러", "외환", "경기침체", "무역수지", "수출", "뉴욕증시", "미 증시",
     ],
 }
 
