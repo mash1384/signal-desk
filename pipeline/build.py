@@ -681,6 +681,24 @@ def hero_snapshot():
         return json.load(f)
 
 
+def outro_wall(day, rows=9):
+    """마지막 섹션 배경: 최근 24시간 기사 제목을 줄줄이 흘린다. 가격을 크게 움직인 기사(강·중)는 스크롤하면 신호로 남는다."""
+    sig = [a for a in day if (a.get("headline") or {}).get("g") in ("강", "중")][:12]
+    rest = [a for a in day if a not in sig][:rows * 7 - len(sig)]
+    pool = sorted(sig + rest, key=lambda a: util.short_hash(a["id"]))
+    def item(a):
+        hd = a.get("headline") if a in sig else None
+        t = a["title"] if len(a["title"]) <= 64 else a["title"][:62].rstrip() + "…"
+        tail = '<b>%s %s %s</b>' % (h(hd["asset"]), hd["win"], pct(hd["r"])) if hd else ""
+        return '<span class="ow__i%s">%s%s</span>' % (" is-sig" if hd else "", h(t), tail)
+    out = []
+    for r in range(rows):
+        line = "".join(item(a) for a in pool[r::rows]) or ""
+        # 같은 줄을 두 번 이어 붙여 끊김 없이 흐르게 한다
+        out.append('<div class="ow__row" style="--t:%ds"><div class="ow__track">%s%s</div></div>' % (70 + (r * 17) % 40, line, line))
+    return "".join(out), len(sig)
+
+
 def page_landing(articles, market, cal, imp, now):
     """첫 화면. 숫자와 기사는 모두 실제 수집·측정값이다."""
     day = [a for a in articles if now - a["t0"] < 86400]
@@ -707,6 +725,9 @@ def page_landing(articles, market, cal, imp, now):
     video_attr = ' data-video="%sassets/hero/"' % B if video_ready else ""
     span_label = ("%s – %s" % (util.kst(snap["start"]).strftime("%m.%d"), util.kst(snap["end"]).strftime("%m.%d"))) if snap else ""
     drop_note = ("%s · 지난 뉴스 %d건의 실제 반응 크기로 떨어뜨린 파문" % (span_label, len(snap["pins"]))) if snap else "15분 · 1시간 · 24시간"
+    wall, nsig = outro_wall(day)
+    # 마지막 "Signal" 글자 안에도 첫 화면의 파문이 비친다
+    fill = ' style="--fill:url(%sassets/hero/ripple-desktop.webp)"' % B if video_ready else ""
     say_words = "뉴스는 매일 수백 건씩 쏟아집니다. 그중 [가격을 실제로 움직인] 뉴스는 일부뿐입니다. SIGNAL은 그 일부를 [숫자로] 골라 보여 줍니다.".split(" ")
     say, hot = [], False
     for w in say_words:
@@ -775,11 +796,11 @@ def page_landing(articles, market, cal, imp, now):
   <div class="story__pin">
     <div class="wrap story__grid">
       <div class="story__text">
-        <h2 class="lsec__title" id="howTitle">이렇게 잽니다</h2>
+        <h2 class="lsec__title" id="howTitle">How we measure</h2>
         <ol class="story__steps">
-          <li class="is-on"><span class="story__n">01</span><b>모으기</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p></li>
-          <li><span class="story__n">02</span><b>재기</b><p>기사 시각부터 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p></li>
-          <li><span class="story__n">03</span><b>판정하기</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p></li>
+          <li class="is-on"><span class="story__n">01</span><b>Collect</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p></li>
+          <li><span class="story__n">02</span><b>Measure</b><p>기사 시각부터 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p></li>
+          <li><span class="story__n">03</span><b>Score</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p></li>
         </ol>
         <div class="story__bar" aria-hidden="true"><i></i></div>
       </div>
@@ -809,13 +830,13 @@ def page_landing(articles, market, cal, imp, now):
   </div>
 </section>
 <section class="lsec wrap how-static" aria-labelledby="howTitle2">
-  <h2 class="lsec__title" id="howTitle2" data-reveal>이렇게 잽니다</h2>
+  <h2 class="lsec__title" id="howTitle2" data-reveal>How we measure</h2>
   <p class="lsec__lede" data-reveal style="--i:1">감으로 고른 ‘중요 뉴스’가 아니라, 기사가 나온 뒤 실제 가격 변화를 기준으로 보여 줍니다.</p>
   <ol class="steps3">
-    <li data-reveal style="--i:0"><span class="steps3__n">01</span><b>모으기</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p><ul class="steps3__src" aria-label="수집 매체 일부">{srcs}</ul></li>
-    <li data-reveal style="--i:1"><span class="steps3__n">02</span><b>재기</b><p>기사 시각을 기준으로 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p>
+    <li data-reveal style="--i:0"><span class="steps3__n">01</span><b>Collect</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p><ul class="steps3__src" aria-label="수집 매체 일부">{srcs}</ul></li>
+    <li data-reveal style="--i:1"><span class="steps3__n">02</span><b>Measure</b><p>기사 시각을 기준으로 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p>
       <div class="steps3__time" aria-hidden="true"><i class="is-t0"></i><span>기사</span><i></i><span>15분</span><i></i><span>1시간</span><i></i><span>24시간</span></div></li>
-    <li data-reveal style="--i:2"><span class="steps3__n">03</span><b>판정하기</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p>
+    <li data-reveal style="--i:2"><span class="steps3__n">03</span><b>Score</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p>
       <div class="steps3__scale" aria-hidden="true"><span>약 <small>|z| 2 미만</small></span><span>중 <small>2–3</small></span><span>강 <small>3 이상</small></span></div></li>
   </ol>
 </section>
@@ -854,13 +875,22 @@ def page_landing(articles, market, cal, imp, now):
   <div class="pin say__pin"><div class="wrap"><p class="say__text">{say}</p></div></div>
 </section>
 
-<section class="endcta wrap" aria-labelledby="ctaTitle">
-  <h2 class="endcta__title" id="ctaTitle" data-reveal>Noise out, <em>signal</em> in.</h2>
-  <p class="endcta__sub" data-reveal style="--i:1">회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
-  <div data-reveal style="--i:2"><a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a></div>
+<section class="outro" id="outro" data-theme="dark" aria-labelledby="ctaTitle">
+  <div class="pin outro__pin">
+    <div class="outro__wall" aria-hidden="true">{wall}</div>
+    <div class="outro__veil" aria-hidden="true"></div>
+    <div class="wrap outro__body">
+      <p class="mono-label outro__kicker">최근 24시간 기사 {n24}건 · 가격을 크게 움직인 기사 {nsig}건</p>
+      <h2 class="outro__title" id="ctaTitle"><span class="ot__l ot__l--noise"><span>Noise out.</span></span><span class="ot__l ot__l--sig"><span><em class="ot__fill"{fill}>Signal</em> in.</span></span></h2>
+      <div class="outro__foot">
+        <p>회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
+        <a class="btn btn--accent btn--lg" href="{B}feed/">피드 보기</a>
+      </div>
+    </div>
+  </div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, title=title, s1=len(words) + 1, s2=len(words) + 2, s3=len(words) + 4, demo=demo_html,
-        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), say=" ".join(say), video_attr=video_attr, drop_note=h(drop_note),
+        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now), say=" ".join(say), video_attr=video_attr, drop_note=h(drop_note), wall=wall, nsig=nsig, fill=fill,
         nproof=len(strong), nproof2="%02d" % len(strong),
         rank0_label=h(rank0["label"]) if rank0 else "–", rank0_val=pct(rank0["mean_abs"]).lstrip("+") if rank0 else "–",
         rank0_n=("표본 %d건" % rank0["n"]) if rank0 else "", **sc["fmt"])

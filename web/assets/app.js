@@ -820,6 +820,35 @@
     return upd;
   }
 
+  // 고정 섹션의 진행도(0~1)를 짧은 관성으로 따라가며 render(p)를 부른다. 휠 한 칸에도 끊기지 않게.
+  // size가 있으면 위치를 재기 전에 섹션 높이를 먼저 맞춘다
+  function smoothPin(sec, render, size) {
+    var pin = $('.pin', sec), top = 0, range = 1, cur = -1, target = 0, last = 0, raf = 0, LAG = 0.08;
+    var measure = function () {
+      if (size) size();
+      top = sec.getBoundingClientRect().top + scrollY;
+      range = Math.max(1, sec.offsetHeight - pin.offsetHeight);
+    };
+    var frame = function (t) {
+      raf = 0;
+      var dt = last ? Math.min(0.1, (t - last) / 1000) : 1 / 60;
+      last = t;
+      target = Math.max(0, Math.min(1, (scrollY - top) / range));
+      cur = cur < 0 ? target : cur + (target - cur) * (1 - Math.exp(-dt / LAG));
+      if (Math.abs(target - cur) < 0.0003) cur = target;
+      render(cur);
+      if (cur !== target) raf = requestAnimationFrame(frame);
+      else last = 0;
+    };
+    var kick = function () { if (!raf) raf = requestAnimationFrame(frame); };
+    window.addEventListener('scroll', kick, { passive: true });
+    window.addEventListener('resize', function () { measure(); cur = -1; kick(); });
+    measure();
+    kick();
+    // 진행도 p가 되는 스크롤 위치
+    return { at: function (p) { return top + range * p; } };
+  }
+
   // 실측 사례: 세로 스크롤만큼 카드 줄을 가로로 민다. 섹션 높이 = 고정 영역 + 가로로 갈 거리
   function initHScroll() {
     var sec = $('#proofPin');
@@ -942,7 +971,7 @@
       var pin = $('.pin', sec), step = $('.demo__step', root);
       var narrow = matchMedia('(max-width: 900px)');
       var count = function () { return narrow.matches ? Math.min(3, items.length) : items.length; };
-      var START = 0.12, END = 0.96, LAG = 0.08;
+      var START = 0.12, END = 0.96;
       sec.classList.add('is-pinned');
       root.classList.add('is-scrub');
       var bars = items.map(function (b) { var i = document.createElement('i'); i.className = 'demo__prog'; i.setAttribute('aria-hidden', 'true'); b.appendChild(i); return { el: i, v: -1, o: '' }; });
@@ -988,28 +1017,9 @@
         var l = '0' + (i + 1) + ' / 0' + n;
         if (l !== label) { step.textContent = l; label = l; }
       };
-      // 스크롤 위치를 짧은 관성으로 따라간다(휠 한 칸에도 끊기지 않게)
-      var top = 0, range = 1, cur = -1, target = 0, last = 0, raf = 0;
-      var measure = function () {
+      var sp = smoothPin(sec, render, function () {
         sec.style.height = Math.round(pin.offsetHeight + innerHeight * (0.35 + 0.8 * count())) + 'px';
-        top = sec.getBoundingClientRect().top + scrollY;
-        range = Math.max(1, sec.offsetHeight - pin.offsetHeight);
-      };
-      var read = function () { return Math.max(0, Math.min(1, (scrollY - top) / range)); };
-      var frame = function (t) {
-        raf = 0;
-        var dt = last ? Math.min(0.1, (t - last) / 1000) : 1 / 60;
-        last = t;
-        target = read();
-        cur = cur < 0 ? target : cur + (target - cur) * (1 - Math.exp(-dt / LAG));
-        if (Math.abs(target - cur) < 0.0003) cur = target;
-        render(cur);
-        if (cur !== target) raf = requestAnimationFrame(frame);
-        else last = 0;
-      };
-      var kick = function () { if (!raf) raf = requestAnimationFrame(frame); };
-      window.addEventListener('scroll', kick, { passive: true });
-      window.addEventListener('resize', function () { measure(); cur = -1; kick(); });
+      });
       // 섹션에 닿기 전에 차트를 모두 그려 둔다
       var io = new IntersectionObserver(function (en) {
         if (!en[0].isIntersecting) return;
@@ -1025,11 +1035,9 @@
       // 기사를 누르면 그 기사 구간으로 스크롤한다
       items.forEach(function (b, i) {
         b.addEventListener('click', function () {
-          scrollTo({ top: top + range * (START + (END - START) * (i + 0.8) / count()), behavior: 'smooth' });
+          scrollTo({ top: sp.at(START + (END - START) * (i + 0.8) / count()), behavior: 'smooth' });
         });
       });
-      measure();
-      kick();
       return;
     }
 
@@ -1044,6 +1052,32 @@
       b.addEventListener('click', function () { if (i !== cur) { cur = i; select(i); } });
     });
     drawInto($('.dd__chart', pane), data[0]);
+  }
+
+  // 마지막: 흐르던 기사 제목 중 가격을 움직인 것만 남고 "Noise out. / Signal in."이 떠오른다
+  function initOutro() {
+    var sec = $('#outro');
+    if (!sec) return;
+    // 화면 근처에서만 제목 줄을 흘린다
+    new IntersectionObserver(function (en) { sec.classList.toggle('is-near', en[0].isIntersecting); }, { rootMargin: '50% 0px' }).observe(sec);
+    if (reduced()) return;
+    sec.classList.add('is-pinned');
+    var seg = function (p, a, b) { var t = Math.max(0, Math.min(1, (p - a) / (b - a))); return 1 - Math.pow(1 - t, 3); };
+    // 값이 바뀐 변수만, 그 값을 쓰는 영역에만 넣는다(섹션 전체를 다시 계산하지 않게)
+    var wall = $('.outro__wall', sec), veil = $('.outro__veil', sec), body = $('.outro__body', sec), vals = {};
+    var set = function (k, v, els) {
+      v = v.toFixed(3);
+      if (vals[k] === v) return;
+      vals[k] = v;
+      els.forEach(function (el) { el.style.setProperty(k, v); });
+    };
+    smoothPin(sec, function (p) {
+      set('--a', seg(p, 0.02, 0.3), [wall]);
+      set('--b', seg(p, 0.26, 0.4), [body]);
+      set('--s', seg(p, 0.42, 0.52), [body]);
+      set('--c', seg(p, 0.5, 0.66), [wall, veil, body]);
+      set('--d', seg(p, 0.64, 0.76), [body]);
+    });
   }
 
   function initCountdown() {
@@ -1104,6 +1138,7 @@
     initRank();
     initSay();
     initDemo();
+    initOutro();
     initCountdown();
     initProofs();
     updateTimes();
