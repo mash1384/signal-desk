@@ -146,6 +146,8 @@ BINANCE_HOSTS = ["https://data-api.binance.vision", "https://api.binance.com"]
 COINBASE_HOST = "https://api.exchange.coinbase.com"
 UPBIT_TICKER = "https://api.upbit.com/v1/ticker"
 UPBIT_NOTICES = "https://api-manager.upbit.com/api/v1/announcements?os=web&page=1&per_page=20&category=trade"
+# 업비트가 GitHub 서버 IP를 막아서, 직접 받다 실패하면 Cloudflare 스케줄러(worker/)를 거쳐 받는다
+UPBIT_NOTICES_PROXY = os.environ.get("SIGNAL_UPBIT_PROXY") or ""
 FNG_URL = "https://api.alternative.me/fng/?limit=30"
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"

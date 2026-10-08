@@ -1,0 +1,15 @@
+# SIGNAL 스케줄러 (Cloudflare Worker)
+# - 15분마다 GitHub Actions의 pipeline 워크플로를 한 번 실행시킨다(GitHub 자체 예약 실행은 몇 시간씩 밀린다)
+# - 업비트 공지 목록을 대신 받아 준다(업비트가 GitHub 서버 IP를 막는다)
+name = "signal-scheduler"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[triggers]
+crons = ["2,17,32,47 * * * *"]
+
+[vars]
+REPO = "mash1384/signal-desk"
+WORKFLOW = "pipeline.yml"
+REF = "main"
