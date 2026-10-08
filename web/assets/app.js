@@ -195,13 +195,6 @@
     return null;
   }
   function applyLive(tick) {
-    var hb = $('#heroBtc');
-    if (hb && tick.BTC) {
-      hb.textContent = '$' + price(tick.BTC.price);
-      var hc = $('#heroBtcChg');
-      hc.className = tick.BTC.chg >= 0 ? 'up' : 'down';
-      hc.textContent = pct(tick.BTC.chg);
-    }
     SYMS.forEach(function (s) {
       var t = tick[s];
       if (!t) return;
@@ -700,231 +693,101 @@
     document.addEventListener('visibilitychange', function () { if (document.hidden) halt(); else run(); });
   }
 
-  // 큰 제목: 화면 너비에 맞추고, 주기적으로 스캔 선이 지나가며 글자를 다시 굴린다
-  function initHero() {
-    var bt = $('.bigtype');
-    if (!bt) return;
-    var hero = $('.lhero');
-    var lines = $$('.bigtype__line', bt);
-    var fit = function () {
-      var cs = getComputedStyle(bt);
-      var avail = bt.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-      bt.style.setProperty('--fit', '100px');
-      var widest = Math.max.apply(null, lines.map(function (l) { return l.getBoundingClientRect().width; }));
-      if (!(widest > 0)) return;
-      var size = 100 * avail / widest;
-      if (window.innerWidth > 900) {
-        // 넓은 화면에서는 첫 화면 안에 아래 줄까지 보이도록 높이로도 제한한다
-        var top = $('.lhero__top', hero), bar = $('.lhero__bar', hero);
-        var room = window.innerHeight - hero.offsetTop - top.offsetHeight - bar.offsetHeight - 190;
-        size = Math.max(90, Math.min(size, room / 1.92));
-      }
-      bt.style.setProperty('--fit', size.toFixed(2) + 'px');
-    };
-    fit();
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
-    window.addEventListener('resize', fit);
-    if (reduced()) return;
-    var flaps = $$('.fl:not(.fl--sp)', bt);
-    var roll = function (el) {
-      if (el.dataset.busy) return;
-      el.dataset.busy = '1';
-      el.classList.remove('is-roll'); void el.offsetWidth; el.classList.add('is-roll');
-      setTimeout(function () { delete el.dataset.busy; }, 600);
-    };
-    var light = function (el) {
-      el.classList.add('is-lit');
-      setTimeout(function () { el.classList.remove('is-lit'); }, 380);
-    };
-    var scan = $('.bigtype__scan', bt);
-    var sweep = function () {
-      var box = bt.getBoundingClientRect(), D = 1700;
-      scan.style.transition = 'none';
-      scan.style.transform = 'translateX(0)';
-      scan.style.opacity = '1';
-      void scan.offsetWidth;
-      scan.style.transition = 'transform ' + D + 'ms linear, opacity 260ms ease ' + (D - 160) + 'ms';
-      scan.style.transform = 'translateX(' + box.width + 'px)';
-      scan.style.opacity = '0';
-      flaps.forEach(function (el) {
-        var r = el.getBoundingClientRect();
-        setTimeout(function () {
-          light(el);
-          if (el.closest('.bigtype__line--noise')) roll(el);
-        }, (r.left + r.width / 2 - box.left) / box.width * D);
-      });
-    };
-    // 처음 글자들이 다 선 뒤부터 스캔
-    setTimeout(function () { whileVisible(hero, 6500, sweep); sweep(); }, 2700);
-    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-      bt.addEventListener('pointerover', function (e) {
-        var f = e.target.closest && e.target.closest('.fl');
-        if (f && !f.classList.contains('fl--sp')) { roll(f); light(f); }
-      });
-      hero.addEventListener('pointermove', function (e) {
-        var r = hero.getBoundingClientRect();
-        hero.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-        hero.style.setProperty('--my', (e.clientY - r.top) + 'px');
-      });
-    }
+  // 기사 시각 전후 가격선. 좌표는 0~W, 0~H 비율로 돌려준다
+  function priceLine(rows, iv, from, to, W, H, pad) {
+    var cl = rows.map(function (r) { return r[2]; });
+    var min = Math.min.apply(null, cl), max = Math.max.apply(null, cl), span = max - min || max * 0.001;
+    var x = function (ts) { return (ts - from) / (to - from) * W; };
+    var y = function (v) { return H - pad - (v - min) / span * (H - pad * 2); };
+    var pts = rows.map(function (r) { return [x(r[0] + iv), y(r[2])]; });
+    return { pts: pts, x: x, y: y, at: function (ts) {
+      var best = null;
+      rows.forEach(function (r) { if (r[0] + iv <= ts) best = r; });
+      return best ? [x(best[0] + iv), y(best[2])] : null;
+    } };
   }
 
-  // 아래 줄: 최근 강한 반응을 차례로 보여 준다
-  function initReadout() {
-    var slot = $('#lreadSlot');
-    var sigs = (S.landing || {}).sigs || [];
-    if (!slot || sigs.length < 2 || reduced()) return;
-    var dots = $$('#lreadDots i');
-    var WIN = { '15m': '15분', '1h': '1시간', '24h': '24시간' };
-    var k = 0;
-    whileVisible(slot, 4200, function () {
-      k = (k + 1) % sigs.length;
-      var s = sigs[k];
-      slot.innerHTML = '<a class="lread__row" href="' + BASE + 'a/' + esc(s.id) + '/"><span class="lread__asset">' + esc(s.asset) + '<small>' + (WIN[s.win] || esc(s.win)) + '</small></span>' +
-        '<span class="lread__r ' + (s.r >= 0 ? 'up' : 'down') + '">' + pct(0) + '</span><span class="lread__title">' + esc(s.title) + '</span>' +
-        '<span class="lread__meta">z ' + Number(s.z).toFixed(1).replace('-', '−') + (s.g ? ' · ' + esc(s.g) : '') + '</span></a>';
-      dots.forEach(function (d, j) { d.classList.toggle('is-on', j === k); });
-      slot.classList.remove('is-in'); void slot.offsetWidth; slot.classList.add('is-in');
-      var el = $('.lread__r', slot), t0 = performance.now();
-      var step = function (t) {
-        var p = Math.min(1, (t - t0) / 900);
-        el.textContent = pct(s.r * (1 - Math.pow(1 - p, 4)));
-        if (p < 1) requestAnimationFrame(step);
-      };
-      requestAnimationFrame(step);
-    });
-  }
-
-  // 기능 벤토: 등장, 커서 조명, 발표 카운트다운, 미니 피드
-  function initBento() {
-    var bento = $('#bento');
-    if (!bento) return;
-    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    if (fine) {
-      bento.addEventListener('pointermove', function (e) {
-        var bx = e.target.closest && e.target.closest('.bx');
-        if (!bx) return;
-        var r = bx.getBoundingClientRect();
-        bx.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-        bx.style.setProperty('--my', (e.clientY - r.top) + 'px');
-      });
-    }
-    if (!reduced() && bento.getBoundingClientRect().top > window.innerHeight * 0.9) bento.classList.add('is-armed');
-    var io = new IntersectionObserver(function (en) {
-      if (!en[0].isIntersecting) return;
-      bento.classList.add('is-in');
-      io.disconnect();
-    }, { threshold: 0.12 });
-    io.observe(bento);
-
-    var cnt = $('#calCount');
-    if (cnt && +cnt.dataset.ts) {
-      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-      var tick = function () {
-        var left = +cnt.dataset.ts - now();
-        if (left <= 0) { cnt.textContent = '발표 시각 도달'; return; }
-        var d = Math.floor(left / 86400), hh = Math.floor(left % 86400 / 3600), mm = Math.floor(left % 3600 / 60), ss = Math.floor(left % 60);
-        cnt.textContent = (d ? d + '일 ' : '') + pad(hh) + ':' + pad(mm) + ':' + pad(ss);
-      };
-      tick();
-      setInterval(tick, 1000);
-    }
-
-    var list = $('#mfeed'), pool = (S.landing || {}).pool || [], chips = $$('#mfChips span');
-    if (!list || pool.length < 8 || reduced()) return;
+  // 첫 화면 미리보기: 기사를 고르면 그 기사의 가격 반응을 보여 준다. 몇 초마다 다음 기사로 넘어가고, 사용자가 만지면 멈춘다
+  function initDemo() {
+    var root = $('#demo');
+    var data = (S.landing || {}).demo || [];
+    if (!root || !data.length) return;
+    var items = $$('.demo__item', root), pane = $('#demoDetail'), cur = 0, auto = !reduced(), held = false, cache = {};
     var CL = { crypto: '크립토', ai: 'AI', macro: '매크로' };
-    var p = 5, n = 0, ci = 0;
-    var card = function (it) {
-      var el = document.createElement('div');
-      el.className = 'mf is-new';
-      el.innerHTML = '<div class="mf__in"><div class="mf__meta"><span class="chip cat cat--' + esc(it.cat) + '">' + (CL[it.cat] || esc(it.cat)) + '</span><span class="mf__src">' + esc(it.src) +
-        ' · <time data-ts="' + it.ts + '">' + kst(it.ts).hm + '</time></span></div><p class="mf__t">' + esc(it.t) + '</p>' + (it.h ? badgeHTML(it) : '') + '</div>';
-      return el;
+    var WIN = [['15m', '15분'], ['1h', '1시간'], ['24h', '24시간']];
+    var detailHTML = function (it) {
+      var cells = WIN.map(function (w) {
+        var v = it.rx[w[0]];
+        if (v && v.r != null) {
+          var z = v.z != null ? 'z ' + Number(v.z).toFixed(1).replace('-', '−') : '';
+          return '<div><dt>' + w[1] + '</dt><dd class="' + (v.r >= 0 ? 'up' : 'down') + '">' + pct(v.r) + '</dd><span>' + z + (v.g ? ' · ' + esc(v.g) : '') + '</span></div>';
+        }
+        return '<div class="is-wait"><dt>' + w[1] + '</dt><dd>' + (v ? '측정 중' : '–') + '</dd><span>' + (v ? '곧 반영' : '기록 없음') + '</span></div>';
+      }).join('');
+      return '<div class="dd" data-sym="' + esc(it.asset) + '" data-t0="' + it.ts + '"><p class="dd__meta"><span class="chip cat cat--' + esc(it.cat) + '">' + (CL[it.cat] || esc(it.cat)) +
+        '</span><span>' + esc(it.src) + ' · ' + mdhm(it.ts) + '</span></p><p class="dd__title">' + esc(it.t) + '</p><div class="dd__chart" aria-hidden="true"></div>' +
+        '<dl class="dd__rx" aria-label="' + esc(it.asset) + ' 가격 반응">' + cells + '</dl><a class="dd__link" href="' + BASE + 'a/' + esc(it.id) + '/">기사와 차트 자세히 보기</a></div>';
     };
-    whileVisible(list, 2800, function () {
-      n++;
-      if (n % 3 === 0) {
-        ci = (ci + 1) % chips.length;
-        chips.forEach(function (c, j) { c.classList.toggle('is-on', j === ci); });
-      }
-      var want = chips[ci].dataset.c, shown = {};
-      $$('.mf__t', list).forEach(function (t) { shown[t.textContent] = 1; });
-      var it = null;
-      for (var j = 0; j < pool.length; j++) {
-        var c = pool[(p + j) % pool.length];
-        if ((!want || c.cat === want) && !shown[c.t]) { it = c; p = (p + j + 1) % pool.length; break; }
-      }
-      if (!it) return;
-      var old = $$('.mf', list), first = old.map(function (el) { return el.getBoundingClientRect().top; });
-      var el = card(it);
-      list.insertBefore(el, list.firstChild);
-      old.forEach(function (o, i) {
-        var dy = first[i] - o.getBoundingClientRect().top;
-        o.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
-      });
-      el.animate([{ opacity: 0, transform: 'translateY(-14px) scale(0.98)' }, { opacity: 1, transform: 'none' }], { duration: 650, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
-      setTimeout(function () { el.classList.remove('is-new'); }, 1400);
-      while (list.children.length > 9) list.removeChild(list.lastChild);
-    });
-  }
-
-  function countUp() {
-    if (reduced()) return;
-    $$('.count[data-to]').forEach(function (el, i) {
-      var to = +el.dataset.to, t0 = performance.now() + 500 + i * 120;
-      var step = function (now2) {
-        var k = Math.min(1, Math.max(0, (now2 - t0) / 1400));
-        el.textContent = Math.round(to * (1 - Math.pow(1 - k, 4))).toLocaleString('en-US');
-        if (k < 1) requestAnimationFrame(step);
+    var draw = function (it) {
+      var box = $('.dd__chart', pane);
+      if (!box) return;
+      var from = it.ts - 1800, to = Math.min(now(), it.ts + 7200);
+      var paint = function (d) {
+        if (!box.isConnected) return;
+        if (!d || d.rows.length < 3) { box.textContent = '차트를 불러오지 못했습니다'; return; }
+        var W = 600, H = 168, L = priceLine(d.rows, d.iv, from, to, W, H, 18);
+        var line = L.pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+        var last = L.pts[L.pts.length - 1], first = L.pts[0];
+        var r15 = it.rx['15m'] && it.rx['15m'].r;
+        box.className = 'dd__chart ' + ((r15 != null ? r15 : (first[1] - last[1])) >= 0 ? 'is-up' : 'is-down');
+        var tx = L.x(it.ts);
+        var html = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><path class="c-area" d="' + line + ' L' + last[0].toFixed(1) + ' ' + H + ' L' + first[0].toFixed(1) + ' ' + H + ' Z"/>' +
+          '<line class="c-t0" x1="' + tx.toFixed(1) + '" x2="' + tx.toFixed(1) + '" y1="0" y2="' + H + '"/><path class="c-line" d="' + line + '"/></svg>' +
+          '<span class="dd__tag" style="left:' + (tx / W * 100).toFixed(2) + '%">기사 시각</span>';
+        box.innerHTML = html;
       };
-      el.textContent = '0';
-      requestAnimationFrame(step);
+      if (cache[it.id]) paint(cache[it.id]);
+      else candles(it.asset, from, to).then(function (d) { cache[it.id] = d; paint(d); });
+    };
+    var select = function (i) {
+      cur = i;
+      items.forEach(function (b, j) { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+      pane.innerHTML = detailHTML(data[i]);
+      var dd = $('.dd', pane);
+      if (reduced()) dd.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+      else dd.animate([{ opacity: 0, transform: 'translateY(8px)', filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0px)' }], { duration: 300, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+      draw(data[i]);
+    };
+    items.forEach(function (b, i) {
+      b.addEventListener('click', function () { auto = false; if (i !== cur) select(i); });
+    });
+    // 읽는 중에는 넘기지 않는다
+    root.addEventListener('pointerenter', function () { held = true; });
+    root.addEventListener('pointerleave', function () { held = false; });
+    root.addEventListener('focusin', function () { held = true; });
+    root.addEventListener('focusout', function () { held = false; });
+    draw(data[0]);
+    if (!auto) return;
+    whileVisible(root, 6000, function () {
+      if (!auto || held) return;
+      var shown = items.filter(function (b) { return b.offsetParent !== null; });
+      var k = shown.indexOf(items[cur]);
+      select(items.indexOf(shown[(k + 1) % shown.length]));
     });
   }
 
-  function initHow() {
-    var sec = $('#how');
-    if (!sec) return;
-    var data = S.landing || {};
-    var steps = $$('.flow__steps li', sec), cards = $$('.fc', sec), chart = $('#flowChart'), needle = $('#flowNeedle'), fill = $('#flowGaugeFill'), zEl = $('#flowZ');
-    var spark = data.spark || [];
-    var z = Math.abs(data.z || 0), zCap = Math.min(z / 6, 1);
-    if (spark.length > 1) {
-      var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark), span = max - min || 1;
-      var P = spark.map(function (v, i) { return [(i / (spark.length - 1)) * 400, 148 - (v - min) / span * 128]; });
-      var d = P.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
-      chart.innerHTML = '<path class="fl-area" d="' + d + ' L400 160 L0 160 Z" opacity="0"/><path class="fl-line" d="' + d + '" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/><line class="fl-t0" x1="280" x2="280" y1="0" y2="160" opacity="0"/>';
-    }
-    var line = $('.fl-line', chart), area = $('.fl-area', chart), t0 = $('.fl-t0', chart);
-    var clamp = function (v) { return Math.max(0, Math.min(1, v)); };
-    var update = function (p) {
-      var a = clamp(p / 0.3), b = clamp((p - 0.33) / 0.3), c = clamp((p - 0.66) / 0.28);
-      cards.forEach(function (el, k) {
-        var l = clamp(a * 1.8 - k * 0.25);
-        el.style.opacity = String(0.15 + 0.85 * l);
-        el.style.transform = 'translateX(' + ((1 - l) * -28).toFixed(1) + 'px)';
-      });
-      if (line) { line.setAttribute('stroke-dashoffset', String(1 - b)); area.setAttribute('opacity', String(b)); t0.setAttribute('opacity', b > 0.6 ? '1' : '0'); }
-      needle.style.transform = 'rotate(' + (-90 + c * zCap * 180).toFixed(1) + 'deg)';
-      fill.style.strokeDashoffset = String(100 - c * zCap * 100);
-      zEl.textContent = 'z ' + (c * z).toFixed(1) + (c >= 1 && data.g ? ' · ' + data.g : '');
-      var on = p < 0.33 ? 0 : p < 0.66 ? 1 : 2;
-      steps.forEach(function (li, i) { li.classList.toggle('is-on', i === on); });
+  function initCountdown() {
+    var cnt = $('#calCount');
+    if (!cnt || !+cnt.dataset.ts) return;
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var tick = function () {
+      var left = +cnt.dataset.ts - now();
+      if (left <= 0) { cnt.textContent = '발표 시각입니다'; return; }
+      var d = Math.floor(left / 86400), hh = Math.floor(left % 86400 / 3600), mm = Math.floor(left % 3600 / 60), ss = Math.floor(left % 60);
+      cnt.textContent = (d ? d + '일 ' : '') + pad(hh) + ':' + pad(mm) + ':' + pad(ss);
     };
-    if (reduced()) { update(1); return; }
-    var ticking = false;
-    var onScroll = function () {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(function () {
-        ticking = false;
-        var r = sec.getBoundingClientRect(), range = sec.offsetHeight - window.innerHeight;
-        update(clamp(-r.top / (range || 1)));
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    onScroll();
+    tick();
+    setInterval(tick, 1000);
   }
 
   function initProofs() {
@@ -934,37 +797,19 @@
       en.forEach(function (e) {
         if (!e.isIntersecting) return;
         io.unobserve(e.target);
-        var box = e.target, sym = box.dataset.sym, t0 = +box.dataset.t0;
-        candles(sym, t0 - 1800, Math.min(now(), t0 + 3600)).then(function (data) {
-          if (!data || data.rows.length < 3) { box.textContent = '차트를 불러오지 못했어요'; return; }
-          var rows = data.rows, cl = rows.map(function (r) { return r[2]; });
-          var min = Math.min.apply(null, cl), max = Math.max.apply(null, cl), span = max - min || max * 0.001;
-          var x = function (ts) { return (ts - (t0 - 1800)) / 5400 * 300; };
-          var pts = rows.map(function (r) { return x(r[0] + data.iv).toFixed(1) + ',' + (90 - (r[2] - min) / span * 84).toFixed(1); }).join(' ');
-          var at = rows.filter(function (r) { return r[0] >= t0; });
-          var dir = at.length && at[at.length - 1][2] >= at[0][1] ? 'is-up' : 'is-down';
-          box.classList.add(dir);
-          box.innerHTML = '<svg viewBox="0 0 300 96" preserveAspectRatio="none"><line class="pc-t0" x1="' + x(t0).toFixed(1) + '" x2="' + x(t0).toFixed(1) + '" y1="0" y2="96"/><polyline class="pc-line" points="' + pts + '"/></svg>';
-          var pl = $('.pc-line', box);
-          if (!reduced() && pl.getTotalLength) {
-            var len = Math.ceil(pl.getTotalLength() * 4);
-            pl.style.setProperty('--len', len);
-            pl.style.strokeDasharray = len;
-            box.classList.add('is-drawn');
-          }
+        var box = e.target, sym = box.dataset.sym, t0 = +box.dataset.t0, from = t0 - 1800, to = Math.min(now(), t0 + 3600);
+        candles(sym, from, to).then(function (d) {
+          if (!d || d.rows.length < 3) { box.textContent = '차트를 불러오지 못했습니다'; return; }
+          var L = priceLine(d.rows, d.iv, from, to, 300, 96, 6);
+          var at = d.rows.filter(function (r) { return r[0] >= t0; });
+          box.classList.add(at.length && at[at.length - 1][2] >= at[0][1] ? 'is-up' : 'is-down');
+          var tx = L.x(t0).toFixed(1);
+          box.innerHTML = '<svg viewBox="0 0 300 96" preserveAspectRatio="none"><line class="pc-t0" x1="' + tx + '" x2="' + tx + '" y1="0" y2="96"/><polyline class="pc-line" points="' +
+            L.pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') + '"/></svg>';
         });
       });
     }, { rootMargin: '0px 0px -10% 0px' });
     boxes.forEach(function (b) { io.observe(b); });
-  }
-
-  function initBars() {
-    var bars = $('#tbars');
-    if (!bars) return;
-    var io = new IntersectionObserver(function (en) {
-      if (en[0].isIntersecting) { bars.classList.add('is-in'); io.disconnect(); }
-    }, { threshold: 0.3 });
-    io.observe(bars);
   }
 
   /* ---------- 시작 ---------- */
@@ -981,13 +826,9 @@
     initPredict();
     initMe();
     initFlow();
-    initHero();
-    initReadout();
-    initBento();
-    countUp();
-    initHow();
+    initDemo();
+    initCountdown();
     initProofs();
-    initBars();
     updateTimes();
     setInterval(updateTimes, 30000);
   }
