@@ -10,7 +10,7 @@ import os
 import shutil
 import sys
 
-from . import build, classify, collect, config, impact, market, notify, og, summarize, util
+from . import build, classify, collect, config, events as event_risk, impact, listings, mapdata, market, notify, og, patterns, summarize, util
 
 
 def load(prev):
@@ -173,8 +173,10 @@ def main(argv=None):
     fresh = collect.collect(articles, health, now)
     util.log("collected", len(fresh))
     alerts = []
+    recent_notices = []
     try:
-        notes, n_alerts = notice_articles(market.upbit_notices(), state, {a["id"] for a in articles}, now)
+        recent_notices = market.upbit_notices()
+        notes, n_alerts = notice_articles(recent_notices, state, {a["id"] for a in articles}, now)
         fresh += notes
         alerts += n_alerts
         health["upbit-notice"] = {"name": "업비트 공지", "ok": now, "error": None, "added": len(notes)}
@@ -201,6 +203,39 @@ def main(argv=None):
     stat_pool = articles + list(state.get("events_db", {}).values())
     imp = {"at": now, "types": impact.type_stats(stat_pool), "strongest": impact.strongest(articles, now)}
     strongest_24h = impact.strongest(articles, now, days=1, limit=5)
+
+    # 새 화면 데이터(맵·상장 레이더·이벤트 리스크·패턴). 하나가 실패하면 지난 파일을 그대로 쓴다
+    prev_data = os.path.join(args.prev, "data") if args.prev else ""
+    def prev_json(name):
+        return util.read_json(os.path.join(prev_data, name), None) if prev_data else None
+    extra = {}
+    base = {}
+    try:
+        patterns.attach_similar(articles, now)
+    except Exception as e:
+        util.log("similar patterns failed", e)
+    try:
+        extra["map.json"], base = mapdata.build(articles, snap, now, prev_json("map.json"))
+    except Exception as e:
+        util.log("map build failed", e)
+        extra["map.json"] = prev_json("map.json")
+    try:
+        extra["listings.json"] = listings.build(state, recent_notices, now)
+    except Exception as e:
+        util.log("listings build failed", e)
+        extra["listings.json"] = prev_json("listings.json")
+    try:
+        extra["events.json"] = event_risk.build(state, events, now)
+    except Exception as e:
+        util.log("events build failed", e)
+        extra["events.json"] = prev_json("events.json")
+    try:
+        if not base and extra.get("map.json"):
+            base = {x["s"]: x["base1h"] for x in extra["map.json"].get("assets", []) if x.get("base1h")}
+        extra["patterns.json"] = patterns.build(articles, base, imp, now)
+    except Exception as e:
+        util.log("patterns build failed", e)
+        extra["patterns.json"] = prev_json("patterns.json")
 
     alerts += strong_alerts(articles, now)
     b_alerts, brief_label = brief_alert(state, strongest_24h, now, args.out)
@@ -241,7 +276,10 @@ def main(argv=None):
     util.write_json(os.path.join(data, "market.json"), snap)
     util.write_json(os.path.join(data, "calendar.json"), {"at": now, "events": events})
     util.write_json(os.path.join(data, "impact.json"), imp)
-    build.build_site(out, articles, snap, events, imp, health, now)
+    for name, doc in extra.items():
+        if doc is not None:
+            util.write_json(os.path.join(data, name), doc)
+    build.build_site(out, articles, snap, events, imp, health, now, extra)
     util.log("built", len(articles), "articles")
     return 0
 

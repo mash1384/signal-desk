@@ -144,7 +144,7 @@
         setWatch(watch.concat([sym]));
         toast(sym + '을(를) 관심 종목에 넣었어요');
       }
-      if (S.page === 'feed' && feed) feed.render(false);
+      if ((S.page === 'feed' || S.page === 'live') && feed) feed.render(false);
     });
     syncWatch();
   }
@@ -284,8 +284,49 @@
       '<span class="imp" data-lv="' + it.imp + '" role="img" aria-label="중요도 ' + it.imp + '/3"><i></i><i></i><i></i></span><span class="src">' + esc(it.src) + '</span>' +
       '<time datetime="' + new Date(it.t0 * 1000).toISOString() + '" data-ts="' + it.t0 + '">' + mdhm(it.t0) + '</time>' + lang + '</div>' +
       '<h3 class="fcard__title"><a href="' + BASE + 'a/' + esc(it.id) + '/">' + esc(it.title) + '</a></h3>' + body +
-      '<div class="fcard__foot">' + badgeHTML(it) + '<span class="achips">' + chips + '</span></div></article>';
+      rxHTML(it) + '<div class="fcard__foot">' + badgeHTML(it) + '<span class="achips">' + chips + '</span></div>' + patHTML(it) + '</article>';
   }
+
+  // 대표 코인의 15분·1시간·24시간 반응 칸. 아직이면 남은 시간(data-due)을 보여 준다
+  function rxHTML(it) {
+    var rx = it.rx;
+    if (!rx) return '';
+    var cells = [['15m', '15분', 900], ['1h', '1시간', 3600], ['24h', '24시간', 86400]].map(function (w) {
+      var v = rx[w[0]];
+      if (v != null) return '<span class="rxc"><b>' + w[1] + '</b><em class="' + (v >= 0 ? 'up' : 'down') + '">' + pct(v) + '</em></span>';
+      if (it.st === 'failed') return '<span class="rxc is-na"><b>' + w[1] + '</b><em>–</em></span>';
+      return '<span class="rxc is-wait"><b>' + w[1] + '</b><em data-due="' + (it.t0 + w[2]) + '">' + dueText(it.t0 + w[2]) + '</em></span>';
+    }).join('');
+    return '<div class="rxcells" aria-label="' + esc(rx.s) + ' 가격 반응"><span class="rxcells__s">' + esc(rx.s) + '</span>' + cells + '</div>';
+  }
+  function dueText(due) {
+    var left = due + 120 - now();
+    if (left <= 0) return '다음 갱신 때 반영';
+    if (left < 3600) return Math.ceil(left / 60) + '분 뒤';
+    return Math.floor(left / 3600) + '시간 ' + Math.round((left % 3600) / 60) + '분 뒤';
+  }
+  function patHTML(it) {
+    var pt = it.pt;
+    if (!pt) return '';
+    var v = pt.n >= 5
+      ? '<p class="fpat__v">' + esc(pt.sym) + ' 1시간 중앙값 <b class="' + (pt.med >= 0 ? 'up' : 'down') + '">' + pct(pt.med) + '</b> · 상승 ' + Math.round(pt.up * 100) + '% · 중·강 ' + Math.round(pt.strong * 100) + '% <span class="muted">(n=' + pt.n + ', 최근 30일)</span></p>'
+        + (pt.top && pt.top.id ? '<p class="fpat__top small muted">가장 컸던 사례: <a href="' + BASE + 'a/' + esc(pt.top.id) + '/">' + esc(pt.top.title) + '</a> (' + esc(pt.top.sym) + ' ' + pct(pt.top.r1h) + ')</p>' : '')
+      : '<p class="fpat__v muted">표본 부족 (n=' + pt.n + ')</p>';
+    return '<details class="fpat"><summary>이런 뉴스는 보통 · ' + esc(pt.label) + '</summary>' + v + '<p class="small muted">같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>';
+  }
+  // 측정까지 남은 시간은 30초마다 고친다
+  function leftText(ts) {
+    var left = ts - now();
+    if (left <= 0) return '발표됨';
+    var d = Math.floor(left / 86400), hh = Math.floor((left % 86400) / 3600), mm = Math.floor((left % 3600) / 60);
+    return d ? d + '일 ' + hh + '시간 뒤' : hh ? hh + '시간 ' + mm + '분 뒤' : mm + '분 뒤';
+  }
+  function tickDue() {
+    $$('[data-due]').forEach(function (el) { el.textContent = dueText(+el.dataset.due); });
+    if (S.page !== 'events') $$('[data-left]').forEach(function (el) { el.textContent = leftText(+el.dataset.left); });
+  }
+  tickDue();
+  setInterval(tickDue, 30000);
 
   function initFeed() {
     var list = $('#feedList');
@@ -449,76 +490,6 @@
     });
   }
 
-  /* ---------- 투표 ---------- */
-  var votes = store('signal-votes', {});
-  function syncVotes() {
-    $$('.vote[data-event]').forEach(function (v) {
-      var mine = votes[v.dataset.event];
-      $$('.vbtn', v).forEach(function (b) { b.setAttribute('aria-pressed', String(!!mine && mine.choice === b.dataset.choice)); });
-    });
-  }
-  function initVotes() {
-    document.addEventListener('click', function (e) {
-      var b = e.target.closest('.vbtn');
-      if (!b) return;
-      var v = b.closest('.vote');
-      var ts = +v.dataset.ts;
-      if (now() >= ts) { toast('발표가 시작돼 투표가 마감됐어요'); return; }
-      var title = v.dataset.title || (v.closest('.ev') ? $('.ev__title', v.closest('.ev')).textContent.trim() : '');
-      votes[v.dataset.event] = { choice: b.dataset.choice, ts: ts, title: title, at: now() };
-      save('signal-votes', votes);
-      syncVotes();
-      toast(b.dataset.choice === 'up' ? '‘위’에 투표했어요. 발표 1시간 뒤 채점돼요' : '‘아래’에 투표했어요. 발표 1시간 뒤 채점돼요');
-      if (S.page === 'predict') renderRecord();
-    });
-    syncVotes();
-  }
-  async function gradeVotes() {
-    var changed = false;
-    var ids = Object.keys(votes);
-    for (var i = 0; i < ids.length; i++) {
-      var v = votes[ids[i]];
-      if (v.result || now() < v.ts + 3600 + 120) continue;
-      var data = await candles('BTC', v.ts - 60, v.ts + 3600 + 60);
-      if (!data || data.iv !== 60) continue;
-      var byT = {};
-      data.rows.forEach(function (r) { byT[r[0]] = r; });
-      var a = byT[Math.floor(v.ts / 60) * 60], b = byT[Math.floor((v.ts + 3600) / 60) * 60 - 60];
-      if (!a || !b) continue;
-      v.r = (b[2] / a[1] - 1) * 100;
-      v.result = v.r >= 0 ? 'up' : 'down';
-      changed = true;
-    }
-    if (changed) save('signal-votes', votes);
-  }
-  function renderRecord() {
-    var box = $('#myRecord');
-    if (!box) return;
-    var list = Object.keys(votes).map(function (k) { return Object.assign({ id: k }, votes[k]); }).sort(function (a, b) { return b.ts - a.ts; });
-    if (!list.length) { box.innerHTML = '<p class="muted">아직 투표하지 않았습니다. 진행 중인 투표에서 골라 보세요.</p>'; return; }
-    var done = list.filter(function (v) { return v.result; });
-    var hit = done.filter(function (v) { return v.result === v.choice; }).length;
-    box.innerHTML = '<div class="record"><p class="record__score">' + (done.length ? Math.round(hit / done.length * 100) + '%' : '–') + '</p><p class="muted small">적중 ' + hit + ' / 채점 ' + done.length + ' · 포인트 ' + hit * 10 + '</p></div>' +
-      '<div class="table-wrap"><table class="itable"><thead><tr><th scope="col">일정</th><th scope="col">내 선택</th><th scope="col">결과</th></tr></thead><tbody>' +
-      list.map(function (v) {
-        var res = v.result ? (v.result === v.choice ? '<span class="up">적중</span>' : '<span class="down">빗나감</span>') + ' <span class="muted small">BTC ' + pct(v.r) + '</span>'
-          : now() < v.ts ? '<span class="muted">발표 전</span>' : '<span class="muted">채점 대기</span>';
-        return '<tr><td>' + esc(v.title) + '<br><span class="muted small">' + mdhm(v.ts) + '</span></td><td>' + (v.choice === 'up' ? '위' : '아래') + '</td><td>' + res + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
-  }
-  function initPredict() {
-    var box = $('#openPolls');
-    if (!box) return;
-    var evs = (S.calendar || []).filter(function (e) { return e.level === 3 && e.ts > now(); });
-    box.innerHTML = evs.length ? evs.map(function (e) {
-      return '<div class="poll"><p class="poll__title">' + esc(e.title_ko || e.title) + '</p><p class="muted small">' + mdhm(e.ts) + ' KST · ' + (e.country === 'USD' ? '미국' : '한국') + '</p>' +
-        '<div class="vote" data-event="' + esc(e.id) + '" data-ts="' + e.ts + '" data-title="' + esc(e.title_ko || e.title) + '"><span class="muted small">발표 1시간 뒤 BTC는?</span><button class="vbtn" type="button" data-choice="up">위</button><button class="vbtn" type="button" data-choice="down">아래</button></div></div>';
-    }).join('') : '<p class="muted">이번 주 남은 중요도 상 일정이 없어요. 다음 주 일정이 올라오면 열립니다.</p>';
-    syncVotes();
-    renderRecord();
-    gradeVotes().then(renderRecord);
-  }
-
   /* ---------- 마이 ---------- */
   function initMe() {
     var custom = $('#watchCustom');
@@ -547,12 +518,6 @@
       inp.value = '';
       drawCustom();
       toast(v + '을(를) 추가했어요');
-    });
-    $('#resetLocal').addEventListener('click', function () {
-      ['signal-watch', 'signal-votes', 'signal-filters'].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
-      watch = []; votes = {};
-      syncWatch(); drawCustom();
-      toast('이 기기의 설정과 투표 기록을 지웠어요');
     });
   }
 
@@ -1127,8 +1092,6 @@
     drawSparks();
     initFeed();
     initChart();
-    initVotes();
-    initPredict();
     initMe();
     initFlow();
     initReveal();
