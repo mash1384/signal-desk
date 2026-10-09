@@ -74,7 +74,7 @@ function main() {
       : '<p class="radar__k">이 기간에 주요 발표가 없습니다</p>';
   }
   const resize = () => {
-    W = box.clientWidth; H = box.clientHeight; dpr = Math.min(devicePixelRatio || 1, 2);
+    W = box.clientWidth; H = W; dpr = Math.min(devicePixelRatio || 1, 2); // 좁은 화면에선 가운데 글이 판 아래로 빠져 상자가 정사각형이 아니다
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     draw();
