@@ -442,7 +442,7 @@ def page_article(a, related, now):
     </figure>
     <p class="note">가격 반응은 같은 시간에 일어난 일을 잰 값입니다. 이 기사가 가격을 움직였다는 뜻은 아닙니다.</p>
     {pat}
-    <p class="art__maplink"><a href="{B}map/?t={t0}&amp;sel=news:{id}">맵에서 이 시각 보기</a></p>
+    <p class="art__maplink"><a href="{B}map/?sel=news:{id}">맵에서 이 뉴스 보기</a></p>
   </section>
   <section class="art__related"><h2 class="h2">관련 기사</h2><ul class="rel">{rel}</ul></section>
 </div>""".format(B=B, cat=a["category"], catlabel=config.CATEGORY_LABEL[a["category"]], src=h(a["source_name"]), iso=util.iso(a["t0"]),
@@ -484,7 +484,7 @@ def page_about(health, now):
     <ol class="steps">
       <li><span><b>가격 반응</b>: 기사 기준 시각(t0, 원문 발행 시각과 수집 시각 중 이른 쪽)이 속한 1분봉 시가 대비 15분·1시간·24시간 뒤 1분봉 종가의 변화율.</span></li>
       <li><span><b>강도(z)</b>: 변화율 ÷ 최근 같은 길이 봉 변화율의 표준편차(15분: 7일, 1시간: 30일, 24시간: 180일). |z| 3 이상 강, 2 이상 중, 그 외 약.</span></li>
-      <li><span><b>맵</b>: 코인 위치는 최근 7일 1시간 수익률의 상관(BTC와 덜 같이 움직일수록 바깥), 원의 크기는 24시간 거래대금, 파문은 잰 반응의 |z|.</span></li>
+      <li><span><b>맵</b>: 코인 위치는 최근 7일 1시간 수익률의 상관(BTC와 덜 같이 움직일수록 바깥), 원의 크기는 24시간 거래대금, 둘레 막대는 등락폭(8%가 한 바퀴). 뉴스 점은 가장 크게 움직인 코인 둘레에 놓이며 |z|가 클수록 코인에 가깝고 큽니다. 다른 코인의 반응은 선으로 잇습니다.</span></li>
       <li><span><b>상장 해부도</b>: 업비트 원화 상장마다 첫 1분봉 시가를 0%로 둔 24시간 곡선, 공지 직전 1분 바이낸스 종가를 0%로 둔 공지 후 4시간 곡선. 시세가 없는 코인과 스테이블코인은 집계에서 뺍니다.</span></li>
       <li><span><b>이벤트 리스크</b>: 과거 같은 발표마다 발표 직전 1분 바이낸스 BTC 종가 대비 15분·1시간 뒤 변화를 재고 그 절댓값의 중앙값·상위 10%를 보여 줍니다. ‘평소의 몇 배’는 이 중앙값 ÷ 최근 30일 발표가 없던 같은 UTC 시각 1시간 봉 절대 변동의 중앙값입니다. 과거 발표 시각은 FRED 일정이 있는 2025년 이후만 있어 월간 지표는 표본이 20건 안팎이고, 표본 8건 미만이면 수치를 숨깁니다.</span></li>
       <li><span><b>패턴</b>: 최근 30일 측정이 끝난 기사로 계산합니다. 열지도 칸 = 기사가 잰 코인별 1시간 절대 변동 ÷ 그 코인 평소 1시간 절대 변동(최근 30일 중앙값)의 중앙값. 칸 표본 3건, 비슷한 뉴스 요약 5건 미만이면 ‘표본 부족’으로 둡니다.</span></li>
@@ -895,38 +895,41 @@ def page_map(market, now):
     fng = (market.get("fng") or {}).get("value")
     fx = (market.get("fx") or {}).get("rate")
     mini = "".join('<div><dt>{k}</dt><dd>{v}</dd></div>'.format(k=k, v=v) for k, v in (
-        ("BTC 김프", pct(kimp) if kimp is not None else "–"), ("공포·탐욕", fng if fng is not None else "–"),
+        ("김프", pct(kimp) if kimp is not None else "–"), ("공포·탐욕", fng if fng is not None else "–"),
         ("원/달러", ("{:,.1f}".format(fx) if isinstance(fx, (int, float)) else "–"))))
     seg = lambda name, opts, on: "".join(
         '<button type="button" class="mseg__b" data-{n}="{v}" aria-pressed="{p}">{l}</button>'.format(n=name, v=v, l=l, p="true" if v == on else "false")
         for v, l in opts)
     body = """
-<section class="mapx" id="mapx" data-src="{B}data/map.json" aria-labelledby="mapTitle">
-  <header class="mapx__head wrap">
-    <div><h1 class="mapx__title" id="mapTitle">맵</h1><p class="muted small">어떤 뉴스가 어떤 코인을 얼마나 움직였는지 · 원은 코인, 빛은 뉴스, 파문은 잰 반응</p></div>
-    <p class="mapx__clock" id="mapClock" aria-live="polite"></p>
-  </header>
-  <div class="mapx__grid">
-    <aside class="mapx__rail" aria-label="보기 설정">
-      <div class="mrail__group"><p class="mrail__label">기간</p><div class="mseg" role="group" aria-label="기간">{win}</div></div>
-      <div class="mrail__group"><p class="mrail__label">분야</p><div class="mseg mseg--multi" role="group" aria-label="분야">{cat}</div></div>
-      <div class="mrail__group"><p class="mrail__label">반응 강도</p><div class="mseg" role="group" aria-label="반응 강도">{grade}</div></div>
-      <dl class="mrail__mini" aria-label="시장 지표">{mini}</dl>
-      <p class="mrail__note small muted">같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p>
-    </aside>
-    <div class="mapx__stage" id="mapStage">
-      <canvas id="mapCanvas" aria-hidden="true"></canvas>
+<section class="mapx" id="mapx" data-src="{B}data/map.json" data-coins="{B}assets/coins/" aria-labelledby="mapTitle">
+  <div class="mapx__frame">
+    <div class="mapx__stage" id="mapStage" tabindex="0" aria-describedby="mapHelp">
+      <canvas class="mapx__field" id="mapField" aria-hidden="true"></canvas>
+      <canvas class="mapx__graph" id="mapCanvas" aria-hidden="true"></canvas>
+      <div class="mapx__top">
+        <div class="mapx__bar">
+          <h1 class="mapx__title" id="mapTitle">맵</h1>
+          <div class="mseg" role="group" aria-label="기간">{win}</div>
+          <div class="mseg" role="group" aria-label="반응 강도">{grade}</div>
+          <div class="mseg mseg--multi" role="group" aria-label="분야">{cat}</div>
+        </div>
+        <dl class="mapx__mini" aria-label="시장 지표">{mini}</dl>
+      </div>
+      <p class="mapx__status" id="mapStatus" aria-live="polite"></p>
+      <div class="mapx__zoom" role="group" aria-label="확대">
+        <button type="button" data-zoom="in" aria-label="확대">+</button><button type="button" data-zoom="out" aria-label="축소">−</button><button type="button" data-zoom="fit" aria-label="전체 보기">⤢</button>
+      </div>
+      <div class="mapx__tip" id="mapTip" hidden></div>
       <p class="mapx__empty" id="mapEmpty" hidden>맵 데이터를 불러오지 못했습니다.</p>
+      <div class="mapx__brush" id="mapBrush">
+        <div class="mbrush__head"><p class="mbrush__label" id="mapRangeLabel"></p><button type="button" class="mbrush__reset" id="mapRangeReset" hidden>전체 기간</button></div>
+        <canvas class="mbrush__canvas" id="mapBrushCanvas" role="slider" tabindex="0" aria-label="시간 범위 고르기: 끌어서 구간을 고릅니다" aria-valuetext=""></canvas>
+        <p class="mbrush__axis" id="mapAxis" aria-hidden="true"></p>
+      </div>
     </div>
     <aside class="mapx__panel" id="mapPanel" aria-live="polite" aria-label="상세"></aside>
   </div>
-  <div class="mapx__time wrap" id="mapTime">
-    <button class="mtime__play" id="mapPlay" type="button" aria-label="재생">▶</button>
-    <button class="mtime__speed" id="mapSpeed" type="button" aria-label="재생 속도">1×</button>
-    <label class="sr-only" for="mapRange">시각</label>
-    <input class="mtime__range" id="mapRange" type="range" min="0" max="1000" value="1000" step="1">
-    <button class="mtime__live" id="mapLive" type="button" aria-pressed="true"><span class="live-dot" aria-hidden="true"></span>라이브</button>
-  </div>
+  <p class="mapx__help wrap" id="mapHelp">원은 코인(위치: BTC와 같이 움직이는 정도, 크기: 24시간 거래대금, 둘레 막대: 등락폭), 점은 뉴스(클수록 잰 반응이 큼), 선은 그 뉴스 뒤 잰 가격 반응입니다. 아래 막대를 끌어 시간 구간을 고르고, ← → 키로 무거운 뉴스를 차례로 봅니다. 같은 시간대의 가격 변화이며 뉴스가 원인이라는 뜻은 아닙니다.</p>
   <details class="mapx__list wrap" id="mapListBox"><summary>목록으로 보기</summary><div id="mapList"></div></details>
 </section>""".format(B=B, mini=mini,
                      win=seg("win", [("1h", "1시간"), ("6h", "6시간"), ("24h", "24시간"), ("7d", "7일")], "24h"),
