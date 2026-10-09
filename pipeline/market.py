@@ -81,10 +81,12 @@ def tickers():
     try:
         rows = _binance("/api/v3/ticker/24hr?symbols=" + quote(json.dumps(syms, separators=(",", ":"))))
         by = {r["symbol"]: r for r in rows}
+        fresh_after = (util.now_ts() - 86400) * 1000
         for s in config.MARKET_ASSETS:
             r = by.get(config.ASSETS[s]["binance"])
-            if r:
-                out[s] = {"price": float(r["lastPrice"]), "chg": float(r["priceChangePercent"]), "src": "binance"}
+            # 거래가 멈춘 심볼(예: 2026년 6월 이후의 TONUSDT)은 마지막 가격이 그대로 남아 있으므로 뺀다
+            if r and int(r.get("closeTime") or 0) >= fresh_after:
+                out[s] = {"price": float(r["lastPrice"]), "chg": float(r["priceChangePercent"]), "qv": float(r["quoteVolume"]), "src": "binance"}
     except util.FetchError as e:
         util.log("binance tickers failed", e)
     for s in config.MARKET_ASSETS:
@@ -170,6 +172,8 @@ def calendar(now):
 
 
 def upbit_notices():
+    """최근 거래 공지(첫 페이지). 종류·티커 해석은 상장 레이더와 같은 규칙(listings.parse_notice)을 쓴다."""
+    from . import listings
     try:
         data = util.http_json(config.UPBIT_NOTICES, retries=1)
     except Exception:
@@ -178,19 +182,9 @@ def upbit_notices():
         data = util.http_json(config.UPBIT_NOTICES_PROXY, retries=1)
     out = []
     for n in (data.get("data") or {}).get("notices") or []:
-        title = n.get("title") or ""
-        if "디지털 자산 추가" in title or "신규 거래지원" in title:
-            kind = "listing"
-        elif "유의 종목" in title or "유의종목" in title:
-            kind = "caution"
-        elif "거래지원 종료" in title or "거래 지원 종료" in title:
-            kind = "delisting"
-        else:
+        p = listings.parse_notice(n)
+        if p["ts"] is None or p["kind"] not in ("listing", "caution", "delisting"):
             continue
-        ts = util.parse_time(n.get("first_listed_at") or n.get("listed_at"))
-        if ts is None:
-            continue
-        syms = re.findall(r"\(([A-Z0-9]{2,10})\)", title)
-        out.append({"uid": str(n.get("id")), "title": title, "kind": kind, "ts": ts, "symbols": syms[:4],
-                    "url": "https://upbit.com/service_center/notice?id=%s" % n.get("id")})
+        p["symbols"] = p["symbols"][:4]
+        out.append(p)
     return out
