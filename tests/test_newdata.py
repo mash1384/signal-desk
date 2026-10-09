@@ -5,7 +5,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pipeline import events, listings, mapdata, patterns, util  # noqa: E402
+from pipeline import events, listings, mapdata, moves, patterns, util  # noqa: E402
 
 
 class Listings(unittest.TestCase):
@@ -97,6 +97,29 @@ class Patterns(unittest.TestCase):
         few = [self._art(i, "etf", 0.1) for i in range(3)]
         patterns.attach_similar(few, 2000)
         self.assertEqual(few[0]["pattern"], {"label": "ETF", "sym": "BTC", "n": 2})
+
+
+class Moves(unittest.TestCase):
+    def test_ols_recovers_beta(self):
+        x = [((i * 7919) % 101 - 50) / 1000 for i in range(400)]
+        y = [1.5 * v + (((i * 104729) % 31) - 15) / 100000 for i, v in enumerate(x)]
+        beta, sd, r2 = moves._ols(y, x)
+        self.assertAlmostEqual(beta, 1.5, places=2)
+        self.assertGreater(r2, 0.99)
+
+    def test_detect_finds_one_jump(self):
+        cum = [0.0] * 400
+        for i in range(200, 400):
+            cum[i] = min(3.0, (i - 200) * 0.1)        # 200분부터 30분 동안 +3%
+        ev = moves._detect(cum, 0.5, 2.5)
+        self.assertEqual(len(ev), 1)
+        a, e = ev[0]
+        self.assertTrue(200 <= a <= 207 and e >= 229)
+
+    def test_mentions_word_boundary(self):
+        self.assertTrue(moves._mentions("SOL ETF approved", ["SOL"]))
+        self.assertFalse(moves._mentions("SOLUTION for banks", ["SOL"]))
+        self.assertTrue(moves._mentions("솔라나 급등", ["SOL", "솔라나"]))
 
 
 if __name__ == "__main__":
