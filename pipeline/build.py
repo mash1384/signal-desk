@@ -7,6 +7,7 @@ import shutil
 
 from . import config, util
 from .impact import assets_for
+from .moves import COINS as MOVE_COINS
 
 OG_DEFAULT = False
 HAS_BRIEF = False
@@ -15,10 +16,10 @@ ASSET_VER = "0"
 B = config.SITE_BASE
 WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
-NAV = [("map", "map/", "맵"), ("live", "live/", "라이브"), ("listings", "listings/", "상장 레이더"), ("events", "events/", "이벤트 리스크"),
+NAV = [("map", "map/", "뉴스 영향"), ("live", "live/", "라이브"), ("listings", "listings/", "상장 레이더"), ("events", "events/", "이벤트 리스크"),
        ("patterns", "patterns/", "패턴")]
 TABBAR = ["map", "live", "listings", "events", "patterns"]
-TAB_LABEL = {"listings": "상장", "events": "이벤트"}
+TAB_LABEL = {"map": "영향", "listings": "상장", "events": "이벤트"}
 
 CAL_KO = {
     "CPI m/m": "소비자물가지수(전월비)", "CPI y/y": "소비자물가지수(전년비)", "Core CPI m/m": "근원 소비자물가(전월비)",
@@ -72,7 +73,7 @@ ICON = {
     "cal": '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/></svg>',
     "vote": '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 11h3v5H4zM8.5 7h3v9h-3zM13 4h3v12h-3z"/></svg>',
     "user": '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M3.8 16.5c.9-3 3.3-4.6 6.2-4.6s5.3 1.6 6.2 4.6"/></svg>',
-    "map": '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.2"/><circle cx="4.5" cy="5" r="1.4"/><circle cx="15.5" cy="6" r="1.4"/><circle cx="14" cy="15.5" r="1.4"/><path d="M5.6 6 8.4 8.6M14.3 6.8l-2.6 2M13.3 14.2l-2-2.4"/></svg>',
+    "map": '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5h14"/><rect x="3.5" y="9" width="3" height="5" rx="0.8"/><rect x="8.5" y="4.5" width="3" height="6" rx="0.8"/><rect x="13.5" y="7" width="3" height="7.5" rx="0.8"/></svg>',
     "pulse": '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10.5h3l2-5 3.5 10 2-5h4.5"/></svg>',
     "rocket": '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5 7 12.5M10 3c3.5 1 6 3.5 7 7l-5.5 5.5-7-7zM12.5 7.5h.01"/><path d="M6.5 9.5 4 9l-1 2 3 .5M10.5 13.5l.5 2.5-2 1-.5-3"/></svg>',
     "clock": '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.8"/><path d="M10 6v4.2l2.8 1.8"/></svg>',
@@ -442,12 +443,13 @@ def page_article(a, related, now):
     </figure>
     <p class="note">가격 반응은 같은 시간에 일어난 일을 잰 값입니다. 이 기사가 가격을 움직였다는 뜻은 아닙니다.</p>
     {pat}
-    <p class="art__maplink"><a href="{B}map/?sel=news:{id}">맵에서 이 뉴스 보기</a></p>
+    {maplink}
   </section>
   <section class="art__related"><h2 class="h2">관련 기사</h2><ul class="rel">{rel}</ul></section>
 </div>""".format(B=B, cat=a["category"], catlabel=config.CATEGORY_LABEL[a["category"]], src=h(a["source_name"]), iso=util.iso(a["t0"]),
                  t0=a["t0"], when=util.kst(a["t0"]).strftime("%Y.%m.%d %H:%M"), title=h(a["title"]), orig=orig, lead=lead, url=h(a["url"]),
                  out=ICON["out"], share=ICON["share"], rows="".join(rows), note=note, est=est, primary=h(primary), rel=rel,
+                 maplink=('<p class="art__maplink"><a href="%smap/?s=%s">뉴스 영향에서 %s 오늘 움직임 보기</a></p>' % (B, h(primary), h(primary))) if primary in {c[0] for c in MOVE_COINS} else "",
                  pat=pattern_html(a).replace('<details class="fpat">', '<details class="fpat" open>'), id=h(a["id"]))
     desc = (a["summary"][0] if a.get("summary") else a.get("excerpt") or a["title"])[:150]
     og = "%s/og/%s.jpg" % (config.SITE_URL, a["id"]) if a.get("og") else None
@@ -459,7 +461,7 @@ def page_me(now):
     body = """
 <div class="wrap narrow">
   <header class="phead"><h1 class="phead__title">마이</h1><p class="muted">설정은 이 브라우저에만 저장되고 서버로 보내지 않습니다.</p></header>
-  <section class="panel"><h2 class="panel__title">관심 종목</h2><p class="muted small">고른 종목은 라이브의 ‘내 종목만’ 필터와 위쪽 정렬, 맵의 점선 테두리, 상장 레이더의 공지 강조에 쓰입니다. 최대 20개.</p>
+  <section class="panel"><h2 class="panel__title">관심 종목</h2><p class="muted small">고른 종목은 라이브의 ‘내 종목만’ 필터와 위쪽 정렬, 상장 레이더의 공지 강조에 쓰입니다. 최대 20개.</p>
     <div class="achips achips--wrap" id="watchPick">{opts}</div>
     <form class="addsym" id="addSym"><label class="sr-only" for="symInput">티커 직접 추가</label><input id="symInput" maxlength="10" placeholder="티커 직접 추가 (예: ARB)" autocomplete="off"><button class="btn btn--ghost" type="submit">추가</button></form>
     <div class="achips achips--wrap" id="watchCustom"></div>
@@ -484,7 +486,7 @@ def page_about(health, now):
     <ol class="steps">
       <li><span><b>가격 반응</b>: 기사 기준 시각(t0, 원문 발행 시각과 수집 시각 중 이른 쪽)이 속한 1분봉 시가 대비 15분·1시간·24시간 뒤 1분봉 종가의 변화율.</span></li>
       <li><span><b>강도(z)</b>: 변화율 ÷ 최근 같은 길이 봉 변화율의 표준편차(15분: 7일, 1시간: 30일, 24시간: 180일). |z| 3 이상 강, 2 이상 중, 그 외 약.</span></li>
-      <li><span><b>맵</b>: 코인 위치는 최근 7일 1시간 수익률의 상관(BTC와 덜 같이 움직일수록 바깥), 원의 크기는 24시간 거래대금, 둘레 막대는 등락폭(8%가 한 바퀴). 뉴스 점은 가장 크게 움직인 코인 둘레에 놓이며 |z|가 클수록 코인에 가깝고 큽니다. 다른 코인의 반응은 선으로 잇습니다.</span></li>
+      <li><span><b>뉴스 영향</b>: 코인 등락 = 시장 몫 + 자기 몫. 시장 몫은 그 코인을 뺀 나머지 코인(시총 가중 24개)의 1분 움직임 × 그 코인의 민감도 β(최근 30일 1시간 수익률 회귀). 60분 동안의 자기 몫이 평소 흔들림(같은 회귀의 잔차 표준편차)의 2.5배를 넘으면 큰 움직임으로 보고, 시작 30분 전~5분 뒤 그 코인을 제목에서 언급한 뉴스를 원인 후보로 붙입니다(1건 유력, 여러 건 복합). 시장 전체 물결은 2배 기준에 거시·시장 전반 뉴스를 붙입니다.</span></li>
       <li><span><b>상장 해부도</b>: 업비트 원화 상장마다 첫 1분봉 시가를 0%로 둔 24시간 곡선, 공지 직전 1분 바이낸스 종가를 0%로 둔 공지 후 4시간 곡선. 시세가 없는 코인과 스테이블코인은 집계에서 뺍니다.</span></li>
       <li><span><b>이벤트 리스크</b>: 과거 같은 발표마다 발표 직전 1분 바이낸스 BTC 종가 대비 15분·1시간 뒤 변화를 재고 그 절댓값의 중앙값·상위 10%를 보여 줍니다. ‘평소의 몇 배’는 이 중앙값 ÷ 최근 30일 발표가 없던 같은 UTC 시각 1시간 봉 절대 변동의 중앙값입니다. 과거 발표 시각은 FRED 일정이 있는 2025년 이후만 있어 월간 지표는 표본이 20건 안팎이고, 표본 8건 미만이면 수치를 숨깁니다.</span></li>
       <li><span><b>패턴</b>: 최근 30일 측정이 끝난 기사로 계산합니다. 열지도 칸 = 기사가 잰 코인별 1시간 절대 변동 ÷ 그 코인 평소 1시간 절대 변동(최근 30일 중앙값)의 중앙값. 칸 표본 3건, 비슷한 뉴스 요약 5건 미만이면 ‘표본 부족’으로 둡니다.</span></li>
@@ -604,11 +606,11 @@ def bento(articles, market, cal, now, lst=None):
       <ol class="mcal">{cal_rows}</ol>
       <p class="bx__desc">발표마다 과거에 BTC가 얼마나 흔들렸는지 함께 보여 줍니다.</p>
     </a>
-    <a class="bx" data-reveal style="--i:2" href="{B}map/">
+    <a class="bx" data-reveal style="--i:2" href="{B}live/">
       <div class="bx__head"><b class="bx__title">김치 프리미엄</b><span class="mono-label">업비트 대비 해외</span></div>
       <ul class="mkimp">{kbars}</ul>
     </a>
-    <a class="bx" data-reveal style="--i:3" href="{B}map/">
+    <a class="bx" data-reveal style="--i:3" href="{B}live/">
       <div class="bx__head"><b class="bx__title">공포·탐욕 지수</b><span class="mono-label">30일</span></div>
       <div class="mfng"><svg viewBox="0 0 120 66" aria-hidden="true"><path class="mfng__track" d="M10 60a50 50 0 0 1 100 0" pathLength="100"/><path class="mfng__fill" d="M10 60a50 50 0 0 1 100 0" pathLength="100" style="--v:{fv100}"/></svg><p><b>{fv}</b><span>{fng_ko}</span></p></div>
       <div class="mfng__hist" aria-hidden="true">{fbars}</div>
@@ -753,7 +755,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
         <h1 class="hx__title in" id="heroTitle" style="--s:3">모든 뉴스는<br>파문을 남깁니다</h1>
         <div class="hx__side in" style="--s:4">
           <p class="hx__sub">크립토·AI·매크로 뉴스가 나온 뒤 <span class="nw">15분·1시간·24시간</span> 동안 가격이 얼마나 움직였는지 재서 보여 줍니다.</p>
-          <div class="hero__cta"><a class="btn btn--accent btn--lg" href="{B}map/">맵 열기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
+          <div class="hero__cta"><a class="btn btn--accent btn--lg" href="{B}map/">뉴스 영향 보기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
         </div>
       </div>
       <div class="hx__cap" data-beat="0.7,0.8,2,3"><span class="mono-label">{drop_note}</span><b>SIGNAL은 그 파문의<br>크기를 잽니다.</b></div>
@@ -870,7 +872,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
       <h2 class="outro__title" id="ctaTitle"><span class="ot__l ot__l--noise"><span>Noise out.</span></span><span class="ot__l ot__l--sig"><span><em class="ot__fill"{fill}>Signal</em> in.</span></span></h2>
       <div class="outro__foot">
         <p>회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
-        <div class="outro__cta"><a class="btn btn--accent btn--lg" href="{B}map/">맵 열기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
+        <div class="outro__cta"><a class="btn btn--accent btn--lg" href="{B}map/">뉴스 영향 보기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
       </div>
     </div>
   </div>
@@ -890,53 +892,60 @@ def page_landing(articles, market, cal, imp, now, lst=None):
 
 
 def page_map(market, now):
-    """맵(SIGNAL Map). 그림은 assets/map.js가 data/map.json을 읽어 캔버스에 그린다. 같은 내용은 목록으로도 볼 수 있다."""
-    kimp = ((market.get("kimp") or {}).get("BTC") or {}).get("premium")
-    fng = (market.get("fng") or {}).get("value")
-    fx = (market.get("fx") or {}).get("rate")
-    mini = "".join('<div><dt>{k}</dt><dd>{v}</dd></div>'.format(k=k, v=v) for k, v in (
-        ("김프", pct(kimp) if kimp is not None else "–"), ("공포·탐욕", fng if fng is not None else "–"),
-        ("원/달러", ("{:,.1f}".format(fx) if isinstance(fx, (int, float)) else "–"))))
-    seg = lambda name, opts, on: "".join(
-        '<button type="button" class="mseg__b" data-{n}="{v}" aria-pressed="{p}">{l}</button>'.format(n=name, v=v, l=l, p="true" if v == on else "false")
-        for v, l in opts)
+    """뉴스 영향(/map/). 시장 물결 → 실제와 '시장만 따랐다면'의 차이 → 24시간 변동 영수증 → 오늘의 큰 움직임.
+    그림은 assets/moves.js가 data/moves.json(pipeline/moves.py)을 읽어 그린다."""
+    icons = ",".join(sorted(f[:-4] for f in os.listdir(os.path.join(WEB, "assets", "coins")) if f.endswith(".svg")))
     body = """
-<section class="mapx" id="mapx" data-src="{B}data/map.json" data-coins="{B}assets/coins/" aria-labelledby="mapTitle">
-  <div class="mapx__frame">
-    <div class="mapx__stage" id="mapStage" tabindex="0" aria-describedby="mapHelp">
-      <canvas class="mapx__field" id="mapField" aria-hidden="true"></canvas>
-      <canvas class="mapx__graph" id="mapCanvas" aria-hidden="true"></canvas>
-      <div class="mapx__top">
-        <div class="mapx__bar">
-          <h1 class="mapx__title" id="mapTitle">맵</h1>
-          <div class="mseg" role="group" aria-label="기간">{win}</div>
-          <div class="mseg" role="group" aria-label="반응 강도">{grade}</div>
-          <div class="mseg mseg--multi" role="group" aria-label="분야">{cat}</div>
-        </div>
-        <dl class="mapx__mini" aria-label="시장 지표">{mini}</dl>
+<section class="im wrap" id="im" data-src="{B}data/moves.json" data-icons="{icons}" aria-labelledby="imTitle">
+  <header class="phead im-head"><h1 class="phead__title" id="imTitle">뉴스 영향</h1><p class="im-asof" id="imAsof"></p></header>
+  <p class="im-empty-page" id="imEmpty" hidden>데이터를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
+  <div id="imBody">
+    <section class="im-tide" aria-labelledby="imTideTitle">
+      <div><p class="im-eyebrow" id="imTideTitle">오늘의 시장 물결</p><p class="im-tide__num" id="imTideNum">–</p><p class="im-tide__text" id="imTideText"></p></div>
+      <div class="im-tide__chart"><svg id="imTideSvg" role="img" aria-label="최근 24시간 시장 전체(시총 가중) 등락"></svg></div>
+      <dl class="im-tide__stats" id="imTideStats"></dl>
+    </section>
+    <div class="im-grid">
+      <div class="im-main">
+        <nav class="im-coins" id="imCoins" aria-label="코인 고르기"></nav>
+        <section class="im-card im-chartcard" aria-label="코인별 실제 등락과 시장 몫">
+          <header class="im-chead"><div class="im-chead__id" id="imCoinId"></div><dl class="im-chead__nums" id="imCoinNums"></dl></header>
+          <div class="im-legend" aria-hidden="true">
+            <span><i class="im-lg im-lg--actual"></i>실제 등락</span>
+            <span><i class="im-lg im-lg--market"></i>시장만 따랐다면 (시장 몫)</span>
+            <span><i class="im-lg im-lg--gap"></i>둘의 차이 = 자기 몫</span>
+            <span><i class="im-lg im-lg--event"></i>평소보다 크게 움직인 구간</span>
+          </div>
+          <div class="im-chart" id="imChart"><svg id="imChartSvg" role="img" aria-describedby="imChartDesc"></svg><div class="im-hover" id="imHover" hidden></div></div>
+          <p class="sr-only" id="imChartDesc"></p>
+          <div class="im-evcard" id="imEv" aria-live="polite"></div>
+        </section>
+        <section class="im-card im-receipt" aria-labelledby="imRcTitle">
+          <header class="im-rhead"><h2 class="im-h2" id="imRcTitle">24시간 변동 영수증</h2><p class="im-sub" id="imRcSub"></p></header>
+          <div id="imRc"></div>
+        </section>
       </div>
-      <p class="mapx__status" id="mapStatus" aria-live="polite"></p>
-      <div class="mapx__zoom" role="group" aria-label="확대">
-        <button type="button" data-zoom="in" aria-label="확대">+</button><button type="button" data-zoom="out" aria-label="축소">−</button><button type="button" data-zoom="fit" aria-label="전체 보기">⤢</button>
-      </div>
-      <div class="mapx__tip" id="mapTip" hidden></div>
-      <p class="mapx__empty" id="mapEmpty" hidden>맵 데이터를 불러오지 못했습니다.</p>
-      <div class="mapx__brush" id="mapBrush">
-        <div class="mbrush__head"><p class="mbrush__label" id="mapRangeLabel"></p><button type="button" class="mbrush__reset" id="mapRangeReset" hidden>전체 기간</button></div>
-        <canvas class="mbrush__canvas" id="mapBrushCanvas" role="slider" tabindex="0" aria-label="시간 범위 고르기: 끌어서 구간을 고릅니다" aria-valuetext=""></canvas>
-        <p class="mbrush__axis" id="mapAxis" aria-hidden="true"></p>
-      </div>
+      <aside class="im-side">
+        <section class="im-card im-movers" aria-labelledby="imMvTitle">
+          <header class="im-rhead"><h2 class="im-h2" id="imMvTitle">오늘의 큰 움직임</h2><p class="im-sub">시장 몫을 뺀 자기 몫 기준</p></header>
+          <div class="im-seg" role="group" aria-label="보기"><button type="button" data-f="news" aria-pressed="true">뉴스와 연결</button><button type="button" data-f="all" aria-pressed="false">전체 움직임</button></div>
+          <ol class="im-mv" id="imMv"></ol>
+        </section>
+        <section class="im-card im-method">
+          <h2 class="im-h3">어떻게 쟀나요</h2>
+          <ol class="im-steps">
+            <li><span><b>시장 몫</b>그 코인을 뺀 나머지 시장(시총 가중)의 움직임 × 그 코인의 평소 민감도(β, 최근 30일).</span></li>
+            <li><span><b>자기 몫</b>실제 등락 − 시장 몫. 60분 동안의 자기 몫이 평소 흔들림의 2.5배를 넘으면 ‘큰 움직임’으로 봅니다.</span></li>
+            <li><span><b>원인 후보</b>움직임 시작 30분 전부터 5분 뒤까지 나온 뉴스 중 그 코인을 직접 언급한 것. 한 건이면 ‘유력’, 여러 건이면 ‘복합’.</span></li>
+          </ol>
+          <p class="im-note">같은 시간대의 통계적 연관이며 인과를 보장하지 않습니다. <a href="{B}about/#method">계산 방법 자세히</a></p>
+        </section>
+      </aside>
     </div>
-    <aside class="mapx__panel" id="mapPanel" aria-live="polite" aria-label="상세"></aside>
   </div>
-  <p class="mapx__help wrap" id="mapHelp">원은 코인(위치: BTC와 같이 움직이는 정도, 크기: 24시간 거래대금, 둘레 막대: 등락폭), 점은 뉴스(클수록 잰 반응이 큼), 선은 그 뉴스 뒤 잰 가격 반응입니다. 아래 막대를 끌어 시간 구간을 고르고, ← → 키로 무거운 뉴스를 차례로 봅니다. 같은 시간대의 가격 변화이며 뉴스가 원인이라는 뜻은 아닙니다.</p>
-  <details class="mapx__list wrap" id="mapListBox"><summary>목록으로 보기</summary><div id="mapList"></div></details>
-</section>""".format(B=B, mini=mini,
-                     win=seg("win", [("1h", "1시간"), ("6h", "6시간"), ("24h", "24시간"), ("7d", "7일")], "24h"),
-                     cat=seg("cat", [("crypto", "크립토"), ("ai", "AI"), ("macro", "매크로")], None).replace('aria-pressed="false"', 'aria-pressed="true"'),
-                     grade=seg("grade", [("all", "전체"), ("mid", "중 이상"), ("strong", "강만")], "all"))
-    head = '<script type="module" src="%sassets/map.js?v=%s"></script>' % (B, ASSET_VER)
-    return shell("map", "맵 — 뉴스가 움직인 코인 지도", "어떤 뉴스가 어떤 코인을 얼마나 움직였는지 실시간 지도로 봅니다.", B + "map/", body, now, extra_head=head)
+</section>""".format(B=B, icons=icons)
+    head = '<script type="module" src="%sassets/moves.js?v=%s"></script>' % (B, ASSET_VER)
+    return shell("map", "뉴스 영향 — 뉴스가 움직인 몫", "코인 등락에서 시장 전체가 움직인 몫을 빼고, 남은 움직임에 원인 뉴스를 붙여 보여 줍니다.", B + "map/", body, now, extra_head=head)
 
 
 def page_listings(now):
@@ -1137,7 +1146,7 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     """out 디렉터리에 사이트 전체를 쓴다. 기존 data/와 og/는 호출자가 미리 채워 둔다.
     extra = 새 화면 데이터 {파일 이름: 문서}. 없으면 out/data/ 에서 읽는다."""
     if extra is None:
-        extra = {n: util.read_json(os.path.join(out, "data", n), None) for n in ("map.json", "listings.json", "events.json", "patterns.json")}
+        extra = {n: util.read_json(os.path.join(out, "data", n), None) for n in ("map.json", "moves.json", "listings.json", "events.json", "patterns.json")}
     global HAS_BRIEF, ASSET_VER
     digest = []
     for name in sorted(os.listdir(os.path.join(WEB, "assets"))):
