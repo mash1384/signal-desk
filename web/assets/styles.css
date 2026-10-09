@@ -1183,6 +1183,10 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
   .radar { max-width: 360px; margin-inline: auto; }
   .evr__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+@media (max-width: 560px) {
+  .radar { aspect-ratio: auto; }
+  .radar__center { position: static; padding-top: 4px; }
+}
 
 /* ---------- 패턴 ---------- */
 .ptp { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
