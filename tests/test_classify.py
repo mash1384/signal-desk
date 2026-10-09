@@ -21,6 +21,20 @@ class Classify(unittest.TestCase):
         self.assertIsNone(classify.classify("한성숙 대통령 제청 거부", "경제 금리 환율 이야기", MK))
         self.assertEqual(classify.classify("美 국채 10년물 금리 최고…환율 급등", "", MK), "macro")
 
+    def test_general_feed_title_strong(self):
+        # 제목 핵심어 하나만으로 남긴다
+        self.assertEqual(classify.classify("트럼프 관세로 美 가격 올라…뉴욕 연은", "", MK), "macro")
+        self.assertEqual(classify.classify("XRP 다시 중앙화 논란", "", MK), "crypto")
+        self.assertEqual(classify.classify("삼성·TSMC, 올 3분기도 파운드리 '희비교차'", "", MK), "ai")
+        # 금액·일반어만 있는 기사는 여전히 버린다
+        self.assertIsNone(classify.classify("현대로템 20억달러 수주 승부수", "", MK))
+        self.assertIsNone(classify.classify("하나은행, 장기연체채권 1343억 소각", "", MK))
+
+    def test_source_only_filter(self):
+        fed = {"id": "fed", "hint": "macro", "require": True, "only": ["fomc", "monetary policy", "minutes"]}
+        self.assertIsNone(classify.classify("Federal Reserve Board announces approval of application by Isabella Bank", "", fed))
+        self.assertEqual(classify.classify("Federal Reserve issues FOMC statement", "", fed), "macro")
+
     def test_block_prefix(self):
         self.assertIsNone(classify.classify("[인사] 한국은행", "금리 환율", MK))
 
