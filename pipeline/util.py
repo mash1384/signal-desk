@@ -69,6 +69,16 @@ def iso(ts):
     return datetime.fromtimestamp(ts, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def kst_to_ts(year, month, day, hour=0, minute=0):
+    """한국 시간 날짜·시각을 유닉스 초로."""
+    return int(datetime(year, month, day, hour, minute, tzinfo=KST).timestamp())
+
+
+def datetime_utc_hour(ts):
+    """UTC 기준 시(0~23)."""
+    return datetime.fromtimestamp(ts, UTC).hour
+
+
 def kst(ts):
     return datetime.fromtimestamp(ts, KST)
 
