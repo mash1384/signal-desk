@@ -32,12 +32,18 @@ def classify(title, excerpt, source):
     """카테고리를 고른다. 어느 쪽에도 맞지 않고 소스가 키워드를 요구하면 None(버림)."""
     if any(title.startswith(p) for p in config.TITLE_BLOCK_PREFIX):
         return None
+    # 소스가 정한 제목 조건(예: 연준은 통화정책 발표만)
+    if source.get("only") and not has_any(title.lower(), source["only"]):
+        return None
     text = (title + " " + (excerpt or "")).lower()
     title_l = title.lower()
     scores = {}
     for cat, words in config.CATEGORY_KEYWORDS.items():
         # 제목에서 맞은 키워드는 두 배로 센다
         scores[cat] = count_hits(text, words) + count_hits(title_l, words)
+    # 제목에 코인 이름·티커가 있으면 크립토 쪽으로 기운다("XRP 중앙화 논란", "카르다노 TPS 경신")
+    if extract_assets(title, ""):
+        scores["crypto"] += 2
     hint = source.get("hint")
     best = max(scores, key=lambda c: scores[c])
     if scores[best] == 0:
@@ -47,9 +53,10 @@ def classify(title, excerpt, source):
     if hint and scores.get(hint, 0) > 0 and scores[hint] >= scores[best] - 1:
         best = hint
     if source.get("require"):
-        # 종합 경제지는 제목에 분야 키워드가 있고 신호가 충분한 기사만 남긴다
-        # 서로 다른 키워드 2개 이상 + 제목에 1개 이상
-        if count_hits(text, config.CATEGORY_KEYWORDS[best]) < 2 or count_hits(title_l, config.CATEGORY_KEYWORDS[best]) == 0:
+        # 종합지는 제목에 그 분야 핵심어(또는 코인 이름)가 있거나,
+        # 서로 다른 키워드 2개 이상 + 제목에 1개 이상인 기사만 남긴다
+        strong = count_hits(title_l, config.TITLE_STRONG[best]) > 0 or (best == "crypto" and bool(extract_assets(title, "")))
+        if not strong and (count_hits(text, config.CATEGORY_KEYWORDS[best]) < 2 or count_hits(title_l, config.CATEGORY_KEYWORDS[best]) == 0):
             return None
     return best
 

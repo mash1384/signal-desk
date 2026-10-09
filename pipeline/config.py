@@ -65,7 +65,9 @@ SOURCES = [
     {"id": "bloomberg-markets", "name": "Bloomberg Markets", "url": "https://feeds.bloomberg.com/markets/news.rss", "lang": "en", "hint": "macro", "require": True},
     {"id": "ft-markets", "name": "Financial Times", "url": "https://www.ft.com/markets?format=rss", "lang": "en", "hint": "macro", "require": True},
     {"id": "cnbc-markets", "name": "CNBC Markets", "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html", "lang": "en", "hint": "macro", "require": True},
-    {"id": "fed", "name": "Federal Reserve", "url": "https://www.federalreserve.gov/feeds/press_all.xml", "lang": "en", "hint": "macro", "require": True},
+    {"id": "fed", "name": "Federal Reserve", "url": "https://www.federalreserve.gov/feeds/press_all.xml", "lang": "en", "hint": "macro", "require": True,
+     # 은행 합병 승인·제재 같은 행정 공지는 빼고 통화정책 발표만
+     "only": ["federal open market committee", "fomc", "monetary policy", "minutes", "economic projections", "discount rate", "interest rate", "beige book", "balance sheet", "statement", "speech", "testimony"]},
     {"id": "einfomax", "name": "연합인포맥스", "url": "https://news.einfomax.co.kr/rss/allArticle.xml", "lang": "ko", "hint": "macro", "require": True},
     {"id": "edaily", "name": "이데일리", "url": "http://rss.edaily.co.kr/edaily_news.xml", "lang": "ko", "hint": "macro", "require": True},
 ]
@@ -94,22 +96,45 @@ MAX_ASSETS_PER_ARTICLE = 4
 # 카테고리 키워드 (소문자 부분 일치). 영어 단어는 앞뒤 경계를 확인한다
 CATEGORY_KEYWORDS = {
     "crypto": [
-        "bitcoin", "crypto", "blockchain", "stablecoin", "ethereum", "defi", "token", "web3", "nft", "altcoin", "mining",
-        "비트코인", "가상자산", "암호화폐", "코인", "블록체인", "스테이블코인", "이더리움", "디파이", "토큰", "채굴", "업비트", "빗썸", "바이낸스",
+        "bitcoin", "crypto", "cryptocurrency", "blockchain", "stablecoin", "ethereum", "defi", "token", "web3", "nft", "altcoin", "mining", "layer 2", "mainnet",
+        "비트코인", "가상자산", "암호화폐", "코인", "블록체인", "스테이블코인", "이더리움", "디파이", "토큰", "채굴", "업비트", "빗썸", "바이낸스", "레이어2", "메인넷",
     ],
     "ai": [
         "artificial intelligence", "ai", "llm", "openai", "anthropic", "chatgpt", "claude", "gemini", "nvidia", "gpu",
-        "model", "machine learning", "data center", "datacenter", "chip",
-        "인공지능", "생성형", "에이아이", "엔비디아", "데이터센터", "반도체", "llm", "gpu", "챗gpt", "딥러닝",
+        "model", "machine learning", "data center", "datacenter", "chip", "chips", "semiconductor", "hbm", "tsmc", "foundry", "agentic",
+        "인공지능", "생성형", "에이아이", "엔비디아", "데이터센터", "반도체", "llm", "gpu", "챗gpt", "딥러닝", "오픈ai", "파운드리", "에이전트",
     ],
     "macro": [
         "fed", "fomc", "inflation", "cpi", "pce", "interest rate", "rate cut", "rate hike", "treasury", "yield", "jobs report",
         "payroll", "unemployment", "gdp", "recession", "tariff", "dollar", "oil", "gold", "stocks", "s&p", "nasdaq", "dow",
         "federal reserve", "central bank", "ecb", "bank of japan", "powell", "bond", "bonds", "economy", "jobless", "wall street",
-        "equities", "yen", "euro", "crude", "opec", "trade war", "stimulus", "rates",
+        "equities", "yen", "euro", "crude", "opec", "trade war", "stimulus", "rates", "pboc", "boj", "yuan", "copper", "currency", "treasuries", "yields", "tariffs", "payrolls",
         "연준", "기준금리", "금리", "물가", "인플레이션", "소비자물가", "고용지표", "실업률", "국채", "환율", "달러", "유가",
         "금값", "증시", "코스피", "코스닥", "나스닥", "관세", "한은", "한국은행", "외국인 순매도", "외국인 순매수", "fomc", "cpi",
-        "파월", "국고채", "채권", "엔화", "원·달러", "외환", "경기침체", "무역수지", "수출", "뉴욕증시", "미 증시",
+        "파월", "국고채", "채권", "엔화", "원·달러", "외환", "경기침체", "무역수지", "수출", "뉴욕증시", "미 증시", "연은", "중앙은행", "위안", "유로화", "구리", "월가", "다우", "고용보고서",
+    ],
+}
+
+# 키워드를 요구하는 종합지에서, 제목에 하나만 있어도 그 분야 기사로 인정하는 핵심어.
+# 금액·일반 기사에도 흔한 말("달러", "고용", "수출")은 넣지 않는다. 코인 이름·티커는 따로 본다
+TITLE_STRONG = {
+    "crypto": [
+        "bitcoin", "crypto", "cryptocurrency", "blockchain", "stablecoin", "ethereum", "defi", "web3", "altcoin", "layer 2", "mainnet",
+        "비트코인", "가상자산", "암호화폐", "코인", "블록체인", "스테이블코인", "이더리움", "디파이", "업비트", "빗썸", "바이낸스", "레이어2", "메인넷",
+    ],
+    "ai": [
+        "artificial intelligence", "ai", "llm", "openai", "anthropic", "chatgpt", "claude", "gemini", "nvidia", "semiconductor", "chip", "chips",
+        "hbm", "tsmc", "foundry", "data center", "agentic",
+        "인공지능", "생성형", "오픈ai", "챗gpt", "엔비디아", "반도체", "파운드리", "데이터센터", "에이전트", "딥러닝",
+    ],
+    "macro": [
+        "fed", "fomc", "federal reserve", "powell", "ecb", "boj", "pboc", "central bank", "interest rate", "rates", "yield", "yields",
+        "treasury", "treasuries", "bond", "bonds", "dollar", "yuan", "yen", "currency", "oil", "crude", "opec", "gold", "copper",
+        "inflation", "cpi", "pce", "gdp", "recession", "jobs report", "payrolls", "unemployment", "tariff", "tariffs", "trade war",
+        "stocks", "s&p", "nasdaq", "dow", "wall street", "markets wrap",
+        "연준", "연은", "파월", "한은", "한국은행", "중앙은행", "금리", "국채", "국고채", "채권금리", "채권시장", "환율", "원/달러", "원·달러", "달러화",
+        "달러 강세", "달러 약세", "위안", "엔화", "유로화", "외환", "유가", "금값", "구리", "물가", "인플레이션", "소비자물가", "경기침체",
+        "고용지표", "고용보고서", "실업률", "관세", "증시", "뉴욕증시", "코스피", "코스닥", "나스닥", "다우", "월가",
     ],
 }
 
@@ -123,7 +148,7 @@ HIGH_KEYWORDS = [
 HIGH_KEYWORDS_CRYPTO = ["listing", "listings", "delist", "delisting", "상장", "유의 종목", "거래 지원 종료", "디지털 자산 추가"]
 
 # 제목이 이렇게 시작하면 버린다 (인사·표·부고 같은 공지성 기사)
-TITLE_BLOCK_PREFIX = ["[인사]", "[표]", "[부고]", "[게시판]", "[포토]", "[사진]", "[알림]", "[신간]", "[날씨]", "[운세]", "[오늘의 운세]"]
+TITLE_BLOCK_PREFIX = ["[연합뉴스 이 시각 헤드라인]", "[인사]", "[표]", "[부고]", "[게시판]", "[포토]", "[사진]", "[알림]", "[신간]", "[날씨]", "[운세]", "[오늘의 운세]"]
 
 # /impact 통계용 이벤트 유형 (먼저 맞는 것)
 EVENT_TYPES = [
