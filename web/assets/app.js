@@ -266,9 +266,10 @@
     if (hd) {
       var d = hd.r >= 0 ? 'up' : 'down';
       var g = { '강': 's', '중': 'm' }[hd.g] || 'w';
-      return '<span class="ib ib--' + d + ' ib--g' + g + '" title="기사 시각부터 ' + (hd.win === '1h' ? '1시간' : '15분') + ' 동안 ' + hd.asset + ' 가격 변화">' + ICON[d] +
-        '<b>' + esc(hd.asset) + ' ' + hd.win + '</b> ' + pct(hd.r) + (hd.g ? ' · ' + hd.g : '') + '</span>';
+      return '<span class="ib ib--' + d + ' ib--g' + g + '" title="기사 시각부터 ' + (hd.win === '1h' ? '1시간' : '15분') + ' 동안 ' + hd.asset + (hd.adj ? ' 가격 변화에서 시장 몫을 뺀 값' : ' 가격 변화(시장 전체 반응)') + '">' + ICON[d] +
+        '<b>' + esc(hd.asset) + ' ' + hd.win + '</b> ' + (hd.adj ? '시장 대비 ' : '') + pct(hd.r) + (hd.g ? ' · ' + hd.g : '') + '</span>';
     }
+    if (it.st === 'skip') return '';
     if (it.st === 'failed') return '<span class="ib ib--na">반응 측정 불가</span>';
     return '<span class="ib ib--wait" data-t0="' + it.t0 + '">반응 측정 중</span>';
   }
@@ -297,7 +298,7 @@
       if (it.st === 'failed') return '<span class="rxc is-na"><b>' + w[1] + '</b><em>–</em></span>';
       return '<span class="rxc is-wait"><b>' + w[1] + '</b><em data-due="' + (it.t0 + w[2]) + '">' + dueText(it.t0 + w[2]) + '</em></span>';
     }).join('');
-    return '<div class="rxcells" aria-label="' + esc(rx.s) + ' 가격 반응"><span class="rxcells__s">' + esc(rx.s) + '</span>' + cells + '</div>';
+    return '<div class="rxcells" aria-label="' + esc(rx.s) + (rx.adj ? ' 시장 대비 반응' : ' 시장 전체 반응') + '"><span class="rxcells__s">' + esc(rx.s) + '<small>' + (rx.adj ? '시장 대비' : '시장 전체') + '</small></span>' + cells + '</div>';
   }
   function dueText(due) {
     var left = due + 120 - now();
@@ -309,10 +310,10 @@
     var pt = it.pt;
     if (!pt) return '';
     var v = pt.n >= 5
-      ? '<p class="fpat__v">' + esc(pt.sym) + ' 1시간 중앙값 <b class="' + (pt.med >= 0 ? 'up' : 'down') + '">' + pct(pt.med) + '</b> · 상승 ' + Math.round(pt.up * 100) + '% · 중·강 ' + Math.round(pt.strong * 100) + '% <span class="muted">(n=' + pt.n + ', 최근 30일)</span></p>'
+      ? '<p class="fpat__v">' + esc(pt.sym) + ' 1시간 ' + (pt.adj ? '시장 대비 ' : '') + '중앙값 <b class="' + (pt.med >= 0 ? 'up' : 'down') + '">' + pct(pt.med) + '</b> · 상승 ' + Math.round(pt.up * 100) + '% · 중·강 ' + Math.round(pt.strong * 100) + '% <span class="muted">(n=' + pt.n + ', 최근 30일)</span></p>'
         + (pt.top && pt.top.id ? '<p class="fpat__top small muted">가장 컸던 사례: <a href="' + BASE + 'a/' + esc(pt.top.id) + '/">' + esc(pt.top.title) + '</a> (' + esc(pt.top.sym) + ' ' + pct(pt.top.r1h) + ')</p>' : '')
       : '<p class="fpat__v muted">표본 부족 (n=' + pt.n + ')</p>';
-    return '<details class="fpat"><summary>이런 뉴스는 보통 · ' + esc(pt.label) + '</summary>' + v + '<p class="small muted">같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>';
+    return '<details class="fpat"><summary>이런 뉴스는 보통 · ' + esc(pt.label) + ' · ' + esc(pt.sym) + '</summary>' + v + '<p class="small muted">' + esc(pt.sym) + ' 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>';
   }
   // 측정까지 남은 시간은 30초마다 고친다
   function leftText(ts) {
@@ -902,7 +903,7 @@
       }).join('');
       return '<div class="dd" data-sym="' + esc(it.asset) + '" data-t0="' + it.ts + '"><p class="dd__meta"><span class="chip cat cat--' + esc(it.cat) + '">' + (CL[it.cat] || esc(it.cat)) +
         '</span><span>' + esc(it.src) + ' · ' + mdhm(it.ts) + '</span></p><p class="dd__title">' + esc(it.t) + '</p><div class="dd__chart" aria-hidden="true"></div>' +
-        '<dl class="dd__rx" aria-label="' + esc(it.asset) + ' 가격 반응">' + cells + '</dl><a class="dd__link" href="' + BASE + 'a/' + esc(it.id) + '/">기사와 차트 자세히 보기</a></div>';
+        '<dl class="dd__rx" aria-label="' + esc(it.asset) + (it.adj ? ' 시장 대비 반응' : ' 가격 반응') + '">' + cells + '</dl>' + (it.adj ? '<p class="dd__adj">' + esc(it.asset) + ' 가격 변화에서 같은 시간 시장 전체가 움직인 몫을 뺀 값</p>' : '') + '<a class="dd__link" href="' + BASE + 'a/' + esc(it.id) + '/">기사와 차트 자세히 보기</a></div>';
     };
     var span = function (it) { return [it.ts - 1800, Math.min(now(), it.ts + 7200)]; };
     // 기사 시각 전후 가격선을 box에 그린다. 캔들은 기사마다 한 번만 받는다

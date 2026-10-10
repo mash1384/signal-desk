@@ -88,7 +88,7 @@ class Impact(unittest.TestCase):
         orig = impact.market.candles
         impact.market.candles = lambda sym, interval, s, e: rows if interval == 60 else [(0, 1.0, 1.0 + 0.001 * ((k % 7) - 3)) for k in range(200)]
         try:
-            a = {"id": "x", "t0": t0, "category": "macro", "source": "s", "assets": [], "impact": {}}
+            a = {"id": "x", "t0": t0, "category": "macro", "source": "s", "assets": [], "etype": "cpi", "title": "US CPI rises 0.3%", "impact": {}}
             impact.measure([a], {}, t0 + 90000)
         finally:
             impact.market.candles = orig
@@ -99,7 +99,53 @@ class Impact(unittest.TestCase):
         i1 = (((t0 + 900) // 60) * 60 - 60 - (t0 - 30 - 60)) // 60
         expect = ((100.0 + i1 + 0.5) / (100.0 + i0) - 1) * 100
         self.assertAlmostEqual(v["r"], round(expect, 3))
+        self.assertFalse(v["adj"])                       # 시장 전체 발표는 시장 몫을 빼지 않는다
         self.assertEqual(a["impact_status"], "done")
+
+    def test_unrelated_article_is_not_measured(self):
+        a = {"id": "y", "t0": 1_791_000_000, "category": "ai", "source": "s", "assets": [], "etype": "other", "impact": {}}
+        impact.measure([a], {}, 1_791_090_000)
+        self.assertEqual((a["impact"], a["impact_status"], a["headline"]), ({}, "skip", None))
+
+    def test_price_recap_is_not_measured(self):
+        a = {"title": "Bitcoin price: $87K rebound or another plunge below $81K?", "category": "crypto", "etype": "other", "assets": ["BTC"]}
+        self.assertEqual(impact.subjects(a), [])
+        a["title"] = "SEC approves spot Solana ETF"
+        a["assets"] = ["SOL"]
+        self.assertEqual(impact.subjects(a), [("SOL", True)])
+
+    def test_non_us_macro_is_not_market_event(self):
+        a = {"title": "Poland's Glapinski Ready to Raise Rates If Inflation Risks Mount", "category": "macro", "etype": "cpi", "assets": []}
+        self.assertEqual(impact.subjects(a), [])
+        a["title"] = "미국 9월 CPI 예상 상회"
+        self.assertEqual(impact.subjects(a), [("BTC", False)])
+
+    def test_coin_article_is_market_adjusted(self):
+        t0 = 1_791_000_000 - (1_791_000_000 % 60)
+        impact._hourly.clear()
+        # 시간봉: 바스켓 수익률 b_k, 코인은 2 × b_k (+아주 작은 잡음) → β≈2
+        bk = [((k * 7919) % 97 - 48) / 10000 for k in range(800)]
+        def hourly(sym):
+            p, out = 100.0, []
+            for k, r in enumerate(bk):
+                p *= 1 + (2 * r + (((k * 31) % 7) - 3) / 1e6 if sym == "ADA" else r)
+                out.append((t0 - (800 - k) * 3600, p, p))
+            return out
+        def minute(sym):
+            g = 0.0002 if sym == "ADA" else 0.0001       # 1분마다 바스켓 +0.01%, 코인 +0.02%
+            return [(t0 - 300 + i * 60, 100 * (1 + g) ** i, 100 * (1 + g) ** (i + 1)) for i in range(1700)]
+        orig = impact.market.candles
+        impact.market.candles = lambda sym, interval, s, e: minute(sym) if interval == 60 else hourly(sym)
+        try:
+            a = {"id": "z", "t0": t0, "category": "crypto", "source": "s", "assets": ["ADA"], "etype": "other", "impact": {}}
+            impact.measure([a], {}, t0 + 90000)
+        finally:
+            impact.market.candles = orig
+            impact._hourly.clear()
+        v = a["impact"]["ADA"]["1h"]
+        self.assertTrue(v["adj"])
+        self.assertGreater(v["raw"], 1.0)                 # 실제로는 1시간에 약 +1.2%
+        self.assertLess(abs(v["r"]), 0.1)                 # 시장 몫(β 2 × 약 +0.6%)을 빼면 거의 0
 
 
 if __name__ == "__main__":

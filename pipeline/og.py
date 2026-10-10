@@ -96,8 +96,8 @@ def article_card(a):
     imp = ""
     if hd:
         d = "up" if hd["r"] >= 0 else "down"
-        imp = '<div class="imp %s">%s %s %s%.2f%%<small>%s</small></div>' % (
-            d, hd["asset"], hd["win"], "+" if hd["r"] >= 0 else "−", abs(hd["r"]), (" 반응 강도 " + hd["g"]) if hd.get("g") else "")
+        imp = '<div class="imp %s">%s %s %s%s%.2f%%<small>%s</small></div>' % (
+            d, hd["asset"], hd["win"], "시장 대비 " if hd.get("adj") else "", "+" if hd["r"] >= 0 else "−", abs(hd["r"]), (" 반응 강도 " + hd["g"]) if hd.get("g") else "")
     inner = '%s<h1>%s</h1>%s<div class="meta"><span class="chip %s">%s</span>%s · %s KST</div>' % (
         _brand(), html.escape(a["title"]), imp, a["category"], config.CATEGORY_LABEL[a["category"]], html.escape(a["source_name"]),
         util.kst(a["t0"]).strftime("%Y.%m.%d %H:%M"))

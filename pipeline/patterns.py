@@ -1,11 +1,12 @@
 """패턴 데이터: 뉴스 무게 검색기, 내러티브 열지도, 기사별 '유사 뉴스 과거 패턴'.
 
-모두 최근 30일 측정이 끝난 기사로 계산한다. 대표 코인은 기사의 대표 반응(headline) 코인, 없으면 측정된 첫 코인.
+모두 최근 30일 측정이 끝난 관련 기사(그 코인을 언급했거나 시장 전체 발표)로 계산한다. 코인 기사의 값은 시장 대비(시장 몫을 뺀) 변화다.
+대표 코인은 기사의 대표 반응(headline) 코인, 없으면 측정된 첫 코인.
 """
 
 import statistics
 
-from . import config
+from . import config, impact
 
 DAYS = 30
 MIN_SIMILAR = 5
@@ -35,7 +36,7 @@ def _rep(a):
     if r1 is None:
         return None
     return {"sym": sym, "r15": (w.get("15m") or {}).get("r"), "r1h": r1, "r24h": (w.get("24h") or {}).get("r"),
-            "z": (w.get("1h") or {}).get("z"), "g": (w.get("1h") or {}).get("g")}
+            "z": (w.get("1h") or {}).get("z"), "g": (w.get("1h") or {}).get("g"), "adj": bool((w.get("1h") or {}).get("adj"))}
 
 
 def measured(articles, now):
@@ -64,23 +65,24 @@ def attach_similar(articles, now):
     groups = {}
     for a, r in pool:
         e = a.get("etype") or "other"
-        key = (e, r["sym"]) if e != "other" else ("cat:" + a["category"], r["sym"])
+        key = ((e, r["sym"]) if e != "other" else ("cat:" + a["category"], r["sym"])) + (r["adj"],)
         groups.setdefault(key, []).append((a, r))
     for a in articles:
-        if now - a["t0"] > 3 * 86400:
-            a.pop("pattern", None)
+        subs = impact.subjects(a)
+        if now - a["t0"] > 3 * 86400 or not subs:
+            a.pop("pattern", None)   # 관련 없는 기사에는 '이런 뉴스는 보통'을 붙이지 않는다
             continue
         hd = a.get("headline") or {}
-        imp = a.get("impact") or {}
-        sym = hd.get("asset") or ("BTC" if "BTC" in imp or a["category"] != "crypto" else next(iter(imp), "BTC"))
+        sym = hd.get("asset") or subs[0][0]
+        adj = dict(subs).get(sym, False)
         e = a.get("etype") or "other"
-        key = (e, sym) if e != "other" else ("cat:" + a["category"], sym)
+        key = ((e, sym) if e != "other" else ("cat:" + a["category"], sym)) + (adj,)
         rows = [x for x in groups.get(key, []) if x[0]["id"] != a["id"]]
         label = config_label(e) if e != "other" else {"crypto": "크립토", "ai": "AI", "macro": "매크로"}.get(a["category"], a["category"])
         if len(rows) >= MIN_SIMILAR:
-            a["pattern"] = {"label": label, "sym": sym, **_summary(rows)}
+            a["pattern"] = {"label": label, "sym": sym, "adj": adj, **_summary(rows)}
         else:
-            a["pattern"] = {"label": label, "sym": sym, "n": len(rows)}
+            a["pattern"] = {"label": label, "sym": sym, "adj": adj, "n": len(rows)}
 
 
 def config_label(etype):
@@ -90,7 +92,7 @@ def config_label(etype):
     return "기타"
 
 
-def heatmap(articles, base, now, days):
+def heatmap(articles, base, now, days, base_res=None):
     """기사마다 측정된 모든 코인의 1시간 절대 변동을 그 코인의 평소 1시간 변동으로 나눈 배수. 칸 = 중앙값."""
     out = {}
     for since, until, tag in ((now - days * 86400, now, "cur"), (now - 2 * days * 86400, now - days * 86400, "prev")):
@@ -103,7 +105,8 @@ def heatmap(articles, base, now, days):
                 e = "other"
             for sym, w in (a.get("impact") or {}).items():
                 r1 = (w.get("1h") or {}).get("r")
-                b = base.get(sym)
+                # 시장 대비 값은 시장 몫을 뺀 평소 흔들림으로, 시장 전체 반응은 평소 1시간 변동으로 나눈다
+                b = (base_res or {}).get(sym) if (w.get("1h") or {}).get("adj") else base.get(sym)
                 if r1 is None or not b:
                     continue
                 col = sym if sym in COLS else "ALT"
@@ -126,13 +129,13 @@ def heatmap(articles, base, now, days):
     return rows
 
 
-def build(articles, base, imp, now):
+def build(articles, base, imp, now, base_res=None):
     pool = measured(articles, now)
     items = [{"id": a["id"], "t": a["t0"], "title": a["title"][:110], "c": a["category"], "e": a.get("etype") or "other",
               "s": r["sym"], "r15": None if r["r15"] is None else round(r["r15"], 3), "r1h": round(r["r1h"], 3),
-              "r24h": None if r["r24h"] is None else round(r["r24h"], 3), "g": r.get("g")} for a, r in pool]
+              "r24h": None if r["r24h"] is None else round(r["r24h"], 3), "g": r.get("g"), "adj": r["adj"]} for a, r in pool]
     items.sort(key=lambda x: -x["t"])
     return {"at": now, "days": DAYS, "min_n": MIN_SIMILAR, "synonyms": SYNONYMS, "suggest": SUGGEST,
-            "items": items, "heat": {"7": heatmap(articles, base, now, 7), "30": heatmap(articles, base, now, 30)}, "cols": COLS,
+            "items": items, "heat": {"7": heatmap(articles, base, now, 7, base_res), "30": heatmap(articles, base, now, 30, base_res)}, "cols": COLS,
             "heaviest": [s for s in (imp.get("strongest") or []) if now - s["t0"] <= 7 * 86400][:10],
             "note": "같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다."}

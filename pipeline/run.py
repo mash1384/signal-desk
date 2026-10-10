@@ -193,7 +193,17 @@ def main(argv=None):
     events = calendar_with_reactions(state, now)
 
     vol = state.setdefault("vol_cache", {})
-    impact.measure(articles, vol, now)
+    # 측정 방식이 바뀐 기사는 반응을 처음부터 다시 잰다(관련 기사만, 코인 기사는 시장 대비)
+    for a in articles:
+        if a.get("impact_v") != impact.IMPACT_VERSION:
+            if a.get("source") != "upbit-notice":
+                a["assets"] = classify.extract_assets(a.get("title_orig") or a["title"], a.get("excerpt") or "")
+            a.update({"impact": {}, "impact_status": "measuring", "impact_tries": 0, "headline": None, "impact_v": impact.IMPACT_VERSION})
+            a.pop("pattern", None)
+            a["og_has_impact"] = False
+    prev_moves = util.read_json(os.path.join(args.prev, "data", "moves.json"), None) if args.prev else None
+    caps = {c["s"]: c.get("cap") for c in (prev_moves or {}).get("coins", [])}
+    impact.measure(articles, vol, now, caps)
     impact.measure(list(state.get("events_db", {}).values()), vol, now)
     attach_reactions(events, state)
     for e in events:
@@ -237,7 +247,8 @@ def main(argv=None):
     try:
         if not base and extra.get("map.json"):
             base = {x["s"]: x["base1h"] for x in extra["map.json"].get("assets", []) if x.get("base1h")}
-        extra["patterns.json"] = patterns.build(articles, base, imp, now)
+        base_res = {c["s"]: round(c["sig60"] * 0.6745, 4) for c in (extra.get("moves.json") or {}).get("coins", []) if c.get("sig60")}
+        extra["patterns.json"] = patterns.build(articles, base, imp, now, base_res)
     except Exception as e:
         util.log("patterns build failed", e)
         extra["patterns.json"] = prev_json("patterns.json")
