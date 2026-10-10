@@ -1266,3 +1266,10 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .risk__t { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); }
 .risk__v { font-size: 12.5px; }
 .lst__table tr.is-watch td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+
+/* 시장 대비 표시(관련 기사만 반응을 잰다) */
+.rxcells__s small { display: block; font-size: 10px; font-weight: 500; color: var(--text-3); letter-spacing: 0; }
+.itable th small { display: block; font-size: 11px; font-weight: 400; color: var(--text-3); }
+.art__raw { display: block; margin-top: 2px; font-size: 11px; color: var(--text-3); font-family: var(--font-mono); white-space: nowrap; }
+.art__skip { margin: 4px 0 8px; padding: 14px 16px; border-radius: 12px; background: color-mix(in oklab, var(--text) 5%, transparent); font-size: 15px; line-height: 1.55; word-break: keep-all; }
+.dd__adj { margin-top: 6px; font-size: 12px; color: var(--text-3); }

@@ -96,7 +96,7 @@ class Patterns(unittest.TestCase):
         self.assertEqual(arts[0]["pattern"]["up"], 0.5)
         few = [self._art(i, "etf", 0.1) for i in range(3)]
         patterns.attach_similar(few, 2000)
-        self.assertEqual(few[0]["pattern"], {"label": "ETF", "sym": "BTC", "n": 2})
+        self.assertEqual(few[0]["pattern"], {"label": "ETF", "sym": "BTC", "adj": False, "n": 2})
 
 
 class Moves(unittest.TestCase):

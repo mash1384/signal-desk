@@ -6,7 +6,7 @@ import os
 import shutil
 
 from . import config, util
-from .impact import assets_for
+from .impact import assets_for, subjects
 from .moves import COINS as MOVE_COINS
 
 OG_DEFAULT = False
@@ -210,9 +210,12 @@ def impact_badge(a):
         d = "up" if hd["r"] >= 0 else "down"
         grade = hd.get("g")
         gcls = {"강": "s", "중": "m", "약": "w"}.get(grade, "w")
-        return ('<span class="ib ib--%s ib--g%s" title="기사 시각부터 %s 동안 %s 가격 변화">%s<b>%s %s</b> %s%s</span>'
-                % (d, gcls, "1시간" if hd["win"] == "1h" else "15분", hd["asset"], ICON[d], hd["asset"], hd["win"], pct(hd["r"]),
-                   (" · " + grade) if grade else ""))
+        adj = hd.get("adj")
+        return ('<span class="ib ib--%s ib--g%s" title="기사 시각부터 %s 동안 %s %s">%s<b>%s %s</b> %s%s%s</span>'
+                % (d, gcls, "1시간" if hd["win"] == "1h" else "15분", hd["asset"], "가격 변화에서 시장 몫을 뺀 값" if adj else "가격 변화(시장 전체 반응)",
+                   ICON[d], hd["asset"], hd["win"], "시장 대비 " if adj else "", pct(hd["r"]), (" · " + grade) if grade else ""))
+    if st == "skip":
+        return ""
     if st == "failed":
         return '<span class="ib ib--na">반응 측정 불가</span>'
     return '<span class="ib ib--wait" data-t0="%d">반응 측정 중</span>' % a["t0"]
@@ -258,14 +261,20 @@ def feed_item(a):
 
 def rx_cells(a):
     """대표 코인의 15분·1시간·24시간 반응. 아직이면 None(측정 예정 시각은 t0로 계산)."""
+    syms = assets_for(a)
+    if not syms or a.get("impact_status") == "skip":
+        return None
     imp = a.get("impact") or {}
-    sym = (a.get("headline") or {}).get("asset") or ("BTC" if "BTC" in imp or a["category"] != "crypto" else next(iter(imp), "BTC"))
+    sym = (a.get("headline") or {}).get("asset") or syms[0]
     w = imp.get(sym) or {}
-    return {"s": sym, **{k: (None if (w.get(k) or {}).get("r") is None else round(w[k]["r"], 3)) for k in ("15m", "1h", "24h")}}
+    adj = dict(subjects(a)).get(sym, False)
+    return {"s": sym, "adj": adj, **{k: (None if (w.get(k) or {}).get("r") is None else round(w[k]["r"], 3)) for k in ("15m", "1h", "24h")}}
 
 
 def rx_html(a, now):
     rx = rx_cells(a)
+    if not rx:
+        return ""
     cells = []
     for k, label, sec in (("15m", "15분", 900), ("1h", "1시간", 3600), ("24h", "24시간", 86400)):
         v = rx[k]
@@ -275,7 +284,8 @@ def rx_html(a, now):
             cells.append('<span class="rxc is-na"><b>%s</b><em>–</em></span>' % label)
         else:
             cells.append('<span class="rxc is-wait"><b>%s</b><em data-due="%d">측정 중</em></span>' % (label, a["t0"] + sec))
-    return '<div class="rxcells" aria-label="%s 가격 반응"><span class="rxcells__s">%s</span>%s</div>' % (h(rx["s"]), h(rx["s"]), "".join(cells))
+    return '<div class="rxcells" aria-label="%s %s"><span class="rxcells__s">%s%s</span>%s</div>' % (
+        h(rx["s"]), "시장 대비 반응" if rx["adj"] else "시장 전체 반응", h(rx["s"]), '<small>시장 대비</small>' if rx["adj"] else '<small>시장 전체</small>', "".join(cells))
 
 
 def pattern_html(a):
@@ -283,14 +293,15 @@ def pattern_html(a):
     if not pt:
         return ""
     if pt.get("n", 0) >= 5:
-        v = ('<p class="fpat__v">%s 1시간 중앙값 <b class="%s">%s</b> · 상승 %d%% · 중·강 %d%% <span class="muted">(n=%d, 최근 30일)</span></p>'
-             % (h(pt["sym"]), "up" if pt["med"] >= 0 else "down", pct(pt["med"]), round(pt["up"] * 100), round(pt["strong"] * 100), pt["n"]))
+        v = ('<p class="fpat__v">%s 1시간 %s중앙값 <b class="%s">%s</b> · 상승 %d%% · 중·강 %d%% <span class="muted">(n=%d, 최근 30일)</span></p>'
+             % (h(pt["sym"]), "시장 대비 " if pt.get("adj") else "", "up" if pt["med"] >= 0 else "down", pct(pt["med"]), round(pt["up"] * 100), round(pt["strong"] * 100), pt["n"]))
         top = pt.get("top") or {}
         if top.get("id"):
             v += '<p class="fpat__top small muted">가장 컸던 사례: <a href="%sa/%s/">%s</a> (%s %s)</p>' % (B, h(top["id"]), h(top["title"]), h(top["sym"]), pct(top["r1h"]))
     else:
         v = '<p class="fpat__v muted">표본 부족 (n=%d)</p>' % pt.get("n", 0)
-    return '<details class="fpat"><summary>이런 뉴스는 보통 · %s</summary>%s<p class="small muted">같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>' % (h(pt["label"]), v)
+    return '<details class="fpat"><summary>이런 뉴스는 보통 · %s · %s</summary>%s<p class="small muted">%s 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>' % (
+        h(pt["label"]), h(pt["sym"]), v, h(pt["sym"]))
 
 
 # ---------------------------------------------------------------- 페이지들
@@ -302,7 +313,7 @@ def breaking_html(articles, now):
         if now - a["t0"] > 3600:
             break
         hd = a.get("headline") or {}
-        if hd.get("g") in ("강", "중") or (not hd and a.get("impact_status") != "failed" and a["importance"] >= 2):
+        if hd.get("g") in ("강", "중") or (not hd and a.get("impact_status") not in ("failed", "skip") and a["importance"] >= 2):
             picks.append(a)
     if not picks:
         return '<p class="brk__none small muted">최근 60분 안에 크게 반응했거나 재는 중인 주요 뉴스가 없습니다.</p>'
@@ -391,22 +402,25 @@ def temp_panel(market):
 
 def page_article(a, related, now):
     imp = a.get("impact") or {}
+    subs = subjects(a)
     rows = []
-    for sym in assets_for(a):
+    for sym, adj in subs:
         cells = []
         for win, secs in config.WINDOWS:
             v = imp.get(sym, {}).get(win)
             if v and v.get("r") is not None:
                 g = v.get("g")
-                cells.append('<td class="%s"><b>%s</b>%s</td>' % ("up" if v["r"] >= 0 else "down", pct(v["r"]),
-                             ('<span class="g g--%s">%s · z %.1f</span>' % ({"강": "s", "중": "m"}.get(g, "w"), g, v["z"])) if g else ""))
+                sub = ('<span class="g g--%s">%s · z %.1f</span>' % ({"강": "s", "중": "m"}.get(g, "w"), g, v["z"])) if g else ""
+                if v.get("adj") and v.get("raw") is not None:
+                    sub += '<span class="art__raw">실제 %s · 시장 몫 %s</span>' % (pct(v["raw"]), pct(v.get("m") or 0))
+                cells.append('<td class="%s"><b>%s</b>%s</td>' % ("up" if v["r"] >= 0 else "down", pct(v["r"]), sub))
             elif v:
                 cells.append('<td class="muted">측정 불가</td>')
             else:
                 cells.append('<td class="muted" data-wait="%d">측정 중</td>' % (a["t0"] + secs))
-        rows.append("<tr><th scope=\"row\">%s</th>%s</tr>" % (h(sym), "".join(cells)))
-    conc = a.get("concurrent", 0)
-    note = ('<p class="note">같은 시간대(±15분)에 다른 주요 기사 %d건이 있었습니다. 반응이 이 기사 때문만은 아닐 수 있습니다.</p>' % conc) if conc else ""
+        rows.append("<tr><th scope=\"row\">%s<small>%s</small></th>%s</tr>" % (h(sym), "시장 대비" if adj else "시장 전체", "".join(cells)))
+    crowd = a.get("crowd", 0)
+    note = ('<p class="note">같은 시간(±30분)에 %s 관련 뉴스가 %d건 더 있었습니다. 이 값은 그 뉴스들이 함께 나눠 가진 움직임일 수 있습니다.</p>' % (h(subs[0][0]), crowd)) if crowd and subs else ""
     est = '<p class="note">원문 발행 시각이 없어 수집 시각을 기준으로 측정했습니다.</p>' if a.get("t0_estimated") else ""
     if a.get("summary"):
         lead = '<ol class="art__sum">%s</ol><p class="muted small">요약: AI가 원문 제목·발췌만으로 작성했습니다. 정확한 내용은 원문을 확인하세요.</p>' % "".join("<li>%s</li>" % h(s) for s in a["summary"])
@@ -417,7 +431,27 @@ def page_article(a, related, now):
     orig = '<p class="art__orig" lang="en">%s</p>' % h(a["title_orig"]) if a["title_orig"] != a["title"] else ""
     rel = "".join('<li><a href="%s">%s</a><span class="muted">%s · %s</span></li>' % (article_path(r), h(r["title"]), h(r["source_name"]), md_hm(r["t0"])) for r in related) \
         or '<li class="muted">관련 기사가 없습니다.</li>'
-    primary = assets_for(a)[0]
+    primary = subs[0][0] if subs else None
+    if not subs:
+        impact_sec = ('<p class="art__skip">이 뉴스는 코인 가격과 직접 관련된 내용이 아니어서 가격 반응을 재지 않았습니다.</p>'
+                      '<p class="muted small">SIGNAL은 그 코인을 직접 언급한 뉴스와, 시장 전체를 움직이는 발표(FOMC·물가·고용, 크립토 ETF·규제·해킹·상장)만 잽니다. '
+                      '같은 시간에 마침 가격이 움직였다고 관련 없는 뉴스에 숫자를 붙이지 않기 위해서입니다.</p>')
+    else:
+        anyadj = any(adj for _, adj in subs)
+        expl = ("시장 대비 값은 실제 가격 변화에서 같은 시간 시장 전체(시총 상위 5개, 그 코인 제외)가 움직인 몫을 뺀 것입니다. "
+                if anyadj else "시장 전체를 움직이는 발표라 BTC 가격 변화를 그대로 보여 줍니다. ")
+        impact_sec = """<p class="muted small">기사 기준 시각부터의 변화입니다. {expl}z는 평소 흔들림 대비 몇 배인지이며 |z| 3 이상 강, 2 이상 중입니다.</p>
+    <div class="table-wrap"><table class="itable"><thead><tr><th scope="col">코인</th><th scope="col">15분</th><th scope="col">1시간</th><th scope="col">24시간</th></tr></thead><tbody>{rows}</tbody></table></div>
+    {note}{est}
+    <figure class="chart" id="artChart" data-sym="{primary}" data-t0="{t0}">
+      <div class="chart__box" role="img" aria-label="{primary} 가격, 기사 시각 전후"></div>
+      <figcaption class="muted small">{primary} 1분봉 · 세로선이 기사 기준 시각 · 출처 Binance(실패 시 Coinbase)</figcaption>
+    </figure>
+    <p class="note">같은 시간에 일어난 일을 잰 값입니다. 이 기사가 가격을 움직였다는 뜻은 아닙니다.</p>
+    {pat}
+    {maplink}""".format(expl=expl, rows="".join(rows), note=note, est=est, primary=h(primary), t0=a["t0"],
+                     pat=pattern_html(a).replace('<details class="fpat">', '<details class="fpat" open>'),
+                     maplink=('<p class="art__maplink"><a href="%smap/?s=%s">뉴스 영향에서 %s 오늘 움직임 보기</a></p>' % (B, h(primary), h(primary))) if primary in {c[0] for c in MOVE_COINS} else "")
     body = """
 <div class="wrap art">
   <nav class="crumbs" aria-label="경로"><a href="{B}live/">라이브</a><span aria-hidden="true">/</span><span>{catlabel}</span></nav>
@@ -434,23 +468,11 @@ def page_article(a, related, now):
   </section>
   <section class="art__impact" aria-labelledby="impTitle">
     <h2 id="impTitle" class="h2">가격 반응 실측</h2>
-    <p class="muted small">기사 기준 시각부터의 가격 변화입니다. z는 최근 같은 길이 구간의 평소 변동폭 대비 몇 배인지를 뜻합니다. |z| 3 이상 강, 2 이상 중.</p>
-    <div class="table-wrap"><table class="itable"><thead><tr><th scope="col">자산</th><th scope="col">15분</th><th scope="col">1시간</th><th scope="col">24시간</th></tr></thead><tbody>{rows}</tbody></table></div>
-    {note}{est}
-    <figure class="chart" id="artChart" data-sym="{primary}" data-t0="{t0}">
-      <div class="chart__box" role="img" aria-label="{primary} 가격, 기사 시각 전후"></div>
-      <figcaption class="muted small">{primary} 1분봉 · 세로선이 기사 기준 시각 · 출처 Binance(실패 시 Coinbase)</figcaption>
-    </figure>
-    <p class="note">가격 반응은 같은 시간에 일어난 일을 잰 값입니다. 이 기사가 가격을 움직였다는 뜻은 아닙니다.</p>
-    {pat}
-    {maplink}
-  </section>
+    {impact_sec}  </section>
   <section class="art__related"><h2 class="h2">관련 기사</h2><ul class="rel">{rel}</ul></section>
 </div>""".format(B=B, cat=a["category"], catlabel=config.CATEGORY_LABEL[a["category"]], src=h(a["source_name"]), iso=util.iso(a["t0"]),
                  t0=a["t0"], when=util.kst(a["t0"]).strftime("%Y.%m.%d %H:%M"), title=h(a["title"]), orig=orig, lead=lead, url=h(a["url"]),
-                 out=ICON["out"], share=ICON["share"], rows="".join(rows), note=note, est=est, primary=h(primary), rel=rel,
-                 maplink=('<p class="art__maplink"><a href="%smap/?s=%s">뉴스 영향에서 %s 오늘 움직임 보기</a></p>' % (B, h(primary), h(primary))) if primary in {c[0] for c in MOVE_COINS} else "",
-                 pat=pattern_html(a).replace('<details class="fpat">', '<details class="fpat" open>'), id=h(a["id"]))
+                 out=ICON["out"], share=ICON["share"], rel=rel, impact_sec=impact_sec, id=h(a["id"]))
     desc = (a["summary"][0] if a.get("summary") else a.get("excerpt") or a["title"])[:150]
     og = "%s/og/%s.jpg" % (config.SITE_URL, a["id"]) if a.get("og") else None
     return shell("article", a["title"], desc, article_path(a), body, now, og=og, data={"article": feed_item(a)})
@@ -480,16 +502,17 @@ def page_about(health, now):
 <div class="wrap narrow"><header class="phead"><h1 class="phead__title">소개·방법론</h1><p class="muted">SIGNAL이 뉴스를 모으고 가격 반응을 재는 방법, 그리고 데이터 출처입니다.</p></header></div>
 <div class="wrap narrow">
   <section class="panel"><h2 class="panel__title">어떻게 동작하나요</h2>
-    <ol class="steps"><li>15분마다 국내외 매체 {nsrc}곳의 RSS와 업비트 공지를 수집하고 중복을 지웁니다.</li><li>키워드로 크립토·AI·매크로를 나누고 관련 코인을 찾습니다.</li><li>기사 시각 이후 15분·1시간·24시간 가격 변화를 1분봉으로 재고, 평소 변동폭 대비 강도를 매깁니다.</li><li>기사 본문은 저장하지 않습니다. 제목, 짧은 발췌 또는 요약, 원문 링크만 보여 줍니다.</li></ol>
+    <ol class="steps"><li>15분마다 국내외 매체 {nsrc}곳의 RSS와 업비트 공지를 수집하고 중복을 지웁니다.</li><li>키워드로 크립토·AI·매크로를 나누고 관련 코인을 찾습니다.</li><li>그 코인을 직접 언급한 기사와 시장 전체를 움직이는 발표만 골라, 기사 시각 이후 15분·1시간·24시간 가격 변화를 1분봉으로 재고 시장 몫을 뺍니다.</li><li>기사 본문은 저장하지 않습니다. 제목, 짧은 발췌 또는 요약, 원문 링크만 보여 줍니다.</li></ol>
   </section>
   <section class="panel" id="method"><h2 class="panel__title">계산 방법</h2>
     <ol class="steps">
-      <li><span><b>가격 반응</b>: 기사 기준 시각(t0, 원문 발행 시각과 수집 시각 중 이른 쪽)이 속한 1분봉 시가 대비 15분·1시간·24시간 뒤 1분봉 종가의 변화율.</span></li>
-      <li><span><b>강도(z)</b>: 변화율 ÷ 최근 같은 길이 봉 변화율의 표준편차(15분: 7일, 1시간: 30일, 24시간: 180일). |z| 3 이상 강, 2 이상 중, 그 외 약.</span></li>
+      <li><span><b>어떤 기사를 재나</b>: 제목·발췌에서 코인 24개 중 하나를 직접 언급한 기사는 그 코인을, 코인 언급이 없어도 FOMC·물가·고용 발표와 크립토 분야의 ETF·규제·해킹·상장 뉴스는 BTC를 잽니다. 그 밖의 기사(AI 제품, 일반 경제 등)에는 가격 반응을 붙이지 않습니다. 같은 시간에 마침 가격이 움직였다고 관련 없는 뉴스에 숫자를 붙이지 않기 위해서입니다.</span></li>
+      <li><span><b>가격 반응</b>: 기사 기준 시각(t0, 원문 발행 시각과 수집 시각 중 이른 쪽)이 속한 1분봉 시가 대비 15분·1시간·24시간 뒤 1분봉 종가의 변화율. 코인 기사는 여기서 시장 몫(그 코인을 뺀 시총 상위 5개 바스켓의 같은 시간 변화 × 그 코인의 β, 최근 30일 1시간 회귀)을 뺀 ‘시장 대비’ 값을 보여 줍니다. 시장 전체 발표는 BTC 변화를 그대로 보여 줍니다.</span></li>
+      <li><span><b>강도(z)</b>: 시장 대비 값 ÷ 시장 몫을 뺀 평소 흔들림(1시간 회귀 잔차 표준편차를 구간 길이에 맞춰 환산). 시장 전체 발표는 BTC 변화율 ÷ 같은 길이 봉 변화율의 표준편차(15분: 7일, 1시간: 30일, 24시간: 180일). |z| 3 이상 강, 2 이상 중, 그 외 약.</span></li>
       <li><span><b>뉴스 영향</b>: 코인 등락 = 시장 몫 + 자기 몫. 시장 몫은 그 코인을 뺀 나머지 코인(시총 가중 24개)의 1분 움직임 × 그 코인의 민감도 β(최근 30일 1시간 수익률 회귀). 60분 동안의 자기 몫이 평소 흔들림(같은 회귀의 잔차 표준편차)의 2.5배를 넘으면 큰 움직임으로 보고, 시작 30분 전~5분 뒤 그 코인을 제목(없으면 본문 첫머리)에서 언급한 뉴스를 원인 후보로 붙입니다(1건 유력, 여러 건 복합). 알트코인 소식이 많은 매체와 프로젝트 공식 블로그도 함께 모으며, 가격 예측·차트 분석 글은 뺍니다. 시장 전체 물결은 2배 기준에 거시·시장 전반 뉴스를 붙입니다.</span></li>
       <li><span><b>상장 해부도</b>: 업비트 원화 상장마다 첫 1분봉 시가를 0%로 둔 24시간 곡선, 공지 직전 1분 바이낸스 종가를 0%로 둔 공지 후 4시간 곡선. 시세가 없는 코인과 스테이블코인은 집계에서 뺍니다.</span></li>
       <li><span><b>이벤트 리스크</b>: 과거 같은 발표마다 발표 직전 1분 바이낸스 BTC 종가 대비 15분·1시간 뒤 변화를 재고 그 절댓값의 중앙값·상위 10%를 보여 줍니다. ‘평소의 몇 배’는 이 중앙값 ÷ 최근 30일 발표가 없던 같은 UTC 시각 1시간 봉 절대 변동의 중앙값입니다. 과거 발표 시각은 FRED 일정이 있는 2025년 이후만 있어 월간 지표는 표본이 20건 안팎이고, 표본 8건 미만이면 수치를 숨깁니다.</span></li>
-      <li><span><b>패턴</b>: 최근 30일 측정이 끝난 기사로 계산합니다. 열지도 칸 = 기사가 잰 코인별 1시간 절대 변동 ÷ 그 코인 평소 1시간 절대 변동(최근 30일 중앙값)의 중앙값. 칸 표본 3건, 비슷한 뉴스 요약 5건 미만이면 ‘표본 부족’으로 둡니다.</span></li>
+      <li><span><b>패턴</b>: 최근 30일 측정이 끝난 관련 기사로만 계산합니다. 열지도 칸 = 기사가 잰 코인별 1시간 절대 변동(코인 기사는 시장 대비) ÷ 그 코인의 평소 1시간 흔들림의 중앙값. 칸 표본 3건, 비슷한 뉴스 요약 5건 미만이면 ‘표본 부족’으로 둡니다.</span></li>
     </ol>
     <p class="muted small">모든 수치는 같은 시간대에 일어난 변화를 잰 값이며 인과를 뜻하지 않습니다.</p>
   </section>
@@ -520,7 +543,7 @@ def demo_items(articles, imp, now, n=5):
     for a in articles:
         if len(picked) >= n:
             break
-        if a.get("headline") and a not in picked:
+        if a.get("headline") and a not in picked and a.get("impact_status") != "skip":
             picked.append(a)
     out = []
     for a in picked[:n]:
@@ -530,8 +553,8 @@ def demo_items(articles, imp, now, n=5):
         for w in ("15m", "1h", "24h"):
             v = ((a.get("impact") or {}).get(asset) or {}).get(w)
             rx[w] = {"r": v["r"], "z": v.get("z"), "g": v.get("g")} if v and v.get("r") is not None else ({"due": a["t0"] + WIN_SEC[w]} if now < a["t0"] + WIN_SEC[w] else None)
-        out.append({"id": a["id"], "t": a["title"], "src": a["source_name"], "cat": a["category"], "ts": a["t0"], "asset": asset,
-                    "h": {k: hd[k] for k in ("asset", "win", "r", "g")} if hd else None, "rx": rx})
+        out.append({"id": a["id"], "t": a["title"], "src": a["source_name"], "cat": a["category"], "ts": a["t0"], "asset": asset, "adj": bool(hd.get("adj")),
+                    "h": {k: hd.get(k) for k in ("asset", "win", "r", "g", "adj")} if hd else None, "rx": rx})
     return out
 
 
@@ -695,10 +718,10 @@ def page_landing(articles, market, cal, imp, now, lst=None):
     strong = [r for r in imp.get("strongest", []) if r.get("g") in ("강", "중")][:6] or imp.get("strongest", [])[:6]
     types = (imp.get("types") or [])[:6]
     proof = "".join(
-        '<article class="proof"><div class="proof__meta"><span class="ib ib--{d} ib--g{g}">{asset} {win} {r}{gl}</span><span class="muted small">z {z} · <time data-ts="{t0}">{when}</time></span></div>'
+        '<article class="proof"><div class="proof__meta"><span class="ib ib--{d} ib--g{g}">{asset} {win} {adj}{r}{gl}</span><span class="muted small">z {z} · <time data-ts="{t0}">{when}</time></span></div>'
         '<h3 class="proof__title"><a href="{B}a/{id}/">{title}</a></h3>'
         '<div class="proof__chart" data-sym="{asset}" data-t0="{t0}" aria-hidden="true"></div></article>'.format(
-            d="up" if r["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(r["g"], "w"), asset=h(r["asset"]), win=WIN_KO.get(r["win"], r["win"]), r=pct(r["r"]),
+            d="up" if r["r"] >= 0 else "down", g={"강": "s", "중": "m"}.get(r["g"], "w"), asset=h(r["asset"]), win=WIN_KO.get(r["win"], r["win"]), r=pct(r["r"]), adj="시장 대비 " if r.get("adj") else "",
             gl=(" · " + r["g"]) if r.get("g") else "", z=("%.1f" % r["z"]).replace("-", "−"), t0=r["t0"], when=md_hm(r["t0"]), B=B, id=h(r["id"]), title=h(r["title"]), i=i)
         for i, r in enumerate(strong)) or '<p class="muted">반응이 측정되면 실제 사례가 여기에 나타납니다.</p>'
     top_abs = max([t["mean_abs"] for t in types] or [1]) or 1
@@ -1078,7 +1101,7 @@ def page_patterns(pt, now):
   </section>
   <section class="panel" aria-labelledby="hmTitle">
     <div class="lst__bar"><h2 class="panel__title" id="hmTitle">내러티브 열지도</h2><div class="mseg" role="group" aria-label="기간"><button type="button" class="mseg__b" data-days="7" aria-pressed="true">최근 7일</button><button type="button" class="mseg__b" data-days="30" aria-pressed="false">최근 30일</button></div></div>
-    <p class="small muted">칸 = 그 유형 뉴스 뒤 1시간 변동폭(중앙값)이 그 코인의 평소 1시간 변동의 몇 배였는지. 표본 3건 미만은 비웁니다. ▲ = 지난 7일보다 1.3배 이상 예민해짐. 칸을 누르면 기사 목록을 봅니다.</p>
+    <p class="small muted">칸 = 그 유형 뉴스 뒤 1시간 변동폭(중앙값, 코인 뉴스는 시장 몫을 뺀 값)이 그 코인의 평소 1시간 흔들림의 몇 배였는지. 그 코인을 언급했거나 시장 전체 발표인 뉴스만 셉니다. 표본 3건 미만은 비웁니다. ▲ = 지난 7일보다 1.3배 이상 예민해짐. 칸을 누르면 기사 목록을 봅니다.</p>
     <div class="lst__tablewrap">{h7}{h30}</div>
     <div class="ptp__cell" id="hmCell" aria-live="polite"></div>
   </section>

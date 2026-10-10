@@ -112,6 +112,20 @@ ASSETS = {
     "SUI": {"names": ["sui network", "수이"], "binance": "SUIUSDT", "coinbase": "SUI-USD", "upbit": "KRW-SUI"},
     "TON": {"names": ["toncoin", "톤코인"], "binance": "TONUSDT", "coinbase": None, "upbit": None},
     "DOT": {"names": ["polkadot", "폴카닷"], "binance": "DOTUSDT", "coinbase": "DOT-USD", "upbit": "KRW-DOT"},
+    # 뉴스 영향(moves)과 같은 24개를 기사에서 알아본다. 흔한 영어 단어와 겹치는 이름은 넣지 않는다
+    "LTC": {"names": ["litecoin", "라이트코인"], "binance": "LTCUSDT", "coinbase": "LTC-USD", "upbit": None},
+    "TRX": {"names": ["tron", "트론"], "binance": "TRXUSDT", "coinbase": None, "upbit": "KRW-TRX"},
+    "HBAR": {"names": ["hedera", "헤데라"], "binance": "HBARUSDT", "coinbase": "HBAR-USD", "upbit": "KRW-HBAR"},
+    "TAO": {"names": ["bittensor", "비트텐서"], "binance": "TAOUSDT", "coinbase": None, "upbit": None},
+    "AAVE": {"names": ["aave", "에이브"], "binance": "AAVEUSDT", "coinbase": "AAVE-USD", "upbit": "KRW-AAVE"},
+    "UNI": {"names": ["uniswap", "유니스왑"], "binance": "UNIUSDT", "coinbase": "UNI-USD", "upbit": None},
+    "NEAR": {"names": ["near protocol", "니어프로토콜"], "binance": "NEARUSDT", "coinbase": "NEAR-USD", "upbit": "KRW-NEAR"},
+    "APT": {"names": ["aptos", "앱토스"], "binance": "APTUSDT", "coinbase": "APT-USD", "upbit": "KRW-APT"},
+    "ONDO": {"names": ["ondo finance", "온도파이낸스"], "binance": "ONDOUSDT", "coinbase": None, "upbit": "KRW-ONDO"},
+    "ENA": {"names": ["ethena", "에테나"], "binance": "ENAUSDT", "coinbase": None, "upbit": "KRW-ENA"},
+    "PEPE": {"names": ["pepe", "페페"], "binance": "PEPEUSDT", "coinbase": None, "upbit": "KRW-PEPE"},
+    "ZEC": {"names": ["zcash", "지캐시"], "binance": "ZECUSDT", "coinbase": "ZEC-USD", "upbit": "KRW-ZEC"},
+    "FET": {"names": ["fetch.ai"], "binance": "FETUSDT", "coinbase": None, "upbit": None},
 }
 MARKET_ASSETS = ["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "LINK", "AVAX", "SUI", "TON", "DOT"]
 MAX_ASSETS_PER_ARTICLE = 4
