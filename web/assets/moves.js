@@ -92,7 +92,7 @@ function main() {
     $('#imQuiet').innerHTML = quiet.slice(0, 30).map((e) => {
       const a = e.size + e.market;
       return `<li>${logo(e.sym, 'im-logo--s')}<span class="im-quiet__id"><b>${esc(NAME[e.sym] || e.sym)}</b><span>${when(e.t0, now)}</span></span>
-        <span class="im-quiet__say">${esc(sentence(e))}</span>
+        <span class="im-quiet__say">${esc(sentence(e))}${e.context && e.context[0] ? `<a class="im-quiet__ctx" href="${BASE}a/${esc(e.context[0].id)}/"><span>참고 · ${Math.round(e.context[0].ago)}시간 전 소식</span>${esc(e.context[0].title)}</a>` : ''}</span>
         <span class="im-quiet__v ${sg(a)}">${pct(a)}</span></li>`;
     }).join('');
     if (!linked.length) $('#imMore').open = true;

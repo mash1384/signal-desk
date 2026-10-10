@@ -4,7 +4,7 @@
 2. 베타·평소 흔들림: 최근 30일 1시간 수익률로 코인 = α + β × 지수, 잔차 표준편차 = 평소 60분 흔들림.
 3. 시장 몫 = β × 지수, 자기 몫 = 실제 − 시장 몫(24시간 누적).
 4. 큰 움직임: 60분 자기 몫 변화가 평소 흔들림의 2.5배 이상인 구간을 겹치지 않게 큰 것부터.
-5. 원인 후보: 시작 30분 전~5분 뒤 뉴스 중 그 코인을 제목에서 언급한 것. 1건 '유력', 여러 건 '복합'.
+5. 원인 후보: 시작 30분 전~5분 뒤 뉴스 중 그 코인을 제목(없으면 발췌 앞부분)에서 언급한 것. 1건 '유력', 여러 건 '복합'.
    시장 물결 자체의 큰 움직임(2배 이상)에는 거시·시장 전반 뉴스를 붙인다.
 로그 수익률이라 시장 몫 + 움직임별 자기 몫 + 나머지 = 실제 등락이 정확히 맞는다.
 """
@@ -30,6 +30,12 @@ COINS = [
 ]
 MARKET_WORDS = ["crypto market", "crypto majors", "가상자산 시장", "코인 시장", "암호화폐 시장", "fomc", "연준", "파월", "powell", "cpi", "inflation", "물가",
                 "금리", "treasury", "국채", "tariff", "관세", "nasdaq", "나스닥", "뉴욕증시", "s&p 500", "달러 지수", "dollar index", "순유입", "순유출", "liquidat", "청산"]
+# 가격 움직임 자체를 설명하는 제목(원인이 될 수 없다). 사건 단어가 함께 있으면 남긴다
+RECAP_WORDS = ["price", "rebound", "reversal", "resistance", "support level", "odds of", "chart pattern", "breakout", "price action", "technical",
+               "가격", "반등", "저항선", "지지선", "차트", "기술적"]
+EVENT_WORDS = ["launch", "partner", "listing", "lists", "etf", "approv", "sec ", "lawsuit", "hack", "exploit", "upgrade", "mainnet", "integrat", "acquir", "funding",
+               "invest", "treasury", "stablecoin", "unlock", "delist", "airdrop", "출시", "상장", "제휴", "파트너", "승인", "소송", "해킹", "업그레이드", "메인넷", "투자", "인수",
+               "통합", "도입", "언락", "상폐", "에어드랍"]
 WINDOW_MIN = 24 * 60
 PRE_MIN = 70           # 창 시작 경계에서 움직임을 놓치지 않게 앞쪽을 더 본다
 Z_COIN, Z_TIDE = 2.5, 2.0
@@ -45,6 +51,12 @@ def _mentions(title, words):
         elif w.lower() in low:
             return True
     return False
+
+
+def _recap(title):
+    low = title.lower()
+    priced = any(w in low for w in RECAP_WORDS) or re.search(r"\d+(\.\d+)?\s?%", low)   # "83% 상승" 같은 등락 요약도
+    return bool(priced) and not any(w in low for w in EVENT_WORDS)
 
 
 def _ols(y, x):
@@ -135,18 +147,27 @@ def build(articles, now, prev=None):
     k0 = len(t1) - 1 - WINDOW_MIN          # r1 인덱스로 24시간 창 시작
     T0 = t1[k0] + 60                       # 창 시작 시각(첫 1분봉 종가 직후)
     news = [a for a in articles if a.get("t0") and a["t0"] >= T0 - 2 * 3600]
+    news_all = [a for a in articles if a.get("t0") and a["t0"] >= T0 - 26 * 3600]
 
     def attach(ev, sym):
         st = T0 + ev["a"] * 60
         win = [a for a in news if st - 1800 <= a["t0"] <= st + 300]
         if sym:
-            hit = [a for a in win if _mentions(a["title"], words[sym])]
+            # 제목(번역 전 원제 포함)에서 먼저, 없으면 발췌 앞부분에서 그 코인을 찾는다
+            hit = [a for a in win if _mentions(a["title"] + " " + (a.get("title_orig") or ""), words[sym]) and not _recap(a.get("title_orig") or a["title"])]
+            if not hit:
+                hit = [a for a in win if _mentions((a.get("excerpt") or "")[:300], words[sym]) and not _recap(a.get("title_orig") or a["title"])]
         else:
             hit = [a for a in win if a.get("category") == "macro" or a.get("etype") in ("fomc", "cpi", "jobs") or _mentions(a["title"], MARKET_WORDS)]
         hit.sort(key=lambda a: abs(st - a["t0"]))
         ev["label"] = "likely" if len(hit) == 1 else "mixed" if hit else "none"
         ev["news"] = [{"id": a["id"], "title": a["title"], "src": a.get("source_name"), "lead": round((st - a["t0"]) / 60)} for a in hit[:4]]
         ev["nearby"] = len(win)
+        # 원인이 확인되지 않으면 그 전 24시간 안의 그 코인 소식을 '참고'로만 붙인다
+        if sym and not hit:
+            prior = [a for a in news_all if st - 86400 <= a["t0"] < st - 1800 and _mentions(a["title"] + " " + (a.get("title_orig") or ""), words[sym]) and not _recap(a.get("title_orig") or a["title"])]
+            prior.sort(key=lambda a: -a["t0"])
+            ev["context"] = [{"id": a["id"], "title": a["title"], "src": a.get("source_name"), "ago": round((st - a["t0"]) / 3600, 1)} for a in prior[:1]]
         ev["t0"], ev["t1"] = st, T0 + ev["e"] * 60
 
     coins = []

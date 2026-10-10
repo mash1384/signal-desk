@@ -1065,6 +1065,10 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .im-quiet__id b { font-weight: 600; }
 .im-quiet__id span { color: var(--text-3); font-size: 11px; white-space: nowrap; }
 .im-quiet__say { color: var(--text-2); word-break: keep-all; }
+.im-quiet__ctx { display: block; margin-top: 4px; color: var(--text-3); font-size: 12px; line-height: 1.45; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.im-quiet__ctx span { color: var(--text-3); margin-right: 6px; font-weight: 600; }
+@media (hover: hover) and (pointer: fine) { .im-quiet__ctx:hover { color: var(--text-2); } }
+.im-quiet__say { min-width: 0; }
 .im-quiet__v { text-align: end; font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 600; }
 .im-steps { list-style: none; display: grid; gap: 10px; margin: 0; padding: 0 20px 6px; color: var(--text-2); font-size: 13px; line-height: 1.6; counter-reset: s; }
 .im-steps li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; counter-increment: s; }
