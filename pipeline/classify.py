@@ -35,6 +35,9 @@ def classify(title, excerpt, source):
     # 소스가 정한 제목 조건(예: 연준은 통화정책 발표만)
     if source.get("only") and not has_any(title.lower(), source["only"]):
         return None
+    # 소스가 정한 제외 조건(예: 가격 예측·차트 분석 글)
+    if source.get("skip") and has_any(title.lower(), source["skip"]):
+        return None
     text = (title + " " + (excerpt or "")).lower()
     title_l = title.lower()
     scores = {}

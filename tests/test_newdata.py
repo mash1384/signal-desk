@@ -121,6 +121,11 @@ class Moves(unittest.TestCase):
         self.assertFalse(moves._mentions("SOLUTION for banks", ["SOL"]))
         self.assertTrue(moves._mentions("솔라나 급등", ["SOL", "솔라나"]))
 
+    def test_recap_titles_are_not_causes(self):
+        self.assertTrue(moves._recap("All about NEAR's latest rebound and the odds of a new price reversal"))
+        self.assertFalse(moves._recap("Polkadot Launches USDT-Backed dotUSD Under OpenGov"))
+        self.assertFalse(moves._recap("XRP jumps after SEC approval of spot ETF"))
+
 
 if __name__ == "__main__":
     unittest.main()

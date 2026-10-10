@@ -26,6 +26,8 @@ GRADE_MEDIUM = 2.0
 CONCURRENT_EVENT_SECONDS = 900
 
 # 수집원. hint: 기본 카테고리, require: True면 키워드가 맞는 기사만 남긴다
+NOISE_TITLES = ["price prediction", "price analysis", "price forecast", "technical analysis", "could reach", "will hit", "가격 예측", "전망가"]
+
 SOURCES = [
     {"id": "coindesk", "name": "CoinDesk", "url": "https://www.coindesk.com/arc/outboundfeeds/rss", "lang": "en", "hint": "crypto", "require": False},
     {"id": "cointelegraph", "name": "Cointelegraph", "url": "https://cointelegraph.com/rss", "lang": "en", "hint": "crypto", "require": False},
@@ -49,6 +51,27 @@ SOURCES = [
     {"id": "cryptoslate", "name": "CryptoSlate", "url": "https://cryptoslate.com/feed/", "lang": "en", "hint": "crypto", "require": False},
     {"id": "unchained", "name": "Unchained", "url": "https://unchainedcrypto.com/feed/", "lang": "en", "hint": "crypto", "require": False},
     {"id": "cryptobriefing", "name": "Crypto Briefing", "url": "https://cryptobriefing.com/feed/", "lang": "en", "hint": "crypto", "require": False},
+    # 알트코인 개별 소식이 많은 매체(뉴스 영향 연결용). 가격 예측·차트 분석 글은 제목으로 거른다
+    {"id": "utoday", "name": "U.Today", "url": "https://u.today/rss", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "cryptopotato", "name": "CryptoPotato", "url": "https://cryptopotato.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "cryptonews-com", "name": "crypto.news", "url": "https://crypto.news/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "cryptonews-net", "name": "Cryptonews", "url": "https://cryptonews.com/news/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "thecryptobasic", "name": "The Crypto Basic", "url": "https://thecryptobasic.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "coingape", "name": "CoinGape", "url": "https://coingape.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "newsbtc", "name": "NewsBTC", "url": "https://www.newsbtc.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "bitcoinist", "name": "Bitcoinist", "url": "https://bitcoinist.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "coinpedia", "name": "Coinpedia", "url": "https://coinpedia.org/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "beincrypto", "name": "BeInCrypto", "url": "https://beincrypto.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "beincrypto-kr", "name": "비인크립토", "url": "https://kr.beincrypto.com/feed/", "lang": "ko", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "ambcrypto", "name": "AMBCrypto", "url": "https://ambcrypto.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "dailyhodl", "name": "The Daily Hodl", "url": "https://dailyhodl.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "coincentral", "name": "CoinCentral", "url": "https://coincentral.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "bitcoin-com", "name": "Bitcoin.com News", "url": "https://news.bitcoin.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    # 프로젝트 공식 채널(업그레이드·파트너십 발표)
+    {"id": "solana-news", "name": "Solana 공식", "url": "https://solana.com/news/rss.xml", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "sui-blog", "name": "Sui 공식 블로그", "url": "https://blog.sui.io/rss/", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "hedera-blog", "name": "Hedera 공식 블로그", "url": "https://hedera.com/blog/feed", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "ethereum-blog", "name": "Ethereum 재단 블로그", "url": "https://blog.ethereum.org/feed.xml", "lang": "en", "hint": "crypto", "require": False},
     # AI: 전문지와 회사 공식 발표
     {"id": "mittr-ai", "name": "MIT Technology Review", "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed", "lang": "en", "hint": "ai", "require": False},
     {"id": "ars-ai", "name": "Ars Technica AI", "url": "https://arstechnica.com/ai/feed/", "lang": "en", "hint": "ai", "require": False},
