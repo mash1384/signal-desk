@@ -10,7 +10,7 @@ import os
 import shutil
 import sys
 
-from . import build, classify, collect, config, events as event_risk, impact, listings, mapdata, market, moves, notify, og, patterns, summarize, util
+from . import build, classify, collect, config, events as event_risk, impact, listings, mapdata, market, moves, notify, og, patterns, signals, summarize, util
 
 
 def load(prev):
@@ -239,6 +239,11 @@ def main(argv=None):
     except Exception as e:
         util.log("listings build failed", e)
         extra["listings.json"] = prev_json("listings.json")
+    try:
+        extra["signals.json"] = signals.build(extra.get("moves.json"), articles, extra.get("listings.json"), snap.get("fx"), now)
+    except Exception as e:
+        util.log("signals build failed", e)
+        extra["signals.json"] = prev_json("signals.json")
     try:
         extra["events.json"] = event_risk.build(state, events, now)
     except Exception as e:
