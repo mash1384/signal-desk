@@ -16,10 +16,10 @@ ASSET_VER = "0"
 B = config.SITE_BASE
 WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
-NAV = [("map", "map/", "뉴스 영향"), ("live", "live/", "라이브"), ("listings", "listings/", "상장 레이더"), ("events", "events/", "이벤트 리스크"),
+NAV = [("map", "map/", "시그널 보드"), ("live", "live/", "라이브"), ("listings", "listings/", "상장 레이더"), ("events", "events/", "이벤트 리스크"),
        ("patterns", "patterns/", "패턴")]
 TABBAR = ["map", "live", "listings", "events", "patterns"]
-TAB_LABEL = {"map": "영향", "listings": "상장", "events": "이벤트"}
+TAB_LABEL = {"map": "시그널", "listings": "상장", "events": "이벤트"}
 
 CAL_KO = {
     "CPI m/m": "소비자물가지수(전월비)", "CPI y/y": "소비자물가지수(전년비)", "Core CPI m/m": "근원 소비자물가(전월비)",
@@ -451,7 +451,7 @@ def page_article(a, related, now):
     {pat}
     {maplink}""".format(expl=expl, rows="".join(rows), note=note, est=est, primary=h(primary), t0=a["t0"],
                      pat=pattern_html(a).replace('<details class="fpat">', '<details class="fpat" open>'),
-                     maplink=('<p class="art__maplink"><a href="%smap/?s=%s">뉴스 영향에서 %s 오늘 움직임 보기</a></p>' % (B, h(primary), h(primary))) if primary in {c[0] for c in MOVE_COINS} else "")
+                     maplink=('<p class="art__maplink"><a href="%smap/?s=%s">시그널 보드에서 %s 보기</a></p>' % (B, h(primary), h(primary))) if primary in {c[0] for c in MOVE_COINS} else "")
     body = """
 <div class="wrap art">
   <nav class="crumbs" aria-label="경로"><a href="{B}live/">라이브</a><span aria-hidden="true">/</span><span>{catlabel}</span></nav>
@@ -509,7 +509,7 @@ def page_about(health, now):
       <li><span><b>어떤 기사를 재나</b>: 제목·발췌에서 코인 24개 중 하나를 직접 언급한 기사는 그 코인을, 코인 언급이 없어도 FOMC·물가·고용 발표와 크립토 분야의 ETF·규제·해킹·상장 뉴스는 BTC를 잽니다. 그 밖의 기사(AI 제품, 일반 경제 등)에는 가격 반응을 붙이지 않습니다. 같은 시간에 마침 가격이 움직였다고 관련 없는 뉴스에 숫자를 붙이지 않기 위해서입니다.</span></li>
       <li><span><b>가격 반응</b>: 기사 기준 시각(t0, 원문 발행 시각과 수집 시각 중 이른 쪽)이 속한 1분봉 시가 대비 15분·1시간·24시간 뒤 1분봉 종가의 변화율. 코인 기사는 여기서 시장 몫(그 코인을 뺀 시총 상위 5개 바스켓의 같은 시간 변화 × 그 코인의 β, 최근 30일 1시간 회귀)을 뺀 ‘시장 대비’ 값을 보여 줍니다. 시장 전체 발표는 BTC 변화를 그대로 보여 줍니다.</span></li>
       <li><span><b>강도(z)</b>: 시장 대비 값 ÷ 시장 몫을 뺀 평소 흔들림(1시간 회귀 잔차 표준편차를 구간 길이에 맞춰 환산). 시장 전체 발표는 BTC 변화율 ÷ 같은 길이 봉 변화율의 표준편차(15분: 7일, 1시간: 30일, 24시간: 180일). |z| 3 이상 강, 2 이상 중, 그 외 약.</span></li>
-      <li><span><b>뉴스 영향</b>: 코인 등락 = 시장 몫 + 자기 몫. 시장 몫은 그 코인을 뺀 나머지 코인(시총 가중 24개)의 1분 움직임 × 그 코인의 민감도 β(최근 30일 1시간 수익률 회귀). 60분 동안의 자기 몫이 평소 흔들림(같은 회귀의 잔차 표준편차)의 2.5배를 넘으면 큰 움직임으로 보고, 시작 30분 전~5분 뒤 그 코인을 제목(없으면 본문 첫머리)에서 언급한 뉴스를 원인 후보로 붙입니다(1건 유력, 여러 건 복합). 알트코인 소식이 많은 매체와 프로젝트 공식 블로그도 함께 모으며, 가격 예측·차트 분석 글은 뺍니다. 시장 전체 물결은 2배 기준에 거시·시장 전반 뉴스를 붙입니다.</span></li>
+      <li><span><b>시그널 보드</b>: 코인 24개마다 네 가지를 1시간·4시간·24시간 구간으로 잽니다. ① 시장 대비 움직임 = 실제 등락 − β × 그 코인을 뺀 나머지 코인(시총 가중)의 움직임(β와 평소 흔들림은 최근 30일 1시간 수익률 회귀). 평소 흔들림의 2배 이상이거나 1시간 2%·4시간 3.5%·24시간 6% 이상이면 신호. ② 업비트 원화 거래대금 ÷ 지난 7일 같은 길이 구간 중앙값이 2배 이상. ③ 김프(업비트 원화가 ÷ 바이낸스가 × 원/달러 − 1)가 1시간 0.8%p·4시간 1%p·24시간 1.5%p 이상 변함. ④ 전체 기사 중 그 코인 기사 비중이 평소의 2배 이상이고 3건 이상. 최근 72시간 업비트 상장·유의·상폐 공지도 함께 표시합니다.</span></li>
       <li><span><b>상장 해부도</b>: 업비트 원화 상장마다 첫 1분봉 시가를 0%로 둔 24시간 곡선, 공지 직전 1분 바이낸스 종가를 0%로 둔 공지 후 4시간 곡선. 시세가 없는 코인과 스테이블코인은 집계에서 뺍니다.</span></li>
       <li><span><b>이벤트 리스크</b>: 과거 같은 발표마다 발표 직전 1분 바이낸스 BTC 종가 대비 15분·1시간 뒤 변화를 재고 그 절댓값의 중앙값·상위 10%를 보여 줍니다. ‘평소의 몇 배’는 이 중앙값 ÷ 최근 30일 발표가 없던 같은 UTC 시각 1시간 봉 절대 변동의 중앙값입니다. 과거 발표 시각은 FRED 일정이 있는 2025년 이후만 있어 월간 지표는 표본이 20건 안팎이고, 표본 8건 미만이면 수치를 숨깁니다.</span></li>
       <li><span><b>패턴</b>: 최근 30일 측정이 끝난 관련 기사로만 계산합니다. 열지도 칸 = 기사가 잰 코인별 1시간 절대 변동(코인 기사는 시장 대비) ÷ 그 코인의 평소 1시간 흔들림의 중앙값. 칸 표본 3건, 비슷한 뉴스 요약 5건 미만이면 ‘표본 부족’으로 둡니다.</span></li>
@@ -778,7 +778,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
         <h1 class="hx__title in" id="heroTitle" style="--s:3">모든 뉴스는<br>파문을 남깁니다</h1>
         <div class="hx__side in" style="--s:4">
           <p class="hx__sub">크립토·AI·매크로 뉴스가 나온 뒤 <span class="nw">15분·1시간·24시간</span> 동안 가격이 얼마나 움직였는지 재서 보여 줍니다.</p>
-          <div class="hero__cta"><a class="btn btn--accent btn--lg" href="{B}map/">뉴스 영향 보기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
+          <div class="hero__cta"><a class="btn btn--accent btn--lg" href="{B}map/">시그널 보드 보기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
         </div>
       </div>
       <div class="hx__cap" data-beat="0.7,0.8,2,3"><span class="mono-label">{drop_note}</span><b>SIGNAL은 그 파문의<br>크기를 잽니다.</b></div>
@@ -895,7 +895,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
       <h2 class="outro__title" id="ctaTitle"><span class="ot__l ot__l--noise"><span>Noise out.</span></span><span class="ot__l ot__l--sig"><span><em class="ot__fill"{fill}>Signal</em> in.</span></span></h2>
       <div class="outro__foot">
         <p>회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
-        <div class="outro__cta"><a class="btn btn--accent btn--lg" href="{B}map/">뉴스 영향 보기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
+        <div class="outro__cta"><a class="btn btn--accent btn--lg" href="{B}map/">시그널 보드 보기</a><a class="btn btn--ghost btn--lg" href="{B}live/">라이브 보기</a></div>
       </div>
     </div>
   </div>
@@ -915,41 +915,40 @@ def page_landing(articles, market, cal, imp, now, lst=None):
 
 
 def page_map(market, now):
-    """뉴스 영향(/map/). 시장 물결 → 실제와 '시장만 따랐다면'의 차이 → 24시간 변동 영수증 → 오늘의 큰 움직임.
-    그림은 assets/moves.js가 data/moves.json(pipeline/moves.py)을 읽어 그린다."""
+    """시그널 보드(/map/). 코인 24개마다 시장 대비 움직임·업비트 거래대금·김프 변화·뉴스 양 중 평소와 다른 것을 보여 주고,
+    누르면 그 코인의 24시간 '실제 vs 시장대로였다면'과 그 사이 뉴스를 펼친다. 그림은 assets/signals.js가 data/signals.json을 읽어 그린다."""
     icons = ",".join(sorted(f[:-4] for f in os.listdir(os.path.join(WEB, "assets", "coins")) if f.endswith(".svg")))
     body = """
-<section class="im wrap" id="im" data-src="{B}data/moves.json" data-icons="{icons}" aria-labelledby="imTitle">
-  <header class="im-hero">
-    <p class="im-asof" id="imAsof"></p>
-    <h1 class="im-title" id="imTitle">오늘 뉴스에 반응한 코인</h1>
-    <p class="im-lede" id="imLede"></p>
+<section class="sb wrap" id="sb" data-src="{B}data/signals.json" data-icons="{icons}" aria-labelledby="sbTitle">
+  <header class="sb-hero">
+    <p class="sb-asof" id="sbAsof"></p>
+    <h1 class="sb-title" id="sbTitle">지금 평소와 다른 코인</h1>
+    <p class="sb-lede" id="sbLede"></p>
   </header>
-  <p class="im-empty-page" id="imEmpty" hidden>데이터를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
-  <ol class="im-cards" id="imCards" aria-label="뉴스에 반응한 움직임"></ol>
-  <details class="im-more" id="imMore">
-    <summary><span id="imMoreTitle">뉴스 없이 크게 움직인 코인</span><span class="im-more__hint">원인 뉴스를 찾지 못한 움직임 · 그 전 24시간 소식은 참고로만</span></summary>
-    <ol class="im-quiet" id="imQuiet"></ol>
-  </details>
-  <details class="im-how">
-    <summary>어떻게 쟀나요</summary>
-    <ol class="im-steps">
-      <li><span><b>시장대로였다면</b>그 코인을 뺀 나머지 코인 24개(시총 가중)가 같은 시간에 움직인 만큼 × 그 코인이 평소 시장을 따라가는 정도(최근 30일).</span></li>
-      <li><span><b>혼자 움직인 만큼</b>실제 − 시장대로였다면. 60분 동안 평소 흔들림의 2.5배를 넘으면 ‘크게 움직였다’고 봅니다.</span></li>
-      <li><span><b>원인 뉴스</b>움직임 시작 30분 전부터 5분 뒤까지 나온 뉴스 중 그 코인을 직접 언급한 것(제목, 없으면 본문 첫머리). 여러 건이면 어느 것 때문인지 확실하지 않다고 표시합니다.</span></li>
+  <div class="sb-bar">
+    <div class="sb-seg" role="group" aria-label="기간"><button type="button" data-w="1h" aria-pressed="false">1시간</button><button type="button" data-w="4h" aria-pressed="false">4시간</button><button type="button" data-w="24h" aria-pressed="true">24시간</button></div>
+    <div class="sb-seg" role="group" aria-label="보기"><button type="button" data-f="flag" aria-pressed="true">신호 있는 코인</button><button type="button" data-f="all" aria-pressed="false">전체</button></div>
+    <p class="sb-key"><i></i>평소와 다름</p>
+  </div>
+  <p class="sb-empty" id="sbEmpty" hidden>데이터를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
+  <div class="sb-board" role="table" aria-label="코인별 신호">
+    <div class="sb-head" role="row"><span role="columnheader">코인</span><span role="columnheader">시장 대비 움직임</span><span role="columnheader">업비트 거래대금 <small>평소 대비</small></span><span role="columnheader">김프 변화</span><span role="columnheader">뉴스 양</span><span role="columnheader">왜? (그 코인 뉴스)</span></div>
+    <div id="sbRows" role="rowgroup"></div>
+  </div>
+  <p class="sb-quiet" id="sbQuiet" hidden></p>
+  <details class="sb-how">
+    <summary>신호는 이렇게 정합니다</summary>
+    <ol class="sb-steps">
+      <li><span><b>시장 대비 움직임</b>실제 등락 − 시장대로였다면(그 코인을 뺀 나머지 코인 24개의 움직임 × 그 코인이 평소 시장을 따라가는 정도). 평소 흔들림의 2배를 넘거나, 1시간 2%·4시간 3.5%·24시간 6% 이상이면 신호.</span></li>
+      <li><span><b>업비트 거래대금</b>최근 구간 원화 거래대금 ÷ 지난 7일 같은 길이 구간의 중앙값. 2배 이상이면 신호. 업비트 원화 마켓에 없는 코인은 비웁니다.</span></li>
+      <li><span><b>김프 변화</b>업비트 원화 가격 ÷ (바이낸스 가격 × 원/달러) − 1 이 구간 동안 바뀐 정도. 1시간 0.8%p·4시간 1%p·24시간 1.5%p 이상이면 신호.</span></li>
+      <li><span><b>뉴스 양</b>전체 기사 중 그 코인을 언급한 기사 비중이 평소의 2배 이상이고 3건 이상이면 신호. ‘왜?’ 칸에는 가격 정리 기사를 뺀 가장 중요한 그 코인 뉴스를 붙입니다.</span></li>
     </ol>
-    <p class="im-note">같은 시간대의 통계적 연관이며 인과를 보장하지 않습니다. <a href="{B}about/#method">계산 방법 자세히</a></p>
+    <p class="sb-note">신호는 ‘평소와 다르다’는 뜻일 뿐 매수·매도 추천이 아니며, 뉴스는 같은 시간대의 연관이지 원인이라는 뜻이 아닙니다. <a href="{B}about/#method">계산 방법 자세히</a></p>
   </details>
-  <template id="imDetailTpl">
-    <div class="im-detail">
-      <div class="im-legend" aria-hidden="true"><span><i class="im-lg im-lg--actual"></i>실제</span><span><i class="im-lg im-lg--market"></i>시장대로였다면</span><span><i class="im-lg im-lg--event"></i>이 움직임</span></div>
-      <div class="im-chart"><svg role="img"></svg><div class="im-hover" hidden></div></div>
-      <p class="im-day"></p>
-    </div>
-  </template>
 </section>""".format(B=B, icons=icons)
-    head = '<script type="module" src="%sassets/moves.js?v=%s"></script>' % (B, ASSET_VER)
-    return shell("map", "뉴스 영향 — 오늘 뉴스에 반응한 코인", "오늘 어떤 뉴스 뒤에 어떤 코인이 시장보다 얼마나 더 움직였는지 한 줄로 보여 줍니다.", B + "map/", body, now, extra_head=head)
+    head = '<script type="module" src="%sassets/signals.js?v=%s"></script>' % (B, ASSET_VER)
+    return shell("map", "시그널 보드 — 지금 평소와 다른 코인", "코인 24개의 시장 대비 움직임, 업비트 거래대금, 김프 변화, 뉴스 양 중 평소와 다른 것을 한눈에 보여 줍니다.", B + "map/", body, now, extra_head=head)
 
 
 def page_listings(now):

@@ -5,7 +5,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pipeline import events, listings, mapdata, moves, patterns, util  # noqa: E402
+from pipeline import events, listings, mapdata, moves, patterns, signals, util  # noqa: E402
 
 
 class Listings(unittest.TestCase):
@@ -125,6 +125,17 @@ class Moves(unittest.TestCase):
         self.assertTrue(moves._recap("All about NEAR's latest rebound and the odds of a new price reversal"))
         self.assertFalse(moves._recap("Polkadot Launches USDT-Backed dotUSD Under OpenGov"))
         self.assertFalse(moves._recap("XRP jumps after SEC approval of spot ETF"))
+
+
+class Signals(unittest.TestCase):
+    def test_vol_ratio_against_week(self):
+        now = 1_791_000_000 - (1_791_000_000 % 3600)
+        hours = [(now - (200 - i) * 3600, 100.0, 1e8) for i in range(200)]      # 평소 시간당 1억
+        hours[-1] = (hours[-1][0], 100.0, 5e8)                                   # 마지막 끝난 시간 5억
+        r, krw = signals.vol_ratio(hours, now, 1)
+        self.assertEqual((r, krw), (5.0, 500000000))
+        hours.append((now, 100.0, 9e9))                                          # 진행 중인 시간봉은 세지 않는다
+        self.assertEqual(signals.vol_ratio(hours, now + 600, 1)[0], 5.0)
 
 
 if __name__ == "__main__":
