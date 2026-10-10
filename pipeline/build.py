@@ -897,55 +897,36 @@ def page_map(market, now):
     icons = ",".join(sorted(f[:-4] for f in os.listdir(os.path.join(WEB, "assets", "coins")) if f.endswith(".svg")))
     body = """
 <section class="im wrap" id="im" data-src="{B}data/moves.json" data-icons="{icons}" aria-labelledby="imTitle">
-  <header class="phead im-head"><h1 class="phead__title" id="imTitle">뉴스 영향</h1><p class="im-asof" id="imAsof"></p></header>
+  <header class="im-hero">
+    <p class="im-asof" id="imAsof"></p>
+    <h1 class="im-title" id="imTitle">오늘 뉴스에 반응한 코인</h1>
+    <p class="im-lede" id="imLede"></p>
+  </header>
   <p class="im-empty-page" id="imEmpty" hidden>데이터를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
-  <div id="imBody">
-    <section class="im-tide" aria-labelledby="imTideTitle">
-      <div><p class="im-eyebrow" id="imTideTitle">오늘의 시장 물결</p><p class="im-tide__num" id="imTideNum">–</p><p class="im-tide__text" id="imTideText"></p></div>
-      <div class="im-tide__chart"><svg id="imTideSvg" role="img" aria-label="최근 24시간 시장 전체(시총 가중) 등락"></svg></div>
-      <dl class="im-tide__stats" id="imTideStats"></dl>
-    </section>
-    <div class="im-grid">
-      <div class="im-main">
-        <nav class="im-coins" id="imCoins" aria-label="코인 고르기"></nav>
-        <section class="im-card im-chartcard" aria-label="코인별 실제 등락과 시장 몫">
-          <header class="im-chead"><div class="im-chead__id" id="imCoinId"></div><dl class="im-chead__nums" id="imCoinNums"></dl></header>
-          <div class="im-legend" aria-hidden="true">
-            <span><i class="im-lg im-lg--actual"></i>실제 등락</span>
-            <span><i class="im-lg im-lg--market"></i>시장만 따랐다면 (시장 몫)</span>
-            <span><i class="im-lg im-lg--gap"></i>둘의 차이 = 자기 몫</span>
-            <span><i class="im-lg im-lg--event"></i>평소보다 크게 움직인 구간</span>
-          </div>
-          <div class="im-chart" id="imChart"><svg id="imChartSvg" role="img" aria-describedby="imChartDesc"></svg><div class="im-hover" id="imHover" hidden></div></div>
-          <p class="sr-only" id="imChartDesc"></p>
-          <div class="im-evcard" id="imEv" aria-live="polite"></div>
-        </section>
-        <section class="im-card im-receipt" aria-labelledby="imRcTitle">
-          <header class="im-rhead"><h2 class="im-h2" id="imRcTitle">24시간 변동 영수증</h2><p class="im-sub" id="imRcSub"></p></header>
-          <div id="imRc"></div>
-        </section>
-      </div>
-      <aside class="im-side">
-        <section class="im-card im-movers" aria-labelledby="imMvTitle">
-          <header class="im-rhead"><h2 class="im-h2" id="imMvTitle">오늘의 큰 움직임</h2><p class="im-sub">시장 몫을 뺀 자기 몫 기준</p></header>
-          <div class="im-seg" role="group" aria-label="보기"><button type="button" data-f="news" aria-pressed="true">뉴스와 연결</button><button type="button" data-f="all" aria-pressed="false">전체 움직임</button></div>
-          <ol class="im-mv" id="imMv"></ol>
-        </section>
-        <section class="im-card im-method">
-          <h2 class="im-h3">어떻게 쟀나요</h2>
-          <ol class="im-steps">
-            <li><span><b>시장 몫</b>그 코인을 뺀 나머지 시장(시총 가중)의 움직임 × 그 코인의 평소 민감도(β, 최근 30일).</span></li>
-            <li><span><b>자기 몫</b>실제 등락 − 시장 몫. 60분 동안의 자기 몫이 평소 흔들림의 2.5배를 넘으면 ‘큰 움직임’으로 봅니다.</span></li>
-            <li><span><b>원인 후보</b>움직임 시작 30분 전부터 5분 뒤까지 나온 뉴스 중 그 코인을 직접 언급한 것. 한 건이면 ‘유력’, 여러 건이면 ‘복합’.</span></li>
-          </ol>
-          <p class="im-note">같은 시간대의 통계적 연관이며 인과를 보장하지 않습니다. <a href="{B}about/#method">계산 방법 자세히</a></p>
-        </section>
-      </aside>
+  <ol class="im-cards" id="imCards" aria-label="뉴스에 반응한 움직임"></ol>
+  <details class="im-more" id="imMore">
+    <summary><span id="imMoreTitle">뉴스 없이 크게 움직인 코인</span><span class="im-more__hint">원인 뉴스를 찾지 못한 움직임</span></summary>
+    <ol class="im-quiet" id="imQuiet"></ol>
+  </details>
+  <details class="im-how">
+    <summary>어떻게 쟀나요</summary>
+    <ol class="im-steps">
+      <li><span><b>시장대로였다면</b>그 코인을 뺀 나머지 코인 24개(시총 가중)가 같은 시간에 움직인 만큼 × 그 코인이 평소 시장을 따라가는 정도(최근 30일).</span></li>
+      <li><span><b>혼자 움직인 만큼</b>실제 − 시장대로였다면. 60분 동안 평소 흔들림의 2.5배를 넘으면 ‘크게 움직였다’고 봅니다.</span></li>
+      <li><span><b>원인 뉴스</b>움직임 시작 30분 전부터 5분 뒤까지 나온 뉴스 중 그 코인을 제목에서 직접 언급한 것. 여러 건이면 어느 것 때문인지 확실하지 않다고 표시합니다.</span></li>
+    </ol>
+    <p class="im-note">같은 시간대의 통계적 연관이며 인과를 보장하지 않습니다. <a href="{B}about/#method">계산 방법 자세히</a></p>
+  </details>
+  <template id="imDetailTpl">
+    <div class="im-detail">
+      <div class="im-legend" aria-hidden="true"><span><i class="im-lg im-lg--actual"></i>실제</span><span><i class="im-lg im-lg--market"></i>시장대로였다면</span><span><i class="im-lg im-lg--event"></i>이 움직임</span></div>
+      <div class="im-chart"><svg role="img"></svg><div class="im-hover" hidden></div></div>
+      <p class="im-day"></p>
     </div>
-  </div>
+  </template>
 </section>""".format(B=B, icons=icons)
     head = '<script type="module" src="%sassets/moves.js?v=%s"></script>' % (B, ASSET_VER)
-    return shell("map", "뉴스 영향 — 뉴스가 움직인 몫", "코인 등락에서 시장 전체가 움직인 몫을 빼고, 남은 움직임에 원인 뉴스를 붙여 보여 줍니다.", B + "map/", body, now, extra_head=head)
+    return shell("map", "뉴스 영향 — 오늘 뉴스에 반응한 코인", "오늘 어떤 뉴스 뒤에 어떤 코인이 시장보다 얼마나 더 움직였는지 한 줄로 보여 줍니다.", B + "map/", body, now, extra_head=head)
 
 
 def page_listings(now):
