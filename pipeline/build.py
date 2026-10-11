@@ -5,7 +5,7 @@ import json
 import os
 import shutil
 
-from . import config, util
+from . import config, judge, util
 from .impact import assets_for, subjects
 from .moves import COINS as MOVE_COINS
 
@@ -221,6 +221,19 @@ def impact_badge(a):
     return '<span class="ib ib--wait" data-t0="%d">반응 측정 중</span>' % a["t0"]
 
 
+def ai_tag(a):
+    """로컬 AI가 사건으로 판정한 기사에만 붙는 작은 태그: '상장 · 호재 2'."""
+    ai = a.get("ai")
+    if not ai or ai.get("kind") != "event":
+        return ""
+    d = ai.get("dir")
+    txt = judge.TYPE_KO.get(ai.get("type"), "기타")
+    if d in ("bullish", "bearish"):
+        txt += " · %s %d" % (judge.DIR_KO[d], ai.get("str") or 1)
+    return '<span class="ait ait--%s" title="AI 판정(로컬 모델, 제목 기준): %s">%s</span>' % (
+        {"bullish": "bull", "bearish": "bear"}.get(d, "neu"), h(judge.label(ai)), h(txt))
+
+
 def chips(a):
     return "".join('<button class="achip" type="button" data-asset="%s" aria-pressed="false" aria-label="%s 관심 종목 추가">%s</button>' % (h(s), h(s), h(s))
                    for s in a.get("assets", [])[:4])
@@ -241,9 +254,9 @@ def card(a):
   <h3 class="fcard__title"><a href="{href}">{title}</a></h3>
   {body}
   {rx}
-  <div class="fcard__foot">{badge}<span class="achips">{chips}</span></div>
+  <div class="fcard__foot">{badge}{ait}<span class="achips">{chips}</span></div>
   {pat}
-</article>""".format(rx=rx_html(a, 0), pat=pattern_html(a), id=h(a["id"]), cat=cat, assets=h(",".join(a.get("assets", []))), imp_n=a["importance"], t0=a["t0"],
+</article>""".format(ait=ai_tag(a), rx=rx_html(a, 0), pat=pattern_html(a), id=h(a["id"]), cat=cat, assets=h(",".join(a.get("assets", []))), imp_n=a["importance"], t0=a["t0"],
                      catlabel=config.CATEGORY_LABEL.get(cat, cat), imp=imp, src=h(a["source_name"]), iso=util.iso(a["t0"]),
                      hm=md_hm(a["t0"]), lang=lang, href=article_path(a), title=h(a["title"]), body=body, badge=impact_badge(a), chips=chips(a))
 
@@ -256,6 +269,8 @@ def feed_item(a):
         "sum": a.get("summary") or [], "ex": a.get("excerpt") or "", "llm": a.get("summary_by") == "llm",
         "h": a.get("headline"), "st": a.get("impact_status") or "measuring", "url": a["url"],
         "rx": rx_cells(a), "pt": a.get("pattern"),
+        "ai": ({"t": judge.TYPE_KO.get(a["ai"].get("type"), "기타"), "d": a["ai"].get("dir"), "s": a["ai"].get("str"), "l": judge.label(a["ai"])}
+               if (a.get("ai") or {}).get("kind") == "event" else None),
     }
 
 
@@ -432,15 +447,24 @@ def page_article(a, related, now):
     rel = "".join('<li><a href="%s">%s</a><span class="muted">%s · %s</span></li>' % (article_path(r), h(r["title"]), h(r["source_name"]), md_hm(r["t0"])) for r in related) \
         or '<li class="muted">관련 기사가 없습니다.</li>'
     primary = subs[0][0] if subs else None
+    ai = a.get("ai")
+    ai_line = ('<p class="art__ai"><span class="art__ai-k">AI 판정</span><b>%s</b><span class="muted small">운영자 Mac의 로컬 모델(Gemma 4)이 제목만 보고 판정했습니다. 틀릴 수 있습니다.</span></p>'
+               % h(judge.label(ai))) if ai else ""
     if not subs:
-        impact_sec = ('<p class="art__skip">이 뉴스는 코인 가격과 직접 관련된 내용이 아니어서 가격 반응을 재지 않았습니다.</p>'
-                      '<p class="muted small">SIGNAL은 그 코인을 직접 언급한 뉴스와, 시장 전체를 움직이는 발표(FOMC·물가·고용, 크립토 ETF·규제·해킹·상장)만 잽니다. '
+        if ai and ai.get("kind") != "event":
+            skip_msg = "AI가 이 기사를 '%s' 기사로 판정해 가격 반응을 재지 않았습니다." % judge.KIND_KO.get(ai["kind"], "")
+        elif ai:
+            skip_msg = "사건이지만 SIGNAL이 재는 코인을 직접 다루지 않고 시장 전체를 움직일 미국 쪽 사건도 아니어서 가격 반응을 재지 않았습니다."
+        else:
+            skip_msg = "이 뉴스는 코인 가격과 직접 관련된 내용이 아니어서 가격 반응을 재지 않았습니다."
+        impact_sec = ai_line + ('<p class="art__skip">%s</p>' % skip_msg) + (
+                      '<p class="muted small">SIGNAL은 코인을 직접 다루는 사건 뉴스와, 시장 전체를 움직이는 발표(FOMC·물가·고용, 미국 규제기관의 업계 전반 조치 등)만 잽니다. '
                       '같은 시간에 마침 가격이 움직였다고 관련 없는 뉴스에 숫자를 붙이지 않기 위해서입니다.</p>')
     else:
         anyadj = any(adj for _, adj in subs)
         expl = ("시장 대비 값은 실제 가격 변화에서 같은 시간 시장 전체(시총 상위 5개, 그 코인 제외)가 움직인 몫을 뺀 것입니다. "
                 if anyadj else "시장 전체를 움직이는 발표라 BTC 가격 변화를 그대로 보여 줍니다. ")
-        impact_sec = """<p class="muted small">기사 기준 시각부터의 변화입니다. {expl}z는 평소 흔들림 대비 몇 배인지이며 |z| 3 이상 강, 2 이상 중입니다.</p>
+        impact_sec = ai_line + """<p class="muted small">기사 기준 시각부터의 변화입니다. {expl}z는 평소 흔들림 대비 몇 배인지이며 |z| 3 이상 강, 2 이상 중입니다.</p>
     <div class="table-wrap"><table class="itable"><thead><tr><th scope="col">코인</th><th scope="col">15분</th><th scope="col">1시간</th><th scope="col">24시간</th></tr></thead><tbody>{rows}</tbody></table></div>
     {note}{est}
     <figure class="chart" id="artChart" data-sym="{primary}" data-t0="{t0}">

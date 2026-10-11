@@ -63,6 +63,14 @@ def subjects(article):
     """반응을 잴 대상 [(코인, 시장 몫을 빼는지)]. 관련 없는 기사면 []."""
     if article.get("source") == "calendar":
         return [("BTC", False)]
+    # 로컬 AI 판정이 있으면 그것을 따른다: 사건이 아니면 재지 않고, 직접 다루는 코인(없으면 시장 전체 사건만 BTC)
+    ai = article.get("ai")
+    if ai and article.get("source") != "upbit-notice":
+        if ai.get("kind") != "event":
+            return []
+        if ai.get("coins"):
+            return [(c, True) for c in ai["coins"][: config.MAX_ASSETS_PER_ARTICLE]]
+        return [("BTC", False)] if ai.get("mw") else []
     coins = list(article.get("assets") or [])[: config.MAX_ASSETS_PER_ARTICLE]
     # 가격 움직임을 정리·전망하는 기사("비트코인 가격, 8만 달러 지킬까")는 사건이 아니라 반응을 재지 않는다
     if coins and article.get("source") != "upbit-notice" and _recap(article.get("title_orig") or article.get("title") or ""):
