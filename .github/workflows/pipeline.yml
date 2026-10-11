@@ -31,6 +31,15 @@ jobs:
           path: site
           fetch-depth: 1
 
+      # 운영자 Mac의 로컬 AI 판정(tools/judge_live.py가 llm 브랜치에 올림). 없으면 키워드 규칙으로 돈다
+      - name: Checkout local AI judgments (optional)
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: llm
+          path: llm
+          fetch-depth: 1
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

@@ -10,7 +10,7 @@ import os
 import shutil
 import sys
 
-from . import build, classify, collect, config, events as event_risk, impact, listings, mapdata, market, moves, notify, og, patterns, signals, summarize, util
+from . import build, classify, collect, config, events as event_risk, impact, judge, listings, mapdata, market, moves, notify, og, patterns, signals, summarize, util
 
 
 def load(prev):
@@ -201,6 +201,18 @@ def main(argv=None):
             a.update({"impact": {}, "impact_status": "measuring", "impact_tries": 0, "headline": None, "impact_v": impact.IMPACT_VERSION})
             a.pop("pattern", None)
             a["og_has_impact"] = False
+    # 로컬 AI 판정(Mac의 Gemma, llm 브랜치). 잴 대상이 바뀐 기사는 반응을 다시 잰다. 없으면 키워드 규칙 그대로
+    def reset(a):
+        a.update({"impact": {}, "impact_status": "measuring", "impact_tries": 0, "headline": None})
+        a.pop("pattern", None)
+        a["og_has_impact"] = False
+    try:
+        jd = judge.load()
+        judged = judge.apply(articles, jd, reset)
+        health["ai-judge"] = {"name": "AI 판정(로컬 모델)", "ok": now if jd else None, "error": None if jd else "판정 파일 없음", "added": judged}
+        util.log("ai judgments applied", judged)
+    except Exception as e:
+        util.log("ai judgments failed", e)
     prev_moves = util.read_json(os.path.join(args.prev, "data", "moves.json"), None) if args.prev else None
     caps = {c["s"]: c.get("cap") for c in (prev_moves or {}).get("coins", [])}
     impact.measure(articles, vol, now, caps)

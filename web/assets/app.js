@@ -273,6 +273,14 @@
     if (it.st === 'failed') return '<span class="ib ib--na">반응 측정 불가</span>';
     return '<span class="ib ib--wait" data-t0="' + it.t0 + '">반응 측정 중</span>';
   }
+  // 로컬 AI가 사건으로 판정한 기사의 작은 태그('상장 · 호재 2')
+  function aiHTML(it) {
+    var a = it.ai;
+    if (!a) return '';
+    var d = a.d === 'bullish' ? 'bull' : a.d === 'bearish' ? 'bear' : 'neu';
+    var txt = a.t + (a.d === 'bullish' ? ' · 호재 ' + (a.s || 1) : a.d === 'bearish' ? ' · 악재 ' + (a.s || 1) : '');
+    return '<span class="ait ait--' + d + '" title="AI 판정(로컬 모델, 제목 기준): ' + esc(a.l) + '">' + esc(txt) + '</span>';
+  }
   function cardHTML(it, i, isNew) {
     var lang = it.lang === 'en' && !it.llm ? '<span class="lang">EN</span>' : '';
     var body = it.sum && it.sum.length ? '<ul class="fcard__sum">' + it.sum.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>'
@@ -285,7 +293,7 @@
       '<span class="imp" data-lv="' + it.imp + '" role="img" aria-label="중요도 ' + it.imp + '/3"><i></i><i></i><i></i></span><span class="src">' + esc(it.src) + '</span>' +
       '<time datetime="' + new Date(it.t0 * 1000).toISOString() + '" data-ts="' + it.t0 + '">' + mdhm(it.t0) + '</time>' + lang + '</div>' +
       '<h3 class="fcard__title"><a href="' + BASE + 'a/' + esc(it.id) + '/">' + esc(it.title) + '</a></h3>' + body +
-      rxHTML(it) + '<div class="fcard__foot">' + badgeHTML(it) + '<span class="achips">' + chips + '</span></div>' + patHTML(it) + '</article>';
+      rxHTML(it) + '<div class="fcard__foot">' + badgeHTML(it) + aiHTML(it) + '<span class="achips">' + chips + '</span></div>' + patHTML(it) + '</article>';
   }
 
   // 대표 코인의 15분·1시간·24시간 반응 칸. 아직이면 남은 시간(data-due)을 보여 준다

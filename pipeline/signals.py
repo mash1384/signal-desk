@@ -10,7 +10,7 @@ import math
 import statistics
 from concurrent.futures import ThreadPoolExecutor
 
-from . import config, impact, util
+from . import config, impact, judge, util
 from .moves import COINS, _mentions
 
 WINDOWS = {"1h": 1, "4h": 4, "24h": 24}
@@ -67,6 +67,26 @@ def _own_change(c, doc, w):
     sd = c["sig60"] * math.sqrt(w)
     return round(own_now - own_then, 3), (round((own_now - own_then) / sd, 2) if sd else None), round(act, 3), round(mkt, 3)
 
+
+
+def _is_event(a):
+    ai = a.get("ai")
+    if ai:
+        return ai.get("kind") == "event"
+    return not impact._recap(a.get("title_orig") or a["title"])
+
+
+def _ai_str(a):
+    ai = a.get("ai") or {}
+    return (ai.get("str") or 0) if ai.get("kind") == "event" else 0
+
+
+def _ai_short(a):
+    """'상장 · 호재 2' 같은 짧은 판정(사건일 때만)."""
+    ai = a.get("ai") or {}
+    if ai.get("kind") != "event":
+        return None
+    return {"t": judge.TYPE_KO.get(ai.get("type"), "기타"), "d": ai.get("dir"), "s": ai.get("str")}
 
 def build(moves_doc, articles, listings_doc, fx, now):
     if not moves_doc or not moves_doc.get("coins"):
@@ -132,15 +152,16 @@ def build(moves_doc, articles, listings_doc, fx, now):
                 flags.append("news")
             cell["flags"] = flags
             # '왜?' 칸: 이 구간(없으면 직전 24시간)의 사건 뉴스 중 가장 중요한 것. 가격 정리 기사는 뺀다
-            pool = [a for a in mention if now - a["t0"] <= max(w, 24) * 3600 and not impact._recap(a.get("title_orig") or a["title"])]
+            # AI 판정이 있으면 사건으로 본 기사만, 강도가 큰 순서로 고른다(판정이 없으면 제목 규칙)
+            pool = [a for a in mention if now - a["t0"] <= max(w, 24) * 3600 and _is_event(a)]
             inwin = [a for a in pool if now - a["t0"] <= w * 3600]
-            pick = sorted(inwin or pool, key=lambda a: (-a.get("importance", 1), -a["t0"]))[:1]
-            cell["why"] = [{"id": a["id"], "title": a["title"], "src": a.get("source_name"), "t": a["t0"], "in": bool(inwin)} for a in pick]
+            pick = sorted(inwin or pool, key=lambda a: (-_ai_str(a), -a.get("importance", 1), -a["t0"]))[:1]
+            cell["why"] = [{"id": a["id"], "title": a["title"], "src": a.get("source_name"), "t": a["t0"], "in": bool(inwin), "ai": _ai_short(a)} for a in pick]
             row["w"][wk] = cell
         row["notices"] = [{"title": n["title"], "kind": n["kind"], "ts": n["ts"]} for n in notices if s in (n.get("symbols") or [])]
         row["series"] = {"t": c["t"], "m": c["m"]}
         row["news"] = [{"id": a["id"], "title": a["title"], "src": a.get("source_name"), "t": a["t0"], "imp": a.get("importance", 1),
-                        "recap": impact._recap(a.get("title_orig") or a["title"])} for a in mention if now - a["t0"] <= 86400][:40]
+                        "recap": not _is_event(a), "ai": _ai_short(a)} for a in mention if now - a["t0"] <= 86400][:40]
         out.append(row)
     return {"at": now, "t0": moves_doc["t0"], "minutes": moves_doc["minutes"], "step": moves_doc["step"], "fx": rate,
             "tide": {"total": moves_doc["tide"]["total"], "t": moves_doc["tide"]["t"]}, "thresh": THRESH, "coins": out}

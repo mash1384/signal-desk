@@ -1304,3 +1304,16 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-r
 .art__raw { display: block; margin-top: 2px; font-size: 11px; color: var(--text-3); font-family: var(--font-mono); white-space: nowrap; }
 .art__skip { margin: 4px 0 8px; padding: 14px 16px; border-radius: 12px; background: color-mix(in oklab, var(--text) 5%, transparent); font-size: 15px; line-height: 1.55; word-break: keep-all; }
 .dd__adj { margin-top: 6px; font-size: 12px; color: var(--text-3); }
+
+/* 로컬 AI 판정 태그 */
+.ait { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 999px; font-size: 11.5px; line-height: 1.5; white-space: nowrap;
+  color: var(--text-2); box-shadow: inset 0 0 0 1px var(--line); }
+.ait::before { content: "AI"; font-size: 9.5px; font-weight: 700; letter-spacing: .04em; opacity: .7; }
+.ait--bull { color: var(--up); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--up) 40%, transparent); }
+.ait--bear { color: var(--down); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--down) 40%, transparent); }
+.fcard__foot .ait { margin-left: 6px; }
+.sb-why__m .ait, .sb-news .m .ait { margin-right: 6px; font-size: 10.5px; padding: 0 6px; }
+.art__ai { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 14px; }
+.art__ai-k { font-size: 12px; font-weight: 700; color: var(--text-3); }
+.art__ai b { font-weight: 600; }
+.art__ai .muted { flex-basis: 100%; }

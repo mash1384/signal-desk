@@ -48,13 +48,20 @@ function main() {
       <span class="sb-cell__s">${w.newsb != null ? `평소 ${w.newsb < 1 ? w.newsb.toFixed(1) : Math.round(w.newsb)}건` : '비교 기록 없음'}</span>${meter(w.newsr ? w.newsr / 4 : 0)}</div>`;
     return move + vol + kimp + news;
   }
+  // 로컬 AI 판정 태그('상장 · 호재 2'). 사건으로 본 기사에만 온다
+  const aiTag = (a) => {
+    if (!a) return '';
+    const d = a.d === 'bullish' ? 'bull' : a.d === 'bearish' ? 'bear' : 'neu';
+    const dir = a.d === 'bullish' ? ` · 호재 ${a.s || 1}` : a.d === 'bearish' ? ` · 악재 ${a.s || 1}` : '';
+    return `<span class="ait ait--${d}" title="AI 판정(로컬 모델, 제목 기준)">${esc(a.t)}${dir}</span>`;
+  };
   function why(c) {
     const w = c.w[state.w];
     const nt = (c.notices || [])[0];
     const notice = nt ? `<span class="sb-notice is-${nt.kind}">${NOTICE[nt.kind] || '업비트 공지'} · ${ago(nt.ts, D.at)}</span>` : '';
     const n = w.why[0];
     if (!n) return `<div class="sb-why" role="cell">${notice}<span class="sb-why__none">${notice ? '' : `최근 24시간 ${esc(c.s)} 뉴스 없음`}</span></div>`;
-    return `<div class="sb-why" role="cell">${notice}<span class="sb-why__t">${esc(n.title)}</span><span class="sb-why__m">${esc(n.src || '')} · ${ago(n.t, D.at)}${n.in ? '' : ` · ${WK[state.w]} 이전 소식`}</span></div>`;
+    return `<div class="sb-why" role="cell">${notice}<span class="sb-why__t">${esc(n.title)}</span><span class="sb-why__m">${aiTag(n.ai)}${esc(n.src || '')} · ${ago(n.t, D.at)}${n.in ? '' : ` · ${WK[state.w]} 이전 소식`}</span></div>`;
   }
   const score = (c) => { const w = c.w[state.w]; return w.flags.length * 100 + Math.min(99, Math.abs(w.z || 0) * 10 + (w.volr || 0) * 5 + (c.notices.length ? 20 : 0)); };
 
@@ -92,7 +99,7 @@ function main() {
     box.innerHTML = `<div><div class="sb-legend" aria-hidden="true"><span><i class="sb-lg sb-lg--actual"></i>실제</span><span><i class="sb-lg sb-lg--market"></i>시장대로였다면</span><span><i class="sb-lg sb-lg--news"></i>${esc(c.s)} 뉴스</span></div>
         <div class="sb-chart"><svg role="img" aria-label="${esc(c.s)} 최근 24시간 실제 등락과 시장대로였다면"></svg><div class="sb-tip" hidden></div></div>
         <p class="sb-sum">24시간 동안 실제 <b class="${dir(c.w['24h'].act)}">${sgn(c.w['24h'].act, 2)}</b> = 시장대로였다면 <b>${sgn(c.w['24h'].mkt, 2)}</b> + 시장 대비 <b class="${dir(c.w['24h'].own)}">${sgn(c.w['24h'].own, 2)}</b> · 시장을 따라가는 정도 ${c.beta.toFixed(2)}배</p></div>
-      <div class="sb-news"><h3>최근 24시간 ${esc(c.name)} 뉴스 ${news.length}건</h3>${news.length ? `<ol>${news.map((n, i) => `<li><a href="${BASE}a/${esc(n.id)}/" data-i="${i}" class="${n.recap ? 'recap' : ''}"><time>${hm(n.t)}</time><span class="t">${esc(n.title)}</span><span class="m">${esc(n.src || '')}${n.recap ? ' · 가격 정리 기사' : ''}</span></a></li>`).join('')}</ol>` : '<p class="sb-news__none">최근 24시간 이 코인을 언급한 뉴스가 없습니다.</p>'}</div>`;
+      <div class="sb-news"><h3>최근 24시간 ${esc(c.name)} 뉴스 ${news.length}건</h3>${news.length ? `<ol>${news.map((n, i) => `<li><a href="${BASE}a/${esc(n.id)}/" data-i="${i}" class="${n.recap ? 'recap' : ''}"><time>${hm(n.t)}</time><span class="t">${esc(n.title)}</span><span class="m">${aiTag(n.ai)}${esc(n.src || '')}${n.recap ? ' · 사건 아님' : ''}</span></a></li>`).join('')}</ol>` : '<p class="sb-news__none">최근 24시간 이 코인을 언급한 뉴스가 없습니다.</p>'}</div>`;
     const svg = $('svg', box), tip = $('.sb-tip', box);
     const W = svg.clientWidth, H = svg.clientHeight, M = D.minutes, st = D.step;
     const padL = 2, padR = 46, padT = 10, padB = 40;
