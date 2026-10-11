@@ -106,13 +106,18 @@ def publish(doc):
 
 def run():
     os.makedirs(HOME, exist_ok=True)
+    # 이전 실행이 살아 있으면 건너뛴다(밀린 기사를 오래 판정하는 중일 수 있다)
     try:
-        fd = os.open(LOCK, os.O_CREAT | os.O_EXCL)
-        os.close(fd)
-    except FileExistsError:
-        if time.time() - os.path.getmtime(LOCK) < 3600:
-            log("이전 실행이 아직 도는 중")
-            return
+        pid = int(open(LOCK).read().strip())
+        if pid <= 0:
+            raise ValueError
+        os.kill(pid, 0)
+        log("이전 실행이 아직 도는 중", pid)
+        return
+    except (FileNotFoundError, ValueError, ProcessLookupError, PermissionError):
+        pass
+    with open(LOCK, "w") as f:
+        f.write(str(os.getpid()))
     try:
         cache = {}
         if os.path.exists(CACHE):
