@@ -6,26 +6,26 @@ import os
 from . import config, util
 
 _STYLE = """
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/static/split/WantedSans.min.css');
 *{margin:0;box-sizing:border-box}
-html,body{width:%dpx;height:%dpx;overflow:hidden;background:#0d0d10;color:#f4f4f6;
- font-family:'Pretendard','Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo',sans-serif;word-break:keep-all}
+html,body{width:%dpx;height:%dpx;overflow:hidden;background:#0d1b2d;color:#ffffff;
+ font-family:'Wanted Sans','Pretendard','Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo',sans-serif;word-break:keep-all}
 .wrap{position:relative;width:100%%;height:100%%;padding:64px 72px;display:flex;flex-direction:column}
-.glow{position:absolute;inset:0;background:radial-gradient(60%% 70%% at 85%% 0%%,rgba(214,255,63,.18),transparent 70%%),radial-gradient(50%% 60%% at 0%% 100%%,rgba(138,108,255,.22),transparent 70%%)}
+.glow{position:absolute;inset:0;background:radial-gradient(60%% 70%% at 90%% 0%%,rgba(108,230,243,.16),transparent 70%%),radial-gradient(55%% 60%% at 0%% 100%%,rgba(6,107,184,.35),transparent 70%%)}
 .brand{position:relative;display:flex;align-items:center;gap:14px;font-size:30px;font-weight:800;letter-spacing:-.02em}
 .mark{width:40px;height:40px}
-.slash{color:#d6ff3f}
-.meta{position:relative;margin-top:auto;display:flex;gap:14px;align-items:center;font-size:24px;color:#a8a8b3}
+
+.meta{position:relative;margin-top:auto;display:flex;gap:14px;align-items:center;font-size:24px;color:#a7bac9}
 .chip{padding:6px 14px;border-radius:999px;border:2px solid currentColor;font-weight:700;font-size:20px;letter-spacing:.06em}
 .crypto{color:#ffb547}.ai{color:#a996ff}.macro{color:#6be3c9}
 h1{position:relative;margin-top:36px;font-size:%dpx;line-height:1.28;font-weight:800;letter-spacing:-.03em;
  display:-webkit-box;-webkit-line-clamp:%d;-webkit-box-orient:vertical;overflow:hidden}
 .imp{position:relative;margin-top:28px;display:inline-flex;gap:12px;align-items:baseline;font-size:34px;font-weight:800}
-.imp small{font-size:22px;color:#a8a8b3;font-weight:600}
-.up{color:#4ade80}.down{color:#ff6b6b}
+.imp small{font-size:22px;color:#a7bac9;font-weight:600}
+.up{color:#61da92}.down{color:#f7857d}
 ol{position:relative;margin-top:30px;padding-left:0;list-style:none;display:grid;gap:18px}
 li{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:baseline;font-size:30px;font-weight:700;line-height:1.3}
-li span{color:#d6ff3f;font-size:26px}
+li span{color:#6ce6f3;font-size:26px}
 li em{font-style:normal;font-size:24px}
 """
 
@@ -86,9 +86,9 @@ def _doc(w, h, title_px, clamp, inner):
 
 
 def _brand():
-    return ('<div class="brand"><svg class="mark" viewBox="0 0 28 28"><rect x=".5" y=".5" width="27" height="27" rx="8" fill="#d6ff3f"/>'
-            '<path d="M5 15h4l2.5-6 4 11 2.5-5H23" fill="none" stroke="#141418" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-            'SIGNAL<span class="slash">/</span></div>')
+    return ('<div class="brand"><svg class="mark" viewBox="0 0 32 32"><rect width="32" height="32" rx="10" fill="#066bb8"/>'
+            '<circle cx="10.5" cy="21.5" r="2.6" fill="#fff"/><path d="M10.5 14a7.5 7.5 0 0 1 7.5 7.5M10.5 8.5a13 13 0 0 1 13 13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>'
+            'delfona</div>')
 
 
 def article_card(a):
@@ -105,7 +105,7 @@ def article_card(a):
 
 
 def default_card():
-    inner = '%s<h1>해외 속보를 한국어로,<br>그 뉴스가 움직인 가격까지.</h1><div class="meta">크립토 · AI · 매크로 시그널 데스크</div>' % _brand()
+    inner = '%s<h1>돈이 움직이는 소식을,<br>가장 먼저 쉽게.</h1><div class="meta">국내외 속보 · 호재·악재 · 하루 정리 · 상장·발표 레이더</div>' % _brand()
     return _doc(1200, 630, 64, 3, inner)
 
 

@@ -1,4 +1,4 @@
-"""SIGNAL 파이프라인 설정.
+"""Delfona 파이프라인 설정.
 
 수집원, 자산 사전, 분류 키워드, 측정 구간을 한곳에 모은다.
 여기 값만 바꾸면 동작이 바뀌도록 다른 모듈에는 상수를 두지 않는다.
@@ -8,8 +8,8 @@ import os
 
 SITE_URL = (os.environ.get("SIGNAL_SITE_URL") or "https://mash1384.github.io/signal-desk").rstrip("/")
 SITE_BASE = os.environ.get("SIGNAL_SITE_BASE") or "/signal-desk/"
-SITE_NAME = "SIGNAL"
-USER_AGENT = "Mozilla/5.0 (compatible; SIGNAL-bot/1.0; +" + SITE_URL + "/about/)"
+SITE_NAME = "Delfona"
+USER_AGENT = "Mozilla/5.0 (compatible; Delfona-bot/1.0; +" + SITE_URL + "/about/)"
 
 # 보관 정책
 KEEP_DAYS = 30

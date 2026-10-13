@@ -1,9 +1,12 @@
-# SIGNAL — 크립토 · AI · 매크로 시그널 데스크
+# Delfona — 돈이 움직이는 소식을, 가장 먼저 쉽게
 
-해외 크립토·AI·경제 속보를 한곳에 모으고, 각 뉴스 뒤에 비트코인 등 가격이 실제로 얼마나 움직였는지(15분·1시간·24시간)를 실측해 보여 주는 정적 사이트입니다.
+국내외 크립토·경제·세계 속보를 실시간으로 한국어로 옮기고 호재·악재를 붙여 보여 주는 정적 사이트입니다(2026-10-13 SIGNAL에서 이름·구성·디자인 전면 개편).
 
 - 사이트: https://mash1384.github.io/signal-desk/
-- 서버 없음. GitHub Actions가 15분마다 수집·측정·빌드하고 `gh-pages` 브랜치에 배포합니다.
+- 메뉴: 지금(홈) · 속보 · 정리(하루 정리) · 코인(코인별 시세·소식, 내 코인) · 레이더(상장·발표)
+- 서버 없음. GitHub Actions가 15분마다 기사 수집·빌드하고 `gh-pages`에 배포합니다. 실시간 속보·하루 정리·기사 판정은 운영자 Mac의 로컬 AI가 만들어
+  `flash`·`llm` 브랜치에 올리고, 브라우저는 Cloudflare Worker(`worker/`)를 거쳐 받습니다(`tools/`).
+- 개편 전 상태는 태그 `backup-2026-10-13`과 `backup/2026-10-13-*` 브랜치에 있습니다.
 
 ## 구조
 
@@ -17,7 +20,7 @@ pipeline/            Python 3 표준 라이브러리만 사용 (이미지·요�
   summarize.py       Claude 한국어 3줄 요약 (ANTHROPIC_API_KEY가 있을 때만)
   notify.py          텔레그램 알림 (토큰이 있을 때만)
   og.py              공유 카드 이미지 (Playwright + 크롬)
-  build.py           정적 페이지 생성
+  build.py           정적 페이지 생성(Delfona: 지금·속보·정리·코인·레이더·기사·소개)
   run.py             전체 실행
 web/assets/          styles.css, app.js, icon.svg
 tests/               단위 테스트
