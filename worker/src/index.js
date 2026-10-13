@@ -4,6 +4,7 @@
 //   GET /upbit-notices          거래 공지 목록 첫 페이지 (2분 캐시)
 //   GET /upbit-notice/<숫자 id>  공지 본문 (하루 캐시)
 //   GET /upbit-candles?market=KRW-XXX[&to=ISO][&count=1~200]  원화 마켓 1분봉 (30초 캐시, 브라우저의 실시간 곡선용)
+//   GET /tg                     텔레그램 속보 묶음(운영자 Mac이 tg 브랜치에 올린 tg.json, 20초 캐시). raw.githubusercontent는 5분 캐시라 API로 받는다
 // GET /: 상태 확인용 한 줄.
 const UPBIT_NOTICES = 'https://api-manager.upbit.com/api/v1/announcements?os=web&page=1&per_page=20&category=trade';
 const UA = 'Mozilla/5.0 (compatible; SIGNAL-bot/1.0; +https://mash1384.github.io/signal-desk/about/)';
@@ -39,6 +40,22 @@ async function relay(ctx, cacheKey, upstream, maxAge) {
   return res;
 }
 
+async function tgFeed(env, ctx) {
+  const cache = caches.default;
+  const key = new Request('https://signal-cache/tg');
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const up = await fetch(`https://api.github.com/repos/${env.REPO}/contents/tg.json?ref=tg`, {
+    headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github.raw+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'signal-scheduler' },
+  });
+  const res = new Response(up.ok ? up.body : JSON.stringify({ items: [], error: up.status }), {
+    status: up.ok ? 200 : 502,
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'max-age=20', ...CORS },
+  });
+  if (up.ok) ctx.waitUntil(cache.put(key, res.clone()));
+  return res;
+}
+
 const bad = (msg) => new Response(msg, { status: 400, headers: CORS });
 
 export default {
@@ -62,6 +79,7 @@ export default {
       const q = `market=${market}&count=${count}` + (to ? `&to=${to}` : '');
       return relay(ctx, 'upbit-candles?' + q, `https://api.upbit.com/v1/candles/minutes/1?${q}`, 30);
     }
+    if (pathname === '/tg') return tgFeed(env, ctx);
     if (pathname === '/') return new Response('SIGNAL scheduler: dispatches pipeline every 15 minutes\n', { headers: CORS });
     return new Response('not found', { status: 404, headers: CORS });
   },
