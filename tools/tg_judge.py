@@ -70,6 +70,7 @@ strength: 0=영향 없음 1=작음 2=눈에 띔(수억 달러, 주요 규제기�
 형식: {"ko": "", "kind": "", "verdict": "", "coins": [], "sectors": [], "market_wide": false, "strength": 0}"""
 
 TICKER = re.compile(r"^[A-Z0-9]{2,10}$")
+HAN = re.compile(r"[\u4e00-\u9fff]")
 STOCKISH = {"NVDA", "TSLA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "COIN", "MSTR", "HOOD", "CRCL", "USD", "KRW", "EUR", "JPY", "CNY",
             "AI", "ETF", "CPI", "PPI", "GDP", "FED", "FOMC", "SEC", "CFTC", "US", "USA", "EU", "UK", "IPO", "CEO", "DEFI", "NFT", "RWA", "DEX", "CEX"}
 
@@ -152,6 +153,8 @@ def judge_one(con, lang, ch, mid, text):
         r = {"ko": "", "kind": "unrelated", "verdict": "중립", "coins": [], "sectors": [], "market_wide": False, "strength": 0}
     else:
         r = normalize(ask(ch, lang.get(ch, "?"), body))
+        if r and HAN.search(r["ko"]):          # 중국어 원문의 한자가 남으면 한 번 더
+            r = normalize(ask(ch, lang.get(ch, "?"), body + "\n\n(주의: ko에 한자·중국어를 남기지 말고 전부 한국어로 옮겨라)")) or r
         if r is None:
             r = {"ko": "", "kind": "unrelated", "verdict": "중립", "coins": [], "sectors": [], "market_wide": False, "strength": 0}
             log("판정 형식 오류", ch, mid)

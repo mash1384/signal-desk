@@ -142,12 +142,16 @@ def embed(texts):
     return res
 
 
-def load(con):
-    since = int(time.time()) - WINDOW - GAP
+KEEP_EMB = 72 * 3600        # 임베딩 보관(하루 정리가 지난 하루를 다시 묶을 수 있게)
+
+
+def load(con, since=None, until=None):
+    since = int(since if since is not None else time.time() - WINDOW - GAP)
+    until = int(until if until is not None else time.time() + 3600)
     rows = con.execute("""SELECT m.ch, m.id, m.t, m.links, a.ko, a.kind, a.verdict, a.coins, a.sectors, a.market_wide, a.strength
         FROM msgs m JOIN ai a ON a.ch=m.ch AND a.id=m.id
-        WHERE m.t >= ? AND a.ko != '' AND a.kind IN (%s) ORDER BY m.t, m.ch, m.id""" % ",".join("?" * len(SHOW_KINDS)),
-                       (since, *SHOW_KINDS)).fetchall()
+        WHERE m.t >= ? AND m.t < ? AND a.ko != '' AND a.kind IN (%s) ORDER BY m.t, m.ch, m.id""" % ",".join("?" * len(SHOW_KINDS)),
+                       (since, until, *SHOW_KINDS)).fetchall()
     rows = [{"ch": r[0], "id": r[1], "t": r[2], "links": json.loads(r[3] or "[]"), "ko": r[4], "kind": r[5], "verdict": r[6],
              "coins": json.loads(r[7]), "sectors": json.loads(r[8]), "market_wide": bool(r[9]), "strength": r[10]} for r in rows]
     have = {(c, i): (ko, json.loads(v)) for c, i, ko, v in con.execute("SELECT ch, id, ko, v FROM emb WHERE ch||id IN (SELECT ch||id FROM msgs WHERE t >= ?)", (since,))}
@@ -158,18 +162,24 @@ def load(con):
             have[(r["ch"], r["id"])] = (r["ko"], v)
             con.execute("INSERT OR REPLACE INTO emb VALUES(?,?,?,?)", (r["ch"], r["id"], r["ko"], json.dumps(v)))
         con.commit()
-    con.execute("DELETE FROM emb WHERE ch||id NOT IN (SELECT ch||id FROM msgs WHERE t >= ?)", (since,))
+    con.execute("DELETE FROM emb WHERE ch||id NOT IN (SELECT ch||id FROM msgs WHERE t >= ?)", (int(time.time()) - KEEP_EMB,))
     con.commit()
     return rows, [have[(r["ch"], r["id"])][1] for r in rows]
 
 
+def stories(con, since=None, until=None):
+    """기간 안의 판정된 줄을 같은 소식끼리 묶어 항목 목록으로(거르지 않음)."""
+    import numpy as np
+    rows, vecs = load(con, since, until)
+    if not rows:
+        return []
+    V = np.array(vecs, dtype=np.float32).reshape(len(rows), -1)
+    return [merge([rows[i] for i in g]) for g in cluster(rows, V @ V.T)]
+
+
 def build(con, now=None):
     now = int(now or time.time())
-    rows, vecs = load(con)
-    import numpy as np
-    V = np.array(vecs, dtype=np.float32).reshape(len(rows), -1)
-    items = [merge([rows[i] for i in g]) for g in cluster(rows, V @ V.T)]
-    items = [it for it in items if it["t"] >= now - WINDOW and visible(it)]
+    items = [it for it in stories(con) if it["t"] >= now - WINDOW and visible(it)]
     items.sort(key=lambda it: -it["t"])
     last = con.execute("SELECT MAX(got) FROM msgs").fetchone()[0] or 0
     return {"v": 2, "at": now, "last_got": last, "sectors": __import__("tg_judge").SECTORS, "items": items[:MAX_ITEMS]}
@@ -209,7 +219,9 @@ def run():
     while True:
         try:
             doc = build(con)
-            key = json.dumps(doc["items"], ensure_ascii=False)
+            daily = os.path.join(BRANCH_DIR, "daily")    # daily_brief.py가 여기에 하루 정리를 넣는다
+            key = json.dumps(doc["items"], ensure_ascii=False) + "".join(
+                "%s%d" % (f, os.path.getmtime(os.path.join(daily, f))) for f in sorted(os.listdir(daily))) if os.path.isdir(daily) else json.dumps(doc["items"], ensure_ascii=False)
             if key != sent_key and time.time() - sent_at >= PUSH_GAP:
                 publish(doc)
                 sent_key, sent_at, fails = key, time.time(), 0
