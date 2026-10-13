@@ -79,7 +79,7 @@ export default {
       const q = `market=${market}&count=${count}` + (to ? `&to=${to}` : '');
       return relay(ctx, 'upbit-candles?' + q, `https://api.upbit.com/v1/candles/minutes/1?${q}`, 30);
     }
-    if (pathname === '/flash' || pathname === '/tg') return flashFeed(env, ctx);   // /tg: 배포 전환 중에만
+    if (pathname === '/flash') return flashFeed(env, ctx);
     if (pathname === '/') return new Response('SIGNAL scheduler: dispatches pipeline every 15 minutes\n', { headers: CORS });
     return new Response('not found', { status: 404, headers: CORS });
   },
