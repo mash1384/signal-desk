@@ -203,7 +203,7 @@ async def _run():
         except Exception as e:
             log("채널 못 찾음", n, type(e).__name__)
     by_id = {e.id: n for n, e in ents.items()}
-    stat = {"push": 0, "poll": 0}
+    stat = {"push": 0, "poll": 0, "backfill": 0}
 
     def keep(n, m, via):
         if save(con, row(n, m, via)):
@@ -228,7 +228,7 @@ async def _run():
                     ms = await c.get_messages(e, limit=BACKFILL if lo is None else 100, min_id=lo or 0)
                     for m in reversed(ms):
                         if getattr(m, "action", None) is None:
-                            keep(n, m, "poll")
+                            keep(n, m, "poll" if lo else "backfill")   # 처음 가져온 지난 글은 속도 통계에서 뺀다
                 except errors.FloodWaitError as fw:
                     log("요청 제한, 대기", fw.seconds, "초")
                     await asyncio.sleep(fw.seconds + 1)
