@@ -214,6 +214,8 @@ UPBIT_NOTICES = "https://api-manager.upbit.com/api/v1/announcements?os=web&page=
 UPBIT_NOTICES_PROXY = os.environ.get("SIGNAL_UPBIT_PROXY") or ""
 # 실시간 속보 묶음(운영자 Mac → flash 브랜치 → Worker /flash). 브라우저가 30초마다 받는다
 TG_FEED = os.environ.get("SIGNAL_TG_FEED") or (UPBIT_NOTICES_PROXY[: -len("/upbit-notices")] + "/flash" if UPBIT_NOTICES_PROXY.endswith("/upbit-notices") else "")
+# 운영자 Mac의 하루 정리(tools/daily_brief.py → flash 브랜치 daily/). 파이프라인이 flash/ 로 체크아웃한다
+FLASH_DIR = os.environ.get("SIGNAL_FLASH_DIR") or "flash"
 FNG_URL = "https://api.alternative.me/fng/?limit=30"
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"

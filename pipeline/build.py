@@ -3,6 +3,7 @@
 import html
 import json
 import os
+import re
 import shutil
 
 from . import config, judge, util
@@ -347,7 +348,7 @@ def risk_html(ev, now):
             .format(B=B, name=h(u["name"]), when=hm(u["ts"]), ts=u["ts"], vs=vs))
 
 
-def page_feed(articles, market, cal, imp, now, ev=None):
+def page_feed(articles, market, cal, imp, now, ev=None, dailies=None):
     top = articles[: config.HOME_RENDER_LIMIT]
     cards = "\n".join(card(a) for a in top) or '<p class="empty">아직 수집된 기사가 없습니다. 첫 수집이 끝나면 여기에 나타납니다.</p>'
     upcoming = [e for e in cal if e["ts"] >= now - 3600][:5]
@@ -378,6 +379,7 @@ def page_feed(articles, market, cal, imp, now, ev=None):
       <p class="muted feed__upd">마지막 수집 <time data-ts="{now}">{now_hm}</time> · 15분마다 갱신</p>
     </div>
     {risk}
+    {daily}
     {flash}
     <button class="new-pill" id="newPill" type="button" hidden></button>
     <div class="feed__list" id="feedList">
@@ -390,11 +392,161 @@ def page_feed(articles, market, cal, imp, now, ev=None):
     <section class="panel"><h2 class="panel__title">다가오는 일정 <a class="panel__more" href="{B}events/">이벤트 리스크</a></h2><ul class="mini-cal">{cal}</ul></section>
     {brief}
   </aside>
-</div>""".format(now=now, now_hm=md_hm(now), cards=cards, cal=cal_html, B=B, temp=temp_panel(market), risk=risk_html(ev, now), flash=flash_html(),
+</div>""".format(now=now, now_hm=md_hm(now), cards=cards, cal=cal_html, B=B, temp=temp_panel(market), risk=risk_html(ev, now), flash=flash_html(), daily=daily_teaser(dailies, now),
            brief=('<section class="panel"><h2 class="panel__title">오늘의 시그널</h2><a class="brief-img" href="%sog/brief.jpg" target="_blank" rel="noopener"><img src="%sog/brief.jpg?v=%d" alt="오늘의 시그널 요약 이미지" width="1080" height="1080" loading="lazy"></a><p class="muted small">이미지를 길게 눌러 저장하거나 공유하세요.</p></section>' % (B, B, now)) if HAS_BRIEF else "")
     head = '<script type="module" src="%sassets/flash.js?v=%s"></script>' % (B, ASSET_VER) if config.TG_FEED else ""
     return shell("live", "라이브 — 크립토·AI·매크로 뉴스",
                  "국내외 속보를 실시간으로 한국어로 옮겨 호재·악재를 붙이고, 국내외 기사를 15분마다 모읍니다.", B + "live/", body, now, extra_head=head)
+
+
+# ---------- 하루 정리 (tools/daily_brief.py가 만든 daily/*.json) ----------
+DAILY_CATS = [("crypto", "크립토"), ("econ", "경제"), ("world", "세계정세"), ("ai", "AI 업계")]
+
+
+def load_dailies():
+    """flash/daily/*.json → 날짜 내림차순 목록. 형식이 다른 파일은 건너뛴다."""
+    d = os.path.join(config.FLASH_DIR, "daily")
+    out = []
+    if os.path.isdir(d):
+        for f in sorted(os.listdir(d), reverse=True):
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}\.json", f):
+                doc = util.read_json(os.path.join(d, f), None)
+                if isinstance(doc, dict) and doc.get("v") == 1 and doc.get("date") == f[:-5] and doc.get("headline"):
+                    out.append(doc)
+    return out
+
+
+def _day_label(date):
+    y, m, d = (int(x) for x in date.split("-"))
+    wd = WEEKDAY[util.kst(util.kst_to_ts(y, m, d, 12)).weekday()]
+    return "%d월 %d일 (%s)" % (m, d, wd)
+
+
+def daily_teaser(dailies, now):
+    """라이브 맨 위: 가장 최근 하루 정리 한 장. 이틀 넘게 지난 정리는 띄우지 않는다."""
+    if not dailies:
+        return ""
+    doc = dailies[0]
+    if now - doc["end"] > 2 * 86400:
+        return ""
+    yday = util.kst(now - 86400).strftime("%Y-%m-%d") == doc["date"] or (now - doc["end"] < 86400)
+    b = doc["balance"]
+    return """<a class="dl-teaser" href="{B}daily/{date}/">
+      <span class="dl-teaser__k">{when} 하루 정리 · {label}</span>
+      <b class="dl-teaser__h">{head}</b>
+      <span class="dl-teaser__v"><span class="up">호재 {u}</span><span class="down">악재 {d}</span><span class="dl-teaser__go">전체 보기 →</span></span>
+    </a>""".format(B=B, date=doc["date"], when="어제" if yday else "최근", label=_day_label(doc["date"]), head=h(doc["headline"]), u=b["호재"], d=b["악재"])
+
+
+def _dl_item(it):
+    v = it.get("v")
+    cls = {"호재": "up", "악재": "down"}.get(v, "flat")
+    tags = "".join('<span class="fl-tag">%s</span>' % h(c) for c in it.get("coins", []))
+    tags += "".join('<span class="fl-tag fl-tag--sec">%s 섹터</span>' % h(judge_sector_name(s)) for s in it.get("sectors", []))
+    tags += '<span class="fl-tag fl-tag--mw">시장 전체</span>' if it.get("mw") else ""
+    link = it.get("link") or ""
+    link_html = ('<a class="fl-link" href="%s" target="_blank" rel="noopener nofollow">관련 기사 ↗</a>' % h(link)) if link.startswith(("http://", "https://")) else ""
+    n = '<span>%d곳 보도</span>' % it["n"] if it.get("n", 1) > 1 else ""
+    return """<li class="fl-it{big}"><div class="fl-it__row"><span class="fl-v fl-v--{cls}">{v}</span><span class="fl-it__main">
+      <span class="fl-it__ko">{ko}</span><span class="fl-it__meta"><time>{t}</time>{n}{tags}{link}</span></span></div></li>""".format(
+        big=" is-big" if it.get("s", 0) >= 2 else "", cls=cls, v=h(v or ""), ko=h(it["ko"]), t=hm(it["t"]), n=n, tags=tags, link=link_html)
+
+
+def _dl_news(a):
+    link = a.get("link") or ""
+    src = '<span>%s%s</span>' % (h(a.get("src", "")), (" 외 %d곳" % (a["n"] - 1)) if a.get("n", 1) > 1 else "")
+    link_html = ('<a class="fl-link" href="%s" target="_blank" rel="noopener nofollow">기사 ↗</a>' % h(link)) if link.startswith(("http://", "https://")) else ""
+    return """<li class="fl-it"><div class="fl-it__row"><span class="fl-v fl-v--flat">기사</span><span class="fl-it__main">
+      <span class="fl-it__ko">{ko}</span><span class="fl-it__meta"><time>{t}</time>{src}{link}</span></span></div></li>""".format(
+        ko=h(a["ko"]), t=hm(a["t"]), src=src, link=link_html)
+
+
+SECTOR_KO = {"l1": "레이어1", "l2": "레이어2", "defi": "디파이", "ai": "AI", "meme": "밈", "rwa": "RWA·토큰화", "stable": "스테이블코인",
+             "exchange": "거래소", "gamefi": "게임·NFT", "depin": "디핀", "privacy": "프라이버시", "infra": "인프라", "mining": "채굴", "prediction": "예측시장"}
+
+
+def judge_sector_name(s):
+    return SECTOR_KO.get(s, s)
+
+
+def _pct(v):
+    return ("+" if v > 0 else "−" if v < 0 else "") + "%.1f%%" % abs(v)
+
+
+def page_daily(doc, prev, nxt, now):
+    b, m = doc["balance"], doc["market"]
+    tot = max(1, b["호재"] + b["악재"])
+    cats = "".join('<li><span>{n}</span><span class="dl-mini"><i class="up" style="--w:{wu:.3f}"></i><i class="down" style="--w:{wd:.3f}"></i></span><span class="up">{u}</span><span class="down">{d}</span></li>'.format(
+        n=name, u=c["호재"], d=c["악재"], wu=c["호재"] / max(1, c["호재"] + c["악재"]), wd=c["악재"] / max(1, c["호재"] + c["악재"]))
+        for k, name in DAILY_CATS for c in [doc["by_cat"].get(k, {"호재": 0, "악재": 0})] if c["호재"] + c["악재"])
+    secs = "".join('<li><span class="fl-tag fl-tag--sec">{n} 섹터</span><span class="up">호재 {u}</span><span class="down">악재 {d}</span></li>'.format(n=h(judge_sector_name(s)), u=u, d=d)
+                   for s, u, d in doc.get("sectors", [])[:5])
+    mk = ""
+    if m.get("btc"):
+        big = "".join('<div class="dl-big"><span>{c}</span><b class="{cls}">{v}</b></div>'.format(c=c, v=_pct(m[k]["chg"]), cls="up" if m[k]["chg"] >= 0 else "down")
+                      for c, k in (("BTC", "btc"), ("ETH", "eth")) if m.get(k))
+        mv = lambda xs, cls: " · ".join('%s <b class="%s">%s</b>' % (h(c), cls, _pct(v)) for c, v in xs) or "–"
+        mk = """<section class="dl-card"><h2 class="dl-card__t">같은 날 시세</h2><div class="dl-bigs">{big}</div>
+          <p class="dl-movers"><span>많이 오른</span>{up}</p><p class="dl-movers"><span>많이 내린</span>{down}</p>
+          <p class="dl-card__note">한국 시간 오전 9시부터 다음 날 9시까지, 주요 코인 {n}개 기준. 소식 때문에 움직였다는 뜻은 아니에요.</p></section>""".format(
+            big=big, up=mv(m.get("up", []), "up"), down=mv(m.get("down", []), "down"), n=m.get("n", 0))
+    key = "".join(_dl_item(it) for it in doc["key"])
+    sections = ""
+    for k, name in DAILY_CATS:
+        sec = doc["sections"].get(k) or {}
+        rows = "".join(_dl_news(a) for a in sec.get("news", [])) + "".join(_dl_item(it) for it in sec.get("items", []))
+        if not rows:
+            continue
+        sections += '<section class="dl-sec"><h3 class="dl-sec__t">{n}</h3>{say}<ol class="fl__list">{rows}</ol></section>'.format(
+            n=name, say=('<p class="dl-sec__say">%s</p>' % h(sec["say"])) if sec.get("say") else "", rows=rows)
+    sched = "".join('<li><time>{t}</time><span class="dl-ev__n">{n}{more}</span><span class="dl-ev__v">{vs}</span></li>'.format(
+        t=hm(e["ts"]), n=h(e["title"]), more=(' <small>외 %d건</small>' % e["more"]) if e.get("more") else "",
+        vs=("평소보다 %.1f배 크게 흔들렸던 발표" % e["vs"]) if e.get("vs") else ("예상 %s" % h(e["forecast"]) if e.get("forecast") else ""))
+        for e in doc.get("schedule", []))
+    pager = '<nav class="dl-pager" aria-label="다른 날">{p}<a href="{B}daily/">모든 정리</a>{n}</nav>'.format(
+        B=B, p=('<a href="%sdaily/%s/">← %s</a>' % (B, prev, _day_label(prev))) if prev else "<span></span>",
+        n=('<a href="%sdaily/%s/">%s →</a>' % (B, nxt, _day_label(nxt))) if nxt else "<span></span>")
+    s0, s1 = doc["start"], doc["end"]
+    body = """
+<div class="wrap dl">
+  <p class="dl__k">{label} 하루 정리 <span>한국 시간 {a} ~ {b}</span></p>
+  <h1 class="dl__h">{head}</h1>
+  {review}
+  <div class="dl-grid">
+    <section class="dl-card"><h2 class="dl-card__t">호재 vs 악재</h2>
+      <div class="dl-bal"><b class="up">{u}</b><span class="dl-bal__bar"><i class="up" style="--w:{wu:.3f}"></i><i class="down" style="--w:{wd:.3f}"></i></span><b class="down">{d}</b></div>
+      <ul class="dl-cats">{cats}</ul>
+      {secs}
+      <p class="dl-card__note">같은 소식은 하나로 묶어 셌어요. 중립 {nn}건은 빼고 셌어요.</p>
+    </section>
+    {mk}
+  </div>
+  <section class="dl-sec"><h2 class="dl-sec__t dl-sec__t--big">핵심 소식</h2><ol class="fl__list">{key}</ol></section>
+  {sections}
+  {sched}
+  <p class="fl__note">AI 리뷰와 분야별 문장은 로컬 AI가 위 자료만 보고 썼어요. 숫자는 프로그램이 계산했고, 소식과 시세는 같은 날 있었던 일을 나란히 둔 것이에요. 투자 조언이 아니에요.</p>
+  {pager}
+</div>""".format(label=_day_label(doc["date"]), a=util.kst(s0).strftime("%-m/%-d %H:%M"), b=util.kst(s1).strftime("%-m/%-d %H:%M"),
+                 head=h(doc["headline"]), review=('<section class="dl-review"><p class="dl-review__k">AI 리뷰</p><p>%s</p></section>' % h(doc["review"])) if doc.get("review") else "",
+                 u=b["호재"], d=b["악재"], wu=b["호재"] / tot, wd=b["악재"] / tot, nn=b.get("중립", 0), cats=cats,
+                 secs=('<ul class="dl-secs">%s</ul>' % secs) if secs else "", mk=mk, key=key, sections=sections,
+                 sched=('<section class="dl-sec"><h2 class="dl-sec__t">오늘 볼 일정 <a class="panel__more" href="%sevents/">이벤트 리스크</a></h2><ul class="dl-ev">%s</ul></section>' % (B, sched)) if sched else "",
+                 pager=pager)
+    desc = (doc.get("review") or doc["headline"])[:150]
+    return shell("daily", "%s 하루 정리 — %s" % (_day_label(doc["date"]), doc["headline"]), desc, B + "daily/%s/" % doc["date"], body, now)
+
+
+def page_daily_index(dailies, now):
+    rows = "".join('<li><a href="{B}daily/{d}/"><span class="dl-idx__d">{label}</span><b>{head}</b><span class="dl-idx__v"><span class="up">호재 {u}</span><span class="down">악재 {dn}</span></span></a></li>'.format(
+        B=B, d=x["date"], label=_day_label(x["date"]), head=h(x["headline"]), u=x["balance"]["호재"], dn=x["balance"]["악재"]) for x in dailies) \
+        or '<li class="fl-empty">아직 정리가 없어요. 매일 오전 9시에 전날 하루를 정리해요.</li>'
+    body = """
+<div class="wrap dl">
+  <h1 class="dl__h">하루 정리</h1>
+  <p class="fl__sub">매일 오전 9시, 전날 하루(오전 9시 ~ 다음 날 9시)의 크립토·경제·세계정세·AI 업계 소식을 AI가 정리해요.</p>
+  <ol class="dl-idx">{rows}</ol>
+</div>""".format(rows=rows)
+    return shell("daily", "하루 정리", "매일 오전 9시, 전날의 크립토·경제·세계정세·AI 업계 소식을 AI가 정리합니다.", B + "daily/", body, now)
 
 
 def flash_html():
@@ -1087,8 +1239,9 @@ def page_404(now):
     return shell("404", "페이지 없음", "페이지를 찾을 수 없습니다.", B + "404.html", body, now, robots="noindex")
 
 
-def sitemap(articles, now):
-    urls = [("", now), ("map/", now), ("live/", now), ("listings/", now), ("events/", now), ("about/", now)]
+def sitemap(articles, now, dailies=()):
+    urls = [("", now), ("map/", now), ("live/", now), ("listings/", now), ("events/", now), ("about/", now), ("daily/", now)]
+    urls += [("daily/%s/" % d["date"], d["made"]) for d in dailies]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
     return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">%s</urlset>' % body
@@ -1122,7 +1275,13 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     util.write_text(os.path.join(out, ".nojekyll"), "")
     util.write_text(os.path.join(out, "index.html"), page_landing(articles, market, cal, imp, now, extra.get("listings.json"), extra.get("events.json")))
-    util.write_text(os.path.join(out, "live", "index.html"), page_feed(articles, market, cal, imp, now, extra.get("events.json")))
+    dailies = load_dailies()
+    util.write_text(os.path.join(out, "live", "index.html"), page_feed(articles, market, cal, imp, now, extra.get("events.json"), dailies))
+    for i, doc in enumerate(dailies):
+        nxt = dailies[i - 1]["date"] if i > 0 else None
+        prev = dailies[i + 1]["date"] if i + 1 < len(dailies) else None
+        util.write_text(os.path.join(out, "daily", doc["date"], "index.html"), page_daily(doc, prev, nxt, now))
+    util.write_text(os.path.join(out, "daily", "index.html"), page_daily_index(dailies, now))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
     util.write_text(os.path.join(out, "map", "index.html"), page_map(market, now))
@@ -1134,6 +1293,6 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     util.write_text(os.path.join(out, "me", "index.html"), page_me(now))
     util.write_text(os.path.join(out, "about", "index.html"), page_about(health, now))
     util.write_text(os.path.join(out, "404.html"), page_404(now))
-    util.write_text(os.path.join(out, "sitemap.xml"), sitemap(articles, now))
+    util.write_text(os.path.join(out, "sitemap.xml"), sitemap(articles, now, dailies))
     util.write_text(os.path.join(out, "robots.txt"), "User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml\n" % config.SITE_URL)
     util.write_json(os.path.join(out, "data", "feed.json"), {"at": now, "items": [feed_item(a) for a in articles[: config.FEED_JSON_LIMIT]]})

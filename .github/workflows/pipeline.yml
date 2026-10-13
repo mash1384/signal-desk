@@ -40,6 +40,15 @@ jobs:
           path: llm
           fetch-depth: 1
 
+      # 운영자 Mac의 하루 정리(tools/daily_brief.py가 flash 브랜치 daily/에 올림). 없으면 하루 정리 페이지만 비어 있다
+      - name: Checkout daily briefs (optional)
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: flash
+          path: flash
+          fetch-depth: 1
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
