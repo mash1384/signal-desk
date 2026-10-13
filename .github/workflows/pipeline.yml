@@ -84,7 +84,7 @@ jobs:
 
       - name: Publish to gh-pages
         run: |
-          rsync -a --delete --exclude .git dist/ site/
+          rsync -a --delete --exclude .git --exclude /preview/ dist/ site/
           cd site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
