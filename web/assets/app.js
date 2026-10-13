@@ -261,18 +261,6 @@
 
   /* ---------- 피드 ---------- */
   var feed = null;
-  function badgeHTML(it) {
-    var hd = it.h;
-    if (hd) {
-      var d = hd.r >= 0 ? 'up' : 'down';
-      var g = { '강': 's', '중': 'm' }[hd.g] || 'w';
-      return '<span class="ib ib--' + d + ' ib--g' + g + '" title="기사 시각부터 ' + (hd.win === '1h' ? '1시간' : '15분') + ' 동안 ' + hd.asset + (hd.adj ? ' 가격 변화에서 시장 몫을 뺀 값' : ' 가격 변화(시장 전체 반응)') + '">' + ICON[d] +
-        '<b>' + esc(hd.asset) + ' ' + hd.win + '</b> ' + (hd.adj ? '시장 대비 ' : '') + pct(hd.r) + (hd.g ? ' · ' + hd.g : '') + '</span>';
-    }
-    if (it.st === 'skip') return '';
-    if (it.st === 'failed') return '<span class="ib ib--na">반응 측정 불가</span>';
-    return '<span class="ib ib--wait" data-t0="' + it.t0 + '">반응 측정 중</span>';
-  }
   // 로컬 AI가 사건으로 판정한 기사의 작은 태그('상장 · 호재 2')
   function aiHTML(it) {
     var a = it.ai;
@@ -293,37 +281,15 @@
       '<span class="imp" data-lv="' + it.imp + '" role="img" aria-label="중요도 ' + it.imp + '/3"><i></i><i></i><i></i></span><span class="src">' + esc(it.src) + '</span>' +
       '<time datetime="' + new Date(it.t0 * 1000).toISOString() + '" data-ts="' + it.t0 + '">' + mdhm(it.t0) + '</time>' + lang + '</div>' +
       '<h3 class="fcard__title"><a href="' + BASE + 'a/' + esc(it.id) + '/">' + esc(it.title) + '</a></h3>' + body +
-      rxHTML(it) + '<div class="fcard__foot">' + badgeHTML(it) + aiHTML(it) + '<span class="achips">' + chips + '</span></div>' + patHTML(it) + '</article>';
+      '<div class="fcard__foot">' + aiHTML(it) + '<span class="achips">' + chips + '</span></div></article>';
   }
 
-  // 대표 코인의 15분·1시간·24시간 반응 칸. 아직이면 남은 시간(data-due)을 보여 준다
-  function rxHTML(it) {
-    var rx = it.rx;
-    if (!rx) return '';
-    var cells = [['15m', '15분', 900], ['1h', '1시간', 3600], ['24h', '24시간', 86400]].map(function (w) {
-      var v = rx[w[0]];
-      if (v != null) return '<span class="rxc"><b>' + w[1] + '</b><em class="' + (v >= 0 ? 'up' : 'down') + '">' + pct(v) + '</em></span>';
-      if (it.st === 'failed') return '<span class="rxc is-na"><b>' + w[1] + '</b><em>–</em></span>';
-      return '<span class="rxc is-wait"><b>' + w[1] + '</b><em data-due="' + (it.t0 + w[2]) + '">' + dueText(it.t0 + w[2]) + '</em></span>';
-    }).join('');
-    return '<div class="rxcells" aria-label="' + esc(rx.s) + (rx.adj ? ' 시장 대비 반응' : ' 시장 전체 반응') + '"><span class="rxcells__s">' + esc(rx.s) + '<small>' + (rx.adj ? '시장 대비' : '시장 전체') + '</small></span>' + cells + '</div>';
-  }
   function dueText(due) {
     var left = due + 120 - now();
     if (left <= 0) return '다음 갱신 때 반영';
     if (left < 3600) return Math.ceil(left / 60) + '분 뒤';
     return Math.floor(left / 3600) + '시간 ' + Math.round((left % 3600) / 60) + '분 뒤';
   }
-  function patHTML(it) {
-    var pt = it.pt;
-    if (!pt) return '';
-    var v = pt.n >= 5
-      ? '<p class="fpat__v">' + esc(pt.sym) + ' 1시간 ' + (pt.adj ? '시장 대비 ' : '') + '중앙값 <b class="' + (pt.med >= 0 ? 'up' : 'down') + '">' + pct(pt.med) + '</b> · 상승 ' + Math.round(pt.up * 100) + '% · 중·강 ' + Math.round(pt.strong * 100) + '% <span class="muted">(n=' + pt.n + ', 최근 30일)</span></p>'
-        + (pt.top && pt.top.id ? '<p class="fpat__top small muted">가장 컸던 사례: <a href="' + BASE + 'a/' + esc(pt.top.id) + '/">' + esc(pt.top.title) + '</a> (' + esc(pt.top.sym) + ' ' + pct(pt.top.r1h) + ')</p>' : '')
-      : '<p class="fpat__v muted">표본 부족 (n=' + pt.n + ')</p>';
-    return '<details class="fpat"><summary>이런 뉴스는 보통 · ' + esc(pt.label) + ' · ' + esc(pt.sym) + '</summary>' + v + '<p class="small muted">' + esc(pt.sym) + ' 관련 같은 유형 뉴스만 모았습니다. 같은 시간대의 가격 변화이며, 뉴스가 원인이라는 뜻은 아닙니다.</p></details>';
-  }
-  // 측정까지 남은 시간은 30초마다 고친다
   function leftText(ts) {
     var left = ts - now();
     if (left <= 0) return '발표됨';
@@ -341,20 +307,20 @@
     var list = $('#feedList');
     if (!list) return;
     var PAGE = 40;
-    var f = Object.assign({ cat: 'all', major: false, strong: false, watch: false, ko: false }, store('signal-filters', {}));
+    var f = Object.assign({ cat: 'all', major: false, watch: false, ko: false }, store('signal-filters', {}));
+    delete f.strong;   // 예전 '반응 강·중만' 설정은 버린다
     var items = null, shown = PAGE, pending = null, known = {};
     var more = $('#loadMore'), pill = $('#newPill');
 
     function controls() {
       $$('#catFilter [data-cat]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.cat === f.cat)); });
-      $('#optMajor').checked = f.major; $('#optStrong').checked = f.strong; $('#optWatch').checked = f.watch; $('#optKo').checked = f.ko;
+      $('#optMajor').checked = f.major; $('#optWatch').checked = f.watch; $('#optKo').checked = f.ko;
     }
-    function isDefault() { return f.cat === 'all' && !f.major && !f.strong && !f.watch && !f.ko; }
+    function isDefault() { return f.cat === 'all' && !f.major && !f.watch && !f.ko; }
     function filtered() {
       var out = items.filter(function (it) {
         if (f.cat !== 'all' && it.cat !== f.cat) return false;
         if (f.major && it.imp < 2) return false;
-        if (f.strong && !(it.h && (it.h.g === '강' || it.h.g === '중'))) return false;
         if (f.ko && !(it.lang === 'ko' || it.llm)) return false;
         var mine = (it.assets || []).some(function (a) { return watch.indexOf(a) >= 0; });
         if (f.watch && !mine) return false;
@@ -419,7 +385,7 @@
       var n = bs[(i + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1) + bs.length) % bs.length];
       n.focus(); n.click();
     });
-    [['optMajor', 'major'], ['optStrong', 'strong'], ['optWatch', 'watch'], ['optKo', 'ko']].forEach(function (p) {
+    [['optMajor', 'major'], ['optWatch', 'watch'], ['optKo', 'ko']].forEach(function (p) {
       $('#' + p[0]).addEventListener('change', function (e) {
         f[p[1]] = e.target.checked; shown = PAGE; save('signal-filters', f);
         if (p[1] === 'watch' && f.watch && !watch.length) toast('마이 페이지나 기사 카드의 종목 버튼으로 관심 종목을 먼저 골라 주세요');
@@ -428,7 +394,7 @@
     });
     list.addEventListener('click', function (e) {
       if (e.target.id !== 'clearFilters') return;
-      f = { cat: 'all', major: false, strong: false, watch: false, ko: false }; save('signal-filters', f); controls(); render(true);
+      f = { cat: 'all', major: false, watch: false, ko: false }; save('signal-filters', f); controls(); render(true);
     });
     more.addEventListener('click', function () { shown += PAGE; render(false); });
     pill.addEventListener('click', function () {
