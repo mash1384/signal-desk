@@ -131,6 +131,43 @@ def lock_session():
             os.chmod(p, 0o600)
 
 
+class paused:
+    """상시 수집기가 세션 파일을 쥐고 있으면 --login/--join 이 'database is locked'로 막힌다. 잠깐 내렸다가 다시 올린다."""
+    def __enter__(self):
+        self.plist = os.path.expanduser("~/Library/LaunchAgents/%s.plist" % LABEL)
+        self.target = f"gui/{os.getuid()}/{LABEL}"
+        self.was = subprocess.run(["launchctl", "print", self.target], capture_output=True).returncode == 0
+        if self.was:
+            subprocess.run(["launchctl", "bootout", self.target], capture_output=True)
+            for _ in range(50):                     # 프로세스가 내려갈 때까지(최대 10초)
+                if not os.path.exists(LOCK) or not _alive(LOCK):
+                    break
+                time.sleep(0.2)
+            log("수집기 잠시 멈춤")
+
+    def __exit__(self, *exc):
+        if self.was:
+            # bootout 직후엔 launchd가 아직 정리 중이라 bootstrap이 'Input/output error'로 실패할 수 있다
+            for _ in range(10):
+                r = subprocess.run(["launchctl", "bootstrap", f"gui/{os.getuid()}", self.plist], capture_output=True, text=True)
+                if r.returncode == 0 or subprocess.run(["launchctl", "print", self.target], capture_output=True).returncode == 0:
+                    log("수집기 다시 켬")
+                    return
+                time.sleep(1)
+            log("수집기를 다시 켜지 못함:", r.stderr.strip()[:120], "→ --install 을 실행하세요")
+
+
+def _alive(path):
+    try:
+        pid = int(open(path).read().strip())
+        if pid <= 0:
+            return False
+        os.kill(pid, 0)
+        return True
+    except (FileNotFoundError, ValueError, ProcessLookupError, PermissionError):
+        return False
+
+
 # ---------- 명령 ----------
 def init():
     os.makedirs(HOME, exist_ok=True)
@@ -326,9 +363,11 @@ if __name__ == "__main__":
     if "--init" in a:
         init()
     elif "--login" in a:
-        asyncio.run(_login())
+        with paused():
+            asyncio.run(_login())
     elif "--join" in a:
-        asyncio.run(_join())
+        with paused():
+            asyncio.run(_join())
     elif "--install" in a:
         install()
     elif "--status" in a:
