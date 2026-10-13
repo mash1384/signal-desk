@@ -5,7 +5,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pipeline import events, listings, mapdata, moves, patterns, signals, util  # noqa: E402
+from pipeline import events, listings, mapdata, moves, signals, util  # noqa: E402
 
 
 class Listings(unittest.TestCase):
@@ -40,6 +40,20 @@ class Listings(unittest.TestCase):
         m = listings.metrics({"trade": {"pts": [[0, 0.0], [60, 50.0], [120, 80.0], [1440, 20.0]]}})
         self.assertEqual((m["peak24"], m["peak_min"], m["r60"], m["r1440"]), (80.0, 120, 50.0, 20.0))
         self.assertAlmostEqual(m["dd_from_peak"], -33.333, places=2)
+
+
+class Follow(unittest.TestCase):
+    def test_follow_stats_counts_losses_after_fee(self):
+        rows = [{"tc": [[10, 10.0], [1440, 0.0]]},        # 10%→0%: 손해
+                {"tc": [[10, 0.0], [1440, 0.05]]},         # +0.05%지만 수수료 0.1% 빼면 손해
+                {"tc": [[10, 0.0], [1440, 20.0]]},         # 이익
+                {"tc": [[10, 0.0], [1440, 99.0]], "live": 1},   # 진행 중은 뺀다
+                {"tc": [[5, 0.0]]}]                        # 곡선 모자람
+        loss, med, n = listings.follow_stats(rows)
+        self.assertEqual(n, 3)
+        self.assertAlmostEqual(loss, 2 / 3)
+        self.assertAlmostEqual(med, -0.05, places=2)
+        self.assertEqual(listings.follow_stats([]), (None, None, 0))
 
 
 class Events(unittest.TestCase):
@@ -82,21 +96,6 @@ class MapLayout(unittest.TestCase):
         a = {i: 0.01 * (i % 5) for i in range(100)}
         self.assertAlmostEqual(mapdata.corr(a, a), 1.0, places=6)
         self.assertIsNone(mapdata.corr(a, {}))
-
-
-class Patterns(unittest.TestCase):
-    def _art(self, i, etype, r1):
-        return {"id": "a%d" % i, "t0": 1000 + i, "title": "t%d" % i, "category": "crypto", "etype": etype,
-                "headline": {"asset": "BTC"}, "impact": {"BTC": {"1h": {"r": r1, "z": r1 * 2, "g": "약"}}}}
-
-    def test_similar_needs_samples(self):
-        arts = [self._art(i, "hack", 0.5 if i % 2 else -0.5) for i in range(7)]
-        patterns.attach_similar(arts, 2000)
-        self.assertEqual(arts[0]["pattern"]["n"], 6)
-        self.assertEqual(arts[0]["pattern"]["up"], 0.5)
-        few = [self._art(i, "etf", 0.1) for i in range(3)]
-        patterns.attach_similar(few, 2000)
-        self.assertEqual(few[0]["pattern"], {"label": "ETF", "sym": "BTC", "adj": False, "n": 2})
 
 
 class Moves(unittest.TestCase):

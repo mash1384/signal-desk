@@ -10,7 +10,7 @@ import os
 import shutil
 import sys
 
-from . import build, classify, collect, config, events as event_risk, impact, judge, listings, mapdata, market, moves, notify, og, patterns, signals, summarize, util
+from . import build, classify, collect, config, events as event_risk, impact, judge, listings, mapdata, market, moves, notify, og, signals, summarize, util
 
 
 def load(prev):
@@ -233,10 +233,6 @@ def main(argv=None):
     extra = {}
     base = {}
     try:
-        patterns.attach_similar(articles, now)
-    except Exception as e:
-        util.log("similar patterns failed", e)
-    try:
         extra["map.json"], base = mapdata.build(articles, snap, now, prev_json("map.json"))
     except Exception as e:
         util.log("map build failed", e)
@@ -261,14 +257,6 @@ def main(argv=None):
     except Exception as e:
         util.log("events build failed", e)
         extra["events.json"] = prev_json("events.json")
-    try:
-        if not base and extra.get("map.json"):
-            base = {x["s"]: x["base1h"] for x in extra["map.json"].get("assets", []) if x.get("base1h")}
-        base_res = {c["s"]: round(c["sig60"] * 0.6745, 4) for c in (extra.get("moves.json") or {}).get("coins", []) if c.get("sig60")}
-        extra["patterns.json"] = patterns.build(articles, base, imp, now, base_res)
-    except Exception as e:
-        util.log("patterns build failed", e)
-        extra["patterns.json"] = prev_json("patterns.json")
 
     alerts += strong_alerts(articles, now)
     b_alerts, brief_label = brief_alert(state, strongest_24h, now, args.out)

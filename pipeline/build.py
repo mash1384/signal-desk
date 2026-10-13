@@ -6,6 +6,7 @@ import os
 import shutil
 
 from . import config, judge, util
+from . import listings as listings_mod
 from .impact import assets_for, subjects
 from .moves import COINS as MOVE_COINS
 
@@ -16,9 +17,8 @@ ASSET_VER = "0"
 B = config.SITE_BASE
 WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
-NAV = [("map", "map/", "시그널 보드"), ("live", "live/", "라이브"), ("listings", "listings/", "상장 레이더"), ("events", "events/", "이벤트 리스크"),
-       ("patterns", "patterns/", "패턴")]
-TABBAR = ["map", "live", "listings", "events", "patterns"]
+NAV = [("map", "map/", "시그널 보드"), ("live", "live/", "라이브"), ("listings", "listings/", "상장 레이더"), ("events", "events/", "이벤트 리스크")]
+TABBAR = ["map", "live", "listings", "events"]
 TAB_LABEL = {"map": "시그널", "listings": "상장", "events": "이벤트"}
 
 CAL_KO = {
@@ -79,7 +79,7 @@ ICON = {
     "clock": '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.8"/><path d="M10 6v4.2l2.8 1.8"/></svg>',
     "grid": '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="3.5" width="5.5" height="5.5" rx="1.2"/><rect x="3.5" y="11" width="5.5" height="5.5" rx="1.2"/><rect x="11" y="11" width="5.5" height="5.5" rx="1.2"/></svg>',
 }
-TAB_ICON = {"map": "map", "live": "pulse", "listings": "rocket", "events": "clock", "patterns": "grid"}
+TAB_ICON = {"map": "map", "live": "pulse", "listings": "rocket", "events": "clock"}
 
 
 def h(text):
@@ -177,9 +177,9 @@ def shell(page, title, desc, path, body, now, og=None, robots="index,follow", ex
 </main>
 <footer class="footer">
   <div class="wrap footer__inner">
-    <div><span class="brand__word">SIGNAL<span class="brand__slash">/</span></span><p class="muted">해외 속보를 한국어로, 그리고 그 뉴스가 실제로 가격을 얼마나 움직였는지까지.</p></div>
-    <nav class="footer__nav" aria-label="푸터"><a href="{B}about/">소개·방법론</a><a href="{B}about/#sources">데이터 출처</a><a href="{B}patterns/">패턴</a><a href="{B}sitemap.xml">사이트맵</a></nav>
-    <p class="footer__note">기사 저작권은 각 원문 매체에 있으며 SIGNAL은 제목·요약·원문 링크만 제공합니다. 시세와 반응 수치는 정보 제공용이며 투자 조언이 아닙니다. 가격 반응은 상관을 측정한 값이고 인과를 뜻하지 않습니다.</p>
+    <div><span class="brand__word">SIGNAL<span class="brand__slash">/</span></span><p class="muted">상장·큰 발표·뉴스, 돈이 움직이는 순간을 지난 기록과 함께.</p></div>
+    <nav class="footer__nav" aria-label="푸터"><a href="{B}about/">소개·방법론</a><a href="{B}about/#sources">데이터 출처</a><a href="{B}sitemap.xml">사이트맵</a></nav>
+    <p class="footer__note">기사 저작권은 각 원문 매체에 있으며 SIGNAL은 제목·요약·원문 링크만 제공합니다. 시세와 과거 기록은 정보 제공용이며 투자 조언이 아닙니다. 지난 기록이 앞으로도 같다는 뜻은 아닙니다.</p>
   </div>
 </footer>
 <nav class="tabbar" aria-label="하단 메뉴">{tabs}</nav>
@@ -253,12 +253,10 @@ def card(a):
   <div class="fcard__meta"><span class="chip cat cat--{cat}">{catlabel}</span>{imp}<span class="src">{src}</span><time datetime="{iso}" data-ts="{t0}">{hm}</time>{lang}</div>
   <h3 class="fcard__title"><a href="{href}">{title}</a></h3>
   {body}
-  {rx}
-  <div class="fcard__foot">{badge}{ait}<span class="achips">{chips}</span></div>
-  {pat}
-</article>""".format(ait=ai_tag(a), rx=rx_html(a, 0), pat=pattern_html(a), id=h(a["id"]), cat=cat, assets=h(",".join(a.get("assets", []))), imp_n=a["importance"], t0=a["t0"],
+  <div class="fcard__foot">{ait}<span class="achips">{chips}</span></div>
+</article>""".format(ait=ai_tag(a), id=h(a["id"]), cat=cat, assets=h(",".join(a.get("assets", []))), imp_n=a["importance"], t0=a["t0"],
                      catlabel=config.CATEGORY_LABEL.get(cat, cat), imp=imp, src=h(a["source_name"]), iso=util.iso(a["t0"]),
-                     hm=md_hm(a["t0"]), lang=lang, href=article_path(a), title=h(a["title"]), body=body, badge=impact_badge(a), chips=chips(a))
+                     hm=md_hm(a["t0"]), lang=lang, href=article_path(a), title=h(a["title"]), body=body, chips=chips(a))
 
 
 def feed_item(a):
@@ -339,15 +337,14 @@ def breaking_html(articles, now):
 
 
 def risk_html(ev, now):
-    """다가오는 위험: 다음 6시간 안의 중요도 높은 발표 하나."""
+    """라이브 위쪽: 6시간 안에 큰 발표가 있으면 한 줄로 알린다."""
     up = [u for u in (ev or {}).get("upcoming", []) if now < u["ts"] <= now + 6 * 3600]
     if not up:
         return ""
     u = sorted(up, key=lambda x: (-x["level"], x["ts"]))[0]
-    st = u.get("stats") or {}
-    num = ('과거 1시간 최대 ±%s · 중앙값 ±%s <span class="muted">(n=%d)</span>' % (pct(st["abs1h"]["max"]).lstrip("+"), pct(st["abs1h"]["med"]).lstrip("+"), st["n"])) if st.get("abs1h") else '<span class="muted">과거 통계 없음</span>'
-    return ('<a class="risk" href="{B}events/#ev-{key}"><span class="risk__k">다가오는 위험</span><b>{name}</b><span class="risk__t"><time>{when}</time> · <span data-left="{ts}"></span></span><span class="risk__v">{num}</span></a>'
-            .format(B=B, key=h(str(u.get("kind") or "x")) + "-" + str(u["ts"]), name=h(u["name"]), when=hm(u["ts"]), ts=u["ts"], num=num))
+    vs = ("평소보다 %.1f배 크게 흔들렸던 발표" % u["vs_normal"]) if u.get("vs_normal") else "지난 기록이 적은 발표"
+    return ('<a class="risk" href="{B}events/"><span class="risk__k">곧 큰 발표</span><b>{name}</b><span class="risk__t"><time>{when}</time> · <span data-left="{ts}"></span></span><span class="risk__v">{vs}</span></a>'
+            .format(B=B, name=h(u["name"]), when=hm(u["ts"]), ts=u["ts"], vs=vs))
 
 
 def page_feed(articles, market, cal, imp, now, ev=None):
@@ -371,7 +368,6 @@ def page_feed(articles, market, cal, imp, now, ev=None):
     </div>
     <div class="fgroup fgroup--opts">
       <label class="switch"><input type="checkbox" id="optMajor"><span>주요 기사만</span></label>
-      <label class="switch"><input type="checkbox" id="optStrong"><span>반응 강·중만</span></label>
       <label class="switch"><input type="checkbox" id="optWatch"><span>내 종목만</span></label>
       <label class="switch"><input type="checkbox" id="optKo"><span>한국어 기사만</span></label>
     </div>
@@ -382,7 +378,6 @@ def page_feed(articles, market, cal, imp, now, ev=None):
       <p class="muted feed__upd">마지막 수집 <time data-ts="{now}">{now_hm}</time> · 15분마다 갱신</p>
     </div>
     {risk}
-    <section class="brk" aria-labelledby="brkTitle"><h2 class="brk__title" id="brkTitle"><span class="live-dot" aria-hidden="true"></span>지금 터진 뉴스 <span class="muted small">최근 60분 · 반응 중 이상 또는 재는 중</span></h2>{brk}</section>
     <button class="new-pill" id="newPill" type="button" hidden></button>
     <div class="feed__list" id="feedList">
 {cards}
@@ -392,13 +387,12 @@ def page_feed(articles, market, cal, imp, now, ev=None):
   <aside class="rail" aria-label="요약 정보">
     <section class="panel"><h2 class="panel__title">시장 온도</h2><div id="tempPanel" class="temp">{temp}</div></section>
     <section class="panel"><h2 class="panel__title">다가오는 일정 <a class="panel__more" href="{B}events/">이벤트 리스크</a></h2><ul class="mini-cal">{cal}</ul></section>
-    <section class="panel"><h2 class="panel__title">최근 7일 강한 반응 <a class="panel__more" href="{B}patterns/">패턴</a></h2><ul class="mini-strong">{strong}</ul></section>
     {brief}
   </aside>
-</div>""".format(now=now, now_hm=md_hm(now), cards=cards, cal=cal_html, strong=strong, B=B, temp=temp_panel(market), risk=risk_html(ev, now), brk=breaking_html(articles, now),
+</div>""".format(now=now, now_hm=md_hm(now), cards=cards, cal=cal_html, B=B, temp=temp_panel(market), risk=risk_html(ev, now),
            brief=('<section class="panel"><h2 class="panel__title">오늘의 시그널</h2><a class="brief-img" href="%sog/brief.jpg" target="_blank" rel="noopener"><img src="%sog/brief.jpg?v=%d" alt="오늘의 시그널 요약 이미지" width="1080" height="1080" loading="lazy"></a><p class="muted small">이미지를 길게 눌러 저장하거나 공유하세요.</p></section>' % (B, B, now)) if HAS_BRIEF else "")
-    return shell("live", "라이브 — 지금 터진 뉴스와 가격 반응",
-                 "크립토·AI·매크로 뉴스를 실시간으로 모으고 기사마다 15분·1시간·24시간 가격 반응을 실측해 보여 줍니다.", B + "live/", body, now)
+    return shell("live", "라이브 — 크립토·AI·매크로 뉴스",
+                 "국내외 크립토·AI·매크로 뉴스를 15분마다 모아 요약하고, 로컬 AI가 사건 종류와 호재·악재를 표시합니다.", B + "live/", body, now)
 
 
 def temp_panel(market):
@@ -416,27 +410,6 @@ def temp_panel(market):
 
 
 def page_article(a, related, now):
-    imp = a.get("impact") or {}
-    subs = subjects(a)
-    rows = []
-    for sym, adj in subs:
-        cells = []
-        for win, secs in config.WINDOWS:
-            v = imp.get(sym, {}).get(win)
-            if v and v.get("r") is not None:
-                g = v.get("g")
-                sub = ('<span class="g g--%s">%s · z %.1f</span>' % ({"강": "s", "중": "m"}.get(g, "w"), g, v["z"])) if g else ""
-                if v.get("adj") and v.get("raw") is not None:
-                    sub += '<span class="art__raw">실제 %s · 시장 몫 %s</span>' % (pct(v["raw"]), pct(v.get("m") or 0))
-                cells.append('<td class="%s"><b>%s</b>%s</td>' % ("up" if v["r"] >= 0 else "down", pct(v["r"]), sub))
-            elif v:
-                cells.append('<td class="muted">측정 불가</td>')
-            else:
-                cells.append('<td class="muted" data-wait="%d">측정 중</td>' % (a["t0"] + secs))
-        rows.append("<tr><th scope=\"row\">%s<small>%s</small></th>%s</tr>" % (h(sym), "시장 대비" if adj else "시장 전체", "".join(cells)))
-    crowd = a.get("crowd", 0)
-    note = ('<p class="note">같은 시간(±30분)에 %s 관련 뉴스가 %d건 더 있었습니다. 이 값은 그 뉴스들이 함께 나눠 가진 움직임일 수 있습니다.</p>' % (h(subs[0][0]), crowd)) if crowd and subs else ""
-    est = '<p class="note">원문 발행 시각이 없어 수집 시각을 기준으로 측정했습니다.</p>' if a.get("t0_estimated") else ""
     if a.get("summary"):
         lead = '<ol class="art__sum">%s</ol><p class="muted small">요약: AI가 원문 제목·발췌만으로 작성했습니다. 정확한 내용은 원문을 확인하세요.</p>' % "".join("<li>%s</li>" % h(s) for s in a["summary"])
     elif a.get("excerpt"):
@@ -446,36 +419,9 @@ def page_article(a, related, now):
     orig = '<p class="art__orig" lang="en">%s</p>' % h(a["title_orig"]) if a["title_orig"] != a["title"] else ""
     rel = "".join('<li><a href="%s">%s</a><span class="muted">%s · %s</span></li>' % (article_path(r), h(r["title"]), h(r["source_name"]), md_hm(r["t0"])) for r in related) \
         or '<li class="muted">관련 기사가 없습니다.</li>'
-    primary = subs[0][0] if subs else None
     ai = a.get("ai")
     ai_line = ('<p class="art__ai"><span class="art__ai-k">AI 판정</span><b>%s</b><span class="muted small">운영자 Mac의 로컬 모델(Gemma 4)이 제목만 보고 판정했습니다. 틀릴 수 있습니다.</span></p>'
                % h(judge.label(ai))) if ai else ""
-    if not subs:
-        if ai and ai.get("kind") != "event":
-            skip_msg = "AI가 이 기사를 '%s' 기사로 판정해 가격 반응을 재지 않았습니다." % judge.KIND_KO.get(ai["kind"], "")
-        elif ai:
-            skip_msg = "사건이지만 SIGNAL이 재는 코인을 직접 다루지 않고 시장 전체를 움직일 미국 쪽 사건도 아니어서 가격 반응을 재지 않았습니다."
-        else:
-            skip_msg = "이 뉴스는 코인 가격과 직접 관련된 내용이 아니어서 가격 반응을 재지 않았습니다."
-        impact_sec = ai_line + ('<p class="art__skip">%s</p>' % skip_msg) + (
-                      '<p class="muted small">SIGNAL은 코인을 직접 다루는 사건 뉴스와, 시장 전체를 움직이는 발표(FOMC·물가·고용, 미국 규제기관의 업계 전반 조치 등)만 잽니다. '
-                      '같은 시간에 마침 가격이 움직였다고 관련 없는 뉴스에 숫자를 붙이지 않기 위해서입니다.</p>')
-    else:
-        anyadj = any(adj for _, adj in subs)
-        expl = ("시장 대비 값은 실제 가격 변화에서 같은 시간 시장 전체(시총 상위 5개, 그 코인 제외)가 움직인 몫을 뺀 것입니다. "
-                if anyadj else "시장 전체를 움직이는 발표라 BTC 가격 변화를 그대로 보여 줍니다. ")
-        impact_sec = ai_line + """<p class="muted small">기사 기준 시각부터의 변화입니다. {expl}z는 평소 흔들림 대비 몇 배인지이며 |z| 3 이상 강, 2 이상 중입니다.</p>
-    <div class="table-wrap"><table class="itable"><thead><tr><th scope="col">코인</th><th scope="col">15분</th><th scope="col">1시간</th><th scope="col">24시간</th></tr></thead><tbody>{rows}</tbody></table></div>
-    {note}{est}
-    <figure class="chart" id="artChart" data-sym="{primary}" data-t0="{t0}">
-      <div class="chart__box" role="img" aria-label="{primary} 가격, 기사 시각 전후"></div>
-      <figcaption class="muted small">{primary} 1분봉 · 세로선이 기사 기준 시각 · 출처 Binance(실패 시 Coinbase)</figcaption>
-    </figure>
-    <p class="note">같은 시간에 일어난 일을 잰 값입니다. 이 기사가 가격을 움직였다는 뜻은 아닙니다.</p>
-    {pat}
-    {maplink}""".format(expl=expl, rows="".join(rows), note=note, est=est, primary=h(primary), t0=a["t0"],
-                     pat=pattern_html(a).replace('<details class="fpat">', '<details class="fpat" open>'),
-                     maplink=('<p class="art__maplink"><a href="%smap/?s=%s">시그널 보드에서 %s 보기</a></p>' % (B, h(primary), h(primary))) if primary in {c[0] for c in MOVE_COINS} else "")
     body = """
 <div class="wrap art">
   <nav class="crumbs" aria-label="경로"><a href="{B}live/">라이브</a><span aria-hidden="true">/</span><span>{catlabel}</span></nav>
@@ -490,13 +436,11 @@ def page_article(a, related, now):
       <button class="btn btn--ghost" type="button" data-share>{share}공유</button>
     </div>
   </section>
-  <section class="art__impact" aria-labelledby="impTitle">
-    <h2 id="impTitle" class="h2">가격 반응 실측</h2>
-    {impact_sec}  </section>
+  {ai_line}
   <section class="art__related"><h2 class="h2">관련 기사</h2><ul class="rel">{rel}</ul></section>
 </div>""".format(B=B, cat=a["category"], catlabel=config.CATEGORY_LABEL[a["category"]], src=h(a["source_name"]), iso=util.iso(a["t0"]),
                  t0=a["t0"], when=util.kst(a["t0"]).strftime("%Y.%m.%d %H:%M"), title=h(a["title"]), orig=orig, lead=lead, url=h(a["url"]),
-                 out=ICON["out"], share=ICON["share"], rel=rel, impact_sec=impact_sec, id=h(a["id"]))
+                 out=ICON["out"], share=ICON["share"], rel=rel, ai_line=ai_line, id=h(a["id"]))
     desc = (a["summary"][0] if a.get("summary") else a.get("excerpt") or a["title"])[:150]
     og = "%s/og/%s.jpg" % (config.SITE_URL, a["id"]) if a.get("og") else None
     return shell("article", a["title"], desc, article_path(a), body, now, og=og, data={"article": feed_item(a)})
@@ -523,22 +467,18 @@ def page_about(health, now):
         status = ('<span class="ok">정상</span>' if not st.get("error") else '<span class="down">오류</span>') if ok or st.get("error") else '<span class="muted">대기</span>'
         src_rows.append("<tr><th scope=\"row\">%s</th><td>%s</td><td>%s</td><td>%s</td></tr>" % (h(s["name"]), config.CATEGORY_LABEL.get(s["hint"], "자동 분류"), "한국어" if s["lang"] == "ko" else "영어", status))
     body = """
-<div class="wrap narrow"><header class="phead"><h1 class="phead__title">소개·방법론</h1><p class="muted">SIGNAL이 뉴스를 모으고 가격 반응을 재는 방법, 그리고 데이터 출처입니다.</p></header></div>
+<div class="wrap narrow"><header class="phead"><h1 class="phead__title">소개·방법론</h1><p class="muted">SIGNAL이 데이터를 모으고 계산하는 방법, 그리고 데이터 출처입니다.</p></header></div>
 <div class="wrap narrow">
   <section class="panel"><h2 class="panel__title">어떻게 동작하나요</h2>
-    <ol class="steps"><li>15분마다 국내외 매체 {nsrc}곳의 RSS와 업비트 공지를 수집하고 중복을 지웁니다.</li><li>키워드로 크립토·AI·매크로를 나누고 관련 코인을 찾습니다.</li><li>그 코인을 직접 언급한 기사와 시장 전체를 움직이는 발표만 골라, 기사 시각 이후 15분·1시간·24시간 가격 변화를 1분봉으로 재고 시장 몫을 뺍니다.</li><li>기사 본문은 저장하지 않습니다. 제목, 짧은 발췌 또는 요약, 원문 링크만 보여 줍니다.</li></ol>
+    <ol class="steps"><li>15분마다 국내외 매체 {nsrc}곳의 RSS와 업비트 공지를 수집하고 중복을 지웁니다.</li><li>키워드로 크립토·AI·매크로를 나누고 관련 코인을 찾습니다.</li><li>운영자 Mac의 로컬 AI(Gemma 4)가 기사마다 사건인지, 어떤 종류인지, 호재인지 악재인지 판정합니다.</li><li>업비트 상장 기록과 미국 경제 발표 일정은 지난 가격과 맞춰 "그때 어땠는지"를 계산합니다.</li><li>기사 본문은 저장하지 않습니다. 제목, 짧은 발췌 또는 요약, 원문 링크만 보여 줍니다.</li></ol>
   </section>
   <section class="panel" id="method"><h2 class="panel__title">계산 방법</h2>
     <ol class="steps">
-      <li><span><b>어떤 기사를 재나</b>: 제목·발췌에서 코인 24개 중 하나를 직접 언급한 기사는 그 코인을, 코인 언급이 없어도 FOMC·물가·고용 발표와 크립토 분야의 ETF·규제·해킹·상장 뉴스는 BTC를 잽니다. 그 밖의 기사(AI 제품, 일반 경제 등)에는 가격 반응을 붙이지 않습니다. 같은 시간에 마침 가격이 움직였다고 관련 없는 뉴스에 숫자를 붙이지 않기 위해서입니다.</span></li>
-      <li><span><b>가격 반응</b>: 기사 기준 시각(t0, 원문 발행 시각과 수집 시각 중 이른 쪽)이 속한 1분봉 시가 대비 15분·1시간·24시간 뒤 1분봉 종가의 변화율. 코인 기사는 여기서 시장 몫(그 코인을 뺀 시총 상위 5개 바스켓의 같은 시간 변화 × 그 코인의 β, 최근 30일 1시간 회귀)을 뺀 ‘시장 대비’ 값을 보여 줍니다. 시장 전체 발표는 BTC 변화를 그대로 보여 줍니다.</span></li>
-      <li><span><b>강도(z)</b>: 시장 대비 값 ÷ 시장 몫을 뺀 평소 흔들림(1시간 회귀 잔차 표준편차를 구간 길이에 맞춰 환산). 시장 전체 발표는 BTC 변화율 ÷ 같은 길이 봉 변화율의 표준편차(15분: 7일, 1시간: 30일, 24시간: 180일). |z| 3 이상 강, 2 이상 중, 그 외 약.</span></li>
       <li><span><b>시그널 보드</b>: 코인 24개마다 네 가지를 1시간·4시간·24시간 구간으로 잽니다. ① 시장 대비 움직임 = 실제 등락 − β × 그 코인을 뺀 나머지 코인(시총 가중)의 움직임(β와 평소 흔들림은 최근 30일 1시간 수익률 회귀). 평소 흔들림의 2배 이상이거나 1시간 2%·4시간 3.5%·24시간 6% 이상이면 신호. ② 업비트 원화 거래대금 ÷ 지난 7일 같은 길이 구간 중앙값이 2배 이상. ③ 김프(업비트 원화가 ÷ 바이낸스가 × 원/달러 − 1)가 1시간 0.8%p·4시간 1%p·24시간 1.5%p 이상 변함. ④ 전체 기사 중 그 코인 기사 비중이 평소의 2배 이상이고 3건 이상. 최근 72시간 업비트 상장·유의·상폐 공지도 함께 표시합니다.</span></li>
-      <li><span><b>상장 해부도</b>: 업비트 원화 상장마다 첫 1분봉 시가를 0%로 둔 24시간 곡선, 공지 직전 1분 바이낸스 종가를 0%로 둔 공지 후 4시간 곡선. 시세가 없는 코인과 스테이블코인은 집계에서 뺍니다.</span></li>
+      <li><span><b>상장 레이더</b>: 업비트 원화 상장마다 거래 시작 첫 1분봉 시가를 기준으로 24시간 동안의 업비트 1분 가격을 모읍니다. '거래 시작 N분 뒤에 샀다면'은 그 분 종가에 사서 하루 뒤 종가에 판 수익에서 수수료(0.05%×2)를 뺀 값입니다. 시세가 없는 코인(상장 폐지 등)과 스테이블코인은 뺍니다.</span></li>
       <li><span><b>이벤트 리스크</b>: 과거 같은 발표마다 발표 직전 1분 바이낸스 BTC 종가 대비 15분·1시간 뒤 변화를 재고 그 절댓값의 중앙값·상위 10%를 보여 줍니다. ‘평소의 몇 배’는 이 중앙값 ÷ 최근 30일 발표가 없던 같은 UTC 시각 1시간 봉 절대 변동의 중앙값입니다. 과거 발표 시각은 FRED 일정이 있는 2025년 이후만 있어 월간 지표는 표본이 20건 안팎이고, 표본 8건 미만이면 수치를 숨깁니다.</span></li>
-      <li><span><b>패턴</b>: 최근 30일 측정이 끝난 관련 기사로만 계산합니다. 열지도 칸 = 기사가 잰 코인별 1시간 절대 변동(코인 기사는 시장 대비) ÷ 그 코인의 평소 1시간 흔들림의 중앙값. 칸 표본 3건, 비슷한 뉴스 요약 5건 미만이면 ‘표본 부족’으로 둡니다.</span></li>
     </ol>
-    <p class="muted small">모든 수치는 같은 시간대에 일어난 변화를 잰 값이며 인과를 뜻하지 않습니다.</p>
+    <p class="muted small">모든 수치는 지난 기록이며 앞으로도 같다는 뜻이 아닙니다.</p>
   </section>
   <section class="panel" id="sources"><h2 class="panel__title">데이터 출처</h2>
     <div class="table-wrap"><table class="itable"><thead><tr><th scope="col">매체</th><th scope="col">분야</th><th scope="col">언어</th><th scope="col">최근 수집</th></tr></thead><tbody>{rows}</tbody></table></div>
@@ -551,9 +491,9 @@ def page_about(health, now):
       <li>업비트 공지는 GitHub 서버에서 막혀 Cloudflare 스케줄러를 거쳐 받습니다.</li>
     </ul>
   </section>
-  <section class="panel"><h2 class="panel__title">유의 사항</h2><p>SIGNAL은 정보를 모아 보여 주는 서비스이며 투자 조언을 하지 않습니다. 가격 반응은 같은 시간대에 일어난 변화를 잰 값으로, 뉴스가 가격을 움직였다는 뜻이 아닙니다.</p></section>
+  <section class="panel"><h2 class="panel__title">유의 사항</h2><p>SIGNAL은 정보를 모아 보여 주는 서비스이며 투자 조언을 하지 않습니다. 과거 기록은 같은 시간대에 일어난 변화를 잰 값으로, 특정 뉴스나 발표가 가격을 움직였다는 뜻이 아닙니다.</p></section>
 </div>""".format(rows="".join(src_rows), nsrc=len(config.SOURCES))
-    return shell("about", "소개·방법론", "SIGNAL이 뉴스를 모으고 가격 반응을 재는 방법과 데이터 출처.", B + "about/", body, now)
+    return shell("about", "소개·방법론", "SIGNAL이 데이터를 모으고 계산하는 방법과 데이터 출처.", B + "about/", body, now)
 
 
 WIN_KO = {"15m": "15분", "1h": "1시간", "24h": "24시간"}
@@ -630,19 +570,17 @@ def bento(articles, market, cal, now, lst=None):
     fng_ko = {"Extreme Fear": "극단적 공포", "Fear": "공포", "Neutral": "중립", "Greed": "탐욕", "Extreme Greed": "극단적 탐욕"}.get(fng.get("label"), fng.get("label") or "")
     nxt = up[0] if up else None
     watch_art = next((a for a in articles if "ETH" in a.get("assets", [])), None)
-    ms = [x["m"] for x in (lst or {}).get("listings", []) if x.get("tc") and not x.get("stable") and not x.get("live") and x["m"].get("peak24") is not None]
-    if len(ms) >= 10:
-        pk = sorted(m["peak24"] for m in ms)[len(ms) // 2]
-        dn = sum(1 for m in ms if (m.get("r1440") or 0) < 0) / len(ms)
-        lst_q = "상장 직후 24시간 고점 중앙값 %s" % pct(pk, 0)
-        lst_s = "%d건 중 %d%%는 하루 뒤 개시가 아래로 내려왔습니다." % (len(ms), round(dn * 100))
+    loss, med, nf = listings_mod.follow_stats((lst or {}).get("listings", []))
+    if nf >= 30:
+        lst_q = "거래 시작 10분 뒤 따라 샀다면 100명 중 %d명이 하루 뒤 손해" % round(loss * 100)
+        lst_s = "가운데 값 %s · 업비트 원화 상장 %d건" % (pct(med, 1), nf)
     else:
-        lst_q, lst_s = "업비트 상장 해부도", "과거 원화 상장 직후 가격 곡선을 겹쳐 봅니다."
+        lst_q, lst_s = "업비트 상장 직후", "새로 상장된 코인이 지난번엔 어떻게 움직였는지 봅니다."
     return """
   <div class="bento">
     <a class="bx bx--feed" data-reveal style="--i:0" href="{B}live/">
       <div class="bx__head"><b class="bx__title">라이브</b><span class="mono-label">최근 24시간 {total}건</span></div>
-      <p class="bx__desc">카테고리·반응 강도·관심 종목으로 걸러 봅니다. 새 기사가 들어오면 맨 위에 알려 줍니다.</p>
+      <p class="bx__desc">카테고리·관심 종목으로 걸러 봅니다. 새 기사가 들어오면 맨 위에 알려 줍니다.</p>
       <div class="catshare" aria-hidden="true">{share}</div>
       <ul class="catlegend">{legend}</ul>
       <ol class="bx__latest">{latest}</ol>
@@ -663,7 +601,7 @@ def bento(articles, market, cal, now, lst=None):
       <div class="mfng__hist" aria-hidden="true">{fbars}</div>
     </a>
     <a class="bx" data-reveal style="--i:4" href="{B}listings/">
-      <div class="bx__head"><b class="bx__title">상장 레이더</b><span class="mono-label">업비트 원화 상장</span></div>
+      <div class="bx__head"><b class="bx__title">상장 레이더</b><span class="mono-label">따라 사면?</span></div>
       <p class="bx__q">{lst_q}<span>{lst_s}</span></p>
     </a>
     <a class="bx" data-reveal style="--i:5" href="{B}me/">
@@ -734,10 +672,41 @@ def outro_wall(day, rows=9):
     return "".join(out), len(sig)
 
 
-def page_landing(articles, market, cal, imp, now, lst=None):
+def next_big_event(ev, now, days=14):
+    """다음 큰 발표 하나(중요도 높은 순, 같으면 빠른 순). 과거 흔들림 통계가 있는 것을 먼저."""
+    up = [u for u in (ev or {}).get("upcoming", []) if now < u["ts"] <= now + days * 86400]
+    if not up:
+        return None
+    return sorted(up, key=lambda u: (-u["level"], not (u.get("stats") or {}).get("abs1h"), u["ts"]))[0]
+
+
+def landing_moments(lst, ev, now):
+    """랜딩 '돈이 크게 움직이는 두 순간' 카드 두 장."""
+    loss, med, n = listings_mod.follow_stats((lst or {}).get("listings", []))
+    a = ('<a class="mom" data-reveal style="--i:0" href="{B}listings/"><p class="mom__k">상장 레이더</p>'
+         '<p class="mom__q">새로 상장된 코인, 거래 시작 10분 뒤에 따라 샀다면</p>'
+         '<p class="mom__big"><small>100명 중</small><b class="down">{l}</b><small>명이 하루 뒤 손해</small></p>'
+         '<p class="mom__s">가운데 값 {m} · 업비트 원화 상장 {n}건 · 수수료 포함</p><span class="mom__go">상장 레이더 보기 →</span></a>').format(
+        B=B, l=round(loss * 100), m=pct(med, 1), n=n) if n >= 30 else ""
+    u = next_big_event(ev, now)
+    if u:
+        st = (u.get("stats") or {}).get("abs1h")
+        line = ("발표 뒤 1시간 비트코인은 평소의 <b>%.1f배</b>로 흔들렸어요 · 보통 ±%s, 크면 ±%s" % (u["vs_normal"], pct(st["med"], 1).lstrip("+"), pct(st["p90"], 1).lstrip("+"))
+                if st and u.get("vs_normal") else "지난 같은 발표 뒤 비트코인의 흔들림을 함께 보여 드려요")
+        b = ('<a class="mom" data-reveal style="--i:1" href="{B}events/"><p class="mom__k">이벤트 리스크</p>'
+             '<p class="mom__q">다음 큰 발표 · {name}</p>'
+             '<p class="mom__big"><b class="mom__left" data-left="{ts}">{when}</b></p>'
+             '<p class="mom__s">{line}</p><span class="mom__go">이벤트 리스크 보기 →</span></a>').format(
+            B=B, name=h(u["name"]), ts=u["ts"], when=util.kst(u["ts"]).strftime("%m.%d %H:%M"), line=line)
+    else:
+        b = ""
+    return a + b
+
+
+def page_landing(articles, market, cal, imp, now, lst=None, ev=None):
     """첫 화면. 숫자와 기사는 모두 실제 수집·측정값이다."""
     day = [a for a in articles if now - a["t0"] < 86400]
-    measured = sum(1 for a in articles if a.get("headline"))
+    measured = sum(1 for a in articles if a.get("ai"))
     demo = demo_items(articles, imp, now)
     strong = [r for r in imp.get("strongest", []) if r.get("g") in ("강", "중")][:6] or imp.get("strongest", [])[:6]
     types = (imp.get("types") or [])[:6]
@@ -763,7 +732,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
     wall, nsig = outro_wall(day)
     # 마지막 "Signal" 글자 안에도 첫 화면의 파문이 비친다
     fill = ' style="--fill:url(%sassets/hero/ripple-desktop.webp)"' % B if video_ready else ""
-    say_words = "뉴스는 매일 수백 건씩 쏟아집니다. 그중 [가격을 실제로 움직인] 뉴스는 일부뿐입니다. SIGNAL은 그 일부를 [숫자로] 골라 보여 줍니다.".split(" ")
+    say_words = "뉴스는 매일 수백 건씩 쏟아집니다. 그중 [내 돈에 영향을 주는] 순간은 몇 번뿐입니다. SIGNAL은 그 순간을 [지난 기록과 함께] 보여 줍니다.".split(" ")
     say, hot = [], False
     for w in say_words:
         st = w.startswith("[")
@@ -772,7 +741,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
         if w.endswith("]"):
             hot = False
     rank0 = types[0] if types else None
-    words = "뉴스 뒤의 가격 반응까지 한눈에".split(" ")
+    words = "돈이 움직이는 순간을 지난 기록으로".split(" ")
     title = " ".join('<span class="w" style="--s:%d">%s</span>' % (i + 1, h(w)) for i, w in enumerate(words))
     srcs = "".join('<li style="--j:%d">%s</li>' % (k, h(x["name"])) for k, x in enumerate(config.SOURCES[:8]))
     demo_html = """
@@ -787,6 +756,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
       </div>
     </div>
   </div>""".format(sd=len(words) + 3, items="".join(demo_item_html(it, k) for k, it in enumerate(demo)), detail=demo_detail_html(demo[0])) if demo else ""
+    moments = landing_moments(lst, ev, now)
     body = """
 <section class="hx" id="hx" data-theme="dark"{video_attr} aria-labelledby="heroTitle">
   <div class="pin hx__pin">
@@ -811,93 +781,20 @@ def page_landing(articles, market, cal, imp, now, lst=None):
   </div>
 </section>
 
-<section class="hero hero--preview" id="demoPin" aria-label="제품 미리보기">
-  <div class="pin demo-pin">
-{demo}
-  </div>
-</section>
 <section class="hero hero--stats" aria-label="수집 현황">
   <div class="wrap">
     <dl class="hero__stats in" style="--s:{s3}">
       <div><dt>최근 24시간 기사</dt><dd class="count" data-to="{n24}">{n24}</dd></div>
       <div><dt>수집 매체</dt><dd class="count" data-to="{nsrc}">{nsrc}</dd></div>
-      <div><dt>반응을 잰 기사</dt><dd class="count" data-to="{measured}">{measured}</dd></div>
+      <div><dt>AI가 읽은 기사</dt><dd class="count" data-to="{measured}">{measured}</dd></div>
     </dl>
   </div>
 </section>
 
-<div id="how" class="how">
-<section class="story" id="story" aria-labelledby="howTitle">
-  <div class="story__pin">
-    <div class="wrap story__grid">
-      <div class="story__text">
-        <h2 class="lsec__title" id="howTitle">How we measure</h2>
-        <ol class="story__steps">
-          <li class="is-on"><span class="story__n">01</span><b>Collect</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p></li>
-          <li><span class="story__n">02</span><b>Measure</b><p>기사 시각부터 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p></li>
-          <li><span class="story__n">03</span><b>Score</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p></li>
-        </ol>
-        <div class="story__bar" aria-hidden="true"><i></i></div>
-      </div>
-      <div class="story__stage" aria-hidden="true">
-        <div class="story__screen">
-          <div class="sc sc1">
-            <p class="sc__label"><span class="live-dot"></span>{nsrc}개 매체에서 수집 중</p>
-            <ul class="sc1__src">{sc_src}</ul>
-            <ol class="sc1__feed">{sc_feed}</ol>
-            <p class="sc1__count"><b data-to="{n24}">{n24}</b><span>최근 24시간 기사</span></p>
-          </div>
-          <div class="sc sc2">
-            <p class="sc__label">기사 시각 기준 {sc_asset} 가격</p>
-            <div class="sc2__card"><span class="chip cat cat--{sc_cat}">{sc_cl}</span><b>{sc_title}</b></div>
-            <div class="sc2__chart"><svg viewBox="0 0 600 240" preserveAspectRatio="none"></svg><span class="sc2__t0">기사 시각</span>{sc_marks}</div>
-          </div>
-          <div class="sc sc3">
-            <p class="sc__label">평소 변동폭과 비교</p>
-            <p class="sc3__z">z <b data-z="{sc_z}">0.0</b></p>
-            <p class="sc3__cap">{sc_cap}</p>
-            <div class="sc3__scale"><span>약</span><span>중</span><span>강</span><div class="sc3__run" data-pos="{sc_pos}"><i></i></div></div>
-            <p class="sc3__badge">{sc_badge}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="lsec wrap how-static" aria-labelledby="howTitle2">
-  <h2 class="lsec__title" id="howTitle2" data-reveal>How we measure</h2>
-  <p class="lsec__lede" data-reveal style="--i:1">감으로 고른 ‘중요 뉴스’가 아니라, 기사가 나온 뒤 실제 가격 변화를 기준으로 보여 줍니다.</p>
-  <ol class="steps3">
-    <li data-reveal style="--i:0"><span class="steps3__n">01</span><b>Collect</b><p>국내외 {nsrc}개 매체를 15분마다 모으고, 중복과 공지성 기사를 거른 뒤 크립토·AI·매크로로 나눕니다.</p><ul class="steps3__src" aria-label="수집 매체 일부">{srcs}</ul></li>
-    <li data-reveal style="--i:1"><span class="steps3__n">02</span><b>Measure</b><p>기사 시각을 기준으로 15분·1시간·24시간 뒤 가격을 1분봉으로 잽니다.</p>
-      <div class="steps3__time" aria-hidden="true"><i class="is-t0"></i><span>기사</span><i></i><span>15분</span><i></i><span>1시간</span><i></i><span>24시간</span></div></li>
-    <li data-reveal style="--i:2"><span class="steps3__n">03</span><b>Score</b><p>평소 변동폭의 몇 배였는지(z)로 약·중·강을 매깁니다. 같은 시간대의 변화일 뿐, 뉴스가 원인이라는 뜻은 아닙니다.</p>
-      <div class="steps3__scale" aria-hidden="true"><span>약 <small>|z| 2 미만</small></span><span>중 <small>2–3</small></span><span>강 <small>3 이상</small></span></div></li>
-  </ol>
-</section>
-
-</div>
-
-<section class="hscroll" id="proofPin" aria-labelledby="proofTitle">
-  <div class="pin hscroll__pin">
-    <div class="wrap hscroll__head">
-      <div><h2 class="lsec__title" id="proofTitle">최근 7일, 크게 움직인 순간</h2><p class="lsec__lede">반응이 컸던 기사 {nproof}건입니다. 차트의 점선이 기사 시각입니다.</p></div>
-      <p class="hscroll__count" aria-hidden="true"><b>01</b> / {nproof2}</p>
-    </div>
-    <div class="hscroll__viewport"><div class="hscroll__track proofs">{proof}</div></div>
-    <div class="wrap"><div class="hscroll__bar" aria-hidden="true"><i></i></div></div>
-  </div>
-</section>
-
-<section class="rank" id="rankPin" aria-labelledby="typesTitle">
-  <div class="pin rank__pin">
-    <div class="wrap lsplit">
-      <div class="rank__side"><h2 class="lsec__title" id="typesTitle">어떤 뉴스가 더 크게 움직였나</h2><p class="lsec__lede">이벤트 유형별 BTC 1시간 평균 변동폭입니다. 측정이 쌓일수록 정확해집니다.</p>
-        <div class="rank__now" aria-hidden="true"><span class="mono-label">유형</span><b class="rank__label">{rank0_label}</b><b class="rank__val">{rank0_val}</b><span class="rank__n">{rank0_n}</span></div>
-        <a class="btn btn--ghost rank__more" href="{B}patterns/">패턴에서 더 보기</a></div>
-      <ol class="tbars" id="tbars">{bars}</ol>
-    </div>
-  </div>
+<section class="lsec wrap moments" aria-labelledby="momTitle">
+  <h2 class="lsec__title" id="momTitle" data-reveal>돈이 크게 움직이는 두 순간</h2>
+  <p class="lsec__lede" data-reveal style="--i:1">지난 기록으로 미리 알아 두면 덜 잃습니다.</p>
+  <div class="moments__grid">{moments}</div>
 </section>
 
 <section class="lsec wrap" aria-labelledby="featTitle">
@@ -915,7 +812,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
     <div class="outro__wall" aria-hidden="true">{wall}</div>
     <div class="outro__veil" aria-hidden="true"></div>
     <div class="wrap outro__body">
-      <p class="mono-label outro__kicker">최근 24시간 기사 {n24}건 · 가격을 크게 움직인 기사 {nsig}건</p>
+      <p class="mono-label outro__kicker">최근 24시간 기사 {n24}건 · 15분마다 갱신</p>
       <h2 class="outro__title" id="ctaTitle"><span class="ot__l ot__l--noise"><span>Noise out.</span></span><span class="ot__l ot__l--sig"><span><em class="ot__fill"{fill}>Signal</em> in.</span></span></h2>
       <div class="outro__foot">
         <p>회원가입 없이 무료로 씁니다. 투자 조언은 하지 않습니다.</p>
@@ -925,7 +822,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
   </div>
 </section>""".format(
         now=now, now_hm=md_hm(now), B=B, title=title, s1=len(words) + 1, s2=len(words) + 2, s3=len(words) + 4, demo=demo_html,
-        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now, lst), say=" ".join(say), video_attr=video_attr, drop_note=h(drop_note), wall=wall, nsig=nsig, fill=fill,
+        n24=len(day), nsrc=len(config.SOURCES), measured=measured, srcs=srcs, proof=proof, bars=bars, feats=bento(articles, market, cal, now, lst), say=" ".join(say), moments=moments, video_attr=video_attr, drop_note=h(drop_note), wall=wall, nsig=nsig, fill=fill,
         nproof=len(strong), nproof2="%02d" % len(strong),
         rank0_label=h(rank0["label"]) if rank0 else "–", rank0_val=pct(rank0["mean_abs"]).lstrip("+") if rank0 else "–",
         rank0_n=("표본 %d건" % rank0["n"]) if rank0 else "", **sc["fmt"])
@@ -934,7 +831,7 @@ def page_landing(articles, market, cal, imp, now, lst=None):
               '<link rel="preload" as="image" href="%sassets/hero/ripple-mobile.webp" media="(max-aspect-ratio: 4/5)">\n'
               '<script type="module" src="%sassets/hero.js?v=%s"></script>' % (B, B, B, ASSET_VER)) if video_ready else (
               '<script type="module" src="%sassets/hero.js?v=%s"></script>' % (B, ASSET_VER))
-    return shell("home", "SIGNAL — 뉴스 뒤의 가격 반응까지", "크립토·AI·매크로 뉴스를 모으고, 기사마다 비트코인 가격이 실제로 얼마나 움직였는지 재서 보여 줍니다.",
+    return shell("home", "SIGNAL — 돈이 움직이는 순간을 지난 기록으로", "업비트 상장, 미국 큰 경제 발표, 크립토 뉴스까지. 돈이 크게 움직이는 순간을 지난 기록과 함께 보여 줍니다.",
                  B, body, now, extra_head=head3d, data=data)
 
 
@@ -976,164 +873,177 @@ def page_map(market, now):
 
 
 def page_listings(now):
-    """상장 레이더: 업비트 거래 공지 목록 + 상장 해부도. 그림과 목록은 assets/listings.js가 data/listings.json을 읽어 그린다."""
+    """상장 레이더: '새로 상장된 코인, 따라 사면 어떻게 됐나'를 한 화면에. 숫자와 그림은 assets/listings.js가 data/listings.json으로 그린다."""
     proxy = config.UPBIT_NOTICES_PROXY[: -len("/upbit-notices")] if config.UPBIT_NOTICES_PROXY.endswith("/upbit-notices") else ""
-    seg = lambda name, opts, on: "".join(
-        '<button type="button" class="mseg__b" data-{n}="{v}" aria-pressed="{p}">{l}</button>'.format(n=name, v=v, l=l, p="true" if v == on else "false")
-        for v, l in opts)
     body = """
-<section class="lst wrap" id="lst" data-src="{B}data/listings.json" data-proxy="{proxy}" aria-labelledby="lstTitle">
-  <header class="phead"><h1 class="phead__title" id="lstTitle">상장 레이더</h1>
-    <p class="muted">업비트 원화 마켓 상장 직후 가격이 과거에 어떻게 움직였는지 겹쳐 보고, 지금 상장과 비교합니다.</p></header>
-  <div class="lst__now" id="lstNow" aria-live="polite"></div>
-  <section class="lst__anat panel" aria-labelledby="anatTitle">
-    <div class="lst__bar">
-      <h2 class="panel__title" id="anatTitle">상장 해부도</h2>
-      <div class="mseg" role="group" aria-label="기준 시점">{tab}</div>
-    </div>
-    <div class="lst__filters">
-      <div class="mseg" role="group" aria-label="기간">{period}</div>
-      <div class="mseg" role="group" aria-label="바이낸스 상장 여부">{bn}</div>
-      <div class="mseg" role="group" aria-label="상장 방식">{mode}</div>
-    </div>
-    <dl class="lst__stats" id="lstStats"></dl>
-    <div class="lst__chart" id="lstChart"><canvas id="lstCanvas" aria-hidden="true"></canvas><div class="lst__tip" id="lstTip" hidden></div></div>
-    <p class="lst__axis small muted" id="lstAxis"></p>
-    <p class="lst__note small muted" id="lstNote"></p>
+<div class="wrap lr" id="lr" data-src="{B}data/listings.json" data-proxy="{proxy}">
+  <div id="lrLive" aria-live="polite"></div>
+  <section class="lr-key" aria-labelledby="lrTitle">
+    <p class="lr-eyebrow">업비트 원화 상장 <span id="lrN">–</span>건의 실제 기록</p>
+    <h1 id="lrTitle">새로 상장된 코인,<br>따라 사면 어떻게 됐을까?</h1>
+    <div class="lr-when" id="lrWhen" role="radiogroup" aria-label="언제 샀다면"></div>
+    <p class="lr-big"><small>100명 중</small><span class="num" id="lrLoss">–</span><small>명이 하루 뒤 손해</small></p>
+    <div class="lr-dots" id="lrDots" role="img"></div>
+    <p class="lr-say" id="lrSay" aria-live="polite"></p>
   </section>
-  <section class="lst__notices panel" aria-labelledby="ntcTitle">
-    <div class="lst__bar"><h2 class="panel__title" id="ntcTitle">업비트 거래 공지</h2><div class="mseg" role="group" aria-label="공지 종류">{kind}</div></div>
-    <div class="lst__tablewrap"><table class="lst__table"><thead><tr><th scope="col">공지 시각</th><th scope="col">종류</th><th scope="col">코인</th><th scope="col">제목</th><th scope="col">거래 개시 후 24시간 고점</th><th scope="col">24시간 뒤</th></tr></thead><tbody id="lstRows"></tbody></table></div>
-    <button class="btn btn--ghost lst__more" id="lstMore" type="button" hidden>더 보기</button>
+  <section class="lr-card" aria-labelledby="lrPathTitle">
+    <h2 id="lrPathTitle">따라 산 뒤 가격은 보통 이렇게 됐어요</h2>
+    <p class="lr-sub" id="lrPathSub"></p>
+    <div class="lr-chart"><svg id="lrPath" role="img" aria-label="따라 산 뒤 가격의 보통 흐름"></svg></div>
+    <ol class="lr-steps" id="lrSteps"></ol>
   </section>
-</section>""".format(B=B, proxy=h(proxy),
-                     tab=seg("tab", [("trade", "거래 개시 후 · 업비트"), ("notice", "공지 직후 · 바이낸스")], "trade"),
-                     period=seg("period", [("1", "최근 1년"), ("2", "최근 2년"), ("all", "전체")], "2"),
-                     bn=seg("bn", [("all", "전체"), ("yes", "바이낸스 상장 코인"), ("no", "바이낸스 미상장")], "all"),
-                     mode=seg("mode", [("all", "전체"), ("new", "업비트 첫 상장"), ("added", "원화 마켓 추가")], "all"),
-                     kind=seg("kind", [("all", "전체"), ("listing", "신규 상장"), ("caution", "유의 종목"), ("delisting", "거래지원 종료")], "all"))
+  <section class="lr-recent" aria-labelledby="lrRecentTitle">
+    <h2 id="lrRecentTitle">최근 상장</h2>
+    <p class="lr-sub">거래 시작 10분 뒤에 샀다면 하루 뒤 결과(수수료 포함)</p>
+    <ul id="lrRecent"></ul>
+  </section>
+  <details class="lr-more">
+    <summary>업비트 거래 공지 전체 보기</summary>
+    <p class="lr-sub">신규 상장·유의 종목·거래지원 종료 공지예요. 1분마다 새 공지를 확인해요.</p>
+    <ul class="lr-notices" id="lrNotices"></ul>
+    <button class="btn btn--ghost" id="lrMore" type="button" hidden>더 보기</button>
+  </details>
+  <details class="lr-more">
+    <summary>어떻게 쟀나요?</summary>
+    <ul class="lr-how">
+      <li>2017년부터 업비트에 원화로 새로 올라온 코인의 실제 업비트 1분 가격이에요. 사고팔 때 수수료 0.05%씩을 뺐어요.</li>
+      <li>거래 시작 시각은 공지에 적힌 시각이나, 없으면 첫 거래가 생긴 시각이에요. 스테이블코인은 뺐어요.</li>
+      <li>상장 폐지돼 시세가 사라진 코인은 빠져 있어서, 실제는 이보다 나빴을 수 있어요.</li>
+      <li>지난 기록일 뿐이고, 다음 상장도 같다는 뜻은 아니에요. 투자 권유가 아니에요.</li>
+    </ul>
+  </details>
+</div>""".format(B=B, proxy=h(proxy))
     head = '<script type="module" src="%sassets/listings.js?v=%s"></script>' % (B, ASSET_VER)
-    return shell("listings", "상장 레이더 — 업비트 상장 해부도", "업비트 원화 상장 직후 가격이 과거에 어떻게 움직였는지 겹쳐 보고 지금 상장과 비교합니다.",
+    return shell("listings", "상장 레이더 — 새로 상장된 코인, 따라 사면?", "업비트에 새로 상장된 코인을 거래 시작 뒤에 따라 샀다면 하루 뒤 어떻게 됐는지, 실제 기록으로 보여 줍니다.",
                  B + "listings/", body, now, extra_head=head)
 
 
-def _ev_card(u, now):
-    """다가오는 발표 카드 하나."""
-    st = u.get("stats") or {}
-    lv = "상" if u["level"] >= 3 else "중"
-    det = "".join('<li><span>{t}</span><span class="muted">{f}{p}</span></li>'.format(
-        t=h(d["title_ko"]), f=("예상 %s" % h(d["forecast"])) if d.get("forecast") else "", p=(" · 이전 %s" % h(d["previous"])) if d.get("previous") else "")
-        for d in u.get("detail") or [])
-    if st.get("abs1h"):
-        a1, a15 = st["abs1h"], st.get("abs15") or {}
-        bars = "".join('<i class="{d}" style="--v:{v:.3f}" title="{when} {r}"></i>'.format(
-            d="up" if r["r1h"] >= 0 else "down", v=min(1, abs(r["r1h"]) / max(a1["max"], 0.01)), when=util.kst(r["ts"]).strftime("%Y.%m.%d"), r=pct(r["r1h"]))
-            for r in st.get("recent") or [])
-        vs = ('<span class="evr__vs">평소 같은 시간대의 <b>%.1f배</b></span>' % u["vs_normal"]) if u.get("vs_normal") else ""
-        stats = """<div class="evr__stats">
-  <div class="evr__max"><dt>과거 1시간 최대 폭</dt><dd>±{mx}</dd></div>
-  <dl class="evr__grid"><div><dt>1시간 중앙값</dt><dd>±{m1}</dd></div><div><dt>1시간 90%</dt><dd>±{p1}</dd></div><div><dt>15분 중앙값</dt><dd>{m15}</dd></div><div><dt>상승 비율</dt><dd>{up}%</dd></div></dl>
-  <div class="evr__bars" aria-label="최근 {nr}회 발표 1시간 변동">{bars}</div>
-  <p class="small muted">최근 {n}회 발표 기준 BTC · 가장 컸던 날 {big} ({bigr}) {vs}</p></div>""".format(
-            mx=pct(a1["max"]).lstrip("+"), m1=pct(a1["med"]).lstrip("+"), p1=pct(a1["p90"]).lstrip("+"),
-            m15=("±" + pct(a15["med"]).lstrip("+")) if a15 else "–", up=round(st["up"] * 100), nr=len(st.get("recent") or []), bars=bars, n=st["n"],
-            big=util.kst(st["biggest"]["ts"]).strftime("%Y.%m.%d"), bigr=pct(st["biggest"]["r1h"]), vs=vs)
-    elif u.get("kind"):
-        stats = '<p class="small muted evr__weak">표본 부족(n=%d) · 8회 이상 쌓이면 과거 흔들림 폭을 보여 줍니다.</p>' % (st.get("n") or 0)
-    else:
-        stats = '<p class="small muted evr__weak">과거 통계를 모으지 않는 일정입니다.</p>'
-    after = ""
-    if u["ts"] <= now and u.get("reaction"):
-        after = '<p class="evr__after">발표 후 BTC ' + " · ".join('%s <b class="%s">%s</b>' % ("15분" if w == "15m" else "1시간", "up" if v >= 0 else "down", pct(v))
-                                                             for w, v in u["reaction"].items()) + "</p>"
-    elif u["ts"] <= now:
-        after = '<p class="evr__after muted">발표 후 반응을 재는 중입니다.</p>'
-    return """<article class="evr{past}" id="ev-{key}" data-ts="{ts}"><header class="evr__head"><span class="lvb lvb--{lvc}">{lv}</span>
-  <h3 class="evr__name">{name}</h3><p class="evr__when"><time>{when}</time> · <span class="evr__left" data-left="{ts}"></span></p></header>
-  {det}{stats}{after}</article>""".format(past=" is-past" if u["ts"] <= now else "", key=h(str(u.get("kind") or "x")) + "-" + str(u["ts"]), ts=u["ts"],
-                                          lvc=u["level"], lv=lv, name=h(u["name"]), when=util.kst(u["ts"]).strftime("%m.%d(%a) %H:%M").replace("Mon", "월").replace("Tue", "화").replace("Wed", "수").replace("Thu", "목").replace("Fri", "금").replace("Sat", "토").replace("Sun", "일"),
-                                          det=('<ul class="evr__det">%s</ul>' % det) if det else "", stats=stats, after=after)
+# 처음 보는 사람을 위한 한 줄 설명(무엇을 발표하는지)
+EV_EXPLAIN = {
+    "cpi": "미국 물가가 한 달 동안 얼마나 올랐는지 발표해요. 코인이 가장 크게 반응하는 발표 중 하나예요.",
+    "ppi": "기업이 사들이는 물건 값(생산자 물가)이에요. 소비자 물가의 앞선 신호로 봐요.",
+    "nfp": "미국에 일자리가 얼마나 늘었는지, 실업률은 몇 %인지 발표해요.",
+    "pce": "미국 중앙은행(연준)이 가장 중요하게 보는 물가 지표예요.",
+    "gdp": "미국 경제가 얼마나 성장했는지 발표해요.",
+    "retail": "미국 사람들이 물건을 얼마나 샀는지(소비) 발표해요.",
+    "claims": "매주 목요일 나오는 실업수당 신청 건수예요. 일자리 사정을 빨리 보여 줘요.",
+    "fomc": "미국 중앙은행이 기준금리를 올릴지, 내릴지, 그대로 둘지 정해요. 가장 큰 발표예요.",
+    "fomc_press": "금리 결정 30분 뒤 연준 의장이 기자회견을 해요. 말 한마디에 크게 흔들려요.",
+    "minutes": "3주 전 금리 회의에서 어떤 이야기가 오갔는지 공개해요.",
+    "ism_m": "미국 공장들의 경기를 묻는 설문 지수예요.",
+    "ism_s": "미국 서비스 업체들의 경기를 묻는 설문 지수예요.",
+}
+WEEKDAY = "월화수목금토일"
+
+
+def _kst_label(ts):
+    d = util.kst(ts)
+    return "%d월 %d일(%s) %s" % (d.month, d.day, WEEKDAY[d.weekday()], d.strftime("%H:%M"))
+
+
+def _ev_name(name):
+    return (name or "").replace("Fed Chairman ", "연준 의장 ").replace("Fed Chair ", "연준 의장 ")
+
+
+def _shake(vs):
+    """평소 대비 배수 → 흔들림 막대 5칸 중 몇 칸, 이름."""
+    if not vs:
+        return 0, ""
+    n = max(1, min(5, round(vs)))
+    return n, "평소의 %.1f배" % vs
 
 
 def page_events(ev, now):
-    """이벤트 리스크: 위험 시계(레이더) + 다가오는 발표의 과거 흔들림 폭."""
+    """이벤트 리스크: 다음 큰 발표 하나 + 내 돈으로 환산 + 이번 주 일정 + 발표별 흔들림 순위."""
     ev = ev or {"upcoming": [], "kinds": []}
-    up = [u for u in ev.get("upcoming", []) if u["ts"] >= now - 2 * 3600 and u["ts"] <= now + 8 * 86400]
-    cards = "".join(_ev_card(u, now) for u in up) or '<p class="empty">다가오는 주요 발표가 없습니다.</p>'
-    rows = "".join("<tr><th scope=\"row\">{n}</th><td>{c}</td><td>{m}</td><td>{p}</td><td>{x}</td><td>{u}</td></tr>".format(
-        n=h(k["name"]), c=k["n"], m=("±" + pct(k["abs1h"]["med"]).lstrip("+")) if k.get("abs1h") else "–",
-        p=("±" + pct(k["abs1h"]["p90"]).lstrip("+")) if k.get("abs1h") else "–", x=("±" + pct(k["abs1h"]["max"]).lstrip("+")) if k.get("abs1h") else "–",
-        u=("%d%%" % round(k["up"] * 100)) if k.get("abs1h") else "–") for k in ev.get("kinds", []))
-    radar = [{"ts": u["ts"], "name": u["name"], "level": u["level"], "id": "ev-%s-%d" % (u.get("kind") or "x", u["ts"]),
-              "med": (u.get("stats") or {}).get("abs1h", {}).get("med") if (u.get("stats") or {}).get("abs1h") else None} for u in up]
+    hero = next_big_event(ev, now)
+    hero_html = '<p class="er-none">앞으로 2주 안에 잡힌 큰 발표가 없어요.</p>'
+    if hero:
+        st = (hero.get("stats") or {})
+        a1 = st.get("abs1h")
+        recent = st.get("recent") or []
+        ups = sum(1 for r in recent if r["r1h"] >= 0)
+        mx = max([abs(r["r1h"]) for r in recent] or [1]) or 1
+        bars = "".join('<li class="{d}" title="{dt} {r}"><i style="--v:{v:.3f}"></i></li>'.format(
+            d="up" if r["r1h"] >= 0 else "down", v=abs(r["r1h"]) / mx, dt=util.kst(r["ts"]).strftime("%Y.%m.%d"), r=pct(r["r1h"])) for r in recent)
+        span_dates = ('<p class="er-bars__x"><span>%s</span><span>%s</span></p>' % (util.kst(recent[0]["ts"]).strftime("%Y.%m"), util.kst(recent[-1]["ts"]).strftime("%Y.%m"))) if recent else ""
+        n_sh, sh_label = _shake(hero.get("vs_normal"))
+        big = ("발표 뒤 1시간, 비트코인은 <b>평소보다 %.1f배</b> 크게 흔들렸어요" % hero["vs_normal"]) if hero.get("vs_normal") else "지난 같은 발표 뒤 비트코인의 흔들림을 모으는 중이에요"
+        calc = ""
+        if a1:
+            calc = """<div class="er-calc" id="erCalc" data-med="{med}" data-p90="{p90}" data-max="{mx}">
+      <p class="er-calc__q">내 돈으로 보면</p>
+      <div class="er-calc__in"><label for="erAmt">비트코인에 넣은 돈</label><div class="er-amt"><input id="erAmt" inputmode="numeric" value="1,000,000" aria-describedby="erAmtUnit"><span id="erAmtUnit">원</span></div>
+        <div class="er-lev" role="radiogroup" aria-label="레버리지"><button type="button" role="radio" data-lev="1" aria-checked="true">현물</button><button type="button" role="radio" data-lev="2" aria-checked="false">2배</button><button type="button" role="radio" data-lev="5" aria-checked="false">5배</button><button type="button" role="radio" data-lev="10" aria-checked="false">10배</button></div></div>
+      <dl class="er-calc__out"><div><dt>보통 흔들린 폭</dt><dd id="erMed">–</dd></div><div><dt>크게 흔들린 때(10번 중 1번)</dt><dd id="erP90">–</dd></div></dl>
+      <p class="er-calc__note" id="erNote"></p>
+    </div>""".format(med=a1["med"], p90=a1["p90"], mx=a1["max"])
+        past = ('<div class="er-past"><p class="er-past__t">지난 {n}번, 발표 뒤 1시간</p><ol class="er-bars" aria-label="지난 {n}번 발표 뒤 1시간 비트코인 변화">{bars}</ol>{sx}'
+                '<p class="er-past__s">오른 날 {u}번 · 내린 날 {d}번 · 방향은 그때그때 달라요</p></div>').format(n=len(recent), bars=bars, sx=span_dates, u=ups, d=len(recent) - ups) if recent else ""
+        hero_html = """<article class="er-hero">
+    <p class="er-tag">다음 큰 발표</p>
+    <h2 class="er-name">{name}</h2>
+    <p class="er-what">{what}</p>
+    <p class="er-when"><b class="er-left" data-left="{ts}">–</b><span>{when} · 한국 시간</span></p>
+    <p class="er-big">{big}</p>
+    {calc}{past}
+  </article>""".format(name=h(hero["name"]), what=h(EV_EXPLAIN.get(hero.get("kind") or "", "")), ts=hero["ts"], when=_kst_label(hero["ts"]), big=big, calc=calc, past=past)
+    # 이번 주 일정: 같은 시각 발표는 한 줄로
+    up = [u for u in ev.get("upcoming", []) if now - 2 * 3600 <= u["ts"] <= now + 8 * 86400]
+    slots = {}
+    for u in up:
+        slots.setdefault(u["ts"], []).append(u)
+    rows, last_day = [], None
+    for ts in sorted(slots):
+        g = sorted(slots[ts], key=lambda u: (-u["level"], -(u.get("vs_normal") or 0)))
+        top = g[0]
+        day = util.kst(ts).strftime("%m%d")
+        if day != last_day:
+            d = util.kst(ts)
+            rows.append('<li class="er-day">%d월 %d일 %s요일</li>' % (d.month, d.day, WEEKDAY[d.weekday()]))
+            last_day = day
+        vs = max([u.get("vs_normal") or 0 for u in g]) or None
+        n_sh, sh_label = _shake(vs)
+        names = h(_ev_name(top["name"])) + ((" 외 %d개" % (len(g) - 1)) if len(g) > 1 else "")
+        what = EV_EXPLAIN.get(top.get("kind") or "", "")
+        detail = "".join('<li><b>%s</b>%s</li>' % (h(_ev_name(u["name"])), (" · 예상 %s · 이전 %s" % (h(u["forecast"]), h(u["previous"]))) if u.get("forecast") else "") for u in g)
+        react = ""
+        if ts <= now:
+            r = (top.get("reaction") or {}).get("1h")
+            react = ('<span class="er-react %s">발표 뒤 1시간 %s</span>' % ("up" if r >= 0 else "down", pct(r))) if r is not None else '<span class="er-react muted">발표됨 · 결과 재는 중</span>'
+        rows.append("""<li class="er-row{past}"><details><summary>
+      <time>{t}</time><span class="er-row__n">{names}</span>
+      <span class="er-shake" data-n="{ns}" title="{sl}" aria-label="흔들림 {sl}"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="er-row__s">{sl2}{react}</span></summary>
+      <div class="er-row__d">{what}<ul>{detail}</ul></div></details></li>""".format(
+            past=" is-past" if ts <= now else "", t=util.kst(ts).strftime("%H:%M"), names=names, ns=n_sh, sl=h(sh_label or "기록 없음"),
+            sl2=h(sh_label) if sh_label else '<span class="muted">과거 기록 없음</span>', react=react,
+            what=('<p>%s</p>' % h(what)) if what else "", detail=detail))
+    sched = "".join(rows) or '<li class="er-none">앞으로 1주일 동안 잡힌 주요 발표가 없어요.</li>'
+    # 발표별 흔들림 순위
+    ks = sorted([k for k in ev.get("kinds", []) if k.get("abs1h") and k.get("n", 0) >= 8], key=lambda k: -k["abs1h"]["med"])
+    top = max([k["abs1h"]["med"] for k in ks] or [1]) or 1
+    rank = "".join('<li><span class="er-rank__n">{n}</span><span class="er-rank__bar"><i style="--v:{v:.3f}"></i></span><span class="er-rank__v">±{m}</span></li>'.format(
+        n=h(k["name"]), v=k["abs1h"]["med"] / top, m=pct(k["abs1h"]["med"], 1).lstrip("+")) for k in ks)
     body = """
-<div class="wrap evp">
-  <header class="phead"><h1 class="phead__title">이벤트 리스크</h1><p class="muted">다가오는 미국 주요 발표에서 BTC가 과거에 얼마나 흔들렸는지 봅니다. 시각은 한국 시간.</p></header>
-  <section class="evp__top">
-    <div class="radar" id="radar"><canvas id="radarCanvas" aria-hidden="true"></canvas><div class="radar__center" id="radarCenter" aria-live="polite"></div></div>
-    <div class="evp__legend">
-      <div class="mseg" role="group" aria-label="레이더 범위"><button type="button" class="mseg__b" data-span="24" aria-pressed="true">다음 24시간</button><button type="button" class="mseg__b" data-span="168" aria-pressed="false">7일</button></div>
-      <p class="small muted">시계 12시 방향이 지금이고, 시계 방향으로 시간이 흐릅니다. 원의 크기는 과거 같은 발표 뒤 BTC 1시간 변동폭의 중앙값입니다. 원을 누르면 그 발표 카드로 갑니다.</p>
-      <p class="small muted">{note}</p>
-    </div>
-  </section>
-  <section class="evp__cards">{cards}</section>
-  <section class="panel evp__kinds"><h2 class="panel__title">발표 종류별 과거 흔들림(BTC 1시간)</h2>
-    <div class="lst__tablewrap"><table class="mtable"><thead><tr><th scope="col">발표</th><th scope="col">표본</th><th scope="col">중앙값</th><th scope="col">90%</th><th scope="col">최대</th><th scope="col">상승 비율</th></tr></thead><tbody>{rows}</tbody></table></div>
-    <p class="small muted">출처: FRED 발표 일정(CPI·PPI·고용·PCE·GDP·소매판매·실업수당), 연준 FOMC 일정, 이후 회차는 Forex Factory 주간 일정. ISM은 과거 일정을 받을 수 없어 매주 쌓이는 회차만 셉니다. 발표 직전 1분 종가 대비 바이낸스 BTC 변화입니다.</p></section>
-</div>""".format(cards=cards, rows=rows, note=h(ev.get("note") or ""))
+<div class="wrap er">
+  <header class="er-head">
+    <p class="er-eyebrow">미국 경제 발표 일정 · 한국 시간</p>
+    <h1>큰 발표가 나올 때,<br>비트코인은 얼마나 흔들릴까?</h1>
+  </header>
+  {hero}
+  <section class="er-sec" aria-labelledby="erWeek"><h2 id="erWeek">이번 주 발표</h2><p class="er-sub">막대가 많을수록 발표 뒤 1시간 동안 평소보다 크게 흔들렸던 발표예요. 누르면 자세히 볼 수 있어요.</p>
+    <ol class="er-sched">{sched}</ol></section>
+  <section class="er-sec" aria-labelledby="erRank"><h2 id="erRank">어떤 발표가 가장 크게 흔들었나</h2><p class="er-sub">지난 기록에서 발표 뒤 1시간 동안 비트코인이 보통 움직인 폭(오르든 내리든)</p>
+    <ol class="er-rank">{rank}</ol></section>
+  <details class="lr-more"><summary>어떻게 쟀나요?</summary><ul class="lr-how">
+    <li>발표 1분 전 가격과 1시간 뒤 가격을 비교한 Binance 비트코인 가격이에요. '평소'는 같은 요일·같은 시간대의 1시간이에요.</li>
+    <li>발표 일정은 미국 통계청(FRED), 연준, Forex Factory에서 가져와요.</li>
+    <li>지난 기록일 뿐이에요. 같은 시간에 다른 일이 겹쳤을 수 있고, 발표가 원인이라는 뜻은 아니에요. 투자 권유가 아니에요.</li>
+  </ul></details>
+</div>""".format(hero=hero_html, sched=sched, rank=rank or '<li class="er-none">기록이 쌓이는 중이에요.</li>')
     head = '<script type="module" src="%sassets/events.js?v=%s"></script>' % (B, ASSET_VER)
-    return shell("events", "이벤트 리스크 — 발표별 과거 흔들림", "다가오는 미국 주요 경제 발표에서 비트코인이 과거에 얼마나 흔들렸는지 봅니다.", B + "events/", body, now,
-                 extra_head=head, data={"radar": radar})
-
-
-def _heat_table(rows, cols, tag):
-    head = "".join('<th scope="col">%s</th>' % ("그 외 코인" if c == "ALT" else c) for c in cols)
-    body = []
-    for r in rows:
-        cells = []
-        for c in r["cells"]:
-            if c.get("x") is None:
-                cells.append('<td class="hm hm--empty" title="표본 %d건">·</td>' % c["n"])
-                continue
-            x = c["x"]
-            level = min(5, int(max(0, x - 0.5) / 0.5))
-            arrow = ' <span class="hm__up" title="지난 기간 %.1f배보다 예민해짐">▲</span>' % c["prev"] if c.get("prev") and x >= c["prev"] * 1.3 else ""
-            cells.append('<td class="hm hm--%d"><button type="button" class="hm__b" data-e="%s" data-c="%s"><b>%.1f배</b><span>n=%d</span>%s</button></td>'
-                         % (level, h(r["e"]), h(c["c"]), x, c["n"], arrow))
-        body.append('<tr><th scope="row">%s</th>%s</tr>' % (h(r["label"]), "".join(cells)))
-    return '<table class="hmap" data-days="%s"%s><thead><tr><th scope="col">유형</th>%s</tr></thead><tbody>%s</tbody></table>' % (
-        tag, "" if tag == "7" else " hidden", head, "".join(body))
-
-
-def page_patterns(pt, now):
-    """패턴: 뉴스 무게 검색기, 내러티브 열지도, 이번 주 가장 무거웠던 뉴스."""
-    pt = pt or {"heat": {"7": [], "30": []}, "cols": [], "heaviest": [], "suggest": []}
-    chips = "".join('<button type="button" class="achip" data-q="%s">%s</button>' % (h(x), h(x)) for x in pt.get("suggest", []))
-    heavy = "".join('<li><a href="%sa/%s/">%s</a><span class="ib ib--%s ib--g%s">%s %s %s · z %.1f</span><time class="muted small">%s</time></li>'
-                    % (B, h(r["id"]), h(r["title"]), "up" if r["r"] >= 0 else "down", {"강": "s", "중": "m"}.get(r.get("g"), "w"), h(r["asset"]), r["win"], pct(r["r"]),
-                       r["z"], md_hm(r["t0"])) for r in pt.get("heaviest", [])) or '<li class="muted">측정이 쌓이면 표시됩니다.</li>'
-    body = """
-<div class="wrap ptp" id="ptp" data-src="{B}data/patterns.json">
-  <header class="phead"><h1 class="phead__title">패턴</h1><p class="muted">이런 뉴스는 보통 얼마나 움직였는지, 최근 30일 측정값으로 찾아봅니다.</p></header>
-  <section class="panel" aria-labelledby="pqTitle">
-    <h2 class="panel__title" id="pqTitle">뉴스 무게 검색기</h2>
-    <form class="ptp__form" id="pqForm" role="search"><label class="sr-only" for="pq">검색어</label><input id="pq" type="search" placeholder="예: 트럼프, 관세, ETF, 해킹" autocomplete="off"><button class="btn btn--accent" type="submit">찾기</button></form>
-    <div class="ptp__chips">{chips}</div>
-    <div class="ptp__result" id="pqResult" aria-live="polite"><p class="muted small">검색어를 넣거나 위 칩을 누르세요. 한·영 동의어도 함께 찾습니다.</p></div>
-  </section>
-  <section class="panel" aria-labelledby="hmTitle">
-    <div class="lst__bar"><h2 class="panel__title" id="hmTitle">내러티브 열지도</h2><div class="mseg" role="group" aria-label="기간"><button type="button" class="mseg__b" data-days="7" aria-pressed="true">최근 7일</button><button type="button" class="mseg__b" data-days="30" aria-pressed="false">최근 30일</button></div></div>
-    <p class="small muted">칸 = 그 유형 뉴스 뒤 1시간 변동폭(중앙값, 코인 뉴스는 시장 몫을 뺀 값)이 그 코인의 평소 1시간 흔들림의 몇 배였는지. 그 코인을 언급했거나 시장 전체 발표인 뉴스만 셉니다. 표본 3건 미만은 비웁니다. ▲ = 지난 7일보다 1.3배 이상 예민해짐. 칸을 누르면 기사 목록을 봅니다.</p>
-    <div class="lst__tablewrap">{h7}{h30}</div>
-    <div class="ptp__cell" id="hmCell" aria-live="polite"></div>
-  </section>
-  <section class="panel" aria-labelledby="hvTitle"><h2 class="panel__title" id="hvTitle">이번 주 가장 무거웠던 뉴스</h2><ul class="mini-strong">{heavy}</ul></section>
-  <p class="small muted">{note} 측정 방법은 <a href="{B}about/">소개</a>에 있습니다.</p>
-</div>""".format(B=B, chips=chips, heavy=heavy, note=h(pt.get("note") or ""),
-                 h7=_heat_table(pt["heat"].get("7", []), pt.get("cols", []), "7"), h30=_heat_table(pt["heat"].get("30", []), pt.get("cols", []), "30"))
-    head = '<script type="module" src="%sassets/patterns.js?v=%s"></script>' % (B, ASSET_VER)
-    return shell("patterns", "패턴 — 이런 뉴스는 보통 얼마나 움직였나", "뉴스 유형·키워드별 과거 가격 반응을 측정값으로 찾아봅니다.", B + "patterns/", body, now, extra_head=head)
+    return shell("events", "이벤트 리스크 — 큰 발표 때 비트코인은 얼마나 흔들릴까", "다음 미국 큰 경제 발표에서 비트코인이 과거에 얼마나 흔들렸는지, 내 돈 기준으로 보여 줍니다.", B + "events/", body, now, extra_head=head)
 
 
 def redirect_page(new_path):
@@ -1152,7 +1062,7 @@ def page_404(now):
 
 
 def sitemap(articles, now):
-    urls = [("", now), ("map/", now), ("live/", now), ("listings/", now), ("events/", now), ("patterns/", now), ("about/", now)]
+    urls = [("", now), ("map/", now), ("live/", now), ("listings/", now), ("events/", now), ("about/", now)]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
     return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">%s</urlset>' % body
@@ -1173,7 +1083,7 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     """out 디렉터리에 사이트 전체를 쓴다. 기존 data/와 og/는 호출자가 미리 채워 둔다.
     extra = 새 화면 데이터 {파일 이름: 문서}. 없으면 out/data/ 에서 읽는다."""
     if extra is None:
-        extra = {n: util.read_json(os.path.join(out, "data", n), None) for n in ("map.json", "moves.json", "listings.json", "events.json", "patterns.json")}
+        extra = {n: util.read_json(os.path.join(out, "data", n), None) for n in ("map.json", "moves.json", "listings.json", "events.json")}
     global HAS_BRIEF, ASSET_VER
     digest = []
     for name in sorted(os.listdir(os.path.join(WEB, "assets"))):
@@ -1185,16 +1095,15 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     HAS_BRIEF = os.path.isfile(os.path.join(out, "og", "brief.jpg"))
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     util.write_text(os.path.join(out, ".nojekyll"), "")
-    util.write_text(os.path.join(out, "index.html"), page_landing(articles, market, cal, imp, now, extra.get("listings.json")))
+    util.write_text(os.path.join(out, "index.html"), page_landing(articles, market, cal, imp, now, extra.get("listings.json"), extra.get("events.json")))
     util.write_text(os.path.join(out, "live", "index.html"), page_feed(articles, market, cal, imp, now, extra.get("events.json")))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
     util.write_text(os.path.join(out, "map", "index.html"), page_map(market, now))
     util.write_text(os.path.join(out, "listings", "index.html"), page_listings(now))
     util.write_text(os.path.join(out, "events", "index.html"), page_events(extra.get("events.json"), now))
-    util.write_text(os.path.join(out, "patterns", "index.html"), page_patterns(extra.get("patterns.json"), now))
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
-    for old_path, new_path in (("feed", "live/"), ("markets", "map/"), ("calendar", "events/"), ("impact", "patterns/"), ("predict", "live/")):
+    for old_path, new_path in (("feed", "live/"), ("markets", "map/"), ("calendar", "events/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
         util.write_text(os.path.join(out, old_path, "index.html"), redirect_page(new_path))
     util.write_text(os.path.join(out, "me", "index.html"), page_me(now))
     util.write_text(os.path.join(out, "about", "index.html"), page_about(health, now))

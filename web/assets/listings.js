@@ -1,239 +1,139 @@
-// 상장 레이더: 업비트 원화 상장의 과거 가격 곡선을 겹쳐 그린 '상장 해부도'와 거래 공지 목록.
-// data/listings.json(15분마다 갱신)을 읽고, 진행 중인 상장은 스케줄러를 거쳐 업비트 1분봉을 30초마다 받아 실시간 곡선을 그린다.
-// 새 공지는 페이지를 열어 둔 동안 1분마다 확인해 목록 맨 위에 띄운다(알림은 보내지 않는다).
-const S = window.SIGNAL || {};
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const pct = (v, d = 1) => (v == null || !isFinite(v) ? '–' : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(d) + '%');
-const two = (n) => (n < 10 ? '0' : '') + n;
-const kst = (ts) => new Date((ts + 9 * 3600) * 1000);
-const day = (ts) => { const d = kst(ts); return `${d.getUTCFullYear()}.${two(d.getUTCMonth() + 1)}.${two(d.getUTCDate())}`; };
-const hm = (ts) => { const d = kst(ts); return `${two(d.getUTCMonth() + 1)}.${two(d.getUTCDate())} ${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`; };
-const dur = (min) => (min == null ? '–' : min < 60 ? `${Math.round(min)}분` : `${(min / 60).toFixed(min < 600 ? 1 : 0)}시간`);
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const nowSec = () => Date.now() / 1000;
+// 상장 레이더: 아무것도 모르는 사람도 바로 알 수 있게 메시지 하나 — '새로 상장된 코인, 따라 사면 대부분 손해'.
+// data/listings.json(업비트 원화 상장 기록)으로 브라우저에서 계산한다. 진행 중 상장은 Worker 프록시로 30초마다 이어 그린다.
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pct = (v, d = 1) => { if (v == null || !isFinite(v)) return '–'; const r = +v.toFixed(d); return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(d) + '%'; };
+const nowSec = () => Math.floor(Date.now() / 1000);
+const kst = (t) => new Date((t + 9 * 3600) * 1000);
+const md = (t) => { const d = kst(t); return `${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일`; };
+const hm = (t) => { const d = kst(t); return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`; };
+const dur = (m) => { m = Math.max(0, Math.round(m)); const h = Math.floor(m / 60), mm = m % 60; return (h ? h + '시간' : '') + (mm ? (h ? ' ' : '') + mm + '분' : (h ? '' : '0분')); };
+const median = (a) => { const s = a.slice().sort((x, y) => x - y), n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; };
+const quant = (a, q) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(q * (s.length - 1))]; };
+
+const FEE = 0.1;                                   // 업비트 원화 왕복 수수료 %(0.05%×2)
+const WHEN = [[1, '1분 뒤'], [10, '10분 뒤'], [60, '1시간 뒤'], [180, '3시간 뒤']];
 const KIND = { listing: '신규 상장', caution: '유의 종목', delisting: '거래지원 종료' };
-const q = (arr, p) => { if (!arr.length) return null; const v = [...arr].sort((a, b) => a - b), i = (v.length - 1) * p, lo = Math.floor(i), hi = Math.min(lo + 1, v.length - 1); return v[lo] + (v[hi] - v[lo]) * (i - lo); };
+
+const root = $('#lr');
+if (root) main();
 
 function main() {
-  const root = $('#lst');
-  if (!root) return;
   const proxy = root.dataset.proxy || '';
-  const canvas = $('#lstCanvas'), ctx = canvas.getContext('2d'), tip = $('#lstTip'), chartBox = $('#lstChart');
-  const view = { tab: 'trade', period: '2', bn: 'all', mode: 'all', kind: 'all', sel: null, hover: null, shown: 50 };
-  let data = null, W = 0, H = 0, dpr = 1, agg = null, curves = [], liveCurves = {};
+  let data = null, L = [], k = 10, shown = 20, liveCurves = {};
   const newUids = new Set();
-  let watch = [];
-  try { watch = JSON.parse(localStorage.getItem('signal-watch')) || []; } catch (e) { watch = []; }
-  const css = getComputedStyle(document.documentElement);
-  const col = (n) => css.getPropertyValue(n).trim() || '#888';
-  let C = {};
-  const readColors = () => { C = { text: col('--text'), text2: col('--text-2'), text3: col('--text-3'), line: col('--line'), accent: col('--accent'), up: col('--up'), down: col('--down') }; };
-  readColors();
-  new MutationObserver(() => { readColors(); draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  const alpha = (c, a) => (c.startsWith('oklch(') ? (c.includes('/') ? c.replace(/\/\s*[\d.]+\s*\)$/, `/ ${a})`) : c.replace(/\)$/, ` / ${a})`)) : c);
+  const at = (l, o) => { const v = l.tcm.get(o); return v == null ? null : v; };
+  // 거래 시작 o분 뒤에 사서 h분 뒤 판 수익(수수료 포함)
+  const ret = (l, o, h) => { const a = at(l, o), b = at(l, h); return a == null || b == null ? null : ((1 + b / 100) / (1 + a / 100) - 1) * 100 - FEE; };
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ---------- 고르기 ----------
-  const key = () => (view.tab === 'trade' ? 'tc' : 'nc');
-  const pass = (x) => {
-    if (x.live || x.stable) return false;
-    if (view.period !== 'all' && x.notice_ts < nowSec() - Number(view.period) * 365 * 86400) return false;
-    if (view.bn === 'yes' && !x.binance) return false;
-    if (view.bn === 'no' && x.binance) return false;
-    if (view.mode !== 'all' && x.mode !== view.mode) return false;
-    return true;
-  };
-  const compute = () => {
-    curves = data.listings.filter((x) => x[key()] && pass(x));
-    const by = {};
-    curves.forEach((x) => x[key()].forEach(([off, v]) => { (by[off] = by[off] || []).push(v); }));
-    const offs = Object.keys(by).map(Number).sort((a, b) => a - b);
-    agg = offs.map((o) => ({ o, n: by[o].length, med: q(by[o], 0.5), lo: q(by[o], 0.25), hi: q(by[o], 0.75) }));
-  };
-  const medAt = (off) => { if (!agg || !agg.length) return null; let best = agg[0]; agg.forEach((a) => { if (Math.abs(a.o - off) < Math.abs(best.o - off)) best = a; }); return best.n >= 5 ? best.med : null; };
-
-  // ---------- 축 ----------
-  const XMIN = () => (view.tab === 'trade' ? 0 : -30), XMAX = () => (view.tab === 'trade' ? 1440 : 240);
-  const PAD = { l: 52, r: 16, t: 14, b: 30 };
-  const xs = (off) => {
-    const w = W - PAD.l - PAD.r;
-    if (view.tab === 'trade') return PAD.l + (Math.sqrt(Math.max(0, off)) / Math.sqrt(1440)) * w;
-    // 공지 직후: 공지 전 30분은 왼쪽 15%, 공지 뒤 4시간은 제곱근 눈금
-    if (off < 0) return PAD.l + (0.15 * (off + 30)) / 30 * w;
-    return PAD.l + (0.15 + 0.85 * Math.sqrt(off) / Math.sqrt(240)) * w;
-  };
-  const YLO = Math.log(0.4), YHI = Math.log(4);
-  const ys = (pctv) => { const v = clamp(Math.log(Math.max(0.01, 1 + pctv / 100)), YLO, YHI); return PAD.t + (1 - (v - YLO) / (YHI - YLO)) * (H - PAD.t - PAD.b); };
-  const XT = () => (view.tab === 'trade'
-    ? [[0, '개시'], [5, '5분'], [15, '15분'], [60, '1시간'], [240, '4시간'], [720, '12시간'], [1440, '24시간']]
-    : [[-30, '−30분'], [0, '공지'], [5, '5분'], [15, '15분'], [60, '1시간'], [120, '2시간'], [240, '4시간']]);
-  const YT = [-50, -20, 0, 25, 50, 100, 200];
-
-  // ---------- 그리기 ----------
-  function path(pts, live) {
-    ctx.beginPath();
-    pts.forEach(([o, v], i) => { const x = xs(o), y = ys(v); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
-    if (!live) return;
-  }
-  function draw() {
-    if (!data || !W) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, W, H);
-    // 눈금
-    ctx.font = '11px "Geist Mono", monospace';
-    ctx.textAlign = 'right';
-    YT.forEach((t) => {
-      const y = ys(t);
-      ctx.strokeStyle = t === 0 ? alpha(C.text3, 0.6) : alpha(C.text3, 0.18);
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke();
-      ctx.fillStyle = C.text3; ctx.fillText(t === 0 ? '0%' : pct(t, 0), PAD.l - 6, y + 4);
-    });
-    ctx.textAlign = 'center';
-    XT().forEach(([o, l]) => {
-      const x = xs(o);
-      ctx.strokeStyle = alpha(C.text3, o === 0 ? 0.5 : 0.12);
-      ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, H - PAD.b); ctx.stroke();
-      ctx.fillStyle = C.text3; ctx.fillText(l, x, H - PAD.b + 18);
-    });
-    // 과거 곡선
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = alpha(C.text3, curves.length > 120 ? 0.14 : 0.22);
-    curves.forEach((x) => { path(x[key()]); ctx.stroke(); });
-    // 25~75% 범위와 중앙값
-    const band = agg.filter((a) => a.n >= 5);
-    if (band.length > 1) {
-      ctx.beginPath();
-      band.forEach((a, i) => { const x = xs(a.o), y = ys(a.hi); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
-      [...band].reverse().forEach((a) => ctx.lineTo(xs(a.o), ys(a.lo)));
-      ctx.closePath();
-      ctx.fillStyle = alpha(C.text, 0.08);
-      ctx.fill();
-      ctx.beginPath();
-      band.forEach((a, i) => { const x = xs(a.o), y = ys(a.med); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
-      ctx.strokeStyle = C.text; ctx.lineWidth = 2; ctx.stroke();
-    }
-    // 고른 곡선·가리킨 곡선
-    [view.hover, view.sel].forEach((u, i) => {
-      const x = u && data.listings.find((y) => y.uid === u && y[key()]);
-      if (!x) return;
-      path(x[key()]); ctx.strokeStyle = i ? C.up : alpha(C.text2, 0.9); ctx.lineWidth = i ? 2.2 : 1.6; ctx.stroke();
-    });
-    // 진행 중 상장
-    Object.entries(liveCurves).forEach(([sym, pts]) => {
-      if (view.tab !== 'trade' || pts.length < 2) return;
-      path(pts); ctx.strokeStyle = C.accent; ctx.lineWidth = 2.6; ctx.stroke();
-      const [o, v] = pts[pts.length - 1];
-      ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(xs(o), ys(v), 4, 0, Math.PI * 2); ctx.fill();
-      ctx.font = '700 12px Geist, Pretendard, sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText(sym, Math.min(xs(o) + 8, W - PAD.r - 40), ys(v) - 8);
-    });
-  }
-
-  // ---------- 요약 ----------
-  function stats() {
-    const box = $('#lstStats');
-    const ms = curves.map((x) => x.m || {});
-    const pick = (k) => ms.map((m) => m[k]).filter((v) => v != null);
-    const cell = (label, vals, fmt, extra) => {
-      const n = vals.length, weak = n < 10;
-      return `<div class="${weak ? 'is-weak' : ''}"><dt>${label}</dt><dd>${n ? fmt(vals) : '–'}</dd><span>${extra ? extra(vals) + ' · ' : ''}n=${n}${weak ? ' · 표본 적음' : ''}</span></div>`;
-    };
-    let html;
-    if (view.tab === 'trade') {
-      html = cell('24시간 안 고점', pick('peak24'), (v) => pct(q(v, 0.5)), (v) => `가운데 절반 ${pct(q(v, 0.25), 0)} ~ ${pct(q(v, 0.75), 0)}`)
-        + cell('고점까지 걸린 시간', pick('peak_min'), (v) => dur(q(v, 0.5)), (v) => `${Math.round(v.filter((x) => x <= 15).length / v.length * 100)}%는 15분 안`)
-        + cell('1시간 뒤', pick('r60'), (v) => pct(q(v, 0.5)), (v) => `${Math.round(v.filter((x) => x < 0).length / v.length * 100)}%는 개시가 아래`)
-        + cell('24시간 뒤', pick('r1440'), (v) => pct(q(v, 0.5)), (v) => `${Math.round(v.filter((x) => x < 0).length / v.length * 100)}%는 개시가 아래`)
-        + cell('고점 대비 24시간 뒤', pick('dd_from_peak'), (v) => pct(q(v, 0.5)));
-    } else {
-      const last = curves.map((x) => { const p = x.nc; return p && p.length ? p[p.length - 1][1] : null; }).filter((v) => v != null);
-      html = cell('공지 후 60분 안 최고 상승(공지빔)', pick('notice_peak60'), (v) => pct(q(v, 0.5)), (v) => `가운데 절반 ${pct(q(v, 0.25), 0)} ~ ${pct(q(v, 0.75), 0)}`)
-        + cell('공지 4시간 뒤', last, (v) => pct(q(v, 0.5)), (v) => `${Math.round(v.filter((x) => x < 0).length / v.length * 100)}%는 공지 전보다 아래`);
-    }
-    box.innerHTML = html;
-    const c = data.counts || {};
-    $('#lstAxis').textContent = view.tab === 'trade'
-      ? '가로: 업비트 원화 첫 거래부터 24시간(앞쪽을 넓게 펼친 눈금) · 세로: 첫 1분봉 시가 대비 변화(로그 눈금, −60%~+300% 밖은 잘림) · 흰 선 = 중앙값, 띠 = 가운데 절반'
-      : '가로: 공지 30분 전부터 4시간 뒤 · 세로: 공지 직전 1분 바이낸스 종가 대비 변화(로그 눈금) · 흰 선 = 중앙값, 띠 = 가운데 절반';
-    $('#lstNote').textContent = `원화 상장 ${c.krw_listings || 0}건 중 ${c.excluded || 0}건은 거래 종료 등으로 시세가 없어 빠졌고, 스테이블코인 ${c.stable || 0}건은 성격이 달라 집계에서 뺐으며, 공지 제목에서 티커를 읽지 못한 ${c.no_ticker_titles || 0}건(2017년 초기 공지)도 빠졌습니다. 살아남은 코인만 남아 실제보다 좋게 보일 수 있습니다. 과거 상장의 가격 변화이며, 앞으로도 같다는 뜻은 아닙니다.`;
-  }
-
-  // ---------- 진행 중 상장 ----------
-  function renderNow() {
-    const box = $('#lstNow');
-    const live = data.listings.filter((x) => x.live);
-    if (!live.length) {
+  // ---------- 지금 상장 중 ----------
+  function live() {
+    const box = $('#lrLive');
+    const xs = data.listings.filter((x) => x.live);
+    if (!xs.length) {
       const last = data.listings.find((x) => x.tc);
-      box.innerHTML = last ? `<p class="lst__idle small muted">지금 진행 중인 원화 상장은 없습니다 · 최근 상장 <b>${esc(last.sym)}</b> (${day(last.notice_ts)})</p>` : '';
+      box.innerHTML = last ? `<p class="lr-idle">지금 진행 중인 상장은 없어요 · 가장 최근 상장은 <b>${esc(last.sym)}</b>(${md(last.trade_ts || last.notice_ts)})</p>` : '';
       return;
     }
-    box.innerHTML = live.map((x) => {
+    const pk = median(L.map((l) => l.m.peak_min).filter((v) => v != null));
+    box.innerHTML = xs.map((x) => {
       const pts = liveCurves[x.sym] || x.tc || [];
-      const lastPt = pts.length ? pts[pts.length - 1] : null;
-      const m = lastPt ? medAt(lastPt[0]) : null;
       const started = x.trade_ts && x.trade_ts <= nowSec();
-      const status = !x.trade_ts ? '거래 개시 시각 확인 중' : started ? `거래 개시 후 ${dur((nowSec() - x.trade_ts) / 60)}` : `거래 개시 ${hm(x.trade_ts)} 예정`;
-      return `<article class="lnow"><p class="lnow__k"><span class="live-dot" aria-hidden="true"></span>진행 중 상장 · ${esc(status)}</p>`
-        + `<h2 class="lnow__t"><b>${esc(x.sym)}</b> ${esc(x.title)}</h2>`
-        + `<dl class="lnow__v"><div><dt>공지</dt><dd>${hm(x.notice_ts)}</dd></div>`
-        + `<div><dt>개시가 대비 지금</dt><dd class="${lastPt && lastPt[1] < 0 ? 'down' : 'up'}">${lastPt ? pct(lastPt[1]) : '–'}</dd></div>`
-        + `<div><dt>같은 시점 과거 중앙값</dt><dd>${m == null ? '–' : pct(m)}</dd></div>`
-        + `<div><dt>차이</dt><dd>${lastPt && m != null ? (lastPt[1] - m >= 0 ? '+' : '−') + Math.abs(lastPt[1] - m).toFixed(1) + '%p' : '–'}</dd></div></dl></article>`;
+      if (!started) {
+        return `<article class="lr-live"><p class="lr-live__tag"><i></i>곧 거래 시작</p>
+          <h2 class="lr-live__t">${esc(x.sym)} · ${x.trade_ts ? `${hm(x.trade_ts)} 거래 시작 예정 (${dur((x.trade_ts - nowSec()) / 60)} 남음)` : '거래 시작 시각 확인 중'}</h2>
+          <p class="lr-live__say">지난 상장 코인은 거래가 시작되면 <b>보통 ${dur(pk)} 만에 최고점</b>을 찍고 내려왔어요. 따라 사기 전에 아래 기록을 먼저 보세요.</p></article>`;
+      }
+      const last = pts.length ? pts[pts.length - 1] : null, peak = pts.length ? Math.max(...pts.map((p) => p[1])) : null;
+      const t10 = new Map(pts).get(10), f10 = last && t10 != null ? ((1 + last[1] / 100) / (1 + t10 / 100) - 1) * 100 - FEE : null;
+      return `<article class="lr-live"><p class="lr-live__tag"><i></i>지금 상장 중</p>
+        <h2 class="lr-live__t">${esc(x.sym)} · 거래 시작 ${dur((nowSec() - x.trade_ts) / 60)}째</h2>
+        <dl class="lr-live__row"><div><dt>시작가 대비 최고</dt><dd class="up">${pct(peak)}</dd></div><div><dt>시작가 대비 지금</dt><dd class="${last && last[1] < 0 ? 'down' : 'up'}">${last ? pct(last[1]) : '–'}</dd></div></dl>
+        ${f10 == null ? '' : `<p class="lr-live__say">거래 시작 10분 뒤에 샀다면 지금 <b class="${f10 >= 0 ? 'up' : 'down'}">${pct(f10)}</b>예요. 지난 상장 코인은 이 시점부터 하루가 될 때까지 <b>보통 더 내렸어요.</b></p>`}</article>`;
     }).join('');
   }
   async function pollLive() {
-    if (!data || !proxy) return;
-    const live = data.listings.filter((x) => x.live && x.trade_ts && x.trade_ts <= nowSec() && x.tbase);
-    for (const x of live) {
+    if (!proxy) return;
+    const xs = data.listings.filter((x) => x.live && x.trade_ts && x.trade_ts <= nowSec() && x.tbase);
+    for (const x of xs) {
       try {
         const res = await fetch(`${proxy}/upbit-candles?market=KRW-${encodeURIComponent(x.sym)}&count=200`);
         if (!res.ok) continue;
         const rows = await res.json();
         const by = new Map((x.tc || []).map(([o, v]) => [o, v]));
         rows.forEach((r) => {
-          const t = Date.parse(r.candle_date_time_utc + 'Z') / 1000;
-          const off = Math.round((t - x.trade_ts) / 60);
+          const off = Math.round((Date.parse(r.candle_date_time_utc + 'Z') / 1000 - x.trade_ts) / 60);
           if (off >= 0 && off <= 1440) by.set(off, (r.trade_price / x.tbase - 1) * 100);
         });
         liveCurves[x.sym] = [...by.entries()].sort((a, b) => a[0] - b[0]);
       } catch (e) {}
     }
-    renderNow(); draw();
+    live();
   }
 
-  // ---------- 공지 목록 ----------
-  function rows() {
-    // 공지 하나에 코인이 여럿이면 첫 코인 기준으로 보여 주고 그 이름을 붙인다
-    const byUid = new Map();
-    data.listings.forEach((x) => { if (!byUid.has(x.uid)) byUid.set(x.uid, x); });
-    const list = data.notices.filter((n) => view.kind === 'all' || n.kind === view.kind);
-    $('#lstRows').innerHTML = list.slice(0, view.shown).map((n) => {
-      const x = byUid.get(n.uid), m = (x && x.m) || {};
-      const can = x && x.tc;
-      const mine = (n.symbols || []).some((sym) => watch.includes(sym));
-      return `<tr data-uid="${esc(n.uid)}" class="${view.sel === n.uid ? 'is-sel' : ''}${can ? ' is-pick' : ''}${mine ? ' is-watch' : ''}">`
-        + `<td class="mono">${hm(n.ts)}${newUids.has(n.uid) ? ' <span class="lst__new">NEW</span>' : ''}</td>`
-        + `<td><span class="lkind lkind--${esc(n.kind)}">${KIND[n.kind] || esc(n.kind)}${n.kind === 'listing' && n.krw ? ' · 원화' : ''}</span></td>`
-        + `<td class="mono">${esc((n.symbols || []).join(', ') || '–')}</td>`
-        + `<td class="lst__title"><a href="https://upbit.com/service_center/notice?id=${esc(n.uid)}" target="_blank" rel="noopener">${esc(n.title)}</a></td>`
-        + `<td class="mono ${m.peak24 == null ? 'muted' : 'up'}">${m.peak24 == null ? (x && x.excluded ? '시세 없음' : '–') : ((n.symbols || []).length > 1 ? esc(x.sym) + ' ' : '') + pct(m.peak24)}</td>`
-        + `<td class="mono ${m.r1440 == null ? 'muted' : m.r1440 >= 0 ? 'up' : 'down'}">${pct(m.r1440)}</td></tr>`;
-    }).join('');
-    $('#lstMore').hidden = list.length <= view.shown;
+  // ---------- 핵심: 따라 사면 ----------
+  function key() {
+    const rs = L.map((l) => ret(l, k, 1440)).filter((v) => v != null);
+    const lossN = Math.round(rs.filter((v) => v <= 0).length / rs.length * 100);
+    $('#lrWhen').innerHTML = WHEN.map(([o, t]) => `<button type="button" role="radio" data-k="${o}" aria-checked="${o === k}">거래 시작 ${t}</button>`).join('');
+    $('#lrLoss').textContent = lossN;
+    const dots = $('#lrDots');
+    dots.setAttribute('aria-label', `100명 중 ${lossN}명 손해, ${100 - lossN}명 이익`);
+    dots.innerHTML = Array.from({ length: 100 }, (_, i) => `<i class="${i >= lossN ? 'is-win' : ''}"></i>`).join('');
+    const w = WHEN.find((x) => x[0] === k)[1];
+    $('#lrSay').innerHTML = `거래가 시작되고 <b>${w}</b>에 사서 하루 들고 있었다면, 100명 중 <b>${lossN}명이 손해</b>를 봤어요. 가운데 값은 <b class="down">${pct(median(rs))}</b>예요.`;
   }
-  $('#lstMore').addEventListener('click', () => { view.shown += 100; rows(); });
-  $('#lstRows').addEventListener('click', (e) => {
-    if (e.target.closest('a')) return;
-    const tr = e.target.closest('tr.is-pick');
-    if (!tr) return;
-    view.sel = view.sel === tr.dataset.uid ? null : tr.dataset.uid;
-    rows(); draw();
-    if (view.sel) $('#lstChart').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
+  $('#lrWhen').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; k = +b.dataset.k; key(); path(); });
+
+  // ---------- 따라 산 뒤 보통 흐름(산 가격 = 0) ----------
+  function path() {
+    const svg = $('#lrPath'), W = svg.clientWidth, H = svg.clientHeight;
+    if (W < 100) return;
+    const offs = [...new Set(L.flatMap((l) => [...l.tcm.keys()]))].filter((o) => o >= k && o <= 1440).sort((a, b) => a - b);
+    const P = offs.map((o) => { const v = L.map((l) => { const r = ret(l, k, o); return r == null ? null : r + FEE; }).filter((x) => x != null); return { o, m: median(v), lo: quant(v, 0.25), hi: quant(v, 0.75), n: v.length }; }).filter((p) => p.n >= 30);
+    if (!P.length) return;
+    const m = { l: 6, r: 10, t: 24, b: 22 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const span = 1440 - k, xs = (o) => m.l + Math.sqrt((o - k) / span) * iw;   // 처음이 중요해 가로축은 제곱근
+    const lo = Math.min(0, ...P.map((p) => p.lo)) - 2, hi = Math.max(0, ...P.map((p) => p.hi)) + 2;
+    const ys = (v) => m.t + (1 - (v - lo) / (hi - lo)) * ih;
+    const line = 'M' + P.map((p) => `${xs(p.o).toFixed(1)},${ys(p.m).toFixed(1)}`).join('L');
+    const area = 'M' + P.map((p) => `${xs(p.o).toFixed(1)},${ys(p.hi).toFixed(1)}`).join('L') + 'L' + P.slice().reverse().map((p) => `${xs(p.o).toFixed(1)},${ys(p.lo).toFixed(1)}`).join('L') + 'Z';
+    const end = P[P.length - 1], one = P.find((p) => p.o >= k + 60) || end;
+    const pin = (p, txt) => `<circle class="pin ${p.m < 0 ? 'is-low' : ''}" cx="${xs(p.o)}" cy="${ys(p.m)}" r="4.5"/><text class="lab" x="${Math.min(W - 92, xs(p.o) - 24)}" y="${ys(p.m) + 20}">${txt}</text>`;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.innerHTML = `<path class="band" d="${area}"/><line class="zero" x1="${m.l}" x2="${m.l + iw}" y1="${ys(0)}" y2="${ys(0)}"/>
+      <text class="ax" x="${m.l}" y="${ys(0) - 8}">산 가격</text><path class="med" d="${line}"/>${pin(one, '1시간 뒤 ' + pct(one.m, 0))}${pin(end, '하루 뒤 ' + pct(end.m, 0))}
+      ${[[k, '샀을 때'], [k + 60, '+1시간'], [k + 360, '+6시간'], [1440, '하루 뒤']].filter(([o]) => o <= 1440).map(([o, t]) => `<text class="ax" x="${xs(o)}" y="${H - 4}" text-anchor="${o === k ? 'start' : o === 1440 ? 'end' : 'middle'}">${t}</text>`).join('')}`;
+    const w = WHEN.find((x) => x[0] === k)[1];
+    $('#lrPathSub').textContent = `거래 시작 ${w}에 산 가격을 0으로 놓고, 지난 상장 ${L.length}건의 가운데 값을 이었어요. 옅은 띠는 절반이 지나간 범위예요.`;
+    const pk = L.map((l) => l.m.peak_min).filter((v) => v != null), dd = L.map((l) => l.m.dd_from_peak).filter((v) => v != null);
+    $('#lrSteps').innerHTML = `<li><span>거래가 시작되면 <b>보통 ${dur(median(pk))} 만에 최고점</b>을 찍어요. 소식을 듣고 들어갈 때쯤엔 이미 지나 있어요.</span></li>
+      <li><span>그 뒤로는 내려와요. <b>하루 뒤엔 최고점보다 ${pct(median(dd), 0)}</b>였어요.</span></li>
+      <li><span>그래서 따라 사면 <b>대부분 비싸게 사게 돼요.</b></span></li>`;
+  }
+
+  // ---------- 최근 상장 ----------
+  function recent() {
+    const rows = L.slice().sort((a, b) => b.trade_ts - a.trade_ts).slice(0, 10);
+    $('#lrRecent').innerHTML = rows.map((l) => {
+      const r = ret(l, 10, 1440);
+      return `<li><span class="c">${esc(l.sym)}<small>${md(l.trade_ts)} 상장</small></span><span class="m">시작가 대비 최고 ${pct(l.m.peak24, 0)}</span>
+        <span class="r ${r > 0 ? 'up' : 'down'}">${r == null ? '–' : pct(r)}<small>${r == null ? '' : r > 0 ? '이익' : '손해'}</small></span></li>`;
+    }).join('');
+  }
+
+  // ---------- 업비트 공지(접어 둠) ----------
+  function notices() {
+    const list = data.notices;
+    $('#lrNotices').innerHTML = list.slice(0, shown).map((n) => `<li><time>${md(n.ts)} ${hm(n.ts)}</time>
+      <span class="lr-kind lr-kind--${esc(n.kind)}">${KIND[n.kind] || esc(n.kind)}</span>${newUids.has(String(n.uid)) ? '<span class="lr-new">NEW</span>' : ''}
+      <a href="https://upbit.com/service_center/notice?id=${esc(n.uid)}" target="_blank" rel="noopener">${esc(n.title)}</a></li>`).join('');
+    $('#lrMore').hidden = list.length <= shown;
+  }
+  $('#lrMore').addEventListener('click', () => { shown += 50; notices(); });
   async function pollNotices() {
-    if (!proxy || !data) return;
+    if (!proxy) return;
     try {
       const res = await fetch(`${proxy}/upbit-notices`);
       if (!res.ok) return;
@@ -244,79 +144,27 @@ function main() {
         if (known.has(uid)) return;
         const kind = /유의 ?종목/.test(t) ? 'caution' : /거래 ?지원 종료/.test(t) ? 'delisting' : /(디지털 자산 추가|신규 거래지원|신규 상장|코인 추가)/.test(t) ? 'listing' : null;
         if (!kind) return;
-        const syms = [...t.matchAll(/\(([A-Z0-9]{1,15})\)/g)].map((m) => m[1]).filter((s) => !['KRW', 'BTC', 'USDT'].includes(s));
-        data.notices.unshift({ uid, ts: Date.parse(n.first_listed_at || n.listed_at) / 1000, title: t, kind, krw: /KRW|원화/.test(t), symbols: syms });
+        data.notices.unshift({ uid, ts: Date.parse(n.first_listed_at || n.listed_at) / 1000, title: t, kind });
         newUids.add(uid);
       });
-      if (newUids.size) rows();
+      if (newUids.size) notices();
     } catch (e) {}
   }
 
-  // ---------- 가리키기 ----------
-  const nearest = (mx, my) => {
-    let best = null;
-    curves.forEach((x) => {
-      const pts = x[key()];
-      for (let i = 1; i < pts.length; i++) {
-        const x0 = xs(pts[i - 1][0]), x1 = xs(pts[i][0]);
-        if (mx < x0 || mx > x1) continue;
-        const f = (mx - x0) / (x1 - x0 || 1), v = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f, d = Math.abs(ys(v) - my);
-        if (d < 10 && (!best || d < best.d)) best = { x, v, off: pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, d };
-        break;
-      }
-    });
-    return best;
-  };
-  canvas.addEventListener('mousemove', (e) => {
-    const r = canvas.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
-    const b = nearest(mx, my);
-    const u = b ? b.x.uid : null;
-    if (u !== view.hover) { view.hover = u; draw(); }
-    if (!b) { tip.hidden = true; return; }
-    tip.hidden = false;
-    tip.innerHTML = `<b>${esc(b.x.sym)}</b> · ${day(b.x.notice_ts)}<br>${view.tab === 'trade' ? '개시 후' : '공지 후'} ${dur(Math.max(0, b.off))} <b class="${b.v >= 0 ? 'up' : 'down'}">${pct(b.v)}</b>`;
-    tip.style.left = clamp(mx + 12, 0, W - 160) + 'px';
-    tip.style.top = clamp(my - 44, 0, H - 50) + 'px';
-  });
-  canvas.addEventListener('mouseleave', () => { tip.hidden = true; if (view.hover) { view.hover = null; draw(); } });
-  canvas.addEventListener('click', (e) => {
-    const r = canvas.getBoundingClientRect();
-    const b = nearest(e.clientX - r.left, e.clientY - r.top);
-    view.sel = b ? b.x.uid : null;
-    rows(); draw();
-  });
-
-  // ---------- 설정 ----------
-  $$('.mseg__b', root).forEach((b) => b.addEventListener('click', () => {
-    const k = ['tab', 'period', 'bn', 'mode', 'kind'].find((n) => b.dataset[n] != null);
-    if (!k) return;
-    view[k] = b.dataset[k];
-    $$(`[data-${k}]`, root).forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
-    if (k === 'kind') { view.shown = 50; rows(); return; }
-    compute(); stats(); renderNow(); draw();
-  }));
-
-  const resize = () => {
-    W = chartBox.clientWidth; H = chartBox.clientHeight; dpr = Math.min(devicePixelRatio || 1, 2);
-    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-    draw();
-  };
-  new ResizeObserver(resize).observe(chartBox);
-
   (async () => {
     try {
-      const res = await fetch(root.dataset.src + '?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' });
-      data = await res.json();
+      data = await (await fetch(root.dataset.src + '?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' })).json();
     } catch (e) {
-      $('#lstNote').textContent = '상장 데이터를 불러오지 못했습니다.';
+      $('#lrSay').textContent = '상장 기록을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.';
       return;
     }
-    compute(); stats(); renderNow(); rows(); resize();
+    L = data.listings.filter((l) => l.tc && !l.live && l.m && !l.stable).map((l) => ({ ...l, tcm: new Map(l.tc) }));
+    $('#lrN').textContent = L.length;
+    live(); key(); path(); recent(); notices();
+    let raf; new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(path); }).observe($('#lrPath'));
     pollLive();
     setInterval(() => { if (!document.hidden) pollLive(); }, 30000);
     setInterval(() => { if (!document.hidden) pollNotices(); }, 60000);
+    if (reduced()) root.classList.add('is-static');
   })();
 }
-
-main();

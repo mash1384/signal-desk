@@ -222,6 +222,27 @@ def metrics(entry):
     return m
 
 
+FEE_PCT = 0.1   # 업비트 원화 왕복 수수료(0.05%×2)
+
+
+def follow_stats(listings, buy_min=10, hold_min=1440):
+    """거래 시작 buy_min분 뒤에 사서 hold_min분 뒤 팔았다면(수수료 포함): (손해 본 비율 0~1, 중앙 수익 %, 건수).
+    진행 중이거나 곡선이 없는 상장, 스테이블코인은 뺀다(상장 레이더 화면과 같은 기준)."""
+    rs = []
+    for x in listings or []:
+        if x.get("live") or x.get("stable") or not x.get("tc"):
+            continue
+        v = dict(x["tc"])
+        if buy_min in v and hold_min in v:
+            rs.append(((1 + v[hold_min] / 100) / (1 + v[buy_min] / 100) - 1) * 100 - FEE_PCT)
+    if not rs:
+        return None, None, 0
+    rs.sort()
+    n = len(rs)
+    med = rs[n // 2] if n % 2 else (rs[n // 2 - 1] + rs[n // 2]) / 2
+    return sum(1 for r in rs if r <= 0) / n, round(med, 2), n
+
+
 # ---------- 매 실행 ----------
 
 import os  # noqa: E402
