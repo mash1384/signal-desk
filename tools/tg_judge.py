@@ -38,6 +38,7 @@ SECTORS = {
 SYS = """너는 한국 크립토 투자자를 위한 속보 정리기다. 텔레그램 속보 한 건을 받아 JSON 한 개만 낸다. 설명 금지.
 
 ko: 한국어 한 줄(최대 80자). 원문이 영어·중국어면 번역, 한국어면 다듬기. 핵심 사실만, 숫자·이름·티커는 그대로. 말투는 '~했다/~한다'. 홍보 문구·이모지·해시태그·출처 표기는 뺀다.
+  속보 채널·매체 이름(코인니스, BlockBeats, Wu Blockchain, Watcher Guru, Lookonchain, Whale Alert, FinancialJuice 등)과 '~에 따르면'도 넣지 않는다.
 kind:
   event = 가격을 움직일 수 있는 새 사실(상장·상장폐지, 해킹, 소송·제재, 규제·법안, 기관·정부 매수·매도, 대량 이동, ETF, 제휴·채택, 출시·업그레이드, 지정학 사건)
   data = 경제지표 발표(실제·예상치), 중앙은행 결정·발언
@@ -69,7 +70,8 @@ strength: 0=영향 없음 1=작음 2=눈에 띔(수억 달러, 주요 규제기�
 형식: {"ko": "", "kind": "", "verdict": "", "coins": [], "sectors": [], "market_wide": false, "strength": 0}"""
 
 TICKER = re.compile(r"^[A-Z0-9]{2,10}$")
-STOCKISH = {"NVDA", "TSLA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "COIN", "MSTR", "HOOD", "CRCL", "USD", "KRW", "EUR", "JPY", "CNY"}
+STOCKISH = {"NVDA", "TSLA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "COIN", "MSTR", "HOOD", "CRCL", "USD", "KRW", "EUR", "JPY", "CNY",
+            "AI", "ETF", "CPI", "PPI", "GDP", "FED", "FOMC", "SEC", "CFTC", "US", "USA", "EU", "UK", "IPO", "CEO", "DEFI", "NFT", "RWA", "DEX", "CEX"}
 
 
 def log(*a):

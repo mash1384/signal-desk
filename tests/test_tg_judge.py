@@ -27,7 +27,7 @@ class TgJudge(unittest.TestCase):
         self.assertEqual(J.normalize(out(verdict="중립", sectors=["ai"]))["sectors"], [])
 
     def test_coins_cleaned(self):
-        r = J.normalize(out(coins=["$btc", "NVDA", "BTC", "a", "eth"]))
+        r = J.normalize(out(coins=["$btc", "NVDA", "BTC", "a", "AI", "eth"]))
         self.assertEqual(r["coins"], ["BTC", "ETH"])
 
     def test_market_wide_needs_strength(self):

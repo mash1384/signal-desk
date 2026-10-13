@@ -1,15 +1,16 @@
-"""운영자 Mac에서 상시: 판정된 텔레그램 속보(tg_judge.py)를 같은 소식끼리 묶어 사이트용 tg.json을 만들고 `tg` 브랜치에 올린다.
+"""운영자 Mac에서 상시: 판정된 텔레그램 속보(tg_judge.py)를 같은 소식끼리 묶어 사이트용 flash.json을 만들고 `flash` 브랜치에 올린다.
 
 묶기: 한국어 한 줄(ko)을 qwen3-embedding으로 임베딩해, 6시간 안에 나온 비슷한 줄을 하나로 묶는다.
   유사도 ≥ 0.85면 같은 소식. 0.80~0.85는 숫자나 코인이 겹칠 때만. 둘 다 %가 있는데 하나도 안 겹치면 다른 소식(CPI 전년비 3.3% ≠ 전월비 0.6%).
   기준은 2026-10-13 수집분의 짝 120여 개를 직접 보고 정했다.
-사이트에 싣는 것: 우리가 만든 한국어 한 줄, 판정, 코인·섹터, 채널 이름과 원문(t.me) 링크. 원문 본문은 싣지 않는다.
-브라우저는 Cloudflare Worker의 /tg 로 이 파일을 받는다(worker/src/index.js).
+사이트에 싣는 것: 우리가 만든 한국어 한 줄, 판정, 코인·섹터, 몇 곳이 보도했는지, 관련 기사 링크.
+채널 이름·텔레그램 링크·원문 본문은 싣지 않는다(운영자 결정, 2026-10-13). 브라우저는 Worker의 /flash 로 받는다.
 
 설치: ~/.signal/tgvenv/bin/python tools/tg_publish.py --install   (launchd com.signal.tgpub, 로그 ~/.signal/tgpub.log)
 한 번만 만들어 보기(올리지 않음): ~/.signal/tgvenv/bin/python tools/tg_publish.py --dry
 """
 
+import hashlib
 import json
 import os
 import re
@@ -18,12 +19,13 @@ import sqlite3
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 
 HOME = os.path.expanduser("~/.signal")
 DB = os.path.join(HOME, "tg", "tg.db")
 VENV_PY = os.path.join(HOME, "tgvenv", "bin", "python")
-BRANCH_DIR = os.path.join(HOME, "tg-branch")
+BRANCH_DIR = os.path.join(HOME, "flash-branch")
 REPO = "https://github.com/mash1384/signal-desk.git"
 LABEL = "com.signal.tgpub"
 OLLAMA = "http://localhost:11434"
@@ -35,25 +37,29 @@ EVERY = 30                  # 묶기 간격(초)
 PUSH_GAP = 60               # 올리기 최소 간격(초)
 MAX_ITEMS = 400
 SHOW_KINDS = ("event", "data", "opinion", "price_recap")
-# 사이트에 보일 채널 이름
-SHORT = {"coinnesskr": "코인니스", "wublockchainenglish": "Wu Blockchain", "theblockbeats": "BlockBeats", "WatcherGuru": "Watcher Guru",
-         "binance_announcements": "바이낸스 공지", "OKXAnnouncements": "OKX 공지", "Bithumb_Notice": "빗썸 공지(미러)",
-         "lookonchainchannel": "Lookonchain", "whale_alert_io": "Whale Alert", "FinancialJuice": "FinancialJuice",
-         "marketfeed": "Market Feed", "investigations": "ZachXBT"}
 
 NUM = re.compile(r"\d[\d,]*(?:\.\d+)?")
 PCT = re.compile(r"(\d+(?:\.\d+)?)\s*%")
+# 출처 채널이 드러나는 링크는 싣지 않는다: 텔레그램, X(속보 계정 글), 채널 운영사 사이트. 언론사 기사·거래소 공식 공지만 남는다
+TG_LINK = re.compile(r"(?i)^(?!https?://)|^https?://([\w-]+\.)*(t\.me|telegram\.(me|org)|x\.com|twitter\.com|coinness\.com|theblockbeats\.\w+|"
+                     r"blockbeats\.\w+|watcher\.guru|lookonchain\.com|whale-alert\.io|financialjuice\.com|wu-?blockchain\.\w+|"
+                     r"substack\.com|bit\.ly|tradingbeats\.\w+|hdmune\.\w+|digitalasset\.works)(/|$)")
+# 한 줄 안에 채널 이름이 들어가면 지운다(예: "룩온체인에 따르면, ")
+BRAND = re.compile(r"(?i)\s*(코인니스|coinness|블록비츠|blockbeats|律动|wu ?blockchain|우블록체인|watcher ?guru|워처 ?구루|lookonchain|룩온체인|"
+                   r"whale ?alert|웨일 ?얼럿|웨일 ?알러트|financial ?juice|파이낸셜 ?주스|market ?feed|마켓 ?피드|zachxbt|잭엑스비티|텔레그램|telegram)"
+                   r"(에 따르면|의 보도에 따르면|가 전했다|이 전했다|는|은|이|가|에서|,)?\s*[,:·-]?\s*")
+TRACK = re.compile(r"(?i)^(utm_\w+|from|ref|source)$")
+
+
+def clean_link(u):
+    """링크 꼬리표(utm_source=telegram-…, from=telegram)를 떼어 출처가 드러나지 않게."""
+    p = urllib.parse.urlsplit(u)
+    q = [(k, v) for k, v in urllib.parse.parse_qsl(p.query, keep_blank_values=True) if not TRACK.match(k)]
+    return urllib.parse.urlunsplit((p.scheme, p.netloc, p.path, urllib.parse.urlencode(q), ""))
 
 
 def log(*a):
     print(time.strftime("%m-%d %H:%M:%S"), *a, flush=True)
-
-
-def channels():
-    sys.path.insert(0, HOME)
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    import tg_collect
-    return tg_collect.CHANNELS
 
 
 # ---------- 묶기 ----------
@@ -98,21 +104,18 @@ def cluster(rows, sim):
 
 
 def merge(members):
-    """묶음 하나 → 사이트용 항목. 대표 줄은 가장 먼저 나온 것, 판정은 세기로 가중한 다수결."""
+    """묶음 하나 → 사이트용 항목. 대표 줄은 가장 먼저 나온 것, 판정은 세기로 가중한 다수결.
+    출처 채널은 싣지 않고 몇 곳이 보도했는지만 센다. id도 채널을 드러내지 않게 해시로."""
     first = members[0]
     score = sum((m["strength"] + 1) * {"호재": 1, "악재": -1}.get(m["verdict"], 0) for m in members)
     verdict = "호재" if score > 0 else "악재" if score < 0 else "중립"
     count = lambda key: sorted({x for m in members for x in m[key]}, key=lambda x: -sum(x in m[key] for m in members))
-    src, seen = [], set()
-    for m in members:
-        if m["ch"] not in seen:
-            seen.add(m["ch"])
-            src.append([m["ch"], m["id"], m["t"]])
-    link = next((u for m in members for u in m["links"] if "t.me/" not in u), "")
-    return {"id": "%s-%d" % (first["ch"], first["id"]), "t": first["t"], "ko": first["ko"], "v": verdict,
-            "s": max(m["strength"] for m in members), "kind": first["kind"], "coins": count("coins")[:4],
+    link = next((clean_link(u) for m in members for u in m["links"] if not TG_LINK.search(u)), "")
+    ko = BRAND.sub(" ", first["ko"]).strip(" ,·-") or first["ko"]
+    return {"id": hashlib.sha1(("%s-%d" % (first["ch"], first["id"])).encode()).hexdigest()[:12], "t": first["t"], "ko": " ".join(ko.split()),
+            "v": verdict, "s": max(m["strength"] for m in members), "kind": first["kind"], "coins": count("coins")[:4],
             "sectors": count("sectors")[:2] if verdict != "중립" else [], "mw": any(m["market_wide"] for m in members),
-            "n": len(members), "src": src[:8], "link": link}
+            "n": len({m["ch"] for m in members}), "link": link}
 
 
 def visible(it):
@@ -163,15 +166,13 @@ def load(con):
 def build(con, now=None):
     now = int(now or time.time())
     rows, vecs = load(con)
-    chans = channels()
     import numpy as np
     V = np.array(vecs, dtype=np.float32).reshape(len(rows), -1)
     items = [merge([rows[i] for i in g]) for g in cluster(rows, V @ V.T)]
     items = [it for it in items if it["t"] >= now - WINDOW and visible(it)]
     items.sort(key=lambda it: -it["t"])
     last = con.execute("SELECT MAX(got) FROM msgs").fetchone()[0] or 0
-    return {"v": 1, "at": now, "last_got": last, "ch": {n: {"name": SHORT.get(n, n), "cat": c, "lang": l} for n, c, l in chans},
-            "sectors": __import__("tg_judge").SECTORS, "items": items[:MAX_ITEMS]}
+    return {"v": 2, "at": now, "last_got": last, "sectors": __import__("tg_judge").SECTORS, "items": items[:MAX_ITEMS]}
 
 
 # ---------- 올리기 ----------
@@ -181,22 +182,22 @@ def git(*args):
 
 
 def publish(doc):
-    """tg 브랜치에 커밋 하나만 두고 고쳐 쓴다(이력을 쌓지 않는다). llm 브랜치(judge_live)와는 따로 둔다."""
+    """flash 브랜치에 커밋 하나만 두고 고쳐 쓴다(이력을 쌓지 않는다). llm 브랜치(judge_live)와는 따로 둔다."""
     if not os.path.isdir(os.path.join(BRANCH_DIR, ".git")):
         os.makedirs(BRANCH_DIR, exist_ok=True)
         git("init", "-q")
         git("remote", "add", "origin", REPO)
-        git("checkout", "-q", "-b", "tg")
-        git("config", "user.name", "signal-tg")
-        git("config", "user.email", "signal-tg@users.noreply.github.com")
-    with open(os.path.join(BRANCH_DIR, "tg.json"), "w") as f:
+        git("checkout", "-q", "-b", "flash")
+        git("config", "user.name", "signal-flash")
+        git("config", "user.email", "signal-flash@users.noreply.github.com")
+    with open(os.path.join(BRANCH_DIR, "flash.json"), "w") as f:
         json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
     with open(os.path.join(BRANCH_DIR, "README.md"), "w") as f:
-        f.write("운영자 Mac이 텔레그램 속보를 묶어 만든 파일(tools/tg_publish.py). 사이트가 Worker /tg 로 읽는다. 사람이 고치지 않는다.\n")
+        f.write("운영자 Mac이 만든 속보 묶음. 사이트가 Worker /flash 로 읽는다. 사람이 고치지 않는다.\n")
     git("add", "-A")
     has_head = subprocess.run(["git", "rev-parse", "-q", "--verify", "HEAD"], cwd=BRANCH_DIR, capture_output=True).returncode == 0
-    git("commit", "-q", *(["--amend"] if has_head else []), "-m", "tg")
-    git("push", "-q", "-f", "origin", "HEAD:tg")
+    git("commit", "-q", *(["--amend"] if has_head else []), "-m", "flash")
+    git("push", "-q", "-f", "origin", "HEAD:flash")
 
 
 def run():
@@ -256,11 +257,11 @@ if __name__ == "__main__":
     elif "--dry" in a:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         d = build(db())
-        out = "/tmp/tg.json"
+        out = "/tmp/flash.json"
         json.dump(d, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
         multi = [it for it in d["items"] if it["n"] > 1]
         log("묶음", len(d["items"]), "· 여러 채널", len(multi), "·", os.path.getsize(out) // 1024, "KB →", out)
         for it in multi[:25]:
-            print(" ", it["n"], it["v"], [s[0] for s in it["src"]], it["ko"][:60])
+            print(" ", it["n"], it["v"], it["ko"][:60])
     else:
         run()

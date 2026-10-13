@@ -212,8 +212,8 @@ UPBIT_NOTICE_DETAIL = "https://api-manager.upbit.com/api/v1/announcements/%s"
 UPBIT_NOTICES = "https://api-manager.upbit.com/api/v1/announcements?os=web&page=1&per_page=20&category=trade"
 # 업비트가 GitHub 서버 IP를 막아서, 직접 받다 실패하면 Cloudflare 스케줄러(worker/)를 거쳐 받는다
 UPBIT_NOTICES_PROXY = os.environ.get("SIGNAL_UPBIT_PROXY") or ""
-# 텔레그램 속보 묶음(운영자 Mac → tg 브랜치 → Worker /tg). 브라우저가 30초마다 받는다
-TG_FEED = os.environ.get("SIGNAL_TG_FEED") or (UPBIT_NOTICES_PROXY[: -len("/upbit-notices")] + "/tg" if UPBIT_NOTICES_PROXY.endswith("/upbit-notices") else "")
+# 실시간 속보 묶음(운영자 Mac → flash 브랜치 → Worker /flash). 브라우저가 30초마다 받는다
+TG_FEED = os.environ.get("SIGNAL_TG_FEED") or (UPBIT_NOTICES_PROXY[: -len("/upbit-notices")] + "/flash" if UPBIT_NOTICES_PROXY.endswith("/upbit-notices") else "")
 FNG_URL = "https://api.alternative.me/fng/?limit=30"
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"

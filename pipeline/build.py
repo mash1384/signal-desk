@@ -394,11 +394,11 @@ def page_feed(articles, market, cal, imp, now, ev=None):
            brief=('<section class="panel"><h2 class="panel__title">오늘의 시그널</h2><a class="brief-img" href="%sog/brief.jpg" target="_blank" rel="noopener"><img src="%sog/brief.jpg?v=%d" alt="오늘의 시그널 요약 이미지" width="1080" height="1080" loading="lazy"></a><p class="muted small">이미지를 길게 눌러 저장하거나 공유하세요.</p></section>' % (B, B, now)) if HAS_BRIEF else "")
     head = '<script type="module" src="%sassets/flash.js?v=%s"></script>' % (B, ASSET_VER) if config.TG_FEED else ""
     return shell("live", "라이브 — 크립토·AI·매크로 뉴스",
-                 "텔레그램 속보를 실시간으로 한국어로 옮겨 호재·악재를 붙이고, 국내외 기사를 15분마다 모읍니다.", B + "live/", body, now, extra_head=head)
+                 "국내외 속보를 실시간으로 한국어로 옮겨 호재·악재를 붙이고, 국내외 기사를 15분마다 모읍니다.", B + "live/", body, now, extra_head=head)
 
 
 def flash_html():
-    """라이브 맨 위: 텔레그램 속보 묶음. 목록은 assets/flash.js가 Worker /tg 에서 30초마다 받아 그린다."""
+    """라이브 맨 위: 실시간 속보 묶음. 목록은 assets/flash.js가 Worker /flash 에서 30초마다 받아 그린다."""
     if not config.TG_FEED:
         return ""
     return """<section class="fl" id="fl" data-src="{src}" aria-labelledby="flTitle">
@@ -406,7 +406,7 @@ def flash_html():
         <h2 id="flTitle" class="fl__title"><span class="live-dot" aria-hidden="true"></span>실시간 속보</h2>
         <span class="fl__upd" id="flUpd">불러오는 중…</span>
       </div>
-      <p class="fl__sub">텔레그램 속보 채널 12곳을 AI가 한국어로 옮기고, 같은 소식은 하나로 묶었어요.</p>
+      <p class="fl__sub">국내외 속보를 AI가 바로 한국어로 옮기고, 같은 소식은 하나로 묶었어요.</p>
       <div class="fl__seg" role="radiogroup" aria-label="속보 거르기" id="flSeg">
         <button type="button" role="radio" aria-checked="true" data-v="all">전체</button>
         <button type="button" role="radio" aria-checked="false" data-v="호재">호재</button>
@@ -514,7 +514,7 @@ def page_about(health, now):
       <li>환율: <a href="https://www.exchangerate-api.com" rel="nofollow">Rates By Exchange Rate API</a></li>
       <li>경제 일정: <a href="https://www.forexfactory.com/calendar" rel="nofollow">Forex Factory</a>(이번 주), 과거 발표 시각은 <a href="https://fred.stlouisfed.org/releases/calendar" rel="nofollow">FRED 발표 일정</a>과 <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" rel="nofollow">연준 FOMC 일정</a></li>
       <li>업비트 공지는 GitHub 서버에서 막혀 Cloudflare 스케줄러를 거쳐 받습니다.</li>
-      <li>실시간 속보: 텔레그램 공개 채널 12곳(코인니스, Wu Blockchain, BlockBeats, Watcher Guru, 바이낸스·OKX 공지, 빗썸 공지 미러, Lookonchain, Whale Alert, FinancialJuice, Market Feed, ZachXBT). 운영자 Mac의 로컬 AI(Gemma 4)가 한국어 한 줄로 옮기고 호재·악재를 붙이며, 원문 본문은 싣지 않고 채널 원문 링크만 겁니다.</li>
+      <li>실시간 속보: 국내외 공개 속보 채널. 운영자 Mac의 로컬 AI(Gemma 4)가 한국어 한 줄로 옮기고 호재·악재를 붙이며, 원문은 싣지 않습니다.</li>
     </ul>
   </section>
   <section class="panel"><h2 class="panel__title">유의 사항</h2><p>SIGNAL은 정보를 모아 보여 주는 서비스이며 투자 조언을 하지 않습니다. 과거 기록은 같은 시간대에 일어난 변화를 잰 값으로, 특정 뉴스나 발표가 가격을 움직였다는 뜻이 아닙니다.</p></section>
