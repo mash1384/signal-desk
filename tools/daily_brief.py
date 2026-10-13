@@ -328,15 +328,23 @@ def due(now=None):
 
 def run(force=False, only=None, dry=False):
     days = [only] if only else due()
+    if "--preview" in sys.argv:          # 끝나지 않은 오늘 하루를 지금까지 자료로 미리 정리(오전 9시에 최종본으로 바뀐다)
+        days = [due()[-1] + dt.timedelta(days=1)]
+        force = True
     for day in days:
         path = os.path.join(OUT, day.isoformat() + ".json")
         if os.path.exists(path) and not force:
-            continue
+            try:
+                old = json.load(open(path))
+            except (OSError, ValueError):
+                old = {}
+            if old.get("made", 0) >= old.get("end", 0):    # 하루가 끝난 뒤 만든 최종본이면 그대로 둔다(진행 중 미리보기는 다시 만든다)
+                continue
         start, end = window(day)
         con = P.db()
         have, first = con.execute("""SELECT COUNT(*), MIN(m.t) FROM msgs m JOIN ai a ON a.ch=m.ch AND a.id=m.id
             WHERE m.t >= ? AND m.t < ? AND a.ko != ''""", (start, end)).fetchone()
-        if (have < 150 or first is None or first > start + 3 * 3600) and not only:   # 판정이 적거나 하루 앞부분이 빈 날은 건너뛴다
+        if (have < 150 or first is None or first > start + 3 * 3600) and not only and "--preview" not in sys.argv:   # 판정이 적거나 하루 앞부분이 빈 날은 건너뛴다
             log("자료 부족, 건너뜀", day, have)
             continue
         t = time.time()

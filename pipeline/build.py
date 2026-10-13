@@ -429,13 +429,16 @@ def daily_teaser(dailies, now):
     doc = dailies[0]
     if now - doc["end"] > 2 * 86400:
         return ""
-    yday = util.kst(now - 86400).strftime("%Y-%m-%d") == doc["date"] or (now - doc["end"] < 86400)
+    if doc["made"] < doc["end"]:
+        when = "오늘 지금까지 정리(진행 중)"
+    else:
+        when = "어제 하루 정리" if now - doc["end"] < 86400 else "최근 하루 정리"
     b = doc["balance"]
     return """<a class="dl-teaser" href="{B}daily/{date}/">
-      <span class="dl-teaser__k">{when} 하루 정리 · {label}</span>
+      <span class="dl-teaser__k">{when} · {label}</span>
       <b class="dl-teaser__h">{head}</b>
       <span class="dl-teaser__v"><span class="up">호재 {u}</span><span class="down">악재 {d}</span><span class="dl-teaser__go">전체 보기 →</span></span>
-    </a>""".format(B=B, date=doc["date"], when="어제" if yday else "최근", label=_day_label(doc["date"]), head=h(doc["headline"]), u=b["호재"], d=b["악재"])
+    </a>""".format(B=B, date=doc["date"], when=when, label=_day_label(doc["date"]), head=h(doc["headline"]), u=b["호재"], d=b["악재"])
 
 
 def _dl_item(it):
@@ -510,6 +513,7 @@ def page_daily(doc, prev, nxt, now):
     body = """
 <div class="wrap dl">
   <p class="dl__k">{label} 하루 정리 <span>한국 시간 {a} ~ {b}</span></p>
+  {partial}
   <h1 class="dl__h">{head}</h1>
   {review}
   <div class="dl-grid">
@@ -531,7 +535,8 @@ def page_daily(doc, prev, nxt, now):
                  u=b["호재"], d=b["악재"], wu=b["호재"] / tot, wd=b["악재"] / tot, nn=b.get("중립", 0), cats=cats,
                  secs=('<ul class="dl-secs">%s</ul>' % secs) if secs else "", mk=mk, key=key, sections=sections,
                  sched=('<section class="dl-sec"><h2 class="dl-sec__t">오늘 볼 일정 <a class="panel__more" href="%sevents/">이벤트 리스크</a></h2><ul class="dl-ev">%s</ul></section>' % (B, sched)) if sched else "",
-                 pager=pager)
+                 pager=pager, partial=('<p class="dl-partial">진행 중인 하루예요. %s까지 모인 자료로 정리했고, 오전 9시에 최종본으로 바뀌어요.</p>' % util.kst(doc["made"]).strftime("%-m/%-d %H:%M"))
+                 if doc["made"] < doc["end"] else "")
     desc = (doc.get("review") or doc["headline"])[:150]
     return shell("daily", "%s 하루 정리 — %s" % (_day_label(doc["date"]), doc["headline"]), desc, B + "daily/%s/" % doc["date"], body, now)
 
