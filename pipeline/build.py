@@ -1,5 +1,6 @@
 """정적 페이지 생성. 서버 없이 GitHub Pages에서 그대로 열리는 HTML을 만든다."""
 
+import hashlib
 import html
 import json
 import os
@@ -1278,7 +1279,11 @@ def page_landing_df():
 def df_ver():
     """web/assets/df/ 파일 내용으로 만든 버전(바뀌면 브라우저가 새로 받는다)."""
     d = os.path.join(WEB, "assets", "df")
-    return util.short_hash("".join(util.short_hash(open(os.path.join(d, n), encoding="utf-8").read()) for n in sorted(os.listdir(d))))
+    h = hashlib.sha1()
+    for n in sorted(os.listdir(d)):
+        with open(os.path.join(d, n), "rb") as f:
+            h.update(n.encode() + f.read())
+    return h.hexdigest()[:8]
 
 
 def stamp_df_imports(out):

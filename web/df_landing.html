@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Delfona — Market-moving news, judged in seconds</title>
-<meta name="description" content="전 세계 크립토·경제·정책 속보를 실시간으로 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.">
+<meta name="description" content="전 세계 크립토·경제·정책 속보를 실시간으로 읽고, 하나하나 호재인지 악재인지 판정하고, 크립토·나스닥·경제·AI 흐름을 AI가 요약해요.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="{{URL}}">
 <meta property="og:type" content="website">
@@ -71,29 +71,28 @@ a { color: inherit; text-decoration: none; } button { font: inherit; color: inhe
 .bl { position: absolute; z-index: 4; transform: translate(-50%, -100%); text-align: center; opacity: 0; pointer-events: none; }
 .bl b { display: block; font-size: clamp(40px, 5vw, 72px); font-weight: 300; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; }
 .bl span { display: block; margin-top: 4px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
-body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }
-.nx { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #f7f9fc; --cp: 0; --ep: 0; }
+body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }.nx { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #f7f9fc; --ep: 0; }
 .nx-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.nx-copy { position: absolute; z-index: 3; left: max(36px, calc(50% - 584px)); top: 50%; transform: translateY(calc(-50% + (1 - var(--cp)) * 24px)); width: min(400px, 33vw); opacity: var(--cp); }
-.nx-k { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--primary); }
-.nx-steps { list-style: none; padding: 0; margin-top: 18px; }
-.nx-steps li { position: relative; display: grid; grid-template-columns: 40px 1fr; padding: 16px 0; border-top: 1px solid var(--line); color: #8a96aa; transition: color 300ms ease; }
-.nx-steps li .n { font-family: var(--mono); font-size: 12px; padding-top: 6px; }
-.nx-steps li b { display: block; font-size: 21px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.3; transition: font-size 300ms var(--ease); }
-:lang(ko) .nx-steps li b { font-weight: 500; }
-.nx-steps li p { max-height: 0; opacity: 0; overflow: hidden; font-size: 15.5px; line-height: 1.5; color: var(--mute); transition: max-height 400ms var(--ease), opacity 300ms ease, margin 300ms ease; }
-.nx-steps li.on { color: var(--ink); } .nx-steps li.on b { font-size: 30px; } .nx-steps li.on p { max-height: 90px; opacity: 1; margin-top: 8px; }
-.nx-steps li i { position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--ink); transform-origin: left; transform: scaleX(0); }
-.nx-end { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; padding: 20px; text-align: center; opacity: var(--ep); pointer-events: none; }
-.nx-end .box { padding: 34px 44px 38px; border-radius: 28px; background: rgb(247 249 252 / .86); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: 0 30px 80px -30px rgb(13 37 61 / .45), 0 0 0 1px rgb(13 37 61 / .06); transform: translateY(calc((1 - var(--ep)) * 30px)) scale(calc(.96 + var(--ep) * .04)); }
-.nx-end b { display: block; max-width: 13em; font-size: clamp(30px, 4.2vw, 58px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; } :lang(ko) .nx-end b { font-weight: 500; }
-.nx-end em { font-style: normal; color: var(--primary); font-variant-numeric: tabular-nums; }
-.nx-end .btn { margin-top: 24px; pointer-events: auto; }
-@media (max-width: 899px) {
-  .nx-copy { left: 20px; right: 20px; top: 84px; width: auto; transform: translateY(calc((1 - var(--cp)) * 20px)); }
-  .nx-steps { margin-top: 10px; } .nx-steps li { display: none; border: 0; padding: 0; } .nx-steps li.on { display: grid; }
-  .nx-steps li.on b { font-size: 28px; } .nx-steps li i { display: none; }
-  .nx-end .box { padding: 26px 22px 28px; } }
+.px-lay { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.px-cap { position: absolute; z-index: 3; left: 0; right: 0; top: 13vh; padding: 0 20px; text-align: center; pointer-events: none; transition: opacity 350ms ease; }
+.px-cap b { display: block; font-size: clamp(28px, 3.8vw, 52px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; color: var(--ink); }
+:lang(ko) .px-cap b { font-weight: 500; letter-spacing: -0.04em; }
+.px-cap span { display: block; max-width: 34rem; margin: 10px auto 0; font-size: 16px; line-height: 1.5; color: var(--mute); }
+.px-k { font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); }
+.px-card { position: absolute; left: 0; top: 0; padding: 16px 18px 17px; border-radius: 16px; background: rgb(255 255 255 / .92); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); box-shadow: 0 22px 50px -24px rgb(13 37 61 / .4), 0 0 0 1px rgb(13 37 61 / .06); opacity: 0; will-change: transform, opacity; }
+.px-card .m { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11.5px; color: var(--mute); }
+.px-card .m b { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.px-card .t { margin-top: 6px; font-size: 16px; font-weight: 500; line-height: 1.42; letter-spacing: -0.01em; color: var(--ink); }
+.px-lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); text-align: center; white-space: nowrap; opacity: 0; will-change: transform, opacity; }
+.px-lbl b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); } .px-lbl span { display: block; font-family: var(--mono); font-size: 11px; color: var(--mute); }
+.px-end { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; padding: 20px; text-align: center; opacity: var(--ep); pointer-events: none; }
+.px-end .box { padding: 32px 42px 36px; border-radius: 28px; background: rgb(247 249 252 / .88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 30px 80px -30px rgb(13 37 61 / .45), 0 0 0 1px rgb(13 37 61 / .06); transform: translateY(calc((1 - var(--ep)) * 30px)); }
+.px-end b { display: block; max-width: 13em; font-size: clamp(28px, 3.8vw, 52px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; } :lang(ko) .px-end b { font-weight: 500; }
+.px-end em { font-style: normal; color: var(--primary); font-variant-numeric: tabular-nums; } .px-end .btn { margin-top: 22px; pointer-events: auto; }
+@media (max-width: 899px) { .px-cap { top: 82px; } .px-cap span { font-size: 15px; } .px-card { padding: 13px 14px; } .px-card .t { font-size: 14.5px; } .px-end .box { padding: 24px 20px 26px; } }
+
+.px-cap::before { content: ''; position: absolute; z-index: -1; left: 50%; top: 50%; width: min(980px, 140vw); height: 240%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgb(247 249 252 / .94), rgb(247 249 252 / .7) 55%, rgb(247 249 252 / 0)); pointer-events: none; }
+
 </style>
 </head>
 <body>
@@ -113,22 +112,21 @@ body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }
   </div>
 <p class="hud" id="hud"></p><div class="sc" id="sc"><b></b><span></span></div><p class="bl up" id="nL"><b>0</b><span data-t="bl1">Positive · 24h</span></p><p class="bl down" id="nR"><b>0</b><span data-t="bl2">Negative · 24h</span></p>
 </section>
-<section class="nx" id="nx" aria-label="Inside one signal"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas>
-<div class="nx-copy"><p class="nx-k"></p><ol class="nx-steps"></ol></div>
-<div class="nx-end"><div class="box"><b></b><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a></div></div></section>
-<footer class="ft wrap" data-t="ft">Delfona — Live data. AI judgments, not investment advice.</footer>
-<script>window.DF_BASE = '{{B}}assets/df/';</script>
+<section class="nx px" id="nx" aria-label="Signals"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas><div class="px-lay"></div>
+<div class="px-cap"></div><div class="px-end"><div class="box"><b></b><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a></div></div></section>
+<footer class="ft wrap" data-t="ft">Delfona — Live data. AI judgments and summaries, not investment advice.</footer>
+<script>window.DF_BASE = '{{B}}assets/df/'; window.DF_BR = 4; window.DF_THEMES = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/themes.json';</script>
 <script src="{{B}}assets/df/data.js?v={{V}}"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script>
 DFI.init(Object.assign({ n1: '라이브', n2: '시그널 보드', n3: '하루 정리', n4: '소개', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
-  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정이며 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
+  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정·요약이며 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
 </script>
 
 <script type="module">
 import '{{B}}assets/df/h3.js?v={{V}}';
-import '{{B}}assets/df/n3.js?v={{V}}';
+import '{{B}}assets/df/p5.js?v={{V}}';
 </script>
 </body>
 </html>
