@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — Market-moving news, judged in seconds</title>
+<meta name="description" content="전 세계 크립토·경제·정책 속보를 실시간으로 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="{{URL}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Delfona">
+<meta property="og:title" content="Delfona — Market-moving news, judged in seconds">
+<meta property="og:description" content="전 세계 크립토·경제·정책 속보를 실시간으로 읽고 호재·악재를 판정해요.">
+<meta property="og:url" content="{{URL}}">
+{{OG}}
+<link rel="icon" href="{{B}}assets/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#ffffff">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<style>
+:root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --up: #0e9f6e; --down: #df4a3a;
+  --sans: "Inter", "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+:lang(ko) { --sans: "Pretendard Variable", Pretendard, "Inter", system-ui, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+html, body { overflow-x: clip; }
+body { background: #fff; color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { word-break: keep-all; overflow-wrap: break-word; }
+a { color: inherit; text-decoration: none; } button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.up { color: var(--up); } .down { color: var(--down); } .tnum { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; } @media (min-width: 900px) { .wrap { padding-inline: 36px; } }
+.hd { position: fixed; top: 0; inset-inline: 0; z-index: 30; }
+.hd .wrap { display: flex; align-items: center; gap: 28px; height: 72px; }
+.logo { display: inline-flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 650; letter-spacing: -0.03em; }
+.logo svg { width: 26px; height: 26px; }
+.nav { display: none; gap: 26px; font-size: 14.5px; font-weight: 500; color: var(--ink2); } @media (min-width: 900px) { .nav { display: flex; } }
+.lang { margin-inline-start: auto; display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(255 255 255 / 0.6); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.1); }
+.lang button { height: 28px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink2); transition: background-color 150ms ease, color 150ms ease; }
+.lang button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 15px; font-weight: 600; transition: transform 150ms var(--ease), background-color 150ms ease; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--primary); color: #fff; } @media (hover: hover) { .btn.p:hover { background: #4434d4; } }
+.btn.g { background: rgb(255 255 255 / 0.75); backdrop-filter: blur(10px); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.hd .btn { display: none; height: 40px; } @media (min-width: 900px) { .hd .btn { display: inline-flex; } }
+/* 첫 화면 공통 */
+.hero { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #fff; }
+.hero canvas.gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.copy { position: absolute; z-index: 3; pointer-events: none; }
+.copy > * { pointer-events: auto; }
+.kick { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 6px; border-radius: 99px; background: rgb(255 255 255 / 0.7); backdrop-filter: blur(10px); font-size: 13px; font-weight: 600; color: var(--ink2); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.06); }
+.kick b { padding: 2px 8px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0.04em; }
+.copy h1 { margin-top: 16px; font-size: clamp(40px, 5.6vw, 80px); font-weight: 300; line-height: 1.02; letter-spacing: -0.045em; }
+:lang(ko) .copy h1 { font-weight: 500; letter-spacing: -0.05em; line-height: 1.12; }
+.copy .sub { margin-top: 18px; max-width: 30rem; font-size: 18px; color: var(--ink2); }
+.copy .btns { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+.hud { position: absolute; z-index: 3; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--mute); text-transform: uppercase; }
+.reveal { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+.ft { padding-block: 40px 60px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mute); }
+.replay-unused { position: fixed; right: 16px; bottom: 16px; z-index: 90; height: 32px; padding: 0 14px; border-radius: 99px; background: #0d253d; color: #fff; font: 600 12px/1 Inter, system-ui, sans-serif; opacity: .85; }
+.copy.left { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 1240px; margin: 0 auto; padding-inline: 36px; }
+.copy.left h1 { max-width: 42rem; } .copy.left .sub { max-width: 30rem; }
+.hero::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(90deg, #f7f9fc 18%, rgb(247 249 252 / .4) 40%, transparent 55%); }
+@media (max-width: 899px) { .hero::after { background: linear-gradient(0deg, #f7f9fc 40%, rgb(247 249 252 / .6) 58%, transparent 75%); } }
+@media (max-width: 899px) { .copy.left { top: auto; bottom: 7svh; transform: none; padding-inline: 20px; } .copy .sub { font-size: 16px; } }
+.hud { left: 50%; bottom: 24px; transform: translateX(-50%); opacity: 0; white-space: nowrap; }
+@media (max-width: 899px) { .hud { display: none; } }
+.sc { position: absolute; z-index: 4; left: 0; right: 0; top: 12vh; text-align: center; padding: 0 20px; opacity: 0; pointer-events: none; }
+.sc b { display: block; font-size: clamp(30px, 4.4vw, 58px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; color: var(--ink); }
+:lang(ko) .sc b { font-weight: 500; } .sc span { display: block; margin-top: 10px; font-size: 16px; color: var(--mute); }
+.bl { position: absolute; z-index: 4; transform: translate(-50%, -100%); text-align: center; opacity: 0; pointer-events: none; }
+.bl b { display: block; font-size: clamp(40px, 5vw, 72px); font-weight: 300; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; }
+.bl span { display: block; margin-top: 4px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }
+.nx { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #f7f9fc; --cp: 0; --ep: 0; }
+.nx-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.nx-copy { position: absolute; z-index: 3; left: max(36px, calc(50% - 584px)); top: 50%; transform: translateY(calc(-50% + (1 - var(--cp)) * 24px)); width: min(400px, 33vw); opacity: var(--cp); }
+.nx-k { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--primary); }
+.nx-steps { list-style: none; padding: 0; margin-top: 18px; }
+.nx-steps li { position: relative; display: grid; grid-template-columns: 40px 1fr; padding: 16px 0; border-top: 1px solid var(--line); color: #8a96aa; transition: color 300ms ease; }
+.nx-steps li .n { font-family: var(--mono); font-size: 12px; padding-top: 6px; }
+.nx-steps li b { display: block; font-size: 21px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.3; transition: font-size 300ms var(--ease); }
+:lang(ko) .nx-steps li b { font-weight: 500; }
+.nx-steps li p { max-height: 0; opacity: 0; overflow: hidden; font-size: 15.5px; line-height: 1.5; color: var(--mute); transition: max-height 400ms var(--ease), opacity 300ms ease, margin 300ms ease; }
+.nx-steps li.on { color: var(--ink); } .nx-steps li.on b { font-size: 30px; } .nx-steps li.on p { max-height: 90px; opacity: 1; margin-top: 8px; }
+.nx-steps li i { position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--ink); transform-origin: left; transform: scaleX(0); }
+.nx-end { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; padding: 20px; text-align: center; opacity: var(--ep); pointer-events: none; }
+.nx-end .box { padding: 34px 44px 38px; border-radius: 28px; background: rgb(247 249 252 / .86); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: 0 30px 80px -30px rgb(13 37 61 / .45), 0 0 0 1px rgb(13 37 61 / .06); transform: translateY(calc((1 - var(--ep)) * 30px)) scale(calc(.96 + var(--ep) * .04)); }
+.nx-end b { display: block; max-width: 13em; font-size: clamp(30px, 4.2vw, 58px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; } :lang(ko) .nx-end b { font-weight: 500; }
+.nx-end em { font-style: normal; color: var(--primary); font-variant-numeric: tabular-nums; }
+.nx-end .btn { margin-top: 24px; pointer-events: auto; }
+@media (max-width: 899px) {
+  .nx-copy { left: 20px; right: 20px; top: 84px; width: auto; transform: translateY(calc((1 - var(--cp)) * 20px)); }
+  .nx-steps { margin-top: 10px; } .nx-steps li { display: none; border: 0; padding: 0; } .nx-steps li.on { display: grid; }
+  .nx-steps li.on b { font-size: 28px; } .nx-steps li i { display: none; }
+  .nx-end .box { padding: 26px 22px 28px; } }
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="{{B}}"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#0d253d"/><path d="M8 19 12.5 7M13.5 19 18 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="18" cy="7" r="2.2" fill="#8ea2ff"/></svg>Delfona</a>
+  <nav class="nav" aria-label="Menu"><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}map/" data-t="n2">Signal board</a><a href="{{B}}daily/" data-t="n3">Daily brief</a><a href="{{B}}about/" data-t="n4">About</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+  <a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a>
+</div></header>
+<section class="hero" id="hero">
+<canvas class="gl" id="gl" aria-hidden="true"></canvas>
+  <div class="copy left">
+    <p class="kick reveal"><b>LIVE</b><span data-t="kick">Tracking market-moving news worldwide</span></p>
+    <h1 class="reveal" data-t="h1" data-html>Market-moving news,<br>judged in seconds.</h1>
+    <p class="sub reveal" data-t="sub">Delfona reads crypto, macro and policy headlines from around the world, calls each one positive or negative, and shows how many outlets reported it.</p>
+    <div class="btns reveal"><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a><a class="btn g" href="#nx" data-t="how">How it works</a></div>
+  </div>
+<p class="hud" id="hud"></p><div class="sc" id="sc"><b></b><span></span></div><p class="bl up" id="nL"><b>0</b><span data-t="bl1">Positive · 24h</span></p><p class="bl down" id="nR"><b>0</b><span data-t="bl2">Negative · 24h</span></p>
+</section>
+<section class="nx" id="nx" aria-label="Inside one signal"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas>
+<div class="nx-copy"><p class="nx-k"></p><ol class="nx-steps"></ol></div>
+<div class="nx-end"><div class="box"><b></b><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a></div></div></section>
+<footer class="ft wrap" data-t="ft">Delfona — Live data. AI judgments, not investment advice.</footer>
+<script>window.DF_BASE = '{{B}}assets/df/';</script>
+<script src="{{B}}assets/df/data.js?v={{V}}"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script>
+DFI.init(Object.assign({ n1: '라이브', n2: '시그널 보드', n3: '하루 정리', n4: '소개', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
+  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정이며 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
+</script>
+
+<script type="module">
+import '{{B}}assets/df/h3.js?v={{V}}';
+import '{{B}}assets/df/n3.js?v={{V}}';
+</script>
+</body>
+</html>
