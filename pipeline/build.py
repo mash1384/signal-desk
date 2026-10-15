@@ -1263,6 +1263,37 @@ def related(a, articles, n=5):
     return same
 
 
+def page_landing_df():
+    """첫 페이지(Delfona): 입자 로고 첫 화면 + '신호 하나의 속' 3D 섹션. 정적 틀(web/df_landing.html)에 주소·버전만 채운다.
+    내용(속보·24시간 개수·카드)은 브라우저가 Worker /flash 에서 실시간으로 받아 그린다."""
+    with open(os.path.join(WEB, "df_landing.html"), encoding="utf-8") as f:
+        tpl = f.read()
+    og = ""
+    if OG_DEFAULT:
+        og = ('<meta property="og:image" content="%s/og/default.jpg">\n<meta property="og:image:width" content="1200">\n'
+              '<meta property="og:image:height" content="630">\n<meta name="twitter:card" content="summary_large_image">') % config.SITE_URL
+    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og)
+
+
+def df_ver():
+    """web/assets/df/ 파일 내용으로 만든 버전(바뀌면 브라우저가 새로 받는다)."""
+    d = os.path.join(WEB, "assets", "df")
+    return util.short_hash("".join(util.short_hash(open(os.path.join(d, n), encoding="utf-8").read()) for n in sorted(os.listdir(d))))
+
+
+def stamp_df_imports(out):
+    """assets/df/*.js 안의 서로 부르는 import 에도 같은 버전을 붙인다(옛 파일이 섞여 쓰이지 않게)."""
+    d, v = os.path.join(out, "assets", "df"), df_ver()
+    for n in os.listdir(d):
+        if n.endswith(".js"):
+            p = os.path.join(d, n)
+            with open(p, encoding="utf-8") as f:
+                src = f.read()
+            new = re.sub(r"(from '\./[a-z0-9]+\.js)(\?v=[0-9a-z]+)?'", lambda m: "%s?v=%s'" % (m.group(1), v), src)
+            if new != src:
+                util.write_text(p, new)
+
+
 def build_site(out, articles, market, cal, imp, health, now, extra=None):
     """out 디렉터리에 사이트 전체를 쓴다. 기존 data/와 og/는 호출자가 미리 채워 둔다.
     extra = 새 화면 데이터 {파일 이름: 문서}. 없으면 out/data/ 에서 읽는다."""
@@ -1279,7 +1310,8 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     HAS_BRIEF = os.path.isfile(os.path.join(out, "og", "brief.jpg"))
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     util.write_text(os.path.join(out, ".nojekyll"), "")
-    util.write_text(os.path.join(out, "index.html"), page_landing(articles, market, cal, imp, now, extra.get("listings.json"), extra.get("events.json")))
+    stamp_df_imports(out)
+    util.write_text(os.path.join(out, "index.html"), page_landing_df())
     dailies = load_dailies()
     util.write_text(os.path.join(out, "live", "index.html"), page_feed(articles, market, cal, imp, now, extra.get("events.json"), dailies))
     for i, doc in enumerate(dailies):
