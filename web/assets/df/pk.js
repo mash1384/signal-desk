@@ -51,11 +51,12 @@ export function cloud(m, k, { w = 16, h = 7, y = 3.5, d = 6 } = {}) {
 }
 
 // 글자 → 점(캔버스에 그려 픽셀을 뽑는다). 반환: [{x,y}] (가운데 기준, 높이 hgt 월드 단위)
-export function textPoints(text, { font = '300 220px Inter', hgt = 2, step = 3, align = 'center' } = {}) {
-  const c = document.createElement('canvas'), g = c.getContext('2d'); g.font = font;
+export function textPoints(text, { font = '300 220px Inter', hgt = 2, step = 3, align = 'center', spacing = '0px' } = {}) {
+  const c = document.createElement('canvas'), g = c.getContext('2d'); g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing;   // 자간(헤더 로고처럼 넓게)
   const lines = String(text).split('\n'), lh = parseFloat(/(\d+)px/.exec(font)[1]) * 1.05, W = Math.ceil(Math.max(...lines.map((l) => g.measureText(l).width))) + 20, H = Math.ceil(lh * lines.length) + 20;
-  c.width = W; c.height = H; g.font = font; g.fillStyle = '#000'; g.textBaseline = 'top'; g.textAlign = align === 'center' ? 'center' : 'left';
-  lines.forEach((l, j) => g.fillText(l, align === 'center' ? W / 2 : 10, 10 + j * lh));
+  c.width = W; c.height = H; g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing; g.fillStyle = '#000'; g.textBaseline = 'top'; g.textAlign = align === 'center' ? 'center' : 'left';
+  const ls = parseFloat(spacing) || 0;   // 자간은 마지막 글자 뒤에도 붙으므로 가운데 맞춤에서 그 절반만큼 옮긴다
+  lines.forEach((l, j) => g.fillText(l, align === 'center' ? W / 2 + ls / 2 : 10, 10 + j * lh));
   const d = g.getImageData(0, 0, W, H).data, pts = [], sc = hgt / H;
   for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 120) pts.push({ x: (x - W / 2) * sc, y: -(y - H / 2) * sc });
   pts.W = W * sc; pts.H = H * sc; return pts;
