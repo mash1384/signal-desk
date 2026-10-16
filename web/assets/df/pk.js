@@ -52,13 +52,18 @@ export function cloud(m, k, { w = 16, h = 7, y = 3.5, d = 6 } = {}) {
 
 // 글자 → 점(캔버스에 그려 픽셀을 뽑는다). 반환: [{x,y}] (가운데 기준, 높이 hgt 월드 단위)
 export function textPoints(text, { font = '300 220px Inter', hgt = 2, step = 3, align = 'center', spacing = '0px' } = {}) {
+  // 글자 모양을 캔버스에 그려 점으로 뽑는다. 캔버스 높이는 글꼴의 실제 글자 윤곽(위·아래 끝)으로 잡아 아래가 잘리지 않게 하고,
+  // 점은 섞어서 돌려준다(입자 수가 점 수보다 적어도 글자 전체에 고르게 퍼지게 — 앞에서부터 쓰면 아래쪽 줄이 비었다).
   const c = document.createElement('canvas'), g = c.getContext('2d'); g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing;   // 자간(헤더 로고처럼 넓게)
-  const lines = String(text).split('\n'), lh = parseFloat(/(\d+)px/.exec(font)[1]) * 1.05, W = Math.ceil(Math.max(...lines.map((l) => g.measureText(l).width))) + 20, H = Math.ceil(lh * lines.length) + 20;
-  c.width = W; c.height = H; g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing; g.fillStyle = '#000'; g.textBaseline = 'top'; g.textAlign = align === 'center' ? 'center' : 'left';
+  const lines = String(text).split('\n'), size = parseFloat(/(\d+)px/.exec(font)[1]);
+  const ms = lines.map((l) => g.measureText(l)), asc = Math.max(...ms.map((m) => m.actualBoundingBoxAscent || size * 0.8)), dsc = Math.max(...ms.map((m) => m.actualBoundingBoxDescent || size * 0.2));
+  const lh = Math.max(size * 1.05, asc + dsc + size * 0.1), pad = Math.ceil(size * 0.12), W = Math.ceil(Math.max(...ms.map((m) => m.width))) + pad * 2, H = Math.ceil(lh * (lines.length - 1) + asc + dsc) + pad * 2;
+  c.width = W; c.height = H; g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing; g.fillStyle = '#000'; g.textBaseline = 'alphabetic'; g.textAlign = align === 'center' ? 'center' : 'left';
   const ls = parseFloat(spacing) || 0;   // 자간은 마지막 글자 뒤에도 붙으므로 가운데 맞춤에서 그 절반만큼 옮긴다
-  lines.forEach((l, j) => g.fillText(l, align === 'center' ? W / 2 + ls / 2 : 10, 10 + j * lh));
+  lines.forEach((l, j) => g.fillText(l, align === 'center' ? W / 2 + ls / 2 : pad, pad + asc + j * lh));
   const d = g.getImageData(0, 0, W, H).data, pts = [], sc = hgt / H;
   for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 120) pts.push({ x: (x - W / 2) * sc, y: -(y - H / 2) * sc });
+  for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pts[i]; pts[i] = pts[j]; pts[j] = t; }
   pts.W = W * sc; pts.H = H * sc; return pts;
 }
 
