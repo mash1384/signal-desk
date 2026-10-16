@@ -4,6 +4,7 @@
 //   GET /upbit-notices          거래 공지 목록 첫 페이지 (2분 캐시)
 //   GET /upbit-notice/<숫자 id>  공지 본문 (하루 캐시)
 //   GET /upbit-candles?market=KRW-XXX[&to=ISO][&count=1~200]  원화 마켓 1분봉 (30초 캐시, 브라우저의 실시간 곡선용)
+//   GET /index-candles?s=nq|es&i=1m|5m  나스닥100·S&P500 선물 분봉(야후 차트, 60초 캐시). 정해진 두 종목만, 시각·종가만 돌려준다(브라우저의 '소식 이후' 그래프용)
 //   GET /flash                  실시간 속보 묶음(운영자 Mac이 flash 브랜치에 올린 flash.json, 20초 캐시). raw.githubusercontent는 5분 캐시라 API로 받는다
 // GET /: 상태 확인용 한 줄.
 const UPBIT_NOTICES = 'https://api-manager.upbit.com/api/v1/announcements?os=web&page=1&per_page=20&category=trade';
@@ -58,6 +59,27 @@ async function flashFeed(env, ctx) {
 
 const bad = (msg) => new Response(msg, { status: 400, headers: CORS });
 
+// 지수 선물(거의 24시간 거래) — 뉴스 직후 반응을 보려면 정규장만 열리는 현물 지수보다 낫다
+const INDEX = { nq: 'NQ=F', es: 'ES=F' };
+async function indexCandles(ctx, s, i) {
+  const cache = caches.default;
+  const key = new Request(`https://signal-cache/index-${s}-${i}`);
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const range = i === '1m' ? '2d' : '5d';
+  const up = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(INDEX[s])}?interval=${i}&range=${range}`, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } });
+  let out = { s, i, c: [] }, ok = up.ok;
+  if (ok) {
+    try {
+      const r = (await up.json()).chart.result[0], ts = r.timestamp || [], cl = r.indicators.quote[0].close || [];
+      out = { s, i, name: r.meta.shortName, price: r.meta.regularMarketPrice, prev: r.meta.chartPreviousClose, c: ts.map((t, k) => [t, cl[k]]).filter((x) => x[1] != null) };
+    } catch (e) { ok = false; }
+  }
+  const res = new Response(JSON.stringify(out), { status: ok ? 200 : 502, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'max-age=60', ...CORS } });
+  if (ok) ctx.waitUntil(cache.put(key, res.clone()));
+  return res;
+}
+
 export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(dispatch(env));
@@ -80,6 +102,12 @@ export default {
       return relay(ctx, 'upbit-candles?' + q, `https://api.upbit.com/v1/candles/minutes/1?${q}`, 30);
     }
     if (pathname === '/flash') return flashFeed(env, ctx);
+    if (pathname === '/index-candles') {
+      const s = searchParams.get('s') || '', i = searchParams.get('i') || '5m';
+      if (!INDEX[s]) return bad('s must be nq or es');
+      if (i !== '1m' && i !== '5m') return bad('i must be 1m or 5m');
+      return indexCandles(ctx, s, i);
+    }
     if (pathname === '/') return new Response('SIGNAL scheduler: dispatches pipeline every 15 minutes\n', { headers: CORS });
     return new Response('not found', { status: 404, headers: CORS });
   },
