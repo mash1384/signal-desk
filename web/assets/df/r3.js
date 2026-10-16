@@ -1,5 +1,5 @@
 // R3 · Impact — Perplexity Discover·Kalshi 참고. 맨 위 '지금' 한 장: 최근 6시간 가장 큰 소식 + 그 뒤 가격 흐름(크게).
-// 아래 카드 격자: 세기 3은 두 칸, 카드마다 '소식 이후' 작은 그래프. 중립 소식은 아래 '그 밖의 소식' 짧은 목록으로. 오른쪽: 많이 언급된 코인.
+// 아래 카드 격자: 세기 3은 두 칸, 카드마다 '소식 이후' 작은 그래프. 정렬·거르기(최신순·호재·악재·강도순); 최신순 밖에선 중립 소식은 '그 밖의 소식' 목록으로. 오른쪽: 많이 언급된 코인.
 import { lwChart, store, start, day, counts, T, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, loadK5, sinceChange, PRICED_ALL } from './lk.js?v=1016172222';
 
 const app = document.getElementById('app');
@@ -9,6 +9,17 @@ app.innerHTML = `<div class="wrap r3"><div class="tt" id="tt" role="tablist"></d
   <section class="main"><div><h2 class="sec" id="gh"></h2><div class="grid" id="grid"></div><h2 class="sec" id="oh"></h2><ul class="other" id="other"></ul></div>
   <aside class="rail"><div class="box" id="tr"></div><div class="box" id="mk"></div></aside></section></div>`;
 const $ = (id) => document.getElementById(id), S = { th: 'all' };
+// 신호 정렬·거르기: 최신순(중립 포함 모든 소식) · 호재 · 악재 · 강도순(세기 → 보도 수 → 최신). 선택은 저장
+const SORTS = { new: ['Latest', '최신순'], up: ['Bullish', '호재'], down: ['Bearish', '악재'], str: ['Strongest', '강도순'] };
+let SO = (() => { try { return localStorage.getItem('df-sort') || 'new'; } catch (e) { return 'new'; } })(); if (!SORTS[SO]) SO = 'new';
+const sSeg = () => `<span class="mseg sseg" role="group" aria-label="${T('Sort and filter', '정렬·거르기')}">${Object.keys(SORTS).map((k) => `<button type="button" data-sort="${k}" aria-pressed="${SO === k}">${SORTS[k][DFI.lang() === 'ko' ? 1 : 0]}</button>`).join('')}</span>`;
+function pick(ys, lead) {
+  const rest = ys.filter((x) => x !== lead);
+  if (SO === 'up') return rest.filter((x) => x.v === '호재');
+  if (SO === 'down') return rest.filter((x) => x.v === '악재');
+  if (SO === 'str') return rest.filter((x) => x.v !== '중립').sort((a, b) => b.s - a.s || (b.n || 1) - (a.n || 1) || b.t - a.t);
+  return rest;   // 최신순: 중립도 함께(가장 최근 소식이 바로 보이게)
+}
 const gate = newGate($('np'), () => render(true));
 const score = (x) => x.s * 3 + Math.min(x.n || 1, 4) * 1.5;
 // ---------- 비교 차트: BTC · 나스닥100 · S&P500 (선택은 저장) ----------
@@ -65,17 +76,20 @@ function render(force) {
       <p class="mt">${pill(lead.v)}${bars(lead)}${chips(lead, 3)}<span class="ou">${hm(lead.t)} · ${ago(lead.t)} · ${outlets(lead)}</span></p></button><div class="ch">${mSeg()}<p class="cl"><b data-mname>${mName()}</b> <span data-chg></span> <span class="mute2">${T('since the story', '소식 이후')}</span></p><div class="bigc" data-t="${lead.t}" role="img" aria-label="${T('Price around the story', '소식 전후 가격')}"></div>
       <p class="src">${M === 'btc' ? T('BTC/USDT · Binance', 'BTC/USDT · 바이낸스') : T('Index futures (trade ~23h a day) · Yahoo Finance', '지수 선물(하루 약 23시간 거래) · Yahoo Finance')}</p></div></div>`; }
   else $('lead').innerHTML = '';
-  $('gh').innerHTML = `<span>${T('Signals', '신호')}</span>${mSeg()}`; $('oh').textContent = T('Also reported', '그 밖의 소식');
-  const sig = ys.filter((x) => x.v !== '중립' && x !== lead).slice(0, 24);
-  $('grid').innerHTML = sig.map((it) => card(it, it.s >= 3)).join('') || `<p class="mute">${T('No signals in this theme yet.', '이 테마의 신호가 아직 없어요.')}</p>`;
-  $('other').innerHTML = ys.filter((x) => x.v === '중립').slice(0, 20).map((it) => `<li><button type="button" data-id="${it.id}"><span class="tm mono">${hm(it.t)}</span><span>${esc(line(it))}</span></button></li>`).join('');
+  $('gh').innerHTML = `<span class="ghl"><span>${T('Signals', '신호')}</span>${sSeg()}</span>${mSeg()}`;
+  const sig = pick(ys, lead).slice(0, 24);
+  $('grid').innerHTML = sig.map((it) => card(it, it.s >= 3)).join('') || `<p class="mute">${SO === 'up' ? T('No bullish stories in this theme in the last 24 hours.', '최근 24시간 이 테마의 호재가 없어요.') : SO === 'down' ? T('No bearish stories in this theme in the last 24 hours.', '최근 24시간 이 테마의 악재가 없어요.') : T('No signals in this theme yet.', '이 테마의 신호가 아직 없어요.')}</p>`;
+  // '그 밖의 소식'(중립 목록)은 최신순에선 이미 위에 섞여 있으므로 숨긴다
+  const showOther = SO !== 'new'; $('oh').textContent = showOther ? T('Also reported', '그 밖의 소식') : ''; $('oh').hidden = !showOther; $('other').hidden = !showOther;
+  $('other').innerHTML = !showOther ? '' : ys.filter((x) => x.v === '중립').slice(0, 20).map((it) => `<li><button type="button" data-id="${it.id}"><span class="tm mono">${hm(it.t)}</span><span>${esc(line(it))}</span></button></li>`).join('');
   drawCharts();
   fillPx(app);
   const cnt = {}; xs.filter((x) => now - x.t < 3 * 3600).forEach((x) => (x.coins || []).forEach((c) => { cnt[c] = (cnt[c] || 0) + 1; }));
   $('tr').innerHTML = `<h3>${T('Trending coins · 3h', '많이 언급된 코인 · 3시간')}</h3>` + Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([c, n], i) => `<p class="q"><span class="rk mono">${i + 1}</span><b>${c}</b><span class="mono">${n}</span></p>`).join('');
   const c24 = counts(xs); $('mk').innerHTML = `<h3>${T('Last 24 hours', '지난 24시간')}</h3><p class="big3"><span><b class="mono">${c24.n}</b>${T('stories', '건')}</span><span><b class="mono up">${c24.u}</b>${T('bullish', '호재')}</span><span><b class="mono down">${c24.d}</b>${T('bearish', '악재')}</span></p>`;
 }
-app.addEventListener('click', (e) => { const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }
+app.addEventListener('click', (e) => { const so = e.target.closest('[data-sort]'); if (so) { SO = so.dataset.sort; try { localStorage.setItem('df-sort', SO); } catch (x) {} render(true); return; }
+  const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }
   const t = e.target.closest('[data-th]'); if (t) { S.th = t.dataset.th; render(true); return; } const b = e.target.closest('[data-id]'); if (b) openSheet(store.byId.get(b.dataset.id)); });
 start(() => render(false)); DFI.onLang(() => render(true));
 let rzT = 0; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)), 200); });   // 작은 그래프는 크기가 바뀌면 다시 그린다(큰 차트는 라이브러리가 맞춘다)
