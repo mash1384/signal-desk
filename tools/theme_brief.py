@@ -5,6 +5,10 @@
 하루 정리와 같은 규칙: 자료에 없는 숫자 금지 · '~때문에 올랐다' 같은 인과 금지 · 매매 권유 금지. 어긴 문장은 빼고, 모자라면 다시 쓰게 한다.
 건수(n·호재·악재)는 프로그램이 판정된 속보만으로 센다.
 
+테마 화면(/themes/)용 숫자도 함께 만든다(프로그램이 계산, AI 아님): 1시간 단위 소식·호재·악재(hours), 섹터별 분포(sectors),
+주요 소식(top), 자산별 언급(mentions), 요약 1~4번 문장의 근거 소식(refs).
+자료는 판정 DB에서 지난 24시간을 같은 소식끼리 묶어 쓴다(flash.json 은 최근 400건이라 24시간이 안 된다). DB를 못 열면 flash.json 으로.
+
 결과: ~/.signal/flash-branch/daily/themes.json → tg_publish가 flash 브랜치로 올린다(사이트는 raw.githubusercontent로 읽는다).
 설치: ~/.signal/tgvenv/bin/python tools/theme_brief.py --install   (launchd com.signal.themes, 3시간마다, 로그 ~/.signal/themes.log)
 """
@@ -31,7 +35,7 @@ CRYPTO_W = re.compile(r"비트코인|이더리움|코인|가상자산|암호화�
 STOCK_W = re.compile(r"나스닥|S&P|다우|미국 증시|뉴욕 증시|미 증시|미국 주식|빅테크|엔비디아|애플|테슬라|마이크로소프트|메타|아마존|알파벳|구글|반도체|기술주|주가|증시")
 STOCK_EN = re.compile(r"Nasdaq|S&P|Dow|Wall Street|stocks?\b|equities|Nvidia|Apple|Tesla|Microsoft|Amazon|Alphabet|Meta\b|chipmakers?", re.I)
 AI_W = re.compile(r"(?<![A-Za-z])AI(?![A-Za-z])|인공지능|오픈AI|OpenAI|앤트로픽|Anthropic|엔비디아|챗GPT|ChatGPT|LLM|딥시크|제미나이|데이터센터|xAI")
-ECON_W = re.compile(r"연준|Fed|FOMC|CPI|PPI|물가|인플레이션|금리|국채|고용|실업|GDP|PCE|소매판매|달러|환율|재무부|파월|관세|경기")
+ECON_W = re.compile(r"연준|Fed|FOMC|CPI|PPI|물가|인플레이션|금리|국채|고용|실업|GDP|PCE|소매판매|달러화|달러 지수|달러지수|달러 강세|달러 약세|달러 가치|DXY|환율|엔화|위안화|원화|유로화|원/달러|원·달러|재무부|파월|관세|경기")   # 그냥 '달러'는 금액(1억 달러)에도 붙어 빼고 환율 낱말만
 
 CAUSAL = re.compile(r"(때문에|탓에|덕분에|영향으로|여파로|에 힘입어|로 인해|으로 인해|에 따른|우려로|우려에|되며|하며|면서|전망에)[^.]{0,30}(올랐|내렸|상승|하락|급등|급락|반등|증발|매도세)")
 EN_CAUSAL = re.compile(r"\b(because of|due to|thanks to|driven by|on the back of|amid|as|following|after)\b[^.]{0,40}\b(rose|fell|jumped|dropped|rallied|slid|surged|plunged|declined|sank|tumbled)"
@@ -41,6 +45,126 @@ RULES = """반드시 지킬 것:
 - 자료에 있는 사실과 숫자만 쓴다. 자료에 없는 숫자·이름을 만들지 않는다. 숫자는 자료에 적힌 모양 그대로 쓴다.
 - 소식(무슨 일이 있었나)을 쓴다. 시세 움직임을 쓰더라도 소식과 한 문장에서 원인·결과로 묶지 않는다('~되며 하락했다', '~우려로 급락했다', '~에 따른', 'fell as/amid/due to ~' 모두 금지).
 - 매매 권유 금지. 한국어 말투는 '~했다/~이다'."""
+
+
+# ---------- 테마 화면용 분류(정규식, 한국어 한 줄 기준). 순서대로 처음 맞는 하나 ----------
+SECT = {
+    "crypto": [("btc", "비트코인", "Bitcoin", r"비트코인|BTC"), ("eth", "이더리움", "Ethereum", r"이더리움|ETH(?![A-Za-z])"),
+               ("etf", "기관·ETF", "Institutions & ETFs", r"ETF|기관|재무|트레저리|마이크로스트래티지|스트래티지|블랙록"),
+               ("reg", "규제·정책", "Regulation & policy", r"규제|법안|SEC|CFTC|금융위|과세|의회|당국|제재|소송|승인"),
+               ("stable", "스테이블코인", "Stablecoins", r"스테이블코인|USDT|USDC|테더|서클"),
+               ("exch", "거래소·상장", "Exchanges & listings", r"거래소|상장|바이낸스|코인베이스|업비트|빗썸|OKX|바이빗"),
+               ("defi", "디파이·온체인", "DeFi & on-chain", r"디파이|DeFi|온체인|고래|청산|스테이킹|하이퍼리퀴드|Hyperliquid"),
+               ("hack", "해킹·보안", "Hacks & security", r"해킹|탈취|도난|익스플로잇|보안|사기"),
+               ("alt", "알트코인", "Altcoins", r".")],
+    "nasdaq": [("semi", "반도체", "Semiconductors", r"엔비디아|AMD|TSMC|브로드컴|인텔|마이크론|퀄컴|ASML|반도체|칩"),
+               ("big", "빅테크", "Big Tech", r"애플|마이크로소프트|아마존|알파벳|구글|메타|넷플릭스"),
+               ("ev", "전기차·자동차", "EVs & autos", r"테슬라|전기차|자동차|리비안"),
+               ("soft", "소프트웨어·AI", "Software & AI", r"오라클|세일즈포스|어도비|팔란티어|소프트웨어|클라우드|AI"),
+               ("fin", "금융·크립토 주식", "Financials & crypto stocks", r"은행|JP모건|골드만|코인베이스|로빈후드|마이크로스트래티지|스트래티지"),
+               ("earn", "실적", "Earnings", r"실적|매출|순이익|EPS|가이던스|분기"),
+               ("idx", "지수·시장 전반", "Indices & market", r".")],
+    "econ": [("fed", "금리·연준", "Rates & the Fed", r"연준|Fed|FOMC|금리|파월|기준금리|국채"),
+             ("cpi", "물가", "Inflation", r"CPI|PPI|PCE|물가|인플레이션"),
+             ("job", "고용", "Jobs", r"고용|실업|비농업|임금|일자리"),
+             ("fx", "환율·달러", "FX & the dollar", r"달러화|달러 지수|달러지수|달러 강세|달러 약세|달러 가치|DXY|환율|엔화|위안화|원화|유로화|원/달러|원·달러"),
+             ("cmd", "원자재", "Commodities", r"유가|원유|금값|금 |은 |구리|천연가스|OPEC"),
+             ("trade", "관세·무역", "Tariffs & trade", r"관세|무역|수출|수입|공급망"),
+             ("fiscal", "재정·성장", "Fiscal & growth", r".")],
+    "ai": [("model", "모델·제품", "Models & products", r"모델|출시|챗GPT|ChatGPT|제미나이|클로드|Claude|그록|LLM|에이전트|오픈소스"),
+           ("chip", "칩·데이터센터", "Chips & data centers", r"엔비디아|칩|반도체|GPU|데이터센터|TSMC|AMD|전력"),
+           ("fund", "투자·자금", "Funding & deals", r"투자|유치|인수|기업가치|평가|자금|파이낸싱|IPO"),
+           ("policy", "규제·정책", "Regulation & policy", r"규제|법안|정부|정책|저작권|소송|의회|EU"),
+           ("biz", "기업·실적", "Companies & earnings", r".")],
+}
+SECT_RX = {k: [(a, b, c, re.compile(r)) for a, b, c, r in v] for k, v in SECT.items()}
+# 종목 이름 → 기호(나스닥·AI 테마 자산 언급 세기)
+TICK = {"엔비디아": "NVDA", "애플": "AAPL", "마이크로소프트": "MSFT", "아마존": "AMZN", "알파벳": "GOOGL", "구글": "GOOGL", "메타": "META", "테슬라": "TSLA",
+        "브로드컴": "AVGO", "AMD": "AMD", "TSMC": "TSM", "팔란티어": "PLTR", "오라클": "ORCL", "넷플릭스": "NFLX", "코인베이스": "COIN", "스트래티지": "MSTR",
+        "로빈후드": "HOOD", "인텔": "INTC", "마이크론": "MU", "퀄컴": "QCOM", "ASML": "ASML", "세일즈포스": "CRM", "어도비": "ADBE"}
+ECON_ASSET = [("^TNX", r"국채|금리"), ("DX-Y.NYB", r"달러화|달러 지수|달러지수|달러 강세|달러 약세|달러 가치|DXY"), ("GC=F", r"금값|금 가격|금 선물|(?<![가-힣])금(?=[이은을,\s])"), ("CL=F", r"유가|원유|WTI|브렌트"), ("KRW=X", r"원화|원/달러|원·달러")]
+
+
+def sector_of(k, ko):
+    for key, *_ , rx in SECT_RX[k]:
+        if rx.search(ko):
+            return key
+    return SECT_RX[k][-1][0]
+
+
+def mentions(k, xs):
+    """자산별 24시간 언급 수와 호재·악재(테마마다 자산 이름 기준이 다르다)."""
+    M = {}
+    for x in xs:
+        ko = x.get("ko") or ""
+        if k == "crypto":
+            keys = x.get("coins") or []
+        elif k == "econ":
+            keys = [s for s, rx in ECON_ASSET if re.search(rx, ko)]
+        else:
+            keys = list(dict.fromkeys(t for n, t in TICK.items() if n in ko))
+            if k == "ai":
+                keys += [c for c in (x.get("coins") or []) if c in ("TAO", "FET", "RENDER", "WLD", "NEAR", "VIRTUAL")]
+        for a in keys:
+            m = M.setdefault(a, {"n": 0, "u": 0, "d": 0})
+            m["n"] += 1
+            m["u"] += x.get("v") == "호재"
+            m["d"] += x.get("v") == "악재"
+    return dict(sorted(M.items(), key=lambda kv: -kv[1]["n"])[:16])
+
+
+def hours(xs, now):
+    """지난 24시간을 1시간씩: [소식, 호재, 악재]. 0번이 가장 오래된 시간."""
+    H = [[0, 0, 0] for _ in range(24)]
+    for x in xs:
+        i = int((x["t"] - (now - 86400)) // 3600)
+        if 0 <= i < 24:
+            H[i][0] += 1
+            H[i][1] += x.get("v") == "호재"
+            H[i][2] += x.get("v") == "악재"
+    return H
+
+
+def sectors(k, xs):
+    out = []
+    for key, ko, en, _ in SECT_RX[k]:
+        ys = [x for x in xs if sector_of(k, x.get("ko") or "") == key]
+        if ys:
+            out.append({"k": key, "ko": ko, "en": en, "n": len(ys), "u": sum(x["v"] == "호재" for x in ys), "d": sum(x["v"] == "악재" for x in ys)})
+    return sorted(out, key=lambda o: -o["n"])
+
+
+def toks(s):
+    return {w for w in re.findall(r"[A-Za-z]{2,}|\d[\d,.]*|[가-힣]{2,}", s or "")}
+
+
+def refs(sentences, xs):
+    """요약 1~4번 문장마다 근거가 된 소식 id(낱말·숫자가 가장 많이 겹치는 것, 겹침이 적으면 없음)."""
+    out = []
+    for s in sentences[:4]:
+        a = toks(s)
+        best = max(xs, key=lambda x: len(a & toks(x.get("ko"))), default=None)
+        out.append(best["id"] if best and len(a & toks(best.get("ko"))) >= 3 else None)
+    return out
+
+
+def compact(x):
+    return {k: x.get(k) for k in ("id", "t", "ko", "en", "v", "s", "n", "coins", "kind") if x.get(k) not in (None, "", [])} | {"sec": None}
+
+
+def load_items(now):
+    """지난 24시간 판정된 소식(같은 소식끼리 묶음). 판정 DB → 안 되면 flash.json."""
+    try:
+        sys.path.insert(0, HOME)
+        import tg_publish as P
+        con = P.db()
+        xs = [it for it in P.stories(con, since=now - 86400 - 3600) if it["t"] >= now - 86400 and P.visible(it)]
+        log("판정 DB에서 24시간 소식", len(xs))
+        return xs, "db"
+    except Exception as e:
+        log("판정 DB 못 씀 → flash.json", type(e).__name__, str(e)[:120])
+        flash = json.load(open(os.path.join(BRANCH, "flash.json")))
+        return [x for x in flash.get("items", []) if x.get("t", 0) >= now - 86400 and x.get("ko")], "flash"
 
 
 def log(*a):
@@ -147,9 +271,8 @@ def write_theme(k, src):
 
 def run():
     t0 = time.time()
-    flash = json.load(open(os.path.join(BRANCH, "flash.json")))
     now = time.time()
-    items = [x for x in flash.get("items", []) if x.get("t", 0) >= now - 86400 and x.get("ko")]
+    items, origin = load_items(now)
     try:
         arts = get(ARTICLES + "?t=%d" % now, 90)
         arts = arts if isinstance(arts, list) else arts.get("articles") or arts.get("items") or []
@@ -166,7 +289,12 @@ def run():
         src, u, d = theme_source(k, T[k], A[k])
         keep, bad = write_theme(k, src) if T[k] else ([], [])
         dropped[k] = bad
-        themes.append({"k": k, "n": len(T[k]), "u": u, "d": d, "arts": len(A[k]), "ko": " ".join(a for a, _ in keep), "en": " ".join(b for _, b in keep)})
+        xs = sorted(T[k], key=lambda x: -x["t"])
+        top = [compact(x) | {"sec": sector_of(k, x.get("ko") or "")} for x in pick(xs, 40)]
+        themes.append({"k": k, "n": len(T[k]), "u": u, "d": d, "arts": len(A[k]), "ko": " ".join(a for a, _ in keep), "en": " ".join(b for _, b in keep),
+                       "s_ko": [a for a, _ in keep], "s_en": [b for _, b in keep], "refs": refs([a for a, _ in keep], xs),
+                       "hours": hours(xs, now), "sectors": sectors(k, xs), "mentions": mentions(k, xs), "top": top,
+                       "latest": [compact(x) | {"sec": sector_of(k, x.get("ko") or "")} for x in xs[:40]]})
     hsrc = "\n".join(f"[{NAME[t['k']]}] {t['ko']}" for t in themes)
     hl = {"ko": "", "en": ""}
     for attempt in range(4):
@@ -181,7 +309,8 @@ def run():
     if not all(t["ko"] for t in themes if t["n"]) or not hl.get("ko"):
         log("요약이 비어 저장하지 않음", [t["k"] for t in themes if t["n"] and not t["ko"]], bool(hl.get("ko")))
         return
-    doc = {"v": 1, "made": int(now), "from": int(now - 86400), "model": MODEL, "total": len(items), "articles": len(arts),
+    doc = {"v": 2, "made": int(now), "next": int(now + EVERY), "from": int(now - 86400), "src": origin, "model": MODEL, "total": len(items), "articles": len(arts),
+           "sect": {k: [[a, b, c] for a, b, c, _ in v] for k, v in SECT.items()},
            "headline": {"ko": hl["ko"], "en": hl["en"]}, "themes": themes, "dropped": dropped}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT + ".tmp", "w") as f:
