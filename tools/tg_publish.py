@@ -115,7 +115,7 @@ def merge(members):
     return {"id": hashlib.sha1(("%s-%d" % (first["ch"], first["id"])).encode()).hexdigest()[:12], "t": first["t"], "ko": " ".join(ko.split()),
             "v": verdict, "s": max(m["strength"] for m in members), "kind": first["kind"], "coins": count("coins")[:4],
             "sectors": count("sectors")[:2] if verdict != "중립" else [], "mw": any(m["market_wide"] for m in members),
-            "n": len({m["ch"] for m in members}), "link": link}
+            "n": len({m["ch"] for m in members}), "link": link, "en": next((" ".join((BRAND.sub(" ", m["en"]).strip(" ,·-") or m["en"]).split()) for m in members if m.get("en")), "")}
 
 
 def visible(it):
@@ -148,12 +148,12 @@ KEEP_EMB = 72 * 3600        # 임베딩 보관(하루 정리가 지난 하루를
 def load(con, since=None, until=None):
     since = int(since if since is not None else time.time() - WINDOW - GAP)
     until = int(until if until is not None else time.time() + 3600)
-    rows = con.execute("""SELECT m.ch, m.id, m.t, m.links, a.ko, a.kind, a.verdict, a.coins, a.sectors, a.market_wide, a.strength
+    rows = con.execute("""SELECT m.ch, m.id, m.t, m.links, a.ko, a.kind, a.verdict, a.coins, a.sectors, a.market_wide, a.strength, a.en
         FROM msgs m JOIN ai a ON a.ch=m.ch AND a.id=m.id
         WHERE m.t >= ? AND m.t < ? AND a.ko != '' AND a.kind IN (%s) ORDER BY m.t, m.ch, m.id""" % ",".join("?" * len(SHOW_KINDS)),
                        (since, until, *SHOW_KINDS)).fetchall()
     rows = [{"ch": r[0], "id": r[1], "t": r[2], "links": json.loads(r[3] or "[]"), "ko": r[4], "kind": r[5], "verdict": r[6],
-             "coins": json.loads(r[7]), "sectors": json.loads(r[8]), "market_wide": bool(r[9]), "strength": r[10]} for r in rows]
+             "coins": json.loads(r[7]), "sectors": json.loads(r[8]), "market_wide": bool(r[9]), "strength": r[10], "en": r[11] or ""} for r in rows]
     have = {(c, i): (ko, json.loads(v)) for c, i, ko, v in con.execute("SELECT ch, id, ko, v FROM emb WHERE ch||id IN (SELECT ch||id FROM msgs WHERE t >= ?)", (since,))}
     need = [r for r in rows if have.get((r["ch"], r["id"]), ("",))[0] != r["ko"]]
     for k in range(0, len(need), 64):

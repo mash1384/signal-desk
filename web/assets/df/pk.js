@@ -86,7 +86,7 @@ export function captions(el, list) { let cur = -1; const L = () => DFI.lang() ==
   DFI.onLang(() => { const k = cur; cur = -1; set(k); }); return set; }
 
 export const T = (en, ko) => DFI.lang() === 'ko' ? ko : en;
-export const line = (it, ENT) => DFI.lang() === 'ko' ? it.ko : (ENT[it.id] || it.ko);
+export const line = (it, ENT) => DFI.lang() === 'ko' ? it.ko : (it.en || ENT[it.id] || it.ko);
 
 // 캔버스에 그린 모양 → 점. fn(g, W, H)로 그린다. 반환 점 좌표는 가운데 기준, 가로 wid 월드 단위
 export function drawPoints(fn, { W = 512, H = 512, wid = 1, step = 3 } = {}) {

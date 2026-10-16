@@ -46,6 +46,6 @@ window.DFI = (() => {
   };
   fetch((window.DF_BASE || '../') + 'en.json').then((r) => r.json()).then((m) => { ENT = m; subs.forEach((f) => f(LANG)); }).catch(() => {});
   const ago = (t) => { const s = Date.now() / 1000 - t, ko = LANG === 'ko'; return s < 60 ? (ko ? '방금' : 'just now') : s < 3600 ? (ko ? `${Math.floor(s / 60)}분 전` : `${Math.floor(s / 60)}m ago`) : s < 86400 ? (ko ? `${Math.floor(s / 3600)}시간 전` : `${Math.floor(s / 3600)}h ago`) : (ko ? `${Math.floor(s / 86400)}일 전` : `${Math.floor(s / 86400)}d ago`); };
-  return { init, onLang: (f) => subs.push(f), lang: () => LANG, line: (it) => (LANG === 'en' ? ENT[it.id] || null : it.ko), has: (it) => LANG !== 'en' || !!ENT[it.id], v: (x) => V[LANG][x] || x, ago,
+  return { init, onLang: (f) => subs.push(f), lang: () => LANG, line: (it) => (LANG === 'en' ? it.en || ENT[it.id] || null : it.ko), has: (it) => LANG !== 'en' || !!(it.en || ENT[it.id]), v: (x) => V[LANG][x] || x, ago,
     outlets: (n) => (LANG === 'ko' ? (n > 1 ? `${n}곳 보도` : '단독 보도') : (n > 1 ? `${n} outlets` : 'single source')) };
 })();

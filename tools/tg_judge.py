@@ -38,6 +38,8 @@ SECTORS = {
 SYS = """너는 한국 크립토 투자자를 위한 속보 정리기다. 텔레그램 속보 한 건을 받아 JSON 한 개만 낸다. 설명 금지.
 
 ko: 한국어 한 줄(최대 80자). 원문이 영어·중국어면 번역, 한국어면 다듬기. 핵심 사실만, 숫자·이름·티커는 그대로. 말투는 '~했다/~한다'. 홍보 문구·이모지·해시태그·출처 표기는 뺀다.
+en: 같은 내용의 영어 한 줄(최대 120자). 뉴스 헤드라인 문체(현재형, 문장 끝 마침표 없이). 숫자·이름·티커는 그대로. 채널·매체 이름은 넣지 않는다.
+  원문이 여러 소식을 묶은 브리핑이면 ko·en 모두 가장 중요한 소식 하나만 쓴다.
   속보 채널·매체 이름(코인니스, BlockBeats, Wu Blockchain, Watcher Guru, Lookonchain, Whale Alert, FinancialJuice 등)과 '~에 따르면'도 넣지 않는다.
 kind:
   event = 가격을 움직일 수 있는 새 사실(상장·상장폐지, 해킹, 소송·제재, 규제·법안, 기관·정부 매수·매도, 대량 이동, ETF, 제휴·채택, 출시·업그레이드, 지정학 사건)
@@ -67,7 +69,7 @@ sectors: 소식의 호재·악재가 '섹터 전체'에 걸릴 때만, 아래 �
 market_wide: 크립토 시장 전체를 움직일 소식(미국 연준·물가·고용, 미국 정부·의회의 업계 전반 조치, 최대 거래소 사고, 큰 지정학 사건)이면 true
 strength: 0=영향 없음 1=작음 2=눈에 띔(수억 달러, 주요 규제기관·대기업) 3=큼(ETF 승인·거절, 대형 해킹, 미국 정부의 큰 조치, 수십억 달러, 전쟁 확대)
 
-형식: {"ko": "", "kind": "", "verdict": "", "coins": [], "sectors": [], "market_wide": false, "strength": 0}"""
+형식: {"ko": "", "en": "", "kind": "", "verdict": "", "coins": [], "sectors": [], "market_wide": false, "strength": 0}"""
 
 TICKER = re.compile(r"^[A-Z0-9]{2,10}$")
 HAN = re.compile(r"[\u4e00-\u9fff]")
@@ -85,6 +87,8 @@ def db():
     con.execute("""CREATE TABLE IF NOT EXISTS ai(
         ch TEXT, id INTEGER, ko TEXT, kind TEXT, verdict TEXT, coins TEXT, sectors TEXT,
         market_wide INTEGER, strength INTEGER, model TEXT, v INTEGER, at INTEGER, ms INTEGER, PRIMARY KEY(ch, id))""")
+    if "en" not in [r[1] for r in con.execute("PRAGMA table_info(ai)")]:
+        con.execute("ALTER TABLE ai ADD COLUMN en TEXT")      # 영어 한 줄(사이트 영어 화면)
     return con
 
 
@@ -116,13 +120,13 @@ def normalize(j):
         st = 0
     if quiet:
         st = 0
-    return {"ko": " ".join(str(j["ko"]).split())[:120], "kind": kind, "verdict": verdict, "coins": coins[:3],
+    return {"ko": " ".join(str(j["ko"]).split())[:120], "en": " ".join(str(j.get("en") or "").split())[:180], "kind": kind, "verdict": verdict, "coins": coins[:3],
             "sectors": [] if verdict == "중립" else sectors, "market_wide": bool(j.get("market_wide")) and not quiet and st >= 2, "strength": st}
 
 
 def ask(ch, lang, text):
     body = {"model": MODEL, "stream": False, "think": False, "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 450},
             "messages": [{"role": "system", "content": SYS},
                          {"role": "user", "content": f"채널: {ch} ({lang})\n원문:\n{text}"}]}
     req = urllib.request.Request(OLLAMA + "/api/chat", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
@@ -150,19 +154,44 @@ def judge_one(con, lang, ch, mid, text):
     body = clean_text(text)
     t0 = time.time()
     if len(body) < 8:
-        r = {"ko": "", "kind": "unrelated", "verdict": "중립", "coins": [], "sectors": [], "market_wide": False, "strength": 0}
+        r = {"ko": "", "en": "", "kind": "unrelated", "verdict": "중립", "coins": [], "sectors": [], "market_wide": False, "strength": 0}
     else:
         r = normalize(ask(ch, lang.get(ch, "?"), body))
         if r and HAN.search(r["ko"]):          # 중국어 원문의 한자가 남으면 한 번 더
             r = normalize(ask(ch, lang.get(ch, "?"), body + "\n\n(주의: ko에 한자·중국어를 남기지 말고 전부 한국어로 옮겨라)")) or r
         if r is None:
-            r = {"ko": "", "kind": "unrelated", "verdict": "중립", "coins": [], "sectors": [], "market_wide": False, "strength": 0}
+            r = {"ko": "", "en": "", "kind": "unrelated", "verdict": "중립", "coins": [], "sectors": [], "market_wide": False, "strength": 0}
             log("판정 형식 오류", ch, mid)
-    con.execute("INSERT OR REPLACE INTO ai VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    con.execute("INSERT OR REPLACE INTO ai(ch, id, ko, kind, verdict, coins, sectors, market_wide, strength, model, v, at, ms, en) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (ch, mid, r["ko"], r["kind"], r["verdict"], json.dumps(r["coins"]), json.dumps(r["sectors"]),
-                 int(r["market_wide"]), r["strength"], MODEL, V, int(time.time()), int((time.time() - t0) * 1000)))
+                 int(r["market_wide"]), r["strength"], MODEL, V, int(time.time()), int((time.time() - t0) * 1000), r.get("en", "")))
     con.commit()
     return r
+
+
+EN_SYS = """Translate each Korean market-news line into one English news headline (present tense, no final period, max 120 characters).
+Keep numbers, names and tickers exactly. Do not add facts. Output JSON only: {"en": ["...", ...]} in the same order."""
+
+
+def fill_en(con, k=12):
+    """영어 줄이 없는 최근(48시간) 판정 → 한국어 줄을 영어로 옮겨 채운다. 채운 게 있으면 True."""
+    rows = con.execute("""SELECT a.ch, a.id, a.ko FROM ai a JOIN msgs m ON m.ch=a.ch AND m.id=a.id
+        WHERE a.ko != '' AND (a.en IS NULL OR a.en = '') AND m.t >= ? ORDER BY m.t DESC LIMIT ?""", (int(time.time()) - 2 * WINDOW, k)).fetchall()
+    if not rows:
+        return False
+    body = {"model": MODEL, "stream": False, "think": False, "keep_alive": "30m", "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1200},
+            "messages": [{"role": "system", "content": EN_SYS}, {"role": "user", "content": "\n".join(f"{i + 1}. {r[2]}" for i, r in enumerate(rows))}]}
+    req = urllib.request.Request(OLLAMA + "/api/chat", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=300) as r:
+        out = json.loads(r.read())["message"]["content"]
+    en = json.loads(out[out.index("{"): out.rindex("}") + 1]).get("en") or []
+    if len(en) != len(rows):
+        log("영어 채우기 개수 불일치", len(en), len(rows))
+        return False
+    for (ch, mid, _), e in zip(rows, en):
+        con.execute("UPDATE ai SET en=? WHERE ch=? AND id=?", (" ".join(str(e).split())[:180], ch, mid))
+    con.commit()
+    return True
 
 
 def run():
@@ -173,7 +202,12 @@ def run():
     while True:
         rows = todo(con)
         if not rows:
-            time.sleep(IDLE)
+            try:
+                if not fill_en(con):          # 할 일이 없을 때 영어 줄이 빠진 최근 판정을 채운다
+                    time.sleep(IDLE)
+            except Exception as e:
+                log("영어 채우기 실패", type(e).__name__, str(e)[:120])
+                time.sleep(IDLE)
         for ch, mid, text in rows:
             try:
                 judge_one(con, lang, ch, mid, text)
