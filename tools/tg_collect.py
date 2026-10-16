@@ -1,4 +1,4 @@
-"""운영자 Mac에서 상시: 고른 텔레그램 공개 채널 12곳의 글을 받아 로컬 SQLite(~/.signal/tg/tg.db)에 쌓는다.
+"""운영자 Mac에서 상시: 고른 텔레그램 공개 채널(CHANNELS)의 글을 받아 로컬 SQLite(~/.signal/tg/tg.db)에 쌓는다.
 
 운영자 본인 계정으로 텔레그램 API(MTProto, Telethon)에 붙는다. 키와 로그인 세션은 ~/.signal 에만 있고 저장소에는 없다.
 받은 글은 사이트에 그대로 싣지 않는다(재게시 금지). 쓰는 쪽(번역·판정·사이트 연결)은 따로 정한다.
@@ -13,7 +13,7 @@
        launchd 상시 실행(com.signal.tg)으로 등록한다. 로그는 ~/.signal/tg.log
 
 선택:
-  --join     12개 채널에 가입하고 알림을 끄고 보관함으로 옮긴다. 가입한 채널은 글이 즉시 밀려오고(1초 안팎),
+  --join     CHANNELS 채널에 가입하고 알림을 끄고 보관함으로 옮긴다. 가입한 채널은 글이 즉시 밀려오고(1초 안팎),
              가입하지 않은 채널은 POLL초마다 확인한다. 계정에 채널이 생기므로 원할 때만 쓴다.
   --status   채널별 최근 24시간 글 수, 마지막 글, 받기까지 걸린 시간(중앙값)
   --tail N   최근 글 N개
@@ -53,6 +53,10 @@ CHANNELS = [
     ("FinancialJuice", "경제지표·세계정세", "en"),
     ("marketfeed", "경제지표·세계정세", "en"),
     ("investigations", "사기·해킹", "en"),          # ZachXBT
+    ("insidertracking", "미국 증시", "ko"),         # 미국 주식 인사이더(한국어 번역·브리핑)
+    ("FastStockNewsUSA", "미국 증시", "ko"),        # 급등일보 미국주식
+    ("Samsung_Global_AI_SW", "AI 업계", "ko"),      # 삼성증권 글로벌 AI/SW 애널리스트
+    ("aipost", "AI 업계", "en"),                    # AI Post
 ]
 NAMES = [c[0] for c in CHANNELS]
 

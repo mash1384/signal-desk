@@ -93,6 +93,16 @@ SOURCES = [
      "only": ["federal open market committee", "fomc", "monetary policy", "minutes", "economic projections", "discount rate", "interest rate", "beige book", "balance sheet", "statement", "speech", "testimony"]},
     {"id": "einfomax", "name": "연합인포맥스", "url": "https://news.einfomax.co.kr/rss/allArticle.xml", "lang": "ko", "hint": "macro", "require": True},
     {"id": "edaily", "name": "이데일리", "url": "http://rss.edaily.co.kr/edaily_news.xml", "lang": "ko", "hint": "macro", "require": True},
+    # 나스닥·미국 증시(2026-10-16 추가)
+    {"id": "bloomberg-tech", "name": "Bloomberg Technology", "url": "https://feeds.bloomberg.com/technology/news.rss", "lang": "en", "hint": "macro", "require": False},
+    {"id": "cnbc-tech", "name": "CNBC Technology", "url": "https://www.cnbc.com/id/19854910/device/rss/rss.html", "lang": "en", "hint": "macro", "require": False},
+    {"id": "cnbc-earnings", "name": "CNBC Earnings", "url": "https://www.cnbc.com/id/15839135/device/rss/rss.html", "lang": "en", "hint": "macro", "require": False},
+    {"id": "seekingalpha-mc", "name": "Seeking Alpha", "url": "https://seekingalpha.com/market_currents.xml", "lang": "en", "hint": "macro", "require": False},
+    {"id": "investing-stocks", "name": "Investing.com", "url": "https://www.investing.com/rss/news_25.rss", "lang": "en", "hint": "macro", "require": False},
+    {"id": "hankyung-intl", "name": "한국경제 국제", "url": "https://www.hankyung.com/feed/international", "lang": "ko", "hint": "macro", "require": True},
+    # AI(2026-10-16 추가)
+    {"id": "aitimes-kr", "name": "인공지능신문", "url": "https://www.aitimes.kr/rss/allArticle.xml", "lang": "ko", "hint": "ai", "require": False},
+    {"id": "nvidia-blog", "name": "NVIDIA 블로그", "url": "https://blogs.nvidia.com/feed/", "lang": "en", "hint": "ai", "require": False},
 ]
 
 # 소스별 가중치 (중요도 계산에 더함)
