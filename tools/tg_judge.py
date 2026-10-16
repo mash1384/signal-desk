@@ -24,12 +24,14 @@ VENV_PY = os.path.join(HOME, "tgvenv", "bin", "python")
 LABEL = "com.signal.tgjudge"
 MODEL = os.environ.get("SIGNAL_TG_MODEL", "gemma4:26b")
 OLLAMA = "http://localhost:11434"
-V = 2                       # 프롬프트 버전. 바꾸면 새 글부터 새 버전으로 판정한다
+V = 3                       # 프롬프트 버전. 바꾸면 새 글부터 새 버전으로 판정한다(3: 판정 값을 한국어 세 낱말로 못박음)
 WINDOW = 24 * 3600          # 이보다 오래된 글은 판정하지 않는다
 IDLE = 5                    # 새 글이 없을 때 쉬는 시간(초)
 
 KINDS = ["event", "data", "price_recap", "opinion", "promo", "notice", "unrelated"]
 VERDICTS = ["호재", "악재", "중립"]
+# 영어 줄(en)을 함께 쓰게 한 뒤 모델이 verdict 를 영어로 쓰는 일이 잦았다('neutral' 등) — 예전엔 그걸 전부 중립으로 버렸다
+VERDICT_ALIAS = {"bullish": "호재", "positive": "호재", "good": "호재", "bearish": "악재", "negative": "악재", "bad": "악재", "neutral": "중립", "mixed": "중립"}
 SECTORS = {
     "l1": "레이어1", "l2": "레이어2", "defi": "디파이", "ai": "AI", "meme": "밈", "rwa": "RWA·토큰화",
     "stable": "스테이블코인", "exchange": "거래소", "gamefi": "게임·NFT", "depin": "디핀", "privacy": "프라이버시",
@@ -49,7 +51,7 @@ kind:
   promo = 이벤트·경품·에어드랍 안내·작은 프로젝트 홍보
   notice = 거래소의 일상 공지(점검, 입출금 일시 중단, 수수료·마진 조정)
   unrelated = 크립토·금융시장과 무관
-verdict: 이 소식이 관련 코인(없으면 크립토 시장 전체) 가격에 일반적으로 어떻게 읽히는가.
+verdict: 이 소식이 관련 코인(없으면 크립토 시장 전체) 가격에 일반적으로 어떻게 읽히는가. 값은 반드시 "호재"·"악재"·"중립" 중 하나(한국어 그대로 — en 은 영어여도 verdict 는 영어로 쓰지 않는다).
   호재 예: 상장, 승인, 기관·정부 매수, 자금 유입, 제휴·채택, 규제 완화, 금리 인하 신호, 물가가 예상보다 낮음
   악재 예: 해킹·도난, 소송·제재·조사, 상장폐지·거래유의종목 지정·투자경고, 보유 코인 매도 계획, 코인의 대량 거래소 입금, 대량 언락,
     규제 강화, 금리 인상 신호, 물가가 예상보다 높음, 전쟁·공습 확대
@@ -69,7 +71,7 @@ sectors: 소식의 호재·악재가 '섹터 전체'에 걸릴 때만, 아래 �
 market_wide: 크립토 시장 전체를 움직일 소식(미국 연준·물가·고용, 미국 정부·의회의 업계 전반 조치, 최대 거래소 사고, 큰 지정학 사건)이면 true
 strength: 0=영향 없음 1=작음 2=눈에 띔(수억 달러, 주요 규제기관·대기업) 3=큼(ETF 승인·거절, 대형 해킹, 미국 정부의 큰 조치, 수십억 달러, 전쟁 확대)
 
-형식: {"ko": "", "en": "", "kind": "", "verdict": "", "coins": [], "sectors": [], "market_wide": false, "strength": 0}"""
+형식: {"ko": "", "en": "", "kind": "", "verdict": "호재|악재|중립", "coins": [], "sectors": [], "market_wide": false, "strength": 0}"""
 
 TICKER = re.compile(r"^[A-Z0-9]{2,10}$")
 HAN = re.compile(r"[\u4e00-\u9fff]")
@@ -105,7 +107,8 @@ def normalize(j):
         return None
     kind = j["kind"]
     quiet = kind in ("unrelated", "promo", "notice")
-    verdict = j.get("verdict") if j.get("verdict") in VERDICTS and not quiet else "중립"
+    verdict = VERDICT_ALIAS.get(str(j.get("verdict") or "").strip().lower(), j.get("verdict"))   # 모델이 영어로 답해도 받는다
+    verdict = verdict if verdict in VERDICTS and not quiet else "중립"
     coins = []
     for c in j.get("coins") or []:
         c = str(c).strip().upper().lstrip("$")

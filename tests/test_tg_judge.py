@@ -13,6 +13,12 @@ def out(**kw):
 
 
 class TgJudge(unittest.TestCase):
+    def test_english_verdicts_are_understood(self):
+        self.assertEqual(J.normalize(out(verdict="bullish"))["verdict"], "호재")
+        self.assertEqual(J.normalize(out(verdict="Bearish"))["verdict"], "악재")
+        self.assertEqual(J.normalize(out(verdict="neutral"))["verdict"], "중립")
+        self.assertEqual(J.normalize(out(verdict="maybe"))["verdict"], "중립")
+
     def test_rejects_bad_output(self):
         self.assertIsNone(J.normalize({"kind": "maybe", "ko": "x"}))
         self.assertIsNone(J.normalize(out(ko="  ")))
