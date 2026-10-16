@@ -1276,6 +1276,14 @@ def page_landing_df():
     return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og)
 
 
+def page_live_df():
+    """라이브(Delfona R3 · 임팩트): 큰 소식 + 소식 이후 가격 차트, 테마 탭, 카드. 정적 틀(web/df_live.html)에 주소·버전만 채운다.
+    소식·가격은 브라우저가 Worker /flash · /index-candles 와 Binance 에서 실시간으로 받아 그린다."""
+    with open(os.path.join(WEB, "df_live.html"), encoding="utf-8") as f:
+        tpl = f.read()
+    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+
+
 def df_ver():
     """web/assets/df/ 파일 내용으로 만든 버전(바뀌면 브라우저가 새로 받는다)."""
     d = os.path.join(WEB, "assets", "df")
@@ -1318,7 +1326,7 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     stamp_df_imports(out)
     util.write_text(os.path.join(out, "index.html"), page_landing_df())
     dailies = load_dailies()
-    util.write_text(os.path.join(out, "live", "index.html"), page_feed(articles, market, cal, imp, now, extra.get("events.json"), dailies))
+    util.write_text(os.path.join(out, "live", "index.html"), page_live_df())   # 옛 SIGNAL 라이브(page_feed)는 Delfona R3 로 바뀜
     for i, doc in enumerate(dailies):
         nxt = dailies[i - 1]["date"] if i > 0 else None
         prev = dailies[i + 1]["date"] if i + 1 < len(dailies) else None

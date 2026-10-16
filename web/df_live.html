@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live · Delfona — 시장을 움직이는 속보, 실시간 판정</title>
+<meta name="description" content="전 세계 크립토·나스닥·경제·AI 속보를 실시간으로 읽고 호재·악재를 판정해요. 소식이 나온 뒤 가격이 어떻게 움직였는지 함께 보여 줘요.">
+<link rel="canonical" href="{{URL}}live/">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="{{B}}assets/icon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{B}}assets/df/lk.css?v={{V}}">
+<style>/* R3 · Impact */
+.r3 { padding-top: 20px; padding-bottom: 64px; }
+.r3 .tt { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; } .r3 .tt::-webkit-scrollbar { display: none; }
+.r3 .tt button { flex: none; height: 34px; padding: 0 14px; border-radius: 99px; font-size: 14px; font-weight: 600; color: var(--ink2); } .r3 .tt .c { margin-inline-start: 6px; font-size: 11.5px; font-weight: 500; color: var(--faint); }
+.r3 .tt button[aria-selected='true'] { background: var(--ink); color: #fff; } .r3 .tt button[aria-selected='true'] .c { color: rgb(255 255 255 / .6); }
+.r3 .lead { margin-top: 18px; }
+.r3 .ld { display: grid; gap: 20px; width: 100%; padding: 26px 28px; border-radius: 22px; text-align: start; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 24px 60px -36px rgb(13 37 61 / .35); }
+@media (min-width: 1000px) { .r3 .ld { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center; gap: 32px; } }
+.r3 .ld .k { font-size: 13px; font-weight: 600; color: var(--primary); }
+.r3 .ld h1 { margin-top: 10px; font-size: clamp(24px, 2.6vw, 34px); font-weight: 600; letter-spacing: -0.025em; line-height: 1.22; text-wrap: balance; }
+.r3 .ld .alt { margin-top: 8px; font-size: 15px; color: var(--mute); } .r3 .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; } .r3 .ou { font-size: 12px; color: var(--faint); }
+.r3 .ch { display: grid; gap: 8px; } .r3 .cl { font-size: 13px; color: var(--mute); } .r3 .bigc { width: 100%; min-height: 200px; }
+.r3 .newpill { margin-top: 12px; }
+.r3 .main { display: grid; gap: 24px; margin-top: 30px; } @media (min-width: 1100px) { .r3 .main { grid-template-columns: minmax(0, 1fr) 300px; } }
+.r3 .sec { font-size: 13px; font-weight: 600; color: var(--mute); margin-bottom: 10px; } .r3 #oh { margin-top: 32px; }
+.r3 .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.r3 .cd { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); text-align: start; }
+.r3 .cd.w { grid-column: span 2; } @media (max-width: 640px) { .r3 .cd.w { grid-column: auto; } }
+@media (hover: hover) { .r3 .cd { transition: box-shadow 150ms ease; } .r3 .cd:hover { box-shadow: 0 0 0 1px #d5dbe5, 0 12px 30px -20px rgb(13 37 61 / .35); } }
+.r3 .cd .ln { font-size: 15.5px; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; text-wrap: pretty; } .r3 .cd.w .ln { font-size: 18px; }
+.r3 .cd .mt { margin-top: 0; } .r3 canvas.sp { width: 100%; height: 46px; display: block; }
+.r3 .other { list-style: none; padding: 4px 0; margin: 0; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.r3 .other button { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; width: 100%; padding: 10px 18px; font-size: 14px; color: var(--ink2); text-align: start; } .r3 .other .tm { font-size: 12px; color: var(--faint); }
+@media (hover: hover) { .r3 .other button:hover { background: var(--soft); } }
+.r3 .rail { display: grid; gap: 12px; align-content: start; } @media (min-width: 1100px) { .r3 .rail { position: sticky; top: 76px; } }
+.r3 .box { padding: 16px 18px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); } .r3 .box h3 { margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--mute); }
+.r3 .q { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; padding: 7px 0; font-size: 14px; } .r3 .rk { color: var(--faint); font-size: 12px; }
+.r3 .big3 { display: flex; gap: 18px; } .r3 .big3 span { display: grid; font-size: 12px; color: var(--mute); } .r3 .big3 b { font-size: 22px; font-weight: 500; color: var(--ink); } .r3 .big3 b.up { color: var(--up); } .r3 .big3 b.down { color: var(--down); }
+.mute { color: var(--faint); font-size: 13px; padding: 10px 0; }
+.r3 .spw { display: grid; gap: 4px; } .r3 .spl { display: flex; gap: 6px; font-size: 11px; color: var(--faint); } .r3 .spl .up { color: var(--up); } .r3 .spl .down { color: var(--down); }
+
+.r3 .ld .tx { display: block; text-align: start; border-radius: 14px; } .r3 .ld .tx:focus-visible { outline-offset: 6px; }
+.r3 .ch .cl { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; font-size: 14px; } .r3 .ch .cl b { font-weight: 650; } .r3 .chg { font-weight: 600; } .r3 .chg.up { color: var(--up); } .r3 .chg.down { color: var(--down); } .r3 .mute2 { color: var(--faint); font-size: 12.5px; }
+.r3 .src { font-size: 11px; color: var(--faint); }
+.mseg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f1f3f7; } .mseg button { height: 28px; padding: 0 11px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.mseg button[aria-pressed='true'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgb(13 37 61 / .12), 0 0 0 1px rgb(13 37 61 / .06); }
+.r3 #gh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; } .r3 .ch .mseg { justify-self: start; }
+</style>
+</head>
+<body class="pg-r3">
+<header class="hd"><div class="wrap">
+  <a class="logo" href="{{B}}"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="{{B}}live/" aria-current="page" data-t="n1">Live</a><a href="{{B}}map/" data-t="n2">Themes</a><a href="{{B}}daily/" data-t="n3">Brief</a><a href="{{B}}events/" data-t="n4">Calendar</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+</div></header>
+<main id="app"></main>
+<nav class="tabs" aria-label="Menu"><a href="{{B}}live/" aria-current="page"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="{{B}}map/"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="{{B}}daily/"><i class="ti br"></i><span data-t="n3">Brief</span></a><a href="{{B}}events/"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>window.DF_BASE = '{{B}}assets/df/';</script>
+<script src="{{B}}assets/df/data.js?v={{V}}"></script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정' });</script>
+<script type="module">import '{{B}}assets/df/r3.js?v={{V}}';</script>
+</body>
+</html>
