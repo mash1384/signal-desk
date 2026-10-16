@@ -65,7 +65,9 @@ export function textPoints(text, { font = '300 220px Inter', hgt = 2, step = 3, 
 export function pin(sec, len, onP) {
   gsap.registerPlugin(ScrollTrigger); const st = { P: 0, T: 0 };
   ScrollTrigger.create({ trigger: sec, start: 'top top', end: '+=' + len + '%', pin: true, anticipatePin: 1, onUpdate: (s) => { st.T = s.progress; } });
-  st.step = (dt) => { st.P += (st.T - st.P) * Math.min(1, dt * 10); return st.P; };
+  // 들어오는 동안(섹션 위 끝이 화면 아래 → 위에 닿을 때까지)의 진행 — 고정되기 전에 첫 장면을 미리 만들어 두는 데 쓴다
+  st.pre = 0; st.preT = 0; ScrollTrigger.create({ trigger: sec, start: 'top bottom', end: 'top top', onUpdate: (s) => { st.preT = s.progress; } });
+  st.step = (dt) => { st.P += (st.T - st.P) * Math.min(1, dt * 10); st.pre += (st.preT - st.pre) * Math.min(1, dt * 10); return st.P; };
   // ?go=1: 오프닝을 건너뛰고 이 섹션 처음으로(미리보기용)
   if (/go=1/.test(location.search)) addEventListener('load', () => setTimeout(() => { ScrollTrigger.refresh(); const t = ScrollTrigger.getAll().find((x) => x.trigger === sec); if (t) scrollTo(0, t.start + 2); }, 900));
   return st;

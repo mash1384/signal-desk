@@ -105,16 +105,17 @@ const BRF = BR ? makeBrief(BR, { scene, sec, lay, mob, sample: (n) => {   // 지
   for (let i = 0; i < n; i++) { if (i < n * 0.15) { const j = (Math.random() * N) | 0; for (let q = 0; q < 3; q++) p[i * 3 + q] = m.P[2][j * 3 + q]; for (let q = 0; q < 4; q++) c[i * 4 + q] = m.C[2][j * 4 + q]; }
     else { const j = (Math.random() * NF) | 0; p[i * 3] = fpos[j * 3]; p[i * 3 + 1] = -1.6 + fh[j]; p[i * 3 + 2] = fpos[j * 3 + 2]; for (let q = 0; q < 4; q++) c[i * 4 + q] = fc[j * 4 + q]; c[i * 4 + 3] *= 0.82; } }
   return { p, c }; } }) : null;
-const st = pin(sec, BR === 4 ? (mob ? 1150 : 1250) : BR ? (mob ? 900 : 1000) : (mob ? 600 : 660)), KEYS = [0, 0.12, 0.3, 0.86, 0.95];
+// 고정 구간은 '파형이 다 만들어진 자리'(RAW 13% ≈ P 0.26)부터 시작한다 — 파형은 섹션이 들어오는 동안 이미 만들어지므로 그만큼 스크롤을 줄인다
+const SKIP = 0.13, st = pin(sec, Math.round((1 - SKIP) * (BR === 4 ? (mob ? 1150 : 1250) : BR ? (mob ? 900 : 1000) : (mob ? 600 : 660)))), KEYS = [0, 0.12, 0.3, 0.86, 0.95];
 const fP = new THREE.Vector3(), fL = new THREE.Vector3();
 let lastH = -1; const v = new THREE.Vector3(), cp = new THREE.Vector3(), lk = new THREE.Vector3();
 loop(sec, r, scene, cam, (t, dt) => {
-  const RAW = reduce ? st.T : st.step(dt), RP = BRF ? Math.min(0.94, RAW / 0.66) : RAW, P = Math.min(0.84, RP * 0.84 / 0.64); m.U.uT.value = t;   // P: 기존 장면 진행(0.84에서 멈춤)
+  const RAW = SKIP + (1 - SKIP) * (reduce ? st.T : st.step(dt)), RP = BRF ? Math.min(0.94, RAW / 0.66) : RAW, P = Math.min(0.84, RP * 0.84 / 0.64); m.U.uT.value = t;   // P: 기존 장면 진행(0.84에서 멈춤)
   const Z = sm(ss(0.64, 0.86, RP)), ZC = ss(0.62, 0.68, RP);   // Z: 줌 아웃 진행
-  const s = ready ? stageOf(P, KEYS, 0.3) : 0; m.U.uS.value = Math.min(2, s);
+  const PRE = 2 * sm(ss(0.1, 1.0, st.pre)), s = ready ? Math.max(stageOf(P, KEYS, 0.3), PRE) : 0; m.U.uS.value = Math.min(2, s);   // 들어오면서 이미 파형이 된다(스크롤을 오래 안 해도)
   const scanU = clamp((P - 0.33) / 0.5), scanOn = ss(0.3, 0.36, P) * (1 - ss(0.85, 0.9, P)), sx = xOf(scanU);
   m.U.uHiX.value = sx; m.U.uHiW.value = 0.32; m.U.uHiOn.value = scanOn;
-  const k = RP > 0.95 ? -1 : RP > 0.82 ? 5 : RP > 0.7 ? 4 : ZC > 0.5 ? -1 : P < 0.12 ? -1 : P < 0.29 ? 1 : P < 0.34 ? 2 : P < (mob ? 0.355 : 0.85) ? 3 : -1; cap(k);
+  const k = RP > 0.95 ? -1 : RP > 0.82 ? 5 : RP > 0.7 ? 4 : ZC > 0.5 ? -1 : (P < 0.12 && PRE < 0.6) ? -1 : P < 0.29 ? 1 : P < 0.34 ? 2 : P < (mob ? 0.355 : 0.85) ? 3 : -1; cap(k);
   capEl.style.opacity = k < 0 ? 0 : k >= 4 ? clamp(Math.min((RP - 0.7) / 0.03, RP > 0.82 ? (RP - 0.82) / 0.03 : (0.82 - RP) / 0.02, (0.95 - RP) / 0.02)) : 1 - ZC;
   // 카메라: 정면 위에서 하루 전체 → 낮게 내려와 훑는 빛을 따라간다 → 다시 물러남
   const f = ss(0.3, 0.42, P) * (1 - ss(0.84, 0.93, P)), follow = mob ? 0.92 : 0.45;
@@ -131,7 +132,7 @@ loop(sec, r, scene, cam, (t, dt) => {
   { v.set(-WX / 2 - 0.25, -1.4, WZ / 2 + 0.3); const [x, y, z] = project(cam, sec, v); today.style.transform = `translate(${x}px,${y + 8}px)`; today.style.opacity = z < 1 ? ss(0.74, 0.8, RP) * (1 - ss(0.93, 0.97, RP)) : 0; }
   m.U.uA.value = 1 - ss(0.95, 0.99, RP) * 0.6; m.U.uHiOn.value *= 1 - ZC; m.U.uSz.value = (mob ? 1.05 : 0.95) * (1 + Z * 1.6);
   // 시간 눈금
-  ticks.forEach((q) => { v.set(xOf(q.u), -1.6, WZ / 2 + 0.5); const [x, y, z] = project(cam, sec, v); q.e.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; q.e.style.opacity = z < 1 ? ss(0.12, 0.2, P) * (1 - f * 0.6) * (1 - ZC) : 0; });
+  ticks.forEach((q) => { v.set(xOf(q.u), -1.6, WZ / 2 + 0.5); const [x, y, z] = project(cam, sec, v); q.e.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; q.e.style.opacity = z < 1 ? Math.max(ss(0.12, 0.2, P), ss(0.6, 1.2, PRE)) * (1 - f * 0.6) * (1 - ZC) : 0; });
   // 훑는 빛 위 카드: 그 시간의 가장 큰 소식
   if (ready) { const hh = Math.min(23, Math.floor(scanU * 24)), H = HOURS[hh];
     if (hh !== lastH) { lastH = hh; card.innerHTML = `<p class="m"><span>${hm(H.a)}–${hm(H.a + 3600)}</span><span>· ${H.n} ${T('stories', '건')}</span><span class="up">${H.u}↑</span><span class="down">${H.d}↓</span></p>` + (H.top ? `<p class="t"><b class="${DFD.vcls(H.top.v)}" style="font-size:11px;margin-right:6px;text-transform:uppercase">${DFI.v(H.top.v)}</b>${DFD.esc(line(H.top, ENT))}</p>` : `<p class="t" style="color:var(--mute)">${T('A quiet hour.', '조용한 시간이었어요.')}</p>`); }

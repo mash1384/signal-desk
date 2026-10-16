@@ -2,7 +2,7 @@
 // 막대 높이 = 지난 24시간 실제 개수. 입자는 쉬는 동안 안 보이고(글이 그대로 보임), 스크롤을 시작하면 글 화소 자리에 나타나 글을 대신한다.
 // 글 자리는 화면의 글자 하나하나 위치(Range)를 같은 글꼴로 캔버스에 다시 그려 뽑는다 → 3D 평면(z=0) 좌표로 옮긴다.
 import * as THREE from 'three';
-import { renderer, loop, pointer, easePointer, reduce, mobile, data } from './kit.js';
+import { renderer, loop, reduce, mobile, data } from './kit.js';
 const hero = document.getElementById('hero'), copyEl = hero.querySelector('.copy');
 const canvas = document.createElement('canvas'); canvas.className = 'hx'; canvas.setAttribute('aria-hidden', 'true'); hero.prepend(canvas);
 const r = renderer(canvas, { alpha: true }); r.setClearColor(0x000000, 0);
@@ -57,12 +57,14 @@ const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrit
     // 3: 위로 흩어지며 사라진다
     q.y += uS3*uS3*(2. + aRnd*6.); q.x += uS3*(aRnd - .5)*4.;
     q += vec3(sin(uT*.6+aRnd*40.), cos(uT*.5+aRnd*31.), sin(uT*.4+aRnd*17.)) * .035 * kx;
-    vec2 d = q.xy - uM.xy; float f = exp(-dot(d,d)*1.4) * k1; q.xy += normalize(d+1e-4)*f*.9; q.z += f*1.2;
-    vec3 bc = mix(vec3(.9,.29,.22), vec3(.07,.69,.49), side);
-    vC = mix(aInk, aCol, kx);   // 글 단계 = 화면 글자·바탕 색 그대로 vC = mix(vC, mix(aCol, vec3(.42,.42,.97), .55), k1*(1.-k2)); vC = mix(vC, bc, k2*(.55 + .45*step(.25, aRnd)));
-    vA = uV * mix(1., .8, kx) * (1. - .7*uS3);
+    vec3 bc = mix(vec3(.90,.33,.25), vec3(.07,.69,.49), side);   // 악재 #e5533f · 호재 #12b07c
+    // 글 단계 = 화면 글자·바탕 색 그대로 → 구 = 남색·인디고 → 막대 = 호재 초록 · 악재 빨강
+    vC = mix(aInk, aCol, kx);
+    vC = mix(vC, mix(aCol, vec3(.42,.42,.97), .55), k1*(1.-k2));
+    vC = mix(vC, bc * (.82 + .36 * fract(aRnd * 13.7)), k2);
+    vA = uV * (1. - .7*uS3);   // 가늘어진 만큼 또렷하게(불투명)
     vec4 mv = modelViewMatrix*vec4(q,1.); gl_Position = projectionMatrix*mv;
-    gl_PointSize = mix(uPx * 2.2, (1.5 + aRnd*1.3) * (10. / -mv.z), kx) * ${(Math.min(devicePixelRatio || 1, 2)).toFixed(1)}; }`,
+    gl_PointSize = mix(uPx * 1.5, (0.9 + aRnd*0.7) * (10. / -mv.z), kx) * ${(Math.min(devicePixelRatio || 1, 2)).toFixed(1)}; }`,
   fragmentShader: `varying vec3 vC; varying float vA; void main(){ vec2 c = gl_PointCoord-.5; float d = dot(c,c); if(d>.25) discard; gl_FragColor = vec4(vC, vA*(1.-d*2.)); }` });
 const pts = new THREE.Points(g, mat); scene.add(pts);
 function colors(u, d) {
@@ -82,11 +84,9 @@ function place() {
   a.needsUpdate = true; ink.needsUpdate = true; p.copyArray(a.array); p.needsUpdate = true;
   U.uPx.value = (P.h / s.H) * (hero.clientHeight / P.h) * 1.0;   // 글 단계 점 크기(css px)
 }
-const ndc = new THREE.Vector3();
 loop(r, scene, cam, (t) => {
-  U.uT.value = t; easePointer(0.12);
-  if (pointer.active) { ndc.set(pointer.x, pointer.y, 0.5).unproject(cam); const dir = ndc.sub(cam.position).normalize(), k = -cam.position.z / dir.z; U.uM.value.copy(cam.position).add(dir.multiplyScalar(k)); }
-  const k = U.uS1.value; scene.rotation.y = (Math.sin(t * 0.25) * 0.12 + pointer.x * 0.12) * k; scene.rotation.x = pointer.y * 0.08 * k;   // 글 단계에선 글과 겹치게 정면
+  U.uT.value = t;
+  scene.rotation.y = Math.sin(t * 0.25) * 0.12 * U.uS1.value;   // 구가 된 뒤에만 천천히 흔들림(글 단계에선 정면, 커서 반응 없음)
 });
 let C24 = { u: 0, d: 0 };
 data.flash.then((d) => { const c = DFD.day24(d.items); colors(c.u, c.d); C24 = c;
@@ -103,7 +103,7 @@ const CAP = { en: [['Every story becomes a point.', 'The last 24 hours, gathered
   ko: [['모든 소식은 하나의 점이 돼요.', '지난 24시간이 한 덩어리로 모였어요.'], ['그리고 하나하나 판정해요.', '호재는 왼쪽, 악재는 오른쪽 — 실제 24시간 개수예요.']] };
 let ci = -1; const cap = (k) => { if (k === ci) return; ci = k; const c = (CAP[DFI.lang()] || CAP.en)[k]; sc.querySelector('b').textContent = c[0]; sc.querySelector('span').textContent = c[1]; };
 DFI.onLang(() => { const k = ci; ci = -1; cap(Math.max(0, k)); setTimeout(place, 50); });
-const tl = gsap.timeline({ scrollTrigger: { trigger: hero, start: 'top top', end: '+=240%', pin: true, scrub: 0.8, anticipatePin: 1 } });
+const tl = gsap.timeline({ scrollTrigger: { trigger: hero, start: 'top top', end: '+=160%', pin: true, scrub: 0.8, anticipatePin: 1 } });
 tl.to(U.uV, { value: 1, duration: 0.03, ease: 'none' }, 0)                 // 입자가 글 자리에 켜지고
   .to(copyEl, { opacity: 0, duration: 0.035, ease: 'none' }, 0.005)          // 같은 순간 글은 꺼진다(입자가 글을 대신함)
   .to(U.uX, { value: 1, duration: 0.2, ease: 'power1.out' }, 0.02)           // 사방으로 부서져 흩어지고
