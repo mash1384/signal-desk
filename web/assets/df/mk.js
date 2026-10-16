@@ -1,6 +1,6 @@
 // M1 인트로(최적화판).
-// 1) 페이지가 조용해진 뒤 재생: 글꼴·페이지 load·영상 버퍼(canplaythrough)를 기다리고 두 프레임 쉰 다음 play — 재생 첫머리 끊김 방지.
-//    아래 장면(three.js 등)은 인트로가 끝난 뒤에야 불러온다(df-intro-done 이벤트).
+// 1) 바로 시작: 인트로 틀과 autoplay 영상은 HTML 맨 위에 있어 페이지를 읽는 동안 재생이 시작된다(기다리지 않음).
+//    무거운 것(three.js 장면, GSAP)은 인트로가 끝난 뒤에야 불러와 재생 중 끊김을 막는다(df-intro-done 이벤트).
 // 2) 날아가기: 영상 속 로고 대신 '진짜 헤더 로고'(벡터)를 영상 마지막 장면과 같은 자리·크기로 키워 두고 원래 자리로 되돌린다(FLIP).
 //    끝에서 바꿔 끼울 것이 없어 착지가 이어진다. 크기는 로그 공간으로 보간해 체감 속도가 고르게(48개 키프레임, transform 만 → 합성 단계).
 // 3) 글은 opacity·transform 만(흐림 필터 애니메이션은 비싸서 뺌).
@@ -9,7 +9,6 @@ const EOUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
 function bez(x1, y1, x2, y2) { const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
   return (x) => { if (x <= 0) return 0; if (x >= 1) return 1; let lo = 0, hi = 1, t = x; for (let i = 0; i < 40; i++) { if (((ax * t + bx) * t + cx) * t < x) lo = t; else hi = t; t = (lo + hi) / 2; } return ((ay * t + by) * t + cy) * t; }; }
 const FLY = bez(0.7, 0, 0.2, 1);
-const raf2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 const done = () => dispatchEvent(new Event('df-intro-done'));
 export async function intro(name, { flyAt = 4.32, base = '../mo/' } = {}) {
   const hd = document.querySelector('.hd'), logo = hd.querySelector('.logo'), rest = hd.querySelectorAll('.nav, .lang, .btn'), copy = document.querySelectorAll('.reveal');
@@ -18,19 +17,21 @@ export async function intro(name, { flyAt = 4.32, base = '../mo/' } = {}) {
   // 사이트 안의 다른 화면에서 넘어왔으면(같은 출처 referrer) 인트로 없이 바로 — 처음 들어올 때만 본다
   let inner = false; try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !/[?&]intro\b/.test(location.search); } catch (e) {}
   if (reduce || inner) { showCopy(); done(); return; }
-  const meta = await fetch(`${base}${name}.json`).then((r) => r.json()).catch(() => null);
-  const ov = document.createElement('div'); ov.className = 'intro';
-  ov.innerHTML = `<div class="ibg"></div><video muted playsinline preload="auto"><source src="${base}${name}.mp4" type="video/mp4"></video><button type="button" class="skip">Skip</button>`;
-  document.body.appendChild(ov); const v = ov.querySelector('video'), bg = ov.querySelector('.ibg');
-  logo.style.opacity = '0'; rest.forEach((e) => { e.style.opacity = '0'; e.style.willChange = 'opacity'; });   // 층을 미리 만들어 둔다 document.documentElement.classList.add('intro-on');
+  // 인트로 틀·영상은 HTML 맨 위에 이미 있고 autoplay 로 바로 재생된다(이 모듈은 늦게 와도 된다).
+  if (window.DF_NOINTRO) { showCopy(); done(); return; }
+  const metaP = fetch(`${base}${name}.json`).then((r) => r.json()).catch(() => null);
+  let ov = document.getElementById('intro');
+  if (!ov) { ov = document.createElement('div'); ov.className = 'intro'; ov.id = 'intro'; ov.innerHTML = `<div class="ibg"></div><video muted playsinline autoplay preload="auto" src="${base}${name}.mp4"></video><button type="button" class="skip">Skip</button>`; document.body.appendChild(ov); }
+  const v = ov.querySelector('video'), bg = ov.querySelector('.ibg');
+  logo.style.opacity = '0'; rest.forEach((e) => { e.style.opacity = '0'; e.style.willChange = 'opacity'; });   // 층을 미리 만들어 둔다
+  document.documentElement.classList.add('intro-on');
   const finishNoIntro = () => { ov.remove(); logo.style.opacity = ''; rest.forEach((e) => { e.style.opacity = ''; }); document.documentElement.classList.remove('intro-on'); showCopy(); done(); };
-  // 준비 기다리기(최대 3초)
-  const ready = Promise.all([document.fonts.ready, document.readyState === 'complete' ? 0 : new Promise((r) => addEventListener('load', r, { once: true })),
-    v.readyState >= 4 ? 0 : new Promise((r) => v.addEventListener('canplaythrough', r, { once: true }))]);
-  await Promise.race([ready, new Promise((r) => setTimeout(r, 3000))]); await raf2();
+  let meta = null; metaP.then((m) => { meta = m; });
   let flown = false;
-  const fly = () => {
+  const fly = async () => {
     if (flown) return; flown = true;
+    if (!meta) meta = await Promise.race([metaP, new Promise((r) => setTimeout(() => r(null), 800))]);
+    await Promise.race([document.fonts.load('15px Michroma'), new Promise((r) => setTimeout(r, 400))]);   // 헤더 글자가 제 글꼴인지
     if (!meta) { finishNoIntro(); return; }
     const vr = v.getBoundingClientRect(), side = Math.min(vr.width, vr.height), vx = vr.left + (vr.width - side) / 2, vy = vr.top + (vr.height - side) / 2;
     const [bx, by, bs] = meta.box; const t = logo.querySelector('svg').getBoundingClientRect(), lr = logo.getBoundingClientRect();
@@ -55,5 +56,7 @@ export async function intro(name, { flyAt = 4.32, base = '../mo/' } = {}) {
   v.addEventListener('ended', fly);
   const skip = () => { if (flown) return; try { v.currentTime = Math.max(0, (v.duration || 4.5) - 0.05); } catch (e) {} v.pause(); setTimeout(fly, 80); };
   ov.querySelector('.skip').onclick = skip; addEventListener('keydown', skip, { once: true }); addEventListener('wheel', skip, { once: true, passive: true }); addEventListener('touchmove', skip, { once: true, passive: true });
-  v.play().catch(finishNoIntro);
+  if (v.paused && !v.ended) v.play().catch(finishNoIntro);
+  if (v.ended || v.currentTime >= flyAt) fly();                    // 이 모듈이 늦게 와서 영상이 이미 끝났으면 바로
+  else setTimeout(() => { if (v.paused && v.currentTime === 0) finishNoIntro(); }, 4000);   // 끝내 재생이 안 되면
 }

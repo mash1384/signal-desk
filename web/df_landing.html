@@ -15,9 +15,9 @@
 {{OG}}
 <link rel="icon" href="{{B}}assets/icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#ffffff">
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"></noscript>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap"></noscript>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <style>
 :root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --up: #0e9f6e; --down: #df4a3a;
@@ -112,6 +112,10 @@ html.intro-on { overflow: hidden; }
 </style>
 </head>
 <body>
+<div class="intro" id="intro" aria-hidden="true"><div class="ibg"></div><video muted playsinline autoplay preload="auto" src="{{B}}assets/df/c1.mp4?v={{V}}"></video><button type="button" class="skip">Skip</button></div>
+<script>(function () { var rm = matchMedia('(prefers-reduced-motion: reduce)').matches, inner = false;
+  try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !/[?&]intro\b/.test(location.search); } catch (e) {}
+  if (rm || inner) { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1; } else document.documentElement.classList.add('intro-on'); })();</script>
 <header class="hd"><div class="wrap">
   <a class="logo" href="{{B}}"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
   <nav class="nav" aria-label="Menu"><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}map/" data-t="n2">Themes</a><a href="{{B}}daily/" data-t="n3">Brief</a><a href="{{B}}events/" data-t="n4">Calendar</a></nav>
@@ -131,8 +135,6 @@ html.intro-on { overflow: hidden; }
 <footer class="ft wrap" data-t="ft">Delfona — Live data. AI judgments and summaries, not investment advice.</footer>
 <script>window.DF_BASE = '{{B}}assets/df/'; window.DF_BR = 4; window.DF_THEMES = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/themes.json';</script>
 <script src="{{B}}assets/df/data.js?v={{V}}"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script>
 DFI.init(Object.assign({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
   sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정·요약이며 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
@@ -141,7 +143,12 @@ DFI.init(Object.assign({ n1: '라이브', n2: '테마', n3: '정리', n4: '일�
 <script type="module">
 // 첫 방문 인트로(Blender 렌더 영상 → 끝 장면이 헤더 로고로 날아가 합쳐짐). 아래 3D 장면은 인트로와 글 올라오기가 끝난 뒤 한가할 때 불러온다.
 import { intro } from '{{B}}assets/df/mk.js?v={{V}}';
-addEventListener('df-intro-done', () => { const go = () => import('{{B}}assets/df/p5.js?v={{V}}'); setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 1500 }) : go()), 1600); }, { once: true });
+const load = (src) => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+addEventListener('df-intro-done', () => {
+  // GSAP 과 아래 3D 장면은 인트로·글 올라오기가 끝나고 브라우저가 한가할 때(재생 중 끊김 방지)
+  const go = async () => { await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js'); await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'); import('{{B}}assets/df/p5.js?v={{V}}'); };
+  setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 1500 }) : go()), 1600);
+}, { once: true });
 intro('c1', { base: '{{B}}assets/df/' });
 </script>
 </body>
