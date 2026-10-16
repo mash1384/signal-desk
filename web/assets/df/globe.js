@@ -58,15 +58,26 @@ export function makeGlobe({ scene, sec, lay, mob }) {
     for (let lo = 0; lo < 360; lo += 15) for (let la = -87; la < 87; la += 3) { const a = U3(la, lo), b = U3(la + 3, lo); g.push(a.x, a.y, a.z, b.x, b.y, b.z); }
     const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(g, 3)); lg.scale(R * 1.001, R * 1.001, R * 1.001);
     var grat = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x533afd, transparent: true, opacity: 0 })); grat.renderOrder = -1; gG.add(grat); }
-  // 워드마크 'Delfona'(stage 2): 글자 점 92% + 주변에 옅게 떠도는 점 8%
-  let WM = false; document.fonts.load('600 260px Inter').catch(() => {});
+  // 마지막(stage 2): 지구 입자가 흩어졌다가 일식 심볼(marks2 N3 = 원반 + 가는 고리) 모양으로 모인다. 검정 점 93% + 주변에 옅게 떠도는 점 7%.
+  // 다 모이면 같은 자리·크기의 Blender 렌더 영상(c1e.mp4, 첫 프레임 = 같은 심볼)으로 바꿔 끼우고, 오프닝 원반처럼 숨 쉬고 살짝 튀었다 가라앉는 움직임을 재생한다.
+  let WM = false; const MS = mob ? 4.6 : 5.6, MCY = mob ? 1.6 : 0.75;   // 로고만 크게(브랜드 이름 없음)
   function buildWord() { WM = true;
-    const pts = textPoints('Delfona', { font: '600 260px Inter', hgt: 1, step: mob ? 2 : 2 }), M = pts.length, wid = mob ? 6.6 : 12.8, sc = wid / pts.W, cy = mob ? 0.95 : 0.35;
-    m.set(2, (i, o) => { const dust = i % 13 === 0;
-      if (dust) { const a = Math.random() * 6.283, r = (mob ? 3.2 : 6.5) * (0.6 + Math.random() * 0.8); o[0] = Math.cos(a) * r; o[1] = cy + Math.sin(a) * r * 0.45; o[2] = rnd(2); tmp.copy(COL.lt); o[6] = 0.16; }
-      else { const p = pts[i % M], f = p.x / pts.W + 0.5; o[0] = p.x * sc + rnd(0.006); o[1] = p.y * sc + cy + rnd(0.006); o[2] = rnd(0.08); tmp.copy(COL.ink).lerp(COL.ind, clamp(f * 1.25 - 0.15) * 0.8); o[6] = 0.95; }
+    const S = 512, cv = document.createElement('canvas'); cv.width = cv.height = S; const g = cv.getContext('2d'); g.setTransform(S / 100, 0, 0, S / 100, 0, 0);
+    g.beginPath(); g.arc(46, 54, 30, 0, Math.PI * 2); g.fill(); g.fill(new Path2D('M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z'));
+    const d = g.getImageData(0, 0, S, S).data, pts = []; for (let y = 0; y < S; y += 2) for (let x = 0; x < S; x += 2) if (d[(y * S + x) * 4 + 3] > 120) pts.push([x / S - 0.5, 0.5 - y / S]);
+    const M = pts.length;
+    m.set(2, (i, o) => { const dust = i % 14 === 0;
+      if (dust) { const a = Math.random() * 6.283, r = MS * (0.75 + Math.random() * 0.9); o[0] = Math.cos(a) * r; o[1] = MCY + Math.sin(a) * r * 0.6; o[2] = rnd(1.5); tmp.copy(COL.lt); o[6] = 0.14; }
+      else { const p = pts[(i * 7919) % M]; o[0] = p[0] * MS + rnd(0.004); o[1] = p[1] * MS + MCY + rnd(0.004); o[2] = rnd(0.03); tmp.setRGB(0.01, 0.012, 0.02); o[6] = 0.97; }
       o[3] = tmp.r; o[4] = tmp.g; o[5] = tmp.b; return o; });
   }
+  // 바꿔 끼울 영상(심볼 상자 = 영상 가로의 60%, 가운데 — c1e.json)
+  const MK = 0.6, fv = document.createElement('video'); Object.assign(fv, { muted: true, playsInline: true, preload: 'none' }); fv.setAttribute('muted', ''); fv.setAttribute('playsinline', '');
+  fv.src = (window.DF_BASE || './') + 'c1e.mp4'; fv.className = 'fin-v'; fv.setAttribute('aria-hidden', 'true'); sec.appendChild(fv);
+  const fcss = document.createElement('style'); fcss.textContent = '.fin-v{position:absolute;left:0;top:0;z-index:2;pointer-events:none;opacity:0;mix-blend-mode:multiply;filter:brightness(1.03);transform-origin:0 0;will-change:transform,opacity}'; document.head.appendChild(fcss);
+  let fvOn = false, fvLoaded = false;
+  const fvPlace = (cam) => { const [cx, cy] = project(cam, sec, v.set(0, MCY, 0)), [ex] = project(cam, sec, v.set(MS / 2, MCY, 0)), side = (2 * Math.abs(ex - cx)) / MK;
+    fv.style.width = fv.style.height = side + 'px'; fv.style.transform = `translate(${cx - side / 2}px,${cy - side / 2}px)`; };
   // 모션용 계산 도우미
   const tA = new THREE.Vector3(), tB = new THREE.Vector3(), q3 = new THREE.Vector3();
   const tangent = (c) => { tA.set(0, 1, 0).cross(c).normalize(); if (tA.lengthSq() < 1e-6) tA.set(1, 0, 0); tB.copy(c).cross(tA).normalize(); };
@@ -215,10 +226,14 @@ export function makeGlobe({ scene, sec, lay, mob }) {
       const bodyA = ss(0.85, 1, go) * (1 - ss(0.78, 0.83, BP)); gG.visible = glb && go > 0.6 && bodyA > 0.002; gG.rotation.set(rotX, rotY, 0, 'XYZ'); body.material.uniforms.uA.value = bodyA; grat.material.opacity = bodyA * 0.07;
       // 마지막: 지구를 이루던 입자가 부드럽게 흩어졌다가 'Delfona' 글자로 다시 모인다
       const fin = ss(0.8, 0.95, BP); if (fin > 0 && !WM) buildWord();
-      m.U.uS.value = WM && fin > 0 ? 1 + fin : go; m.U.uBurst.value = WM && fin > 0 ? (mob ? 1.4 : 2.2) : (mob ? 5 : 8); m.U.uWob.value = fin > 0.98 ? 0.012 : 0.006; m.U.uSz.value = (mob ? 0.85 : 0.9) * (1 + fin * (mob ? 0.25 : 0.45));
-      m.U.uT.value = t; m.U.uA.value = 1;
+      if (BP > 0.6 && !fvLoaded) { fvLoaded = true; fv.preload = 'auto'; fv.load(); }
+      // 입자가 다 모이면 영상으로(같은 프레임에 영상 켜고 입자 끄기), 다시 올라가면 입자로
+      if (fin > 0.985 && !fvOn) { fvOn = true; fvPlace(cam); try { fv.currentTime = 0; } catch (e) {} fv.style.opacity = '1'; fv.play().catch(() => { fvOn = false; fv.style.opacity = '0'; }); }
+      else if (fin < 0.96 && fvOn) { fvOn = false; fv.pause(); fv.style.opacity = '0'; try { fv.currentTime = 0; } catch (e) {} }
+      m.U.uS.value = WM && fin > 0 ? 1 + fin : go; m.U.uBurst.value = WM && fin > 0 ? (mob ? 1.4 : 2.2) : (mob ? 5 : 8); m.U.uWob.value = fin > 0.98 ? 0.012 : 0.006; m.U.uSz.value = (mob ? 0.85 : 0.9) * (1 + fin * (mob ? 0.1 : 0.18));
+      m.U.uT.value = t; m.U.uA.value = fvOn && fv.currentTime > 0 ? 0 : 1;   // 영상 첫 프레임이 실제로 나온 뒤에 입자를 끈다
       halo.material.uniforms.uA.value = SH === 'globe' ? ss(0.15, 0.32, BP) * (1 - ss(0.78, 0.84, BP)) : 0;
-      v.copy(cam.position).lerp(camP, go); cam.position.copy(v); lk.copy(look).lerp(camL, go); cam.lookAt(lk); cam.updateMatrixWorld();
+      v.copy(cam.position).lerp(camP, go); cam.position.copy(v); lk.copy(look).lerp(camL, go); cam.lookAt(lk); cam.updateMatrixWorld(); if (fvOn) fvPlace(cam);
       // 글
       const w = sec.clientWidth, h = sec.clientHeight, show = ss(0.25, 0.31, BP) * (1 - ss(0.77, 0.81, BP));
       if (act !== k) { act = k; box.querySelectorAll('li').forEach((e, j) => e.classList.toggle('on', j === k)); }
