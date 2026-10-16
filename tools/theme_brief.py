@@ -167,6 +167,125 @@ def load_items(now):
         return [x for x in flash.get("items", []) if x.get("t", 0) >= now - 86400 and x.get("ko")], "flash"
 
 
+
+# ---------- '오늘 무엇이 달라졌나': 평소(최근 며칠)와 비교한 변화. 숫자도 문장도 프로그램이 만든다(AI 아님) ----------
+TN = {"crypto": ("크립토", "crypto"), "nasdaq": ("나스닥", "Nasdaq"), "econ": ("경제", "economy"), "ai": ("AI", "AI")}
+
+
+def history(now, days=7):
+    """판정 DB의 줄(묶기 전) — 기준(최근 며칠, 지난 24시간 제외)과 오늘(지난 24시간). 기준 기간 내내 있던 채널만 써서 새로 넣은 채널이 '급증'처럼 보이지 않게."""
+    sys.path.insert(0, HOME)
+    import tg_publish as P
+    con = P.db()
+    J = "FROM msgs m JOIN ai a ON a.ch=m.ch AND a.id=m.id WHERE a.ko != ''"   # 판정된 줄만(msgs 에는 판정 안 한 예전 글도 있다)
+    first = con.execute("SELECT MIN(m.t) " + J).fetchone()[0] or now
+    start = max(now - (days + 1) * 86400, first + 6 * 3600)
+    nd = int((now - 86400 - start) // 86400)
+    if nd < 2:
+        return None
+    start = now - 86400 - nd * 86400
+    rows = con.execute("""SELECT m.t, m.ch, a.ko, a.verdict, a.coins, a.sectors, a.kind FROM msgs m JOIN ai a ON a.ch=m.ch AND a.id=m.id
+        WHERE m.t >= ? AND a.ko != '' AND a.kind IN (%s)""" % ",".join("?" * len(P.SHOW_KINDS)), (start, *P.SHOW_KINDS)).fetchall()
+    old = {ch for ch, t in con.execute("SELECT m.ch, MIN(m.t) " + J + " GROUP BY m.ch") if t <= start + 6 * 3600}
+    X = [{"t": r[0], "ko": r[2], "v": r[3], "coins": json.loads(r[4] or "[]"), "sectors": json.loads(r[5] or "[]"), "kind": r[6]} for r in rows if r[1] in old]
+    return {"days": nd, "base": [x for x in X if x["t"] < now - 86400], "today": [x for x in X if x["t"] >= now - 86400]}
+
+
+def changes(k, H, xs, now):
+    """테마 k 의 변화 신호 목록(점수 높은 순, 최대 4개). xs = 오늘의 묶인 소식(근거 연결용)."""
+    if not H:
+        return []
+    nm_ko, nm_en = TN[k]
+    Tb, _ = buckets(H["base"], [])
+    Tt, _ = buckets(H["today"], [])
+    base, today, nd = Tb[k], Tt[k], H["days"]
+    avg = lambda n: n / nd
+    out = []
+    ids = lambda ys: [y["id"] for y in sorted(ys, key=lambda y: -((y.get("s") or 1) * 3 + (y.get("n") or 1)))][:6]
+    # 1) 테마 전체 소식량
+    b = avg(len(base))
+    if b >= 3:
+        r = len(today) / b
+        if r >= 1.4 or r <= 0.6:
+            out.append({"k": "vol", "score": abs(r - 1) * 2, "tone": "flat",
+                        "ko": f"오늘 {nm_ko} 소식이 평소(최근 {nd}일 평균)보다 {r:.1f}배 {'많아요' if r > 1 else '적어요'}.",
+                        "en": f"{nm_en.capitalize()} news volume is {r:.1f}× {'above' if r > 1 else 'below'} normal (the {nd}-day average).", "ids": []})
+    # 2) 섹터 급증 — 비율은 채널 글 수(기준과 같은 잣대), 문장 속 건수·판정은 묶인 소식 수(화면 숫자와 같게)
+    for key, sko, sen, _ in SECT_RX[k]:
+        if key == SECT_RX[k][-1][0]:
+            continue
+        tr = sum(sector_of(k, x["ko"]) == key for x in today)
+        bn = avg(sum(sector_of(k, x["ko"]) == key for x in base))
+        rel = [y for y in xs if sector_of(k, y.get("ko") or "") == key]
+        if len(rel) < 3:
+            continue
+        r = tr / bn if bn > 0 else None
+        if r is not None and r < 1.8:
+            continue
+        u, d = sum(y["v"] == "호재" for y in rel), sum(y["v"] == "악재" for y in rel)
+        tone = "up" if u > d * 1.5 else "down" if d > u * 1.5 else "flat"
+        out.append({"k": "sec", "score": (min(r, 6) if r else 2.5) + len(rel) / 5, "tone": tone,
+                    "ko": (f"'{sko}' 소식이 평소의 {r:.1f}배로 늘었어요." if r else f"평소엔 거의 없던 '{sko}' 소식이 나왔어요.") + f" 오늘 {len(rel)}건 · 호재 {u} · 악재 {d}.",
+                    "en": (f"'{sen}' news is running {r:.1f}× normal." if r else f"'{sen}' news, usually rare, is showing up.") + f" {len(rel)} today · {u} bullish · {d} bearish.", "ids": ids(rel)})
+    # 3) 자산 언급 급증(같은 잣대)
+    mt, mb = mentions(k, today), mentions(k, base)
+    for a, m in mt.items():
+        if a in ("USDT", "USDC"):
+            continue
+        rel = [y for y in xs if a in (y.get("coins") or []) or any(n in (y.get("ko") or "") for n, t in TICK.items() if t == a)
+               or (k == "econ" and any(s == a and re.search(rx, y.get("ko") or "") for s, rx in ECON_ASSET))]
+        bn = avg(mb.get(a, {"n": 0})["n"])
+        r = m["n"] / bn if bn > 0 else None
+        if len(rel) < (3 if r else 4) or (r is not None and r < 2):   # 평소 0이던 자산은 4건 이상일 때만
+            continue
+        nm = a.replace("^TNX", "미국 10년물 금리").replace("DX-Y.NYB", "달러 지수").replace("GC=F", "금").replace("CL=F", "유가").replace("KRW=X", "원/달러")
+        nm_e = a.replace("^TNX", "the US 10-year yield").replace("DX-Y.NYB", "the dollar index").replace("GC=F", "gold").replace("CL=F", "oil").replace("KRW=X", "USD/KRW")
+        u, d = sum(y["v"] == "호재" for y in rel), sum(y["v"] == "악재" for y in rel)
+        tone = "up" if u > d * 1.5 else "down" if d > u * 1.5 else "flat"
+        out.append({"k": "asset", "score": (min(r, 6) if r else 2.5) + len(rel) / 5, "tone": tone,
+                    "ko": (f"{nm} 언급이 평소의 {r:.1f}배예요." if r else f"평소엔 거의 없던 {nm} 언급이 늘었어요.") + f" 오늘 {len(rel)}건 · 호재 {u} · 악재 {d}.",
+                    "en": (f"Mentions of {nm_e} are {r:.1f}× normal." if r else f"{nm_e[0].upper() + nm_e[1:]}, rarely mentioned, is coming up.") + f" {len(rel)} today · {u} bullish · {d} bearish.", "ids": ids(rel)})
+    # 3b) 호재 비중이 평소와 다름(채널 글 기준 비중끼리 비교 — 비중이라 중복의 영향이 적다)
+    ut, dt = sum(x["v"] == "호재" for x in today), sum(x["v"] == "악재" for x in today)
+    ub, db = sum(x["v"] == "호재" for x in base), sum(x["v"] == "악재" for x in base)
+    if ut + dt >= 10 and ub + db >= 20:
+        ft, fb = ut / (ut + dt), ub / (ub + db)
+        if abs(ft - fb) >= 0.15:
+            hi = ft > fb
+            out.append({"k": "mood", "score": 3 + abs(ft - fb) * 10, "tone": "up" if hi else "down",
+                        "ko": f"호재 비중이 평소보다 {'높아요' if hi else '낮아요'}. 오늘 {ft * 100:.0f}% · 평소 {fb * 100:.0f}%(호재÷호재+악재).",
+                        "en": f"The bullish share is {'higher' if hi else 'lower'} than usual: {ft * 100:.0f}% today vs {fb * 100:.0f}% normally (bullish ÷ bullish+bearish).",
+                        "ids": ids([y for y in xs if y.get("v") == ("호재" if hi else "악재")])})
+    # 4) 최근 3시간 분위기 뒤집힘(묶인 소식 기준)
+    rec = [y for y in xs if y["t"] >= now - 3 * 3600 and y.get("v") != "중립"]
+    pre = [y for y in xs if y["t"] < now - 3 * 3600 and y.get("v") != "중립"]
+    if len(rec) >= 4 and len(pre) >= 8:
+        fr, fp = sum(y["v"] == "호재" for y in rec) / len(rec), sum(y["v"] == "호재" for y in pre) / len(pre)
+        if (fp >= 0.6 and fr <= 0.4) or (fp <= 0.4 and fr >= 0.6):
+            up = fr > fp
+            out.append({"k": "flip", "score": 6, "tone": "up" if up else "down",
+                        "ko": f"최근 3시간은 {'호재' if up else '악재'} 쪽이에요(호재 {round(fr * len(rec))} · 악재 {len(rec) - round(fr * len(rec))}). 그 전 21시간은 {'악재' if up else '호재'}가 많았어요.",
+                        "en": f"The last 3 hours lean {'bullish' if up else 'bearish'} ({round(fr * len(rec))} vs {len(rec) - round(fr * len(rec))}), after a {'bearish' if up else 'bullish'} 21 hours before.", "ids": ids(rec)})
+    # 5) 여러 곳이 같이 보도한 소식
+    wide = [y for y in xs if (y.get("n") or 1) >= 4]
+    if wide:
+        out.append({"k": "wide", "score": 1.5 + len(wide) / 3, "tone": "flat",
+                    "ko": f"같은 소식을 4곳 이상이 보도한 건 {len(wide)}건이에요.", "en": f"{len(wide)} {'story was' if len(wide) == 1 else 'stories were'} reported by 4+ outlets.", "ids": ids(wide)})
+    # 6) 큰 소식(세기 3)
+    big = [y for y in xs if (y.get("s") or 0) >= 3]
+    if big:
+        u, d = sum(y["v"] == "호재" for y in big), sum(y["v"] == "악재" for y in big)
+        out.append({"k": "big", "score": 1 + len(big) / 2, "tone": "up" if u > d else "down" if d > u else "flat",
+                    "ko": f"세기 3(큰 소식)이 {len(big)}건이에요. 호재 {u} · 악재 {d}.", "en": f"{len(big)} high-impact {'story' if len(big) == 1 else 'stories'} (strength 3): {u} bullish, {d} bearish.", "ids": ids(big)})
+    if not any(o["k"] == "vol" for o in out) and b >= 3:
+        out.append({"k": "vol", "score": 0.5, "tone": "flat", "ko": f"오늘 {nm_ko} 소식량은 평소(최근 {nd}일)와 비슷해요.",
+                    "en": f"{nm_en.capitalize()} news volume is about normal (vs the last {nd} days).", "ids": []})
+    out.sort(key=lambda o: -o["score"])
+    for o in out:
+        o["score"] = round(o["score"], 2)
+    return out[:4]
+
+
 def log(*a):
     print(time.strftime("%m-%d %H:%M:%S"), *a, flush=True)
 
@@ -284,6 +403,11 @@ def run():
         log("자료 부족, 건너뜀", len(items))
         return
     T, A = buckets(items, arts)
+    try:
+        HIST = history(now)
+    except Exception as e:
+        log("기준 기간 못 만듦(변화 신호 없이)", type(e).__name__, str(e)[:120])
+        HIST = None
     themes, dropped = [], {}
     for k in NAME:
         src, u, d = theme_source(k, T[k], A[k])
@@ -294,7 +418,9 @@ def run():
         themes.append({"k": k, "n": len(T[k]), "u": u, "d": d, "arts": len(A[k]), "ko": " ".join(a for a, _ in keep), "en": " ".join(b for _, b in keep),
                        "s_ko": [a for a, _ in keep], "s_en": [b for _, b in keep], "refs": refs([a for a, _ in keep], xs),
                        "hours": hours(xs, now), "sectors": sectors(k, xs), "mentions": mentions(k, xs), "top": top,
-                       "latest": [compact(x) | {"sec": sector_of(k, x.get("ko") or "")} for x in xs[:40]]})
+                       "latest": [compact(x) | {"sec": sector_of(k, x.get("ko") or "")} for x in xs[:40]], "changes": changes(k, HIST, xs, now)})
+        th = themes[-1]; have = {x["id"] for x in th["top"] + th["latest"]}; byid = {x["id"]: x for x in xs}
+        th["more"] = [compact(byid[i]) | {"sec": sector_of(k, byid[i].get("ko") or "")} for c in th["changes"] for i in c["ids"] if i not in have and i in byid]   # 신호가 가리키는 소식도 화면에서 열 수 있게
     hsrc = "\n".join(f"[{NAME[t['k']]}] {t['ko']}" for t in themes)
     hl = {"ko": "", "en": ""}
     for attempt in range(4):
@@ -310,7 +436,7 @@ def run():
         log("요약이 비어 저장하지 않음", [t["k"] for t in themes if t["n"] and not t["ko"]], bool(hl.get("ko")))
         return
     doc = {"v": 2, "made": int(now), "next": int(now + EVERY), "from": int(now - 86400), "src": origin, "model": MODEL, "total": len(items), "articles": len(arts),
-           "sect": {k: [[a, b, c] for a, b, c, _ in v] for k, v in SECT.items()},
+           "sect": {k: [[a, b, c] for a, b, c, _ in v] for k, v in SECT.items()}, "base_days": HIST["days"] if HIST else 0,
            "headline": {"ko": hl["ko"], "en": hl["en"]}, "themes": themes, "dropped": dropped}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT + ".tmp", "w") as f:
