@@ -94,8 +94,10 @@ body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }.
 
 .px-cap::before { content: ''; position: absolute; z-index: -1; left: 50%; top: 50%; width: min(980px, 140vw); height: 240%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgb(247 249 252 / .94), rgb(247 249 252 / .7) 55%, rgb(247 249 252 / 0)); pointer-events: none; }
 
-/* 입자 첫 화면 → 인트로 + 가운데 첫 화면 */
+/* 입자 첫 화면 → 인트로 + 가운데 첫 화면 + 글이 입자로 부서지는 스크롤 장면 */
 .hero::after { display: none; }
+.hero .hx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 2; pointer-events: none; }
+html.hx-wait { overflow: hidden; }
 /* M1 · 2D 브랜드 모션 인트로 + 가운데 정렬 첫 화면 */
 .hero { background: #f7f9fc; } .hero canvas.gl { display: none; }
 .copy.center { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 980px; margin: 0 auto; padding-inline: 24px; text-align: center; }
@@ -129,6 +131,7 @@ html.intro-on { overflow: hidden; }
     <p class="sub reveal" data-t="sub">Delfona reads crypto, macro and policy headlines from around the world, calls each one bullish or bearish, and shows how many outlets reported it.</p>
     <div class="btns reveal"><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a><a class="btn g" href="#nx" data-t="how">How it works</a></div>
   </div>
+<div class="sc" id="sc"><b></b><span></span></div><p class="bl up" id="nL"><b>0</b><span data-t="bl1">Bullish · 24h</span></p><p class="bl down" id="nR"><b>0</b><span data-t="bl2">Bearish · 24h</span></p>
 </section>
 <section class="nx px" id="nx" aria-label="Signals"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas><div class="px-lay"></div>
 <div class="px-cap"></div><div class="px-end"><div class="box"><b></b><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a></div></div></section>
@@ -143,11 +146,18 @@ DFI.init(Object.assign({ n1: '라이브', n2: '테마', n3: '정리', n4: '일�
 <script type="module">
 // 첫 방문 인트로(Blender 렌더 영상 → 끝 장면이 헤더 로고로 날아가 합쳐짐). 아래 3D 장면은 인트로와 글 올라오기가 끝난 뒤 한가할 때 불러온다.
 import { intro } from '{{B}}assets/df/mk.js?v={{V}}';
-const load = (src) => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+const loaded = {}; const load = (src) => loaded[src] || (loaded[src] = new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); }));
+// 첫 화면 스크롤 장면(글 → 입자 → 구 → 막대)은 인트로 영상이 도는 동안 미리 준비한다.
+// 영상·로고 날아가기·글 올라오기는 합성 단계에서 돌아 메인 스레드가 바빠도 끊기지 않지만, 인트로가 끝난 뒤의 무거운 일은 글 올라오기를 끊는다.
+let hxReady = false; addEventListener('df-hx-ready', () => { hxReady = true; document.documentElement.classList.remove('hx-wait'); }, { once: true });
+const prepHx = async () => { await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js'); await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'); import('{{B}}assets/df/hx.js?v={{V}}'); };
+const iv = document.querySelector('#intro video');
+if (iv && !window.DF_NOINTRO) iv.addEventListener('playing', () => setTimeout(prepHx, 600), { once: true }); else prepHx();
+if (iv && !window.DF_NOINTRO) setTimeout(() => { if (!window.gsap) prepHx(); }, 2500);   // 재생 신호가 안 와도
 addEventListener('df-intro-done', () => {
-  // GSAP 과 아래 3D 장면은 인트로·글 올라오기가 끝나고 브라우저가 한가할 때(재생 중 끊김 방지)
-  const go = async () => { await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js'); await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'); import('{{B}}assets/df/p5.js?v={{V}}'); };
-  setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 1500 }) : go()), 1600);
+  if (!hxReady) { document.documentElement.classList.add('hx-wait'); setTimeout(() => document.documentElement.classList.remove('hx-wait'), 2500); }   // 준비 전 스크롤로 장면을 건너뛰지 않게
+  // 아래 3D 장면(파형·지구본)은 글이 다 올라오고 한가할 때
+  setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(() => import('{{B}}assets/df/p5.js?v={{V}}'), { timeout: 1500 }) : import('{{B}}assets/df/p5.js?v={{V}}')), 1600);
 }, { once: true });
 intro('c1', { base: '{{B}}assets/df/' });
 </script>
