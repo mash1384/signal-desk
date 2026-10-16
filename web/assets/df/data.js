@@ -32,7 +32,7 @@ window.DFD = (() => {
 window.DFI = (() => {
   let LANG = /^ko/i.test(navigator.language) ? 'ko' : 'en', KO = {}, EN = {}, ENT = {}, subs = [];
   try { LANG = localStorage.getItem('df-lang') || LANG; } catch (e) {}
-  const V = { en: { '호재': 'Positive', '악재': 'Negative', '중립': 'Neutral' }, ko: { '호재': '호재', '악재': '악재', '중립': '중립' } };
+  const V = { en: { '호재': 'Bullish', '악재': 'Bearish', '중립': 'Neutral' }, ko: { '호재': '호재', '악재': '악재', '중립': '중립' } };
   const apply = () => {
     document.documentElement.lang = LANG;
     document.querySelectorAll('[data-t]').forEach((el) => { const k = el.dataset.t, s = LANG === 'ko' && KO[k] != null ? KO[k] : EN[k]; if (el.hasAttribute('data-html')) el.innerHTML = s; else el.textContent = s; });

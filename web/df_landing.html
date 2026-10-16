@@ -17,7 +17,7 @@
 <meta name="theme-color" content="#ffffff">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <style>
 :root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --up: #0e9f6e; --down: #df4a3a;
@@ -32,7 +32,8 @@ a { color: inherit; text-decoration: none; } button { font: inherit; color: inhe
 .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; } @media (min-width: 900px) { .wrap { padding-inline: 36px; } }
 .hd { position: fixed; top: 0; inset-inline: 0; z-index: 30; }
 .hd .wrap { display: flex; align-items: center; gap: 28px; height: 72px; }
-.logo { display: inline-flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 650; letter-spacing: -0.03em; }
+.logo { display: inline-flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 650; letter-spacing: -0.03em; color: #000; }
+.logo .wm { font-family: Michroma, var(--sans); font-size: 15px; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; }
 .logo svg { width: 26px; height: 26px; }
 .nav { display: none; gap: 26px; font-size: 14.5px; font-weight: 500; color: var(--ink2); } @media (min-width: 900px) { .nav { display: flex; } }
 .lang { margin-inline-start: auto; display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(255 255 255 / 0.6); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.1); }
@@ -93,24 +94,37 @@ body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }.
 
 .px-cap::before { content: ''; position: absolute; z-index: -1; left: 50%; top: 50%; width: min(980px, 140vw); height: 240%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgb(247 249 252 / .94), rgb(247 249 252 / .7) 55%, rgb(247 249 252 / 0)); pointer-events: none; }
 
+/* 입자 첫 화면 → 인트로 + 가운데 첫 화면 */
+.hero::after { display: none; }
+/* M1 · 2D 브랜드 모션 인트로 + 가운데 정렬 첫 화면 */
+.hero { background: #f7f9fc; } .hero canvas.gl { display: none; }
+.copy.center { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 980px; margin: 0 auto; padding-inline: 24px; text-align: center; }
+.copy.center h1 { margin-inline: auto; } .copy.center .sub { margin-inline: auto; max-width: 34rem; } .copy.center .btns { justify-content: center; }
+.reveal { opacity: 0; filter: none; transform: none; }
+html.intro-on { overflow: hidden; }
+.intro { position: fixed; inset: 0; z-index: 80; }
+.intro .ibg { position: absolute; inset: 0; background: #f7f9fc; }
+.intro video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.hd .logo { will-change: transform; }
+.intro .skip { position: absolute; right: 18px; bottom: 18px; height: 32px; padding: 0 14px; border-radius: 99px; font: 600 12px/1 Inter, system-ui, sans-serif; color: #273951; background: rgb(13 37 61 / .06); }
+@media (hover: hover) and (pointer: fine) { .intro .skip:hover { background: rgb(13 37 61 / .1); } }
+
 </style>
 </head>
 <body>
 <header class="hd"><div class="wrap">
-  <a class="logo" href="{{B}}"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#0d253d"/><path d="M8 19 12.5 7M13.5 19 18 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="18" cy="7" r="2.2" fill="#8ea2ff"/></svg>Delfona</a>
-  <nav class="nav" aria-label="Menu"><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}map/" data-t="n2">Signal board</a><a href="{{B}}daily/" data-t="n3">Daily brief</a><a href="{{B}}about/" data-t="n4">About</a></nav>
+  <a class="logo" href="{{B}}"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}map/" data-t="n2">Themes</a><a href="{{B}}daily/" data-t="n3">Brief</a><a href="{{B}}events/" data-t="n4">Calendar</a></nav>
   <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
   <a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a>
 </div></header>
 <section class="hero" id="hero">
-<canvas class="gl" id="gl" aria-hidden="true"></canvas>
-  <div class="copy left">
+  <div class="copy center">
     <p class="kick reveal"><b>LIVE</b><span data-t="kick">Tracking market-moving news worldwide</span></p>
     <h1 class="reveal" data-t="h1" data-html>Market-moving news,<br>judged in seconds.</h1>
-    <p class="sub reveal" data-t="sub">Delfona reads crypto, macro and policy headlines from around the world, calls each one positive or negative, and shows how many outlets reported it.</p>
+    <p class="sub reveal" data-t="sub">Delfona reads crypto, macro and policy headlines from around the world, calls each one bullish or bearish, and shows how many outlets reported it.</p>
     <div class="btns reveal"><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a><a class="btn g" href="#nx" data-t="how">How it works</a></div>
   </div>
-<p class="hud" id="hud"></p><div class="sc" id="sc"><b></b><span></span></div><p class="bl up" id="nL"><b>0</b><span data-t="bl1">Positive · 24h</span></p><p class="bl down" id="nR"><b>0</b><span data-t="bl2">Negative · 24h</span></p>
 </section>
 <section class="nx px" id="nx" aria-label="Signals"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas><div class="px-lay"></div>
 <div class="px-cap"></div><div class="px-end"><div class="box"><b></b><a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a></div></div></section>
@@ -120,13 +134,15 @@ body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }.
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script>
-DFI.init(Object.assign({ n1: '라이브', n2: '시그널 보드', n3: '하루 정리', n4: '소개', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
+DFI.init(Object.assign({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
   sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정·요약이며 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
 </script>
 
 <script type="module">
-import '{{B}}assets/df/h3.js?v={{V}}';
-import '{{B}}assets/df/p5.js?v={{V}}';
+// 첫 방문 인트로(Blender 렌더 영상 → 끝 장면이 헤더 로고로 날아가 합쳐짐). 아래 3D 장면은 인트로와 글 올라오기가 끝난 뒤 한가할 때 불러온다.
+import { intro } from '{{B}}assets/df/mk.js?v={{V}}';
+addEventListener('df-intro-done', () => { const go = () => import('{{B}}assets/df/p5.js?v={{V}}'); setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 1500 }) : go()), 1600); }, { once: true });
+intro('c1', { base: '{{B}}assets/df/' });
 </script>
 </body>
 </html>

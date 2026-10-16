@@ -1,4 +1,4 @@
-// H3 · Particle mark — 1만 6천 개 입자가 잡음처럼 흩어졌다가 소용돌이치며 Delfona의 // 표시로 모인다.
+// H3 · Particle mark — 1만 6천 개 입자가 잡음처럼 흩어졌다가 소용돌이치며 Delfona의 일식 심볼(원반 + 초승달 고리)로 모인다.
 // 입자 일부는 지난 24시간 호재·악재 비율만큼 초록·빨강, 나머지는 남색·인디고. 마우스를 가까이 대면 밀려났다가 돌아온다.
 import * as THREE from 'three';
 import { renderer, loop, pointer, easePointer, revealCopy, reduce, mobile, data } from './kit.js?v=202610151430';
@@ -7,12 +7,14 @@ const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, 1, 0.1, 1
 const N = mobile() ? 9000 : 16000;
 // 표시 모양을 캔버스에 그려 점을 뽑는다(두 사선 + 점)
 function sampleMark() {
+  // 일식 심볼: 꽉 찬 원반 + 오른쪽 위 초승달 고리(고리 입자는 연한 남보라). 좌표는 brand/mark.svg(= marks2 N3)와 같은 100×100 기준
   const S = 512, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
-  g.lineCap = 'round'; g.strokeStyle = '#000'; g.lineWidth = 64;
-  g.beginPath(); g.moveTo(150, 430); g.lineTo(250, 110); g.stroke(); g.beginPath(); g.moveTo(275, 430); g.lineTo(375, 110); g.stroke();
-  g.beginPath(); g.arc(385, 100, 46, 0, Math.PI * 2); g.fill();
-  const d = g.getImageData(0, 0, S, S).data, pts = [];
-  for (let y = 0; y < S; y += 3) for (let x = 0; x < S; x += 3) if (d[(y * S + x) * 4 + 3] > 128) pts.push([(x / S - 0.5) * 4.6, -(y / S - 0.5) * 4.6, x > 330 && y < 150]);
+  g.setTransform(5.6, 0, 0, 5.6, 256 - 50 * 5.6, 256 - 50 * 5.6);
+  g.fillStyle = 'rgb(255,0,0)'; g.beginPath(); g.arc(46, 54, 30, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgb(0,0,255)'; g.fill(new Path2D('M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z'));
+  const p = g.getImageData(0, 0, S, S).data, pts = [];
+  for (let y = 0; y < S; y += 3) for (let x = 0; x < S; x += 3) { const k = (y * S + x) * 4; if (p[k + 3] > 128) pts.push([(x / S - 0.5) * 4.6, -(y / S - 0.5) * 4.6, p[k + 2] > p[k]]); }
+  for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pts[i], pts[j]] = [pts[j], pts[i]]; }
   return pts;
 }
 const mark = sampleMark();
@@ -73,13 +75,13 @@ revealCopy(1.4);
 let C24 = { u: 0, d: 0 };
 data.flash.then((d) => { const c = DFD.day24(d.items); colors(c.u, c.d); C24 = c;
   const tot = Math.max(1, c.u + c.d), mx = Math.max(c.u, c.d); U.uFu.value = c.u / tot; const H = mobile() ? 2.55 : 3.1; U.uHU.value = H * c.u / mx; U.uHD.value = H * c.d / mx;
-  const hud = document.getElementById('hud'), put = () => { hud.innerHTML = `${DFI.lang() === 'ko' ? '입자 ' + N.toLocaleString() + '개 · 초록·빨강 비율 = 24시간 호재·악재' : N.toLocaleString() + ' particles · green/red share = 24h positive/negative'} · <span class="up">${c.u}</span>/<span class="down">${c.d}</span>`; };
+  const hud = document.getElementById('hud'), put = () => { hud.innerHTML = `${DFI.lang() === 'ko' ? '입자 ' + N.toLocaleString() + '개 · 초록·빨강 비율 = 24시간 호재·악재' : N.toLocaleString() + ' particles · green/red share = 24h bullish/bearish'} · <span class="up">${c.u}</span>/<span class="down">${c.d}</span>`; };
   put(); DFI.onLang(put); gsap.to(hud, { opacity: 1, duration: 0.8, delay: 2.8 }); });
 
 // ---------- 스크롤: 첫 화면을 고정한 채 로고 → 구 → 호재·악재 막대 → 흩어짐 ----------
 gsap.registerPlugin(ScrollTrigger);
 const hero = document.getElementById('hero'), sc = document.getElementById('sc'), nL = document.getElementById('nL'), nR = document.getElementById('nR');
-const CAP = { en: [['Every story becomes a point.', 'The last 24 hours, gathered into one field.'], ['Then each one is judged.', 'Positive to the left, negative to the right — real 24h counts.']],
+const CAP = { en: [['Every story becomes a point.', 'The last 24 hours, gathered into one field.'], ['Then each one is judged.', 'Bullish to the left, bearish to the right — real 24h counts.']],
   ko: [['모든 소식은 하나의 점이 돼요.', '지난 24시간이 한 덩어리로 모였어요.'], ['그리고 하나하나 판정해요.', '호재는 왼쪽, 악재는 오른쪽 — 실제 24시간 개수예요.']] };
 let ci = -1; const cap = (k) => { if (k === ci) return; ci = k; const c = (CAP[DFI.lang()] || CAP.en)[k]; sc.querySelector('b').textContent = c[0]; sc.querySelector('span').textContent = c[1]; };
 DFI.onLang(() => { const k = ci; ci = -1; cap(Math.max(0, k)); });
