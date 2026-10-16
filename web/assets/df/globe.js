@@ -61,7 +61,7 @@ export function makeGlobe({ scene, sec, lay, mob }) {
   // 워드마크 'DELFONA'(stage 2): 글자 점 92% + 주변에 옅게 떠도는 점 8%
   let WM = false; document.fonts.load('400 200px Michroma').catch(() => {});   // 헤더 로고와 같은 글꼴
   function buildWord() { WM = true;
-    const pts = textPoints('DELFONA', { font: '400 200px Michroma', spacing: '48px', hgt: 1, step: 2 }),   // 헤더 로고 글자: Michroma 대문자, 자간 .24em
+    const pts = textPoints('DELFONA', { font: '400 200px Michroma', spacing: '48px', hgt: 1, step: mob ? 3 : 2 }),   // 헤더 로고 글자: Michroma 대문자, 자간 .24em
       M = pts.length, wid = mob ? 6.6 : 12.8, sc = wid / pts.W, cy = mob ? 0.95 : 0.35;
     m.set(2, (i, o) => { const dust = i % 13 === 0;
       if (dust) { const a = Math.random() * 6.283, r = (mob ? 3.2 : 6.5) * (0.6 + Math.random() * 0.8); o[0] = Math.cos(a) * r; o[1] = cy + Math.sin(a) * r * 0.45; o[2] = rnd(2); tmp.copy(COL.lt); o[6] = 0.16; }
