@@ -173,19 +173,40 @@ EN_SYS = """For each numbered item you get a Korean market-news line and the ori
 Take names, numbers and tickers from the original post when it is in English (exact spelling). Do not add facts. No channel or outlet names. Output JSON only: {"en": ["...", ...]} in the same order."""
 
 
+EN_SKIP = set()   # 한 건씩 해도 영어 줄이 안 나온 글 — 같은 글을 끝없이 다시 묻지 않게(프로세스가 살아 있는 동안)
+
+
 def fill_en(con, k=8):
-    """영어 줄이 없는 최근(48시간) 판정 → 한국어 줄을 영어로 옮겨 채운다. 채운 게 있으면 True."""
-    rows = con.execute("""SELECT a.ch, a.id, a.ko, m.text FROM ai a JOIN msgs m ON m.ch=a.ch AND m.id=a.id
-        WHERE a.ko != '' AND (a.en IS NULL OR a.en = '') AND m.t >= ? ORDER BY m.t DESC LIMIT ?""", (int(time.time()) - 2 * WINDOW, k)).fetchall()
+    """영어 줄이 없는 최근(48시간) 판정 → 한국어 줄을 영어로 옮겨 채운다. 채운 게 있으면 True.
+    여러 건을 한 번에 물었는데 돌아온 개수가 다르면, 그 묶음을 한 건씩 다시 묻는다(같은 묶음을 계속 다시 묻던 문제)."""
+    rows = [r for r in con.execute("""SELECT a.ch, a.id, a.ko, m.text FROM ai a JOIN msgs m ON m.ch=a.ch AND m.id=a.id
+        WHERE a.ko != '' AND (a.en IS NULL OR a.en = '') AND m.t >= ? ORDER BY m.t DESC LIMIT ?""", (int(time.time()) - 2 * WINDOW, k + len(EN_SKIP))).fetchall()
+        if (r[0], r[1]) not in EN_SKIP][:k]
     if not rows:
         return False
+    if _fill_en_rows(con, rows):
+        return True
+    got = False
+    for r in rows:   # 한 건씩
+        try:
+            ok = _fill_en_rows(con, [r])
+        except Exception as e:
+            ok = False
+            log("영어 채우기 한 건 실패", r[0], r[1], e)
+        if not ok:
+            EN_SKIP.add((r[0], r[1]))
+        got = got or ok
+    return got
+
+
+def _fill_en_rows(con, rows):
     body = {"model": MODEL, "stream": False, "think": False, "keep_alive": "30m", "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1200},
             "messages": [{"role": "system", "content": EN_SYS}, {"role": "user", "content": "\n\n".join(f"{i + 1}. ko: {r[2]}\n   original: {clean_text(r[3])[:300]}" for i, r in enumerate(rows))}]}
     req = urllib.request.Request(OLLAMA + "/api/chat", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=300) as r:
         out = json.loads(r.read())["message"]["content"]
     en = json.loads(out[out.index("{"): out.rindex("}") + 1]).get("en") or []
-    if len(en) != len(rows):
+    if len(en) != len(rows) or any(not str(e).strip() for e in en):
         log("영어 채우기 개수 불일치", len(en), len(rows))
         return False
     for (ch, mid, _, _), e in zip(rows, en):
