@@ -58,10 +58,11 @@ export function makeGlobe({ scene, sec, lay, mob }) {
     for (let lo = 0; lo < 360; lo += 15) for (let la = -87; la < 87; la += 3) { const a = U3(la, lo), b = U3(la + 3, lo); g.push(a.x, a.y, a.z, b.x, b.y, b.z); }
     const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(g, 3)); lg.scale(R * 1.001, R * 1.001, R * 1.001);
     var grat = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x533afd, transparent: true, opacity: 0 })); grat.renderOrder = -1; gG.add(grat); }
-  // 워드마크 'Delfona'(stage 2): 글자 점 92% + 주변에 옅게 떠도는 점 8%
-  let WM = false; document.fonts.load('600 260px Inter').catch(() => {});
+  // 워드마크 'DELFONA'(stage 2): 글자 점 92% + 주변에 옅게 떠도는 점 8%
+  let WM = false; document.fonts.load('400 200px Michroma').catch(() => {});   // 헤더 로고와 같은 글꼴
   function buildWord() { WM = true;
-    const pts = textPoints('Delfona', { font: '600 260px Inter', hgt: 1, step: mob ? 2 : 2 }), M = pts.length, wid = mob ? 6.6 : 12.8, sc = wid / pts.W, cy = mob ? 0.95 : 0.35;
+    const pts = textPoints('DELFONA', { font: '400 200px Michroma', spacing: '48px', hgt: 1, step: 2 }),   // 헤더 로고 글자: Michroma 대문자, 자간 .24em
+      M = pts.length, wid = mob ? 6.6 : 12.8, sc = wid / pts.W, cy = mob ? 0.95 : 0.35;
     m.set(2, (i, o) => { const dust = i % 13 === 0;
       if (dust) { const a = Math.random() * 6.283, r = (mob ? 3.2 : 6.5) * (0.6 + Math.random() * 0.8); o[0] = Math.cos(a) * r; o[1] = cy + Math.sin(a) * r * 0.45; o[2] = rnd(2); tmp.copy(COL.lt); o[6] = 0.16; }
       else { const p = pts[i % M], f = p.x / pts.W + 0.5; o[0] = p.x * sc + rnd(0.006); o[1] = p.y * sc + cy + rnd(0.006); o[2] = rnd(0.08); tmp.copy(COL.ink).lerp(COL.ind, clamp(f * 1.25 - 0.15) * 0.8); o[6] = 0.95; }
