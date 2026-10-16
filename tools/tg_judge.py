@@ -169,18 +169,18 @@ def judge_one(con, lang, ch, mid, text):
     return r
 
 
-EN_SYS = """Translate each Korean market-news line into one English news headline (present tense, no final period, max 120 characters).
-Keep numbers, names and tickers exactly. Do not add facts. Output JSON only: {"en": ["...", ...]} in the same order."""
+EN_SYS = """For each numbered item you get a Korean market-news line and the original post. Write one English news headline per item (present tense, no final period, max 120 characters).
+Take names, numbers and tickers from the original post when it is in English (exact spelling). Do not add facts. No channel or outlet names. Output JSON only: {"en": ["...", ...]} in the same order."""
 
 
-def fill_en(con, k=12):
+def fill_en(con, k=8):
     """영어 줄이 없는 최근(48시간) 판정 → 한국어 줄을 영어로 옮겨 채운다. 채운 게 있으면 True."""
-    rows = con.execute("""SELECT a.ch, a.id, a.ko FROM ai a JOIN msgs m ON m.ch=a.ch AND m.id=a.id
+    rows = con.execute("""SELECT a.ch, a.id, a.ko, m.text FROM ai a JOIN msgs m ON m.ch=a.ch AND m.id=a.id
         WHERE a.ko != '' AND (a.en IS NULL OR a.en = '') AND m.t >= ? ORDER BY m.t DESC LIMIT ?""", (int(time.time()) - 2 * WINDOW, k)).fetchall()
     if not rows:
         return False
     body = {"model": MODEL, "stream": False, "think": False, "keep_alive": "30m", "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1200},
-            "messages": [{"role": "system", "content": EN_SYS}, {"role": "user", "content": "\n".join(f"{i + 1}. {r[2]}" for i, r in enumerate(rows))}]}
+            "messages": [{"role": "system", "content": EN_SYS}, {"role": "user", "content": "\n\n".join(f"{i + 1}. ko: {r[2]}\n   original: {clean_text(r[3])[:300]}" for i, r in enumerate(rows))}]}
     req = urllib.request.Request(OLLAMA + "/api/chat", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=300) as r:
         out = json.loads(r.read())["message"]["content"]
@@ -188,7 +188,7 @@ def fill_en(con, k=12):
     if len(en) != len(rows):
         log("영어 채우기 개수 불일치", len(en), len(rows))
         return False
-    for (ch, mid, _), e in zip(rows, en):
+    for (ch, mid, _, _), e in zip(rows, en):
         con.execute("UPDATE ai SET en=? WHERE ch=? AND id=?", (" ".join(str(e).split())[:180], ch, mid))
     con.commit()
     return True
