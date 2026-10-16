@@ -4,6 +4,7 @@
 //   GET /upbit-notices          거래 공지 목록 첫 페이지 (2분 캐시)
 //   GET /upbit-notice/<숫자 id>  공지 본문 (하루 캐시)
 //   GET /upbit-candles?market=KRW-XXX[&to=ISO][&count=1~200]  원화 마켓 1분봉 (30초 캐시, 브라우저의 실시간 곡선용)
+//   GET /quotes?s=NVDA,^TNX,…   테마 화면 시세(야후 spark 한 번에, 60초 캐시). 정해 둔 목록(QUOTES) 안의 종목만 — 아무 주소나 대신 받아 주는 통로가 되지 않게
 //   GET /index-candles?s=nq|es&i=1m|5m  나스닥100·S&P500 선물 분봉(야후 차트, 60초 캐시). 정해진 두 종목만, 시각·종가만 돌려준다(브라우저의 '소식 이후' 그래프용)
 //   GET /flash                  실시간 속보 묶음(운영자 Mac이 flash 브랜치에 올린 flash.json, 20초 캐시). raw.githubusercontent는 5분 캐시라 API로 받는다
 // GET /: 상태 확인용 한 줄.
@@ -80,6 +81,28 @@ async function indexCandles(ctx, s, i) {
   return res;
 }
 
+
+// 테마 화면 시세: 지수 선물·대형주·금리·달러·원자재. 목록에 없는 기호는 받지 않는다
+const QUOTES = new Set(['NQ=F', 'ES=F', 'YM=F', '^VIX', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'TSLA', 'AVGO', 'AMD', 'TSM', 'PLTR', 'ORCL', 'NFLX', 'COIN', 'MSTR', 'HOOD', 'INTC', 'MU', 'ARM', 'SMCI', 'CRM', 'ADBE', 'QCOM', 'ASML',
+  '^TNX', '^FVX', '^TYX', '^IRX', 'DX-Y.NYB', 'GC=F', 'SI=F', 'CL=F', 'NG=F', 'HG=F', 'KRW=X', 'JPY=X', 'EURUSD=X', 'CNY=X']);
+async function quotes(ctx, list) {
+  const syms = [...new Set(list)].sort(), cache = caches.default, key = new Request(`https://signal-cache/quotes-${encodeURIComponent(syms.join(','))}`);
+  const hit = await cache.match(key); if (hit) return hit;
+  const up = await fetch(`https://query1.finance.yahoo.com/v8/finance/spark?symbols=${encodeURIComponent(syms.join(','))}&range=5d&interval=1h`, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } });
+  let out = { at: Math.floor(Date.now() / 1000), q: {} }, ok = up.ok;
+  if (ok) {
+    try {
+      const d = await up.json();
+      for (const s of syms) { const v = d[s]; if (!v || !(v.timestamp || []).length) continue;
+        const ts = v.timestamp, cl = v.close || [];
+        out.q[s] = { p: v.fulldayPrice ?? cl[cl.length - 1], chg: v.fulldayChangePercent ?? null, prev: v.previousClose ?? null, c: ts.map((t, k) => [t, cl[k]]).filter((x) => x[1] != null).slice(-48) }; }
+    } catch (e) { ok = false; }
+  }
+  const res = new Response(JSON.stringify(out), { status: ok ? 200 : 502, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'max-age=60', ...CORS } });
+  if (ok) ctx.waitUntil(cache.put(key, res.clone()));
+  return res;
+}
+
 export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(dispatch(env));
@@ -107,6 +130,12 @@ export default {
       if (!INDEX[s]) return bad('s must be nq or es');
       if (i !== '1m' && i !== '5m') return bad('i must be 1m or 5m');
       return indexCandles(ctx, s, i);
+    }
+    if (pathname === '/quotes') {
+      const list = (searchParams.get('s') || '').split(',').map((x) => x.trim()).filter(Boolean);
+      if (!list.length || list.length > 30) return bad('s: 1–30 symbols');
+      const badOne = list.find((x) => !QUOTES.has(x)); if (badOne) return bad('symbol not allowed: ' + badOne);
+      return quotes(ctx, list);
     }
     if (pathname === '/') return new Response('SIGNAL scheduler: dispatches pipeline every 15 minutes\n', { headers: CORS });
     return new Response('not found', { status: 404, headers: CORS });
