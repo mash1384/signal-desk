@@ -376,7 +376,7 @@ def install():
 <plist version="1.0"><dict>
   <key>Label</key><string>{LABEL}</string>
   <key>ProgramArguments</key><array><string>{py}</string><string>{dst}</string></array>
-  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>7</integer></dict>
+  <key>StartInterval</key><integer>1800</integer><key>RunAtLoad</key><true/>
   <key>StandardOutPath</key><string>{HOME}/daily.log</string>
   <key>StandardErrorPath</key><string>{HOME}/daily.log</string>
 </dict></plist>
@@ -387,7 +387,7 @@ def install():
         if subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", plist], capture_output=True).returncode == 0:
             break
         time.sleep(1)
-    log("설치 완료:", plist, "(매일 09:07, 맥이 잠들어 있었으면 깨어날 때 실행)")
+    log("설치 완료:", plist, "(30분마다 확인 — 끝난 하루가 아직 없으면 만든다. 정해진 시각 방식은 macOS 에서 01:07 에 울려 하루씩 늦었다)")
 
 
 if __name__ == "__main__":
