@@ -4,6 +4,7 @@
 //   GET /upbit-notices          거래 공지 목록 첫 페이지 (2분 캐시)
 //   GET /upbit-notice/<숫자 id>  공지 본문 (하루 캐시)
 //   GET /upbit-candles?market=KRW-XXX[&to=ISO][&count=1~200]  원화 마켓 1분봉 (30초 캐시, 브라우저의 실시간 곡선용)
+//   GET /market?i=1h|5m        테마·내 자산 화면의 모든 시세를 한 번에(정해 둔 목록 전체, 60초 캐시) — 사용자마다 다른 조합을 묻지 않게 해서 사용자가 늘어도 야후 요청은 1분에 한 번
 //   GET /quotes?s=NVDA,^TNX,…   테마 화면 시세(야후 spark 한 번에, 60초 캐시). 정해 둔 목록(QUOTES) 안의 종목만 — 아무 주소나 대신 받아 주는 통로가 되지 않게
 //   GET /index-candles?s=nq|es&i=1m|5m  나스닥100·S&P500 선물 분봉(야후 차트, 60초 캐시). 정해진 두 종목만, 시각·종가만 돌려준다(브라우저의 '소식 이후' 그래프용)
 //   GET /flash                  실시간 속보 묶음(운영자 Mac이 flash 브랜치에 올린 flash.json, 20초 캐시). raw.githubusercontent는 5분 캐시라 API로 받는다
@@ -103,6 +104,23 @@ async function quotes(ctx, list, iv = '1h') {   // iv: 1h(5일, 작은 그래프
   return res;
 }
 
+// 모든 사용자에게 같은 응답: 정해 둔 목록 전체를 20개씩 나눠 묻고 합친다
+const MARKET = [...QUOTES];
+async function market(ctx, iv) {
+  const cache = caches.default, key = new Request(`https://signal-cache/market-${iv}`);
+  const hit = await cache.match(key); if (hit) return hit;
+  const parts = []; for (let i = 0; i < MARKET.length; i += 20) parts.push(MARKET.slice(i, i + 20));
+  const out = { at: Math.floor(Date.now() / 1000), i: iv, q: {} }; let ok = false;
+  await Promise.all(parts.map(async (syms) => {
+    try { const up = await fetch(`https://query1.finance.yahoo.com/v8/finance/spark?symbols=${encodeURIComponent(syms.join(','))}&range=${iv === '5m' ? '1d' : '5d'}&interval=${iv}`, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } });
+      if (!up.ok) return; const d = await up.json(); ok = true;
+      for (const s of syms) { const v = d[s]; if (!v || !(v.timestamp || []).length) continue; const ts = v.timestamp, cl = v.close || [];
+        out.q[s] = { p: v.fulldayPrice ?? cl[cl.length - 1], chg: v.fulldayChangePercent ?? null, prev: v.previousClose ?? null, c: ts.map((t, k) => [t, cl[k]]).filter((x) => x[1] != null).slice(iv === '5m' ? -160 : -48) }; } } catch (e) {} }));
+  const res = new Response(JSON.stringify(out), { status: ok ? 200 : 502, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'max-age=60', ...CORS } });
+  if (ok) ctx.waitUntil(cache.put(key, res.clone()));
+  return res;
+}
+
 export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(dispatch(env));
@@ -131,6 +149,7 @@ export default {
       if (i !== '1m' && i !== '5m') return bad('i must be 1m or 5m');
       return indexCandles(ctx, s, i);
     }
+    if (pathname === '/market') { const iv = searchParams.get('i') || '1h'; if (iv !== '1h' && iv !== '5m') return bad('i must be 1h or 5m'); return market(ctx, iv); }
     if (pathname === '/quotes') {
       const list = (searchParams.get('s') || '').split(',').map((x) => x.trim()).filter(Boolean);
       if (!list.length || list.length > 30) return bad('s: 1–30 symbols');
