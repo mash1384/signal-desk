@@ -1,7 +1,7 @@
 // B3 · Morning — 뉴스레터처럼: 오늘의 큰 이야기 3개(크게) → 어제 하루 정리 → 나머지 이어지는 이야기(짧게).
-import { T, esc } from '../l/lk.js?v=1017222057';
-import * as B from './brk.js?v=1017222057';
-import { mount } from './bc.js?v=1017222057';
+import { T, esc } from '../l/lk.js?v=1017224009';
+import * as B from './brk.js?v=1017224009';
+import { mount } from './bc.js?v=1017224009';
 mount((D, dy, S) => { const xs = B.pickList(D, S.f), top = xs.slice(0, 3), rest = xs.slice(3);
   return `<div class="wrap brf b3"><header class="ph"><h1>${T('Brief', '정리')}</h1><p>${T('Three stories to know now, yesterday in one page, and everything else still unfolding.', '지금 알아야 할 이야기 셋, 어제 하루 한 장, 그리고 아직 이어지는 나머지.')}</p><p class="fr">${B.fresh(D)}</p></header>
   ${B.filtHTML(D, S.f)}

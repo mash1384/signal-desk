@@ -1246,7 +1246,7 @@ def page_404(now):
 
 
 def sitemap(articles, now, dailies=()):
-    urls = [("", now), ("live/", now), ("my/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("calendar/", now), ("about/", now), ("daily/", now)]
+    urls = [("", now), ("live/", now), ("my/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("brief/", now), ("calendar/", now), ("about/", now)]
     urls += [("daily/%s/" % d["date"], d["made"]) for d in dailies]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
@@ -1318,6 +1318,14 @@ def page_calendar_df():
     return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
 
 
+def page_brief_df():
+    """정리(Delfona B2 · 타임라인 열지도): 며칠째 이어지는 이야기(줄기)를 한 시간 축 위에, 고르면 지금까지 · 최근 24시간 · 소식 전체.
+    자료는 브라우저가 threads.json(Mac 이 30분마다, tools/story_threads.py)과 어제 하루 정리(daily_brief.py)를 flash 브랜치에서 읽는다."""
+    with open(os.path.join(WEB, "df_brief.html"), encoding="utf-8") as f:
+        tpl = f.read()
+    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+
+
 def df_ver():
     """web/assets/df/ 파일 내용으로 만든 버전(바뀌면 브라우저가 새로 받는다)."""
     d = os.path.join(WEB, "assets", "df")
@@ -1365,7 +1373,9 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
         nxt = dailies[i - 1]["date"] if i > 0 else None
         prev = dailies[i + 1]["date"] if i + 1 < len(dailies) else None
         util.write_text(os.path.join(out, "daily", doc["date"], "index.html"), page_daily(doc, prev, nxt, now))
-    util.write_text(os.path.join(out, "daily", "index.html"), page_daily_index(dailies, now))
+    # 정리: 새 정리(/brief/)가 목록을 대신한다. 날짜별 하루 정리(/daily/<날짜>/)는 그대로 둔다
+    util.write_text(os.path.join(out, "brief", "index.html"), page_brief_df())
+    util.write_text(os.path.join(out, "daily", "index.html"), redirect_page("brief/"))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
     # 테마: /themes/<k>/ (첫 화면은 크립토). 옛 시그널 보드·상장 레이더는 테마로 합쳐졌다

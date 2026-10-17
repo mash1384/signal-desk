@@ -12,7 +12,7 @@ async def main():
                 pg = await ctx.new_page(); errs = []
                 pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('console', lambda m: m.type == 'error' and errs.append(m.text))
                 await pg.goto(base + name + '/', wait_until='networkidle'); await pg.wait_for_selector('.thc, .lane', timeout=20000)
-                b2 = name == 'br2'
+                b2 = name in ('br2', 'brief') or name.startswith('br2')
                 if b2 and w < 1040: await pg.click('.lane'); await pg.wait_for_timeout(400)
                 tag = f'{name}@{w}'
                 n_all = await pg.evaluate("document.querySelectorAll('.thc, .lane').length")

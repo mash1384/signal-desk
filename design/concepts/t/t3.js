@@ -1,7 +1,7 @@
 // T3 · Story — 한 줄로 읽어 내려가는 '테마 리포트'(모바일 먼저, 760px 단). 맨 위 큰 제목 = 요약 1번 문장, 그 아래 근거 소식 카드.
 // 2~6번 문장은 이어지는 단락. 그다음 흐름 그래프 → 자산 표 → 섹터 → 주요 소식. 위에서부터 '무슨 일 → 얼마나 → 어디에'.
-import * as K from './tk.js?v=1017222057';
-import { store, esc } from '../l/lk.js?v=1017222057';
+import * as K from './tk.js?v=1017224009';
+import { store, esc } from '../l/lk.js?v=1017224009';
 const app = document.getElementById('app'), S = K.initState();
 let doc, assets = {}, bench = {}, chart = null;
 const ko = () => DFI.lang() === 'ko';
