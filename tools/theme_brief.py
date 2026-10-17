@@ -242,7 +242,7 @@ def changes(k, H, xs, now):
         nm_e = a.replace("^TNX", "the US 10-year yield").replace("DX-Y.NYB", "the dollar index").replace("GC=F", "gold").replace("CL=F", "oil").replace("KRW=X", "USD/KRW")
         u, d = sum(y["v"] == "호재" for y in rel), sum(y["v"] == "악재" for y in rel)
         tone = "up" if u > d * 1.5 else "down" if d > u * 1.5 else "flat"
-        out.append({"k": "asset", "score": (min(r, 6) if r else 2.5) + len(rel) / 5, "tone": tone,
+        out.append({"k": "asset", "sym": a, "ratio": round(r, 2) if r else None, "n": len(rel), "score": (min(r, 6) if r else 2.5) + len(rel) / 5, "tone": tone,
                     "ko": (f"{nm} 언급이 평소의 {r:.1f}배예요." if r else f"평소엔 거의 없던 {nm} 언급이 늘었어요.") + f" 오늘 {len(rel)}건 · 호재 {u} · 악재 {d}.",
                     "en": (f"Mentions of {nm_e} are {r:.1f}× normal." if r else f"{nm_e[0].upper() + nm_e[1:]}, rarely mentioned, is coming up.") + f" {len(rel)} today · {u} bullish · {d} bearish.", "ids": ids(rel)})
     # 3b) 호재 비중이 평소와 다름(채널 글 기준 비중끼리 비교 — 비중이라 중복의 영향이 적다)
@@ -283,7 +283,7 @@ def changes(k, H, xs, now):
     out.sort(key=lambda o: -o["score"])
     for o in out:
         o["score"] = round(o["score"], 2)
-    return out[:4]
+    return out
 
 
 def log(*a):
@@ -418,9 +418,10 @@ def run():
         themes.append({"k": k, "n": len(T[k]), "u": u, "d": d, "arts": len(A[k]), "ko": " ".join(a for a, _ in keep), "en": " ".join(b for _, b in keep),
                        "s_ko": [a for a, _ in keep], "s_en": [b for _, b in keep], "refs": refs([a for a, _ in keep], xs),
                        "hours": hours(xs, now), "sectors": sectors(k, xs), "mentions": mentions(k, xs), "top": top,
-                       "latest": [compact(x) | {"sec": sector_of(k, x.get("ko") or "")} for x in xs[:40]], "changes": changes(k, HIST, xs, now)})
+                       "latest": [compact(x) | {"sec": sector_of(k, x.get("ko") or "")} for x in xs[:40]], "changes_all": changes(k, HIST, xs, now)})
+        themes[-1]["changes"] = themes[-1]["changes_all"][:4]   # 테마 화면은 상위 4개, 내 자산 화면은 자산 신호 전부(changes_all)
         th = themes[-1]; have = {x["id"] for x in th["top"] + th["latest"]}; byid = {x["id"]: x for x in xs}
-        th["more"] = [compact(byid[i]) | {"sec": sector_of(k, byid[i].get("ko") or "")} for c in th["changes"] for i in c["ids"] if i not in have and i in byid]   # 신호가 가리키는 소식도 화면에서 열 수 있게
+        th["more"] = [compact(byid[i]) | {"sec": sector_of(k, byid[i].get("ko") or "")} for i in dict.fromkeys(i for c in th["changes_all"] for i in c["ids"]) if i not in have and i in byid]   # 신호가 가리키는 소식도 화면에서 열 수 있게
     hsrc = "\n".join(f"[{NAME[t['k']]}] {t['ko']}" for t in themes)
     hl = {"ko": "", "en": ""}
     for attempt in range(4):
