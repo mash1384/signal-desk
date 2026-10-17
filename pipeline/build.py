@@ -1246,7 +1246,7 @@ def page_404(now):
 
 
 def sitemap(articles, now, dailies=()):
-    urls = [("", now), ("live/", now), ("my/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("events/", now), ("about/", now), ("daily/", now)]
+    urls = [("", now), ("live/", now), ("my/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("calendar/", now), ("about/", now), ("daily/", now)]
     urls += [("daily/%s/" % d["date"], d["made"]) for d in dailies]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
@@ -1310,6 +1310,14 @@ def page_my_df():
     return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
 
 
+def page_calendar_df():
+    """일정(Delfona C3 · 대시보드): 방금 나온 지표, 지금 경제 요약(AI), 다가오는 발표, 지표 카드, 지표 상세(지난 흐름 · 과거에 비슷했을 때).
+    자료는 브라우저가 econ.json(Mac 이 1시간마다, tools/econ_brief.py)을 flash 브랜치에서 읽는다."""
+    with open(os.path.join(WEB, "df_calendar.html"), encoding="utf-8") as f:
+        tpl = f.read()
+    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+
+
 def df_ver():
     """web/assets/df/ 파일 내용으로 만든 버전(바뀌면 브라우저가 새로 받는다)."""
     d = os.path.join(WEB, "assets", "df")
@@ -1364,9 +1372,11 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     for k in THEME_PAGES:
         util.write_text(os.path.join(out, "themes", k, "index.html"), page_themes_df(k))
     util.write_text(os.path.join(out, "themes", "index.html"), page_themes_df("crypto"))
-    util.write_text(os.path.join(out, "events", "index.html"), page_events(extra.get("events.json"), now))
+    # 일정: 옛 이벤트 리스크(/events/)는 새 일정(/calendar/)으로 옮겼다
+    util.write_text(os.path.join(out, "calendar", "index.html"), page_calendar_df())
+    util.write_text(os.path.join(out, "events", "index.html"), redirect_page("calendar/"))
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
-    for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("calendar", "events/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
+    for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
         util.write_text(os.path.join(out, old_path, "index.html"), redirect_page(new_path))
     # 내 자산: 옛 /me/(관심 코인)는 /my/ 로 옮겼다. 옛 목록(localStorage 'signal-watch')은 새 페이지가 가져온다
     util.write_text(os.path.join(out, "my", "index.html"), page_my_df())
