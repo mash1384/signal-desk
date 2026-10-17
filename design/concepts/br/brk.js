@@ -1,6 +1,6 @@
 // 정리(Brief) 공통: 지금 이어지는 이야기(줄기) + 어제 하루 정리. 줄기는 Mac 이 30분마다(tools/story_threads.py), 하루 정리는 daily_brief.py.
 // 줄기 문장은 AI(근거 소식 번호가 붙은 문장만, 숫자는 근거 소식에 있는 것만), 개수·날짜·호재/악재는 프로그램이 센 것.
-import { T, L, esc, store, openSheet, pill, hm, ago } from '../l/lk.js?v=1017215516';
+import { T, L, esc, store, openSheet, pill, hm, ago } from '../l/lk.js?v=1017222057';
 
 const RAW = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/';
 export const THEMES5 = [['all', 'All', '전체'], ['crypto', 'Crypto', '크립토'], ['nasdaq', 'Nasdaq', '나스닥'], ['econ', 'Economy', '경제'], ['ai', 'AI', 'AI'], ['world', 'World', '세계']];
@@ -84,6 +84,40 @@ export function detailHTML2(x, D) {
     <section class="sf"><h3>${T('So far', '지금까지')}</h3>${a.so_far.map((q) => `<p>${sentHTML(q)}</p>`).join('')}</section>
     ${a.today ? `<section class="sf td2"><h3><i></i>${T('New in the last 24 hours', '최근 24시간')}</h3><p>${sentHTML(a.today)}</p></section>` : ''}
     <section class="sf"><h3>${T('Every story', '소식 전체')}</h3>${railHTML(x, D)}</section></article>`;
+}
+
+// ---------- 그래프 후보(B2 안에서 비교): 6시간 칸 ----------
+export function buckets(x, D, A, hrs = 6) {
+  const W = hrs * 3600, n = Math.max(1, Math.ceil((A.a1 - A.a0) / W)), c = new Array(n).fill(0), hot = new Array(n).fill(0), cut = D.made - 86400;
+  x.ids.forEach((id) => { const s = D.stories[id]; if (!s) return; const i = Math.min(n - 1, Math.floor((s.t - A.a0) / W)); c[i]++; if (s.t > cut) hot[i]++; });
+  return { c, hot, n, W };
+}
+// 메타 한 줄(Particle·FieldRank 처럼 작은 고정폭): 소식 30 · 2일 · 새 5
+export function metaMono(x) {
+  return `<span class="mm">${T(`${x.n} stories`, `소식 ${x.n}`)}<i>·</i>${T(`${x.days}d`, `${x.days}일`)}${x.new24 ? `<i>·</i><b>${T(`${x.new24} new`, `새 ${x.new24}`)}</b>` : ''}</span>`;
+}
+// 후보 1 · 열지도(GitHub 활동 그래프): 6시간 칸을 한 가지 색 진하기로
+const LV = (k) => (k <= 0 ? 0 : k === 1 ? 1 : k <= 3 ? 2 : k <= 6 ? 3 : 4);
+export function heatHTML(x, D, A) {
+  const B = buckets(x, D, A);
+  return `<div class="heat" style="--n:${B.n}" aria-hidden="true">${B.c.map((k, i) => `<i class="l${LV(k)}" title="${k}"></i>`).join('')}</div>`;
+}
+export const heatLegend = () => `<span class="hlg">${T('Fewer', '적음')} <i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i> ${T('More', '많음')}</span>`;
+// 후보 2 · 네모 쌓기(Extremists on Both Sides): 하루 칸에 소식 하나 = 네모 하나, 최근 24시간은 강조색
+export function unitsHTML(x, D, A) {
+  const cut = D.made - 86400, cols = A.days.map((t) => ({ t, xs: [] }));
+  x.ids.forEach((id) => { const s = D.stories[id]; if (!s) return; let k = cols.length - 1; while (k > 0 && s.t < cols[k].t) k--; cols[k].xs.push(s); });
+  return `<div class="units" style="--d:${A.days.length}" aria-hidden="true">${cols.map((c) => `<span class="uc">${c.xs.slice(0, 40).map((s) => `<i class="${s.t > cut ? 'hot' : ''}${s.s >= 2 ? ' b' : ''}"></i>`).join('')}${c.xs.length > 40 ? `<em>+${c.xs.length - 40}</em>` : ''}</span>`).join('')}</div>`;
+}
+// 후보 3 · 흐름선 + 분위기 막대(Ground News): 6시간 칸 소식 양을 선으로, 오른쪽에 호재·중립·악재 비율
+export function moodHTML(x, D, A) {
+  const B = buckets(x, D, A), mx = Math.max(1, ...B.c), W = 100, H = 22, X = (i) => (B.n === 1 ? 0 : (i / (B.n - 1)) * W), Y = (k) => H - 2 - (k / mx) * (H - 6);
+  const pts = B.c.map((k, i) => `${X(i).toFixed(2)},${Y(k).toFixed(2)}`).join(' '), ci = Math.max(0, Math.floor((D.made - 86400 - A.a0) / B.W));
+  const hotPts = B.c.map((k, i) => [i, k]).filter(([i]) => i >= ci).map(([i, k]) => `${X(i).toFixed(2)},${Y(k).toFixed(2)}`).join(' ');
+  const z = x.n - x.u - x.d, pct = (v) => Math.round((v / Math.max(1, x.n)) * 100);
+  return `<div class="mood"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline class="ln" points="${pts}"/>${hotPts.includes(' ') ? `<polyline class="ln hot" points="${hotPts}"/>` : ''}</svg>
+    <span class="mb2" role="img" aria-label="${T(`bullish ${pct(x.u)}%, neutral ${pct(z)}%, bearish ${pct(x.d)}%`, `호재 ${pct(x.u)}%, 중립 ${pct(z)}%, 악재 ${pct(x.d)}%`)}"><span class="bar3"><i class="u" style="width:${pct(x.u)}%"></i><i class="z" style="width:${pct(z)}%"></i><i class="dn" style="width:${pct(x.d)}%"></i></span>
+    <span class="pl">${pct(z) >= 60 ? `<b>${T('Mostly neutral', '대부분 중립')}</b>` : x.d > x.u ? `<b class="dn">${T('Bearish', '악재')} ${pct(x.d)}%</b>` : x.u > x.d ? `<b class="u">${T('Bullish', '호재')} ${pct(x.u)}%</b>` : `<b>${T('Mixed', '반반')}</b>`}</span></span></div>`;
 }
 
 // 문장 + 근거 버튼(누르면 그 소식 상세)

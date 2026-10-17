@@ -1,6 +1,6 @@
 // 일정(경제지표) 화면 공통: 다가오는 발표, 지금 경제 한눈에(AI), 지표 카드, 지표 상세(긴 그래프 · 지난 발표 표 · 과거에 비슷했을 때).
 // 자료: econ.json(Mac 에서 1시간마다 — ALFRED 발표 당일 값, 야후 일봉, Forex Factory 예상치, FRED·연준 일정). 숫자는 모두 프로그램, 문장만 AI.
-import { T, L, esc } from '../l/lk.js?v=1017215516';
+import { T, L, esc } from '../l/lk.js?v=1017222057';
 
 export const ECON_URL = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/econ.json';
 let DOC = null;

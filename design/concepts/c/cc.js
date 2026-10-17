@@ -1,6 +1,6 @@
 // 일정 화면 동작(후보 C1~C3 공통): 자료 읽기, 지표 고르기, 자산·기간 바꾸기, 차트 그리기. 배치는 각 후보가 layout(doc, S) 로 정한다.
-import { T } from '../l/lk.js?v=1017215516';
-import * as C from './ck.js?v=1017215516';
+import { T } from '../l/lk.js?v=1017222057';
+import * as C from './ck.js?v=1017222057';
 
 export function mount(layout) {
   const app = document.getElementById('app');

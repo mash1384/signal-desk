@@ -1,5 +1,5 @@
 // L1 · Stream — 시간축을 따라 흐르는 목록 + 오른쪽 고정 상세(데스크톱). 위에 24시간 막대(눌러서 시간대 고르기)
-import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, drawHist, detailHTML, fillRx, openSheet, segHTML, L } from './lk.js?v=1017215516';
+import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, drawHist, detailHTML, fillRx, openSheet, segHTML, L } from './lk.js?v=1017222057';
 
 const app = document.getElementById('app');
 app.innerHTML = `<div class="wrap l1">

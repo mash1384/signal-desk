@@ -1,6 +1,6 @@
 // L2 · Board — 테마 다섯 칸(크립토·나스닥·경제·AI·세계)이 나란히 실시간으로 흐른다. 칸 머리에 24시간 호재·악재 균형.
 // 맨 위 '지금 가장 센 소식' 한 줄. 모바일은 칸을 옆으로 넘긴다(탭과 함께).
-import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName } from './lk.js?v=1017215516';
+import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName } from './lk.js?v=1017222057';
 
 const app = document.getElementById('app'), COLS = THEMES.filter((t) => t.k !== 'all').map((t) => t.k);
 app.innerHTML = `<div class="wrap l2"><section class="top"><div><h1 data-x="t"></h1><p class="sub"><span class="livedot"></span><span id="upd"></span></p></div><div class="kpi" id="kpi"></div></section>
