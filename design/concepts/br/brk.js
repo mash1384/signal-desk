@@ -1,6 +1,6 @@
 // 정리(Brief) 공통: 지금 이어지는 이야기(줄기) + 어제 하루 정리. 줄기는 Mac 이 30분마다(tools/story_threads.py), 하루 정리는 daily_brief.py.
 // 줄기 문장은 AI(근거 소식 번호가 붙은 문장만, 숫자는 근거 소식에 있는 것만), 개수·날짜·호재/악재는 프로그램이 센 것.
-import { T, L, esc, store, openSheet, pill, hm, ago } from '../l/lk.js?v=1017210046';
+import { T, L, esc, store, openSheet, pill, hm, ago } from '../l/lk.js?v=1017215516';
 
 const RAW = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/';
 export const THEMES5 = [['all', 'All', '전체'], ['crypto', 'Crypto', '크립토'], ['nasdaq', 'Nasdaq', '나스닥'], ['econ', 'Economy', '경제'], ['ai', 'AI', 'AI'], ['world', 'World', '세계']];
@@ -39,13 +39,60 @@ export function stripHTML(x, D) {
   return `<div class="strip" role="img" aria-label="${T(`${x.n} stories over ${x.days} days`, `${x.days}일에 걸친 소식 ${x.n}건`)}"><span class="base"></span>${days.map((t) => `<span class="dl" style="left:${X(t)}%"></span>`).join('')}${dots}</div>
     <p class="sl"><span>${dayOf(t0)}</span><span>${T('now', '지금')}</span></p>`;
 }
+// ---------- 타임라인(B2): 모든 줄이 같은 시간 축 ----------
+// 축: 가장 오래된 줄의 시작 날 0시 ~ 지금. 날짜 눈금은 위에 한 번만.
+export function axisOf(xs, D) {
+  const t0 = Math.min(...xs.map((x) => x.first)), d = new Date(t0 * 1000); d.setHours(0, 0, 0, 0);
+  const a0 = d.getTime() / 1000, a1 = D.made, days = [];
+  for (const q = new Date(a0 * 1000); q.getTime() / 1000 < a1; q.setDate(q.getDate() + 1)) days.push(q.getTime() / 1000);
+  return { a0, a1, days, X: (t) => Math.max(0, Math.min(100, ((t - a0) / Math.max(1, a1 - a0)) * 100)) };
+}
+const dshort = (t) => new Intl.DateTimeFormat(L() ? 'ko-KR' : 'en-GB', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(new Date(t * 1000));
+// 축 날짜는 짧게(한국어 '14일', 영어 '14 Oct'): 하루 칸이 좁아 긴 날짜는 겹친다
+const dtiny = (t) => { const d = new Date(t * 1000); return L() ? `${d.getDate()}일` : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(d); };
+export function axisHTML(A) {
+  return `<div class="axis" aria-hidden="true">${A.days.map((t) => `<span style="left:${A.X(t).toFixed(2)}%">${dtiny(t)}</span>`).join('')}</div>`;
+}
+// 줄 하나: 시작~마지막 소식까지 회색 막대, 소식마다 눈금, 최근 24시간만 강조색
+export function trackHTML(x, D, A) {
+  const its = x.ids.map((id) => D.stories[id]).filter(Boolean), cut = D.made - 86400;
+  const l = A.X(x.first), r = A.X(x.last), c = Math.max(l, A.X(cut));
+  return `<div class="track" aria-hidden="true">${A.days.map((t) => `<i class="g" style="left:${A.X(t).toFixed(2)}%"></i>`).join('')}
+    <i class="bar" style="left:${l.toFixed(2)}%;width:${Math.max(0.6, r - l).toFixed(2)}%"></i>${x.last > cut ? `<i class="bar hot" style="left:${c.toFixed(2)}%;width:${Math.max(0.6, r - c).toFixed(2)}%"></i>` : ''}
+    ${its.map((s) => `<i class="tk${s.s >= 2 ? ' b' : ''}${s.t > cut ? ' hot' : ''}" style="left:${A.X(s.t).toFixed(2)}%"></i>`).join('')}</div>`;
+}
+// 줄 머리: 회색 한 줄(소식 수 · 기간) + 새 소식이 있을 때만 강조색 점
+export function laneMeta(x) {
+  return `<span class="lm"><span>${T(`${x.n} stories · ${x.days} ${x.days > 1 ? 'days' : 'day'}`, `${x.n}건 · ${x.days}일`)}</span>${x.new24 ? `<span class="new"><i></i>${T(`${x.new24} new`, `새 소식 ${x.new24}`)}</span>` : ''}</span>`;
+}
+// 상세: 시각이 달린 세로 줄 목록(날짜별 묶음)
+export function railHTML(x, D) {
+  const its = x.ids.map((id) => [id, D.stories[id]]).filter(([, s]) => s).reverse(), cut = D.made - 86400;
+  let html = '', last = '';
+  for (const [id, s] of its) {
+    const dk = new Date(s.t * 1000).toDateString();
+    if (dk !== last) { html += `<li class="dh">${dshort(s.t)}</li>`; last = dk; }
+    html += `<li><button type="button" class="ri${s.t > cut ? ' hot' : ''}" data-sid="${id}"><span class="t mono">${hm(s.t)}</span><span class="l">${esc(L() ? s.ko : s.en || s.ko)}</span>${s.v !== '중립' ? `<span class="v ${s.v === '호재' ? 'u' : 'dn'}">${T(s.v === '호재' ? 'Bullish' : 'Bearish', s.v)}</span>` : ''}</button></li>`;
+  }
+  return `<ol class="rail2">${html}</ol>`;
+}
+// 상세 카드(B2): 제목 · 회색 한 줄 · 지금까지 · 오늘 새로 · 세로 줄 목록
+export function detailHTML2(x, D) {
+  const a = tx(x);
+  return `<article class="dt2" data-th="${x.id}"><p class="ths2">${x.th.map((k) => esc((THEMES5.find((q) => q[0] === k) || [k, k, k])[L() ? 2 : 1])).join(' · ')}</p>
+    <h2>${esc(a.title)}</h2><p class="dm">${T(`${x.n} stories over ${x.days} ${x.days > 1 ? 'days' : 'day'}`, `${x.days}일 동안 소식 ${x.n}건`)}${x.u || x.d ? ` · ${T(`bullish ${x.u}, bearish ${x.d}`, `호재 ${x.u} · 악재 ${x.d}`)}` : ''}</p>
+    <section class="sf"><h3>${T('So far', '지금까지')}</h3>${a.so_far.map((q) => `<p>${sentHTML(q)}</p>`).join('')}</section>
+    ${a.today ? `<section class="sf td2"><h3><i></i>${T('New in the last 24 hours', '최근 24시간')}</h3><p>${sentHTML(a.today)}</p></section>` : ''}
+    <section class="sf"><h3>${T('Every story', '소식 전체')}</h3>${railHTML(x, D)}</section></article>`;
+}
+
 // 문장 + 근거 버튼(누르면 그 소식 상세)
 export function sentHTML(q) {
   return `${esc(q.s)} ${q.refs.slice(0, 3).map((id, i) => `<button type="button" class="ref" data-sid="${id}" aria-label="${T('Open source story', '근거 소식 열기')} ${i + 1}">${i + 1}</button>`).join('')}`;
 }
 export function cardHTML(x, D, { big = false, open = false } = {}) {
   const a = tx(x);
-  return `<article class="th${big ? ' big' : ''}" data-th="${x.id}">
+  return `<article class="thc${big ? ' big' : ''}" data-th="${x.id}">
     <header><p class="ths">${x.th.map((k) => `<span>${esc((THEMES5.find((q) => q[0] === k) || [k, k, k])[L() ? 2 : 1])}</span>`).join('')}</p><h3>${esc(a.title)}</h3>${metaHTML(x)}</header>
     ${stripHTML(x, D)}
     <div class="sofar"><p class="k">${T('So far', '지금까지')}</p>${a.so_far.map((q) => `<p>${sentHTML(q)}</p>`).join('')}</div>

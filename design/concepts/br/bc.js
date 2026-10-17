@@ -1,6 +1,6 @@
 // 정리 화면 동작(후보 B1~B3 공통): 자료 읽기, 거르기, 근거 소식 열기. 배치는 각 후보가 layout(D, dy, S) 로 정한다.
-import { T } from '../l/lk.js?v=1017210046';
-import * as B from './brk.js?v=1017210046';
+import { T } from '../l/lk.js?v=1017215516';
+import * as B from './brk.js?v=1017215516';
 export function mount(layout) {
   const app = document.getElementById('app'), S = { f: 'all', sel: null };
   let D = null, dy = null;

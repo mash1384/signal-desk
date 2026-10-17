@@ -1,6 +1,6 @@
 // T2 · Dashboard — 블룸버그·야후 마켓처럼 '숫자 먼저'. 맨 위 자산 띠(가로로 미는 카드: 가격 · 24시간 · 작은 그래프),
 // 그 아래 2열: 왼쪽 24시간 흐름 그래프(크게) + 섹터 분포 / 오른쪽 AI 요약. 맨 아래 주요 소식(카드 격자).
-import * as K from './tk.js?v=1017210046';
+import * as K from './tk.js?v=1017215516';
 const app = document.getElementById('app'), S = K.initState();
 let doc, assets = {}, bench = {}, chart = null;
 const ko = () => DFI.lang() === 'ko';

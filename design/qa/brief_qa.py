@@ -11,29 +11,32 @@ async def main():
             for name in pages:
                 pg = await ctx.new_page(); errs = []
                 pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('console', lambda m: m.type == 'error' and errs.append(m.text))
-                await pg.goto(base + name + '/', wait_until='networkidle'); await pg.wait_for_selector('.th', timeout=20000)
+                await pg.goto(base + name + '/', wait_until='networkidle'); await pg.wait_for_selector('.thc, .lane', timeout=20000)
+                b2 = name == 'br2'
+                if b2 and w < 1040: await pg.click('.lane'); await pg.wait_for_timeout(400)
                 tag = f'{name}@{w}'
-                n_all = await pg.evaluate("document.querySelectorAll('.th').length")
+                n_all = await pg.evaluate("document.querySelectorAll('.thc, .lane').length")
                 # 거르기: 크립토
                 await pg.click('[data-f="crypto"]'); await pg.wait_for_timeout(300)
                 cnt = await pg.evaluate("+document.querySelector('[data-f=crypto] .c').textContent")
                 if not (await pg.evaluate("document.querySelector('[data-f=crypto]').getAttribute('aria-pressed')") == 'true'): bad.append(f'{tag} filter state')
                 await pg.click('[data-f="all"]'); await pg.wait_for_timeout(300)
+                if b2 and w < 1040: await pg.click('.lane'); await pg.wait_for_timeout(400)
                 # 근거 번호 → 소식 창
-                await pg.click('.th .ref'); await pg.wait_for_selector('.sheet.on', timeout=5000); await pg.wait_for_timeout(500)
+                await pg.click('.dt2 .ref' if b2 else '.thc .ref'); await pg.wait_for_selector('.sheet.on', timeout=5000); await pg.wait_for_timeout(500)
                 det = await pg.evaluate("document.querySelector('#det').textContent.length")
                 if det < 30: bad.append(f'{tag} sheet empty')
                 await pg.keyboard.press('Escape'); await pg.wait_for_timeout(400)
                 # 소식 모두 보기
-                if name != 'br2':
-                    await pg.click('.th details summary'); await pg.wait_for_timeout(300)
-                li = await pg.evaluate("document.querySelectorAll('.th details[open] .sts li').length")
+                if not b2:
+                    await pg.click('.thc details summary'); await pg.wait_for_timeout(300)
+                li = await pg.evaluate("document.querySelectorAll('.rail2 .ri').length" if b2 else "document.querySelectorAll('.thc details[open] .sts li').length")
                 if li < 3: bad.append(f'{tag} story list {li}')
                 ox = await pg.evaluate("document.documentElement.scrollWidth > innerWidth")
                 if ox: bad.append(f'{tag} overflowX')
                 # 영어
                 await pg.click('.lang [data-lang=en]'); await pg.wait_for_timeout(500)
-                hangul = await pg.evaluate("[...document.querySelectorAll('#app .th h3, #app .sofar p, #app .today p, #app .ph')].filter(e => /[가-힣]/.test(e.textContent)).map(e => e.textContent.slice(0, 40)).slice(0, 3)")
+                hangul = await pg.evaluate("[...document.querySelectorAll('#app .thc h3, #app .sofar p, #app .today p, #app .ph, #app .dt2 h2, #app .dt2 .sf p, #app .lane .nm')].filter(e => /[가-힣]/.test(e.textContent)).map(e => e.textContent.slice(0, 40)).slice(0, 3)")
                 if hangul: bad.append(f'{tag} hangul in EN {hangul}')
                 await pg.click('.lang [data-lang=ko]'); await pg.wait_for_timeout(300)
                 print(tag, 'threads', n_all, 'crypto', cnt, 'sheet', det, 'list', li, 'ox', ox, 'errors', errs[:2], flush=True)
