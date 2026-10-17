@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live signals · Delfona — R1</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../brand/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../l/lk.css?v=1017145910">
+<style>/* R1 · River */
+.tabsbar { position: sticky; top: 60px; z-index: 20; background: rgb(247 249 252 / .9); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgb(13 37 61 / .06); }
+.tabsbar .wrap { display: flex; align-items: center; gap: 16px; height: 52px; }
+.tt { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; } .tt::-webkit-scrollbar { display: none; }
+.tt button { flex: none; height: 34px; padding: 0 14px; border-radius: 99px; font-size: 14px; font-weight: 600; color: var(--ink2); }
+.tt button .c { margin-inline-start: 6px; font-size: 11.5px; font-weight: 500; color: var(--faint); }
+.tt button[aria-selected='true'] { background: var(--ink); color: #fff; } .tt button[aria-selected='true'] .c { color: rgb(255 255 255 / .6); }
+@media (hover: hover) { .tt button[aria-selected='false']:hover { background: #fff; box-shadow: inset 0 0 0 1px var(--line); } }
+.upd { display: none; margin-inline-start: auto; align-items: center; gap: 8px; font-size: 12.5px; color: var(--mute); white-space: nowrap; } @media (min-width: 900px) { .upd { display: inline-flex; } }
+.r1 { padding-top: 24px; padding-bottom: 64px; }
+.r1 .sec { font-size: 13px; font-weight: 600; color: var(--mute); }
+.r1 .mc { display: grid; gap: 12px; margin-top: 10px; } @media (min-width: 900px) { .r1 .mc { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.r1 .card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgb(13 37 61 / .04); text-align: start; }
+@media (hover: hover) { .r1 .card { transition: transform 150ms ease-out, box-shadow 150ms ease; } .r1 .card:hover { box-shadow: 0 0 0 1px #d5dbe5, 0 10px 30px -18px rgb(13 37 61 / .35); } }
+.r1 .card .ln { font-size: 17px; font-weight: 600; line-height: 1.38; letter-spacing: -0.015em; text-wrap: pretty; }
+.r1 .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } .r1 .ou { font-size: 12px; color: var(--faint); }
+.r1 .cols { display: grid; gap: 24px; margin-top: 32px; } @media (min-width: 1100px) { .r1 .cols { grid-template-columns: minmax(0, 1fr) 320px; } }
+.r1 .river { list-style: none; padding: 0; margin-top: 10px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.r1 .river .hh { padding: 14px 20px 4px; font-size: 11.5px; color: var(--faint); }
+.r1 .it { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; width: 100%; padding: 12px 20px; text-align: start; }
+@media (hover: hover) { .r1 .it { transition: background-color 150ms ease; } .r1 .it:hover { background: var(--soft); } }
+.r1 .it .tm { padding-top: 2px; font-size: 12px; color: var(--faint); } .r1 .it .bd { display: grid; gap: 7px; }
+.r1 .it .ln { font-size: 15.5px; font-weight: 500; line-height: 1.45; text-wrap: pretty; }
+.r1 .river li + li:not(.hh) .it { border-top: 1px solid #f0f2f5; }
+.r1 .rail { display: grid; gap: 12px; align-content: start; } @media (min-width: 1100px) { .r1 .rail { position: sticky; top: 128px; } }
+.r1 .box { padding: 16px 18px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.r1 .box h3 { margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--mute); }
+.r1 .q { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; padding: 7px 0; font-size: 14px; text-align: start; } .r1 .q .mono { font-size: 13px; } .r1 .q > :last-child { justify-self: end; }
+.r1 .bal { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; }
+.r1 .bal .b { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: #eef1f5; } .r1 .bal .b i { display: block; } .r1 .bal .u { background: var(--up); } .r1 .bal .d { background: var(--down); margin-inline-start: auto; }
+.r1 .bal em { font-style: normal; font-size: 12px; } .mute { color: var(--faint); font-size: 13px; padding: 10px 0; }
+@media (max-width: 899px) { .tabsbar { top: 60px; } .r1 .it { grid-template-columns: 40px minmax(0, 1fr); padding: 12px 14px; } .r1 .river .hh { padding-inline: 14px; } }
+</style>
+</head>
+<body class="pg-r1">
+<header class="hd"><div class="wrap">
+  <a class="logo" href="../h3/"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="../r3/" data-nav="live" data-t="n1">Live</a><a href="../y1/" data-nav="my" data-t="n5">My assets</a><a href="../t1/" data-nav="themes" data-t="n2">Themes</a><a href="#" data-nav="brief" data-t="n3">Brief</a><a href="#" data-nav="cal" data-t="n4">Calendar</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+</div></header>
+<main id="app"></main>
+<nav class="tabs" aria-label="Menu"><a href="../r3/" data-nav="live"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="../y1/" data-nav="my"><i class="ti my"></i><span data-t="n5">My</span></a><a href="../t1/" data-nav="themes"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="#" data-nav="brief"><i class="ti br"></i><span data-t="n3">Brief</span></a><a href="#" data-nav="cal"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="../data.js"></script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', n5: '내 자산' });
+// 지금 페이지 메뉴 표시(같은 틀을 여러 페이지가 쓴다)
+window.DF_NAV = 'live'; document.querySelectorAll('[data-nav]').forEach((a) => { if (a.dataset.nav === window.DF_NAV) a.setAttribute('aria-current', 'page'); });</script>
+<script type="module">import '../l/r1.js?v=1017145910';</script>
+</body>
+</html>

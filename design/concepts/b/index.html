@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>delfona — 시안 B · PULSE</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f3f2ee">
+<link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 B · PULSE — 밝은 종이색 바탕에 흐릿한 빛 번짐(민트·복숭아·라일락). 속보 한 건이 화면 한 장, 위로 넘겨 본다.
+   카드는 반투명 유리, 판정은 큰 가는 글자로. 버튼은 먹색 알약 하나. */
+:root {
+  --bg: #f3f2ee; --ink: #16151a; --t2: #55535c; --t3: #7d7a84; --line: rgb(22 21 26 / 0.08);
+  --glass: rgb(255 255 255 / 0.62); --glass-line: rgb(255 255 255 / 0.9);
+  --mint: #4fd1a5; --mint-ink: #0f7a58; --coral: #ff8a6b; --coral-ink: #c2412b; --lilac: #b7a6ff; --peach: #ffc9a3; --sky: #9fd3ff;
+  --sans: "SUIT Variable", SUIT, -apple-system, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; overflow: hidden; height: 100dvh; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+/* 배경 빛 번짐 */
+.orbs { position: fixed; inset: -20%; z-index: 0; pointer-events: none; filter: blur(70px) saturate(1.1); }
+.orbs i { position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%; opacity: 0.55; transition: background-color 900ms var(--ease); }
+.orbs i:nth-child(1) { left: 5%; top: 10%; background: var(--mint); }
+.orbs i:nth-child(2) { right: 0; top: 35%; background: var(--peach); }
+.orbs i:nth-child(3) { left: 30%; bottom: 0; background: var(--lilac); }
+@media (prefers-reduced-motion: no-preference) {
+  .orbs i:nth-child(1) { animation: drift 18s ease-in-out infinite alternate; }
+  .orbs i:nth-child(2) { animation: drift 22s ease-in-out infinite alternate-reverse; }
+  .orbs i:nth-child(3) { animation: drift 26s ease-in-out infinite alternate; }
+}
+@keyframes drift { to { transform: translate(8vmax, -6vmax) scale(1.08); } }
+body[data-mood='호재'] .orbs i:nth-child(2) { background: var(--mint); }
+body[data-mood='악재'] .orbs i:nth-child(1) { background: var(--coral); }
+body[data-mood='악재'] .orbs i:nth-child(3) { background: var(--peach); }
+
+/* 머리 */
+.hd { position: fixed; top: 0; inset-inline: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: calc(env(safe-area-inset-top) + 14px) 18px 10px; }
+.logo { display: flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 650; letter-spacing: -0.04em; }
+.logo .orb { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #fff 0 12%, transparent 42%), conic-gradient(from 210deg, var(--mint), var(--sky), var(--lilac), var(--peach), var(--mint)); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6); }
+.pills { margin-inline-start: auto; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--glass); backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4); box-shadow: inset 0 0 0 1px var(--glass-line), 0 8px 24px rgb(22 21 26 / 0.06); }
+.pills button { height: 32px; padding: 0 13px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--t2); transition: background-color 150ms ease, color 150ms ease; }
+.pills button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+
+/* 카드 흐름 */
+.deck { position: relative; z-index: 1; height: 100dvh; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none; }
+.deck::-webkit-scrollbar { display: none; }
+.cardwrap { height: 100dvh; scroll-snap-align: start; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + 66px) 16px calc(env(safe-area-inset-bottom) + 70px); }
+.card { position: relative; width: min(560px, 100%); height: 100%; max-height: 720px; display: flex; flex-direction: column; padding: 26px 24px 22px; border-radius: 34px; background: var(--glass); backdrop-filter: blur(28px) saturate(1.5); -webkit-backdrop-filter: blur(28px) saturate(1.5); box-shadow: inset 0 0 0 1px var(--glass-line), 0 30px 80px -30px rgb(22 21 26 / 0.25); overflow: hidden; }
+.k { display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; color: var(--t3); text-transform: uppercase; }
+.vd { margin-top: auto; font-size: clamp(72px, 22vw, 120px); font-weight: 200; letter-spacing: -0.07em; line-height: 0.95; }
+.vd.up { color: var(--mint-ink); } .vd.down { color: var(--coral-ink); } .vd.flat { color: var(--t3); }
+.h { margin-top: 18px; font-size: clamp(22px, 5.6vw, 30px); font-weight: 600; line-height: 1.38; letter-spacing: -0.035em; word-break: keep-all; text-wrap: pretty; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.tag { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; background: rgb(255 255 255 / 0.75); box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; font-weight: 650; }
+.tag small { font-family: var(--mono); font-size: 11.5px; font-weight: 500; }
+.tag small.up { color: var(--mint-ink); } .tag small.down { color: var(--coral-ink); }
+.foot { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--t2); }
+.foot a { font-weight: 650; color: var(--ink); }
+/* 첫 장: 오늘 */
+.today { background: var(--ink); color: #fff; box-shadow: 0 30px 80px -30px rgb(22 21 26 / 0.5); }
+.today .k { color: rgb(255 255 255 / 0.55); }
+.today .h { margin-top: auto; font-size: clamp(30px, 8vw, 44px); font-weight: 300; letter-spacing: -0.05em; line-height: 1.2; }
+.meter { margin-top: 26px; display: flex; height: 10px; gap: 4px; }
+.meter i { border-radius: 99px; }
+.meter i:first-child { background: var(--mint); } .meter i:last-child { background: var(--coral); }
+.split { display: flex; justify-content: space-between; margin-top: 10px; font-family: var(--mono); font-size: 13px; color: rgb(255 255 255 / 0.75); }
+.swipe { margin-top: 22px; font-size: 13px; color: rgb(255 255 255 / 0.6); display: flex; align-items: center; gap: 8px; }
+@media (prefers-reduced-motion: no-preference) { .swipe span { animation: bob 1.6s ease-in-out infinite; } }
+@keyframes bob { 50% { transform: translateY(-4px); } }
+.prog { position: fixed; z-index: 5; bottom: calc(env(safe-area-inset-bottom) + 22px); left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: 12px; color: var(--t2); padding: 7px 12px; border-radius: 999px; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: inset 0 0 0 1px var(--glass-line); }
+@media (min-width: 900px) { .card { padding: 34px 34px 26px; } }
+</style>
+</head>
+<body data-mood="">
+<div class="orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="hd">
+  <a class="logo" href="./"><span class="orb" aria-hidden="true"></span>delfona</a>
+  <div class="pills" role="group" aria-label="거르기"><button type="button" data-f="all" aria-pressed="true">전체</button><button type="button" data-f="호재" aria-pressed="false">호재</button><button type="button" data-f="악재" aria-pressed="false">악재</button><button type="button" data-f="big" aria-pressed="false">큰 소식</button></div>
+</header>
+<main class="deck" id="deck" aria-live="polite"></main>
+<p class="prog" id="prog">–</p>
+<script>
+const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ago = (t) => { const s = Date.now() / 1000 - t; return s < 60 ? '방금' : s < 3600 ? `${Math.floor(s / 60)}분 전` : `${Math.floor(s / 3600)}시간 전`; };
+let D = null, f = 'all', P = {}, brief = null;
+
+async function prices(syms) {
+  const KNOWN = ['BTC','ETH','SOL','XRP','BNB','DOGE','ADA','LINK','AVAX','SUI','TON','DOT','LTC','TRX','HBAR','TAO','AAVE','UNI','NEAR','APT','ONDO','ENA','PEPE','ZEC','FET','JUP','WLD','ARB','OP','INJ','SEI','TIA','BONK','WIF','RENDER','ATOM','FIL','ICP','ETC','BCH'];
+  const want = [...new Set(syms)].filter((s) => !(s in P) && KNOWN.includes(s)).slice(0, 40);
+  if (!want.length) return;
+  try {
+    const r = await fetch('https://data-api.binance.vision/api/v3/ticker/24hr?symbols=' + encodeURIComponent(JSON.stringify(want.map((s) => s + 'USDT'))));
+    if (!r.ok) { want.forEach((s) => { P[s] = null; }); return; }
+    (await r.json()).forEach((x) => { P[x.symbol.replace('USDT', '')] = +x.priceChangePercent; });
+  } catch (e) {}
+  want.forEach((s) => { if (!(s in P)) P[s] = null; });
+}
+
+function render() {
+  const xs = D.items.filter((it) => f === 'all' ? true : f === 'big' ? it.s >= 2 : it.v === f).slice(0, 60);
+  const since = Date.now() / 1000 - 86400, day = D.items.filter((x) => x.t >= since);
+  const u = day.filter((x) => x.v === '호재').length, n = day.filter((x) => x.v === '악재').length;
+  const first = `<section class="cardwrap"><article class="card today"><p class="k"><span>오늘 · 지난 24시간</span><span>${day.length} stories</span></p>
+    <h1 class="h">${esc(brief || (n > u ? '악재 소식이 조금 더 많은 하루예요' : '호재 소식이 조금 더 많은 하루예요'))}</h1>
+    <div class="meter"><i style="flex:${u}"></i><i style="flex:${n}"></i></div><p class="split"><span>호재 ${u}</span><span>악재 ${n}</span></p>
+    <p class="swipe"><span>↑</span> 위로 넘겨 하나씩 보기</p></article></section>`;
+  $('#deck').innerHTML = first + xs.map((it, i) => {
+    const c = it.v === '호재' ? 'up' : it.v === '악재' ? 'down' : 'flat';
+    const tags = it.coins.map((s) => { const p = P[s]; return `<span class="tag">${esc(s)}${p == null ? '' : `<small class="${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '+' : '−'}${Math.abs(p).toFixed(1)}%</small>`}</span>`; })
+      .concat(it.sectors.map((s) => `<span class="tag">${esc((D.sectors || {})[s] || s)} 섹터</span>`)).concat(it.mw ? ['<span class="tag">시장 전체</span>'] : []).join('');
+    return `<section class="cardwrap" data-v="${esc(it.v)}"><article class="card"><p class="k"><span>${ago(it.t)}</span><span>${String(i + 1).padStart(2, '0')} / ${xs.length}</span></p>
+      <p class="vd ${c}">${esc(it.v)}</p><h2 class="h">${esc(it.ko)}</h2>${tags ? `<div class="tags">${tags}</div>` : ''}
+      <p class="foot"><span>${it.n > 1 ? `${it.n}곳에서 보도` : '속보'}${it.s >= 2 ? ' · 큰 소식' : ''}</span>${/^https?:/.test(it.link || '') ? `<a href="${esc(it.link)}" target="_blank" rel="noopener nofollow">관련 기사 ↗</a>` : ''}</p></article></section>`;
+  }).join('');
+  watch(xs.length);
+}
+function watch(total) {
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const i = [...$('#deck').children].indexOf(e.target);
+    document.body.dataset.mood = e.target.dataset.v || '';
+    $('#prog').textContent = i === 0 ? `${total}개 소식` : `${i} / ${total}`;
+  }), { root: $('#deck'), threshold: 0.6 });
+  [...$('#deck').children].forEach((el) => io.observe(el));
+}
+async function load() {
+  try {
+    D = await (await fetch(FLASH, { cache: 'no-store' })).json();
+    await prices(D.items.slice(0, 60).flatMap((x) => x.coins));
+    const keep = $('#deck').scrollTop; render(); $('#deck').scrollTop = keep;
+  } catch (e) { $('#deck').innerHTML = '<section class="cardwrap"><article class="card"><h2 class="h">지금은 속보를 불러올 수 없어요.</h2></article></section>'; }
+}
+document.querySelector('.pills').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b || !D) return; f = b.dataset.f;
+  document.querySelectorAll('.pills button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  render(); $('#deck').scrollTo({ top: 0 });
+});
+fetch('https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/2026-10-13.json').then((r) => r.json()).then((d) => { brief = d.headline; if (D) render(); }).catch(() => {});
+load(); setInterval(() => { if ($('#deck').scrollTop < 40) load(); }, 60000);
+</script>
+</body>
+</html>

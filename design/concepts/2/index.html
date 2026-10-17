@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — 시안 2 · 금고(Vault)</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 2 · 금고 — 은행·핀테크의 정확함. 흰 바탕, 짙은 남색 하나(#0b2545), 회색 단계, 얇은 선과 아주 옅은 그림자.
+   제품 화면(실제 데이터)을 첫 화면에 그대로 보여 주고, '무엇을 하고 무엇을 하지 않는지'를 숫자와 함께 적는다. */
+:root { --bg: #fff; --bg2: #f6f8fa; --navy: #0b2545; --ink: #0d1726; --t2: #475467; --t3: #667085; --line: #e4e7ec; --line2: #d0d5dd;
+  --accent: #1f4fd8; --up: #067647; --up-bg: #ecfdf3; --down: #b42318; --down-bg: #fef3f2; --flat-bg: #f2f4f7;
+  --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; --latin: "Inter Tight", "Pretendard Variable", sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 12px 32px -12px rgb(16 24 40 / 0.14); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+@media (min-width: 900px) { .wrap { padding: 0 32px; } }
+/* 심볼: 남색 칸 안의 d — 동그라미 하나와 기둥 하나 */
+.logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--latin); font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
+.logo svg { width: 30px; height: 30px; }
+.hd { position: sticky; top: 0; z-index: 10; background: rgb(255 255 255 / 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.hd .wrap { display: flex; align-items: center; gap: 32px; height: 64px; }
+.nav { display: none; gap: 26px; font-size: 14.5px; font-weight: 550; color: var(--t2); }
+@media (min-width: 900px) { .nav { display: flex; } }
+.hd .btn { margin-inline-start: auto; }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 18px; border-radius: 10px; font-size: 14.5px; font-weight: 650; transition: transform 150ms ease-out, background-color 150ms ease-out; }
+.btn:active { transform: scale(0.97); }
+.btn.p { background: var(--navy); color: #fff; }
+.btn.g { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line2); }
+@media (hover: hover) { .btn.p:hover { background: #12325e; } .btn.g:hover { background: var(--bg2); } }
+
+/* 첫 화면 */
+.hero { display: grid; gap: 40px; padding-block: 56px 64px; align-items: center; }
+@media (min-width: 1000px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); padding-block: 80px 88px; } }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 99px; background: var(--bg2); box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; font-weight: 600; color: var(--t2); }
+.eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--up); }
+.hero h1 { margin-top: 18px; font-size: clamp(34px, 5.4vw, 58px); font-weight: 750; line-height: 1.14; letter-spacing: -0.04em; word-break: keep-all; }
+.hero h1 span { color: var(--t3); }
+.hero .sub { margin-top: 18px; max-width: 34rem; font-size: 18px; color: var(--t2); word-break: keep-all; }
+.hero .btns { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+.proof { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 28px; font-size: 13.5px; color: var(--t3); }
+.proof b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
+/* 제품 화면 */
+.app { border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line), var(--shadow); overflow: hidden; }
+.app__bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 650; }
+.app__bar small { font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--t3); }
+.app__px { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
+.app__px div { padding: 12px 18px; }
+.app__px div + div { border-inline-start: 1px solid var(--line); }
+.app__px small { display: block; font-size: 12px; color: var(--t3); }
+.app__px b { font-family: var(--latin); font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.app__px em { font-style: normal; font-size: 12.5px; font-weight: 600; margin-inline-start: 6px; }
+.row { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 12px; padding: 13px 18px; }
+.row + .row { border-top: 1px solid var(--line); }
+.v { align-self: start; display: inline-flex; justify-content: center; padding: 2px 0; border-radius: 6px; font-size: 12.5px; font-weight: 700; }
+.v.up { background: var(--up-bg); } .v.down { background: var(--down-bg); } .v.flat { background: var(--flat-bg); color: var(--t2); }
+.row p { font-size: 14.5px; font-weight: 550; line-height: 1.5; word-break: keep-all; }
+.row small { grid-column: 2; font-family: var(--mono); font-size: 11.5px; color: var(--t3); }
+.why { padding: 12px 18px; background: var(--bg2); border-top: 1px solid var(--line); font-size: 12.5px; color: var(--t2); }
+
+/* 숫자 띠 */
+.band { border-block: 1px solid var(--line); background: var(--bg2); }
+.band .wrap { display: grid; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 900px) { .band .wrap { grid-template-columns: repeat(4, 1fr); } }
+.band div div { padding: 26px 0; }
+.band b { display: block; font-family: var(--latin); font-size: 34px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.band span { font-size: 13.5px; color: var(--t3); }
+
+/* 기능·방법 */
+.sec { padding: 80px 0; }
+.sec h2 { font-size: clamp(28px, 3.8vw, 40px); font-weight: 750; letter-spacing: -0.035em; line-height: 1.2; word-break: keep-all; }
+.sec .lead { margin-top: 12px; max-width: 40rem; font-size: 17px; color: var(--t2); }
+.grid3 { display: grid; gap: 16px; margin-top: 36px; }
+@media (min-width: 900px) { .grid3 { grid-template-columns: repeat(3, 1fr); } }
+.card { padding: 24px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line); }
+.card .ic { width: 36px; height: 36px; border-radius: 9px; background: var(--bg2); box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; }
+.card .ic svg { width: 18px; height: 18px; fill: none; stroke: var(--navy); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.card h3 { margin-top: 16px; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.card p { margin-top: 6px; font-size: 15px; color: var(--t2); word-break: keep-all; }
+.steps { display: grid; gap: 0; margin-top: 36px; border-top: 1px solid var(--line); }
+@media (min-width: 900px) { .steps { grid-template-columns: repeat(4, 1fr); } .steps li + li { border-inline-start: 1px solid var(--line); } }
+.steps li { padding: 22px 22px 22px 0; }
+@media (min-width: 900px) { .steps li { padding: 22px; } .steps li:first-child { padding-inline-start: 0; } }
+.steps .k { font-family: var(--mono); font-size: 12px; color: var(--t3); }
+.steps h3 { margin-top: 8px; font-size: 17px; font-weight: 700; }
+.steps p { margin-top: 6px; font-size: 14.5px; color: var(--t2); word-break: keep-all; }
+.nots { display: grid; gap: 12px; margin-top: 28px; }
+@media (min-width: 900px) { .nots { grid-template-columns: repeat(3, 1fr); } }
+.nots li { display: flex; gap: 12px; padding: 18px; border-radius: 12px; background: var(--bg2); font-size: 15px; color: var(--t2); }
+.nots li b { display: block; color: var(--ink); font-weight: 700; margin-bottom: 2px; }
+.nots svg { flex: none; width: 20px; height: 20px; margin-top: 2px; fill: none; stroke: var(--navy); stroke-width: 2; stroke-linecap: round; }
+details { border-bottom: 1px solid var(--line); }
+details summary { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; font-size: 16.5px; font-weight: 650; cursor: pointer; list-style: none; }
+details summary::after { content: "+"; font-size: 22px; font-weight: 400; color: var(--t3); }
+details[open] summary::after { content: "−"; }
+details p { padding-bottom: 18px; color: var(--t2); max-width: 46rem; }
+.end { margin: 0 20px 20px; border-radius: 20px; background: var(--navy); color: #fff; padding: 56px 28px; text-align: center; }
+@media (min-width: 900px) { .end { margin: 0 32px 32px; } }
+.end h2 { font-size: clamp(26px, 3.6vw, 38px); font-weight: 750; letter-spacing: -0.035em; }
+.end p { margin-top: 10px; color: rgb(255 255 255 / 0.72); }
+.end .btn { margin-top: 24px; background: #fff; color: var(--navy); }
+.ft { padding-block: 24px 48px; font-size: 12.5px; color: var(--t3); }
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" fill="#0b2545"/><circle cx="13" cy="17.5" r="5.2" fill="none" stroke="#fff" stroke-width="2.6"/><path d="M18.2 8v14.7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Delfona</a>
+  <nav class="nav" aria-label="메뉴"><a href="#how">작동 방식</a><a href="#feat">기능</a><a href="#trust">원칙</a><a href="#faq">자주 묻는 질문</a></nav>
+  <a class="btn p" href="#app">속보 보기</a>
+</div></header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <p class="eyebrow"><i aria-hidden="true"></i><span id="live">실시간 갱신 중</span></p>
+      <h1>크립토 소식,<br><span>근거와 함께</span> 가장 먼저.</h1>
+      <p class="sub">국내외 속보를 AI가 바로 한국어로 옮기고, 호재·악재 판정과 출처 수를 함께 보여 드려요. 매일 아침에는 어제 하루를 한 장으로 정리해요.</p>
+      <div class="btns"><a class="btn p" href="#app">지금 속보 보기</a><a class="btn g" href="#how">어떻게 판정하나요</a></div>
+      <p class="proof"><span>매체 <b>57곳</b></span><span>기사 <b>15분마다</b></span><span>속보 <b>30초마다</b></span><span>판정 기준 <b>공개</b></span></p>
+    </div>
+    <div class="app" id="app" aria-label="Delfona 실시간 화면">
+      <div class="app__bar"><span>실시간 속보</span><small id="upd">–</small></div>
+      <div class="app__px" id="px"><div><small>BTC</small><b>–</b></div><div><small>ETH</small><b>–</b></div><div><small>SOL</small><b>–</b></div></div>
+      <ol id="rows"><li class="row"><span class="v flat">…</span><p>불러오는 중</p></li></ol>
+      <p class="why">판정은 AI가 소식 내용만 보고 붙인 일반적인 해석이에요. 가격이 그렇게 움직인다는 뜻은 아니에요.</p>
+    </div>
+  </div>
+
+  <section class="band" aria-label="숫자"><div class="wrap">
+    <div><b id="n48">–</b><span>지난 48시간 묶은 소식</span></div>
+    <div><b id="nbig">–</b><span>그중 큰 소식</span></div>
+    <div><b>229건</b><span>업비트 상장 실제 기록</span></div>
+    <div><b>1,000건</b><span>판정 기준을 검증한 정답지</span></div>
+  </div></section>
+
+  <section class="sec" id="feat"><div class="wrap">
+    <h2>필요한 것만, 근거와 함께</h2>
+    <p class="lead">많이 보여 주는 대신, 확인할 수 있게 보여 드려요.</p>
+    <div class="grid3">
+      <article class="card"><span class="ic"><svg viewBox="0 0 20 20"><path d="M11 2 4 11h5l-1 7 7-9h-5z"/></svg></span><h3>속보와 판정</h3><p>해외 속보도 바로 한국어로. 호재·악재·중립과 몇 곳이 보도했는지를 함께 적어요.</p></article>
+      <article class="card"><span class="ic"><svg viewBox="0 0 20 20"><rect x="4" y="3" width="12" height="14" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg></span><h3>하루 정리</h3><p>매일 오전 9시, 어제 하루를 한 장으로. 숫자는 프로그램이 세고, AI는 문장만 써요.</p></article>
+      <article class="card"><span class="ic"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/></svg></span><h3>상장·발표 레이더</h3><p>새 코인 상장, 미국 큰 경제 발표 때 실제로 어땠는지 지난 기록으로 보여 줘요.</p></article>
+    </div>
+  </div></section>
+
+  <section class="sec" id="how" style="background:var(--bg2);border-block:1px solid var(--line)"><div class="wrap">
+    <h2>판정은 이렇게 해요</h2>
+    <p class="lead">전 과정을 공개해요. 무엇을 하고, 무엇을 하지 않는지.</p>
+    <ol class="steps">
+      <li><p class="k">01 · 수집</p><h3>모아요</h3><p>매체 57곳의 기사와 공개 속보를 받아요. 출처가 드러나는 링크는 공식 공지·기사 원문으로만 걸어요.</p></li>
+      <li><p class="k">02 · 번역·판정</p><h3>읽어요</h3><p>로컬 AI가 한국어 한 줄로 옮기고 호재·악재·중립과 세기를 붙여요.</p></li>
+      <li><p class="k">03 · 묶기</p><h3>정리해요</h3><p>같은 소식은 하나로 묶고, 몇 곳에서 보도했는지 세요.</p></li>
+      <li><p class="k">04 · 검증</p><h3>확인해요</h3><p>판정 기준은 정답을 미리 달아 둔 기사 1,000건으로 검증해요. 틀릴 수 있다는 것도 함께 적어요.</p></li>
+    </ol>
+  </div></section>
+
+  <section class="sec" id="trust"><div class="wrap">
+    <h2>우리가 하지 않는 것</h2>
+    <ul class="nots">
+      <li><svg viewBox="0 0 20 20"><path d="M5 5l10 10M15 5 5 15"/></svg><span><b>매매 신호를 팔지 않아요</b>호재·악재는 해석이에요. 사라·팔아라는 말은 쓰지 않아요.</span></li>
+      <li><svg viewBox="0 0 20 20"><path d="M5 5l10 10M15 5 5 15"/></svg><span><b>원문을 베끼지 않아요</b>제목·한 줄 요약·원문 링크만 보여 드려요.</span></li>
+      <li><svg viewBox="0 0 20 20"><path d="M5 5l10 10M15 5 5 15"/></svg><span><b>숫자를 지어내지 않아요</b>AI 문장에 자료에 없는 숫자가 나오면 버려요.</span></li>
+    </ul>
+  </div></section>
+
+  <section class="sec" id="faq" style="padding-top:0"><div class="wrap">
+    <h2 style="margin-bottom:12px">자주 묻는 질문</h2>
+    <details><summary>호재라고 나오면 오르나요?</summary><p>아니에요. 소식이 일반적으로 어떻게 읽히는지에 대한 해석이에요. 지난 기록을 보면 뉴스 뒤 가격 변화는 평소와 크게 다르지 않았어요.</p></details>
+    <details><summary>AI 판정은 얼마나 정확한가요?</summary><p>기사 판정 기준은 정답을 미리 달아 둔 기사 1,000건으로 검증했어요. 속보 판정은 같은 방식으로 검증해 나가고 있고, 틀릴 수 있어요.</p></details>
+    <details><summary>무료인가요?</summary><p>지금은 모두 무료로 볼 수 있어요.</p></details>
+  </div></section>
+
+  <section class="end"><h2>오늘 무슨 일이 있었는지, 1분이면 충분해요</h2><p>매일 오전 9시 하루 정리, 실시간 속보, 내 코인 소식.</p><a class="btn" href="#app">속보 보기</a></section>
+</main>
+<footer class="wrap ft">Delfona — 시안 2 · 금고. 실시간 속보·시세는 실제 데이터예요. 투자 조언이 아니며, 지난 기록이 앞으로를 보장하지 않아요.</footer>
+<script src="../data.js"></script>
+<script>
+const { esc, ago, money, pct, vcls, day24 } = DFD, $ = (s) => document.querySelector(s);
+DFD.flash().then((d) => {
+  $('#upd').textContent = `${ago(d.at)} 갱신`; $('#live').textContent = `실시간 갱신 중 · ${ago(d.at)}`;
+  $('#rows').innerHTML = d.items.slice(0, 5).map((it) => `<li class="row"><span class="v ${vcls(it.v)}">${esc(it.v)}</span><p>${esc(it.ko)}</p><small>${[ago(it.t), ...it.coins, it.n > 1 ? `${it.n}곳 보도` : ''].filter(Boolean).map(esc).join(' · ')}</small></li>`).join('');
+  $('#n48').textContent = d.items.length + '건'; $('#nbig').textContent = d.items.filter((x) => x.s >= 2).length + '건';
+}).catch(() => {});
+DFD.prices(['BTC', 'ETH', 'SOL']).then((p) => {
+  $('#px').innerHTML = ['BTC', 'ETH', 'SOL'].map((s) => `<div><small>${s}</small><b>${money(p[s].p)}</b><em class="${p[s].c >= 0 ? 'up' : 'down'}">${pct(p[s].c, 1)}</em></div>`).join('');
+}).catch(() => {});
+</script>
+</body>
+</html>

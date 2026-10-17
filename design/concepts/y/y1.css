@@ -1,0 +1,9 @@
+.y1 { padding-top: 22px; padding-bottom: 72px; display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); } .y1 > * { min-width: 0; } .alerts { display: grid; gap: 10px; }
+.y1 .cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.acard { display: grid; gap: 8px; align-content: start; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); min-width: 0; }
+.acard .ah { display: flex; justify-content: space-between; align-items: start; gap: 8px; } .acard .ah p { display: grid; } .acard .ah b { font-family: var(--mono); font-size: 14px; } .acard .ah span { font-size: 12.5px; color: var(--mute); }
+.mystar.ic { width: 36px; height: 36px; padding: 0; justify-content: center; margin: -6px -6px 0 0; background: none; } 
+.acard .pr { font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; } .acard .pr .ch { font-size: 14px; } .acard .cl { margin-inline-start: 6px; font-size: 11.5px; color: var(--faint); }
+.acard canvas.spk { display: block; width: 100%; height: 40px; } .acard .ct { font-size: 12.5px; color: var(--mute); } .acard .ct b { color: var(--ink); font-weight: 650; } .acard .ct b.up { color: var(--up); } .acard .ct b.down { color: var(--down); }
+.acard .tl { display: flex; gap: 6px; align-items: start; text-align: start; font-size: 13.5px; line-height: 1.45; padding-top: 8px; border-top: 1px solid var(--line); } .acard .tl span:last-child { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+@media (hover: hover) { .acard .tl:hover span:last-child { color: var(--primary); } }

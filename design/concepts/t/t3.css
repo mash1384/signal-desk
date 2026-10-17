@@ -1,0 +1,9 @@
+.t3 { max-width: 800px; padding-top: 22px; padding-bottom: 72px; }
+.t3 .hero3 { margin-top: 22px; } .t3 .hero3 .k { font-size: 13px; font-weight: 600; color: var(--primary); }
+.t3 .hero3 h1 { margin-top: 10px; font-size: clamp(26px, 3.4vw, 38px); font-weight: 600; letter-spacing: -0.025em; line-height: 1.22; text-wrap: balance; }
+.t3 .src { display: grid; gap: 6px; width: 100%; margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); text-align: start; }
+.t3 .src .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } .t3 .src .ou { font-size: 12px; color: var(--faint); } .t3 .src .ln { font-size: 15px; font-weight: 600; line-height: 1.42; }
+.t3 .para { margin-top: 18px; display: grid; gap: 12px; font-size: 17px; line-height: 1.65; color: var(--ink2); }
+.t3 .blk { margin-top: 40px; } .t3 .blk > .tstat { margin-bottom: 10px; }
+
+.t3 .hero3 .more { margin-top: 14px; } .t3 .hero3 .chs { margin-top: 18px; }

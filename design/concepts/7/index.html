@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — News from anywhere. Signal for everyone.</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#06142b">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 7 · 궤도 v2 — "어디서 나온 소식이든, 모두에게 신호로".
+   로고의 점 = 지구 궤도를 도는 위성. 소식이 나온 곳 → 빛줄기가 위성으로 올라가 판정 → 세계 여러 도시로 동시에 퍼진다.
+   영어 기본, 한국어 전환. 짙은 남색 + 흰 점 + 청록 하나. */
+:root { --bg: #06142b; --bg2: #0a1c3a; --line: rgb(255 255 255 / 0.09); --t1: #eef3fb; --t2: #9fb0c8; --t3: #6c7f9b; --teal: #36e2d0; --up: #5fd6a1; --down: #ff8b78;
+  --sans: "Inter Tight", "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+:lang(ko) body { --sans: "Pretendard Variable", Pretendard, "Inter Tight", system-ui, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--t1); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+ul, ol { list-style: none; padding: 0; }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; }
+@media (min-width: 900px) { .wrap { padding-inline: 32px; } }
+.logo { display: inline-flex; align-items: center; gap: 10px; font-family: "Inter Tight", sans-serif; font-size: 20px; font-weight: 650; letter-spacing: -0.02em; }
+.logo svg { width: 30px; height: 30px; overflow: visible; }
+@media (prefers-reduced-motion: no-preference) { .logo .sat { animation: orbit 6s linear infinite; transform-origin: 15px 15px; } }
+@keyframes orbit { to { transform: rotate(360deg); } }
+.hd { position: absolute; top: 0; inset-inline: 0; z-index: 10; }
+.hd .wrap { display: flex; align-items: center; gap: 24px; height: 68px; }
+.nav { display: none; gap: 24px; font-size: 14px; color: var(--t2); }
+@media (min-width: 900px) { .nav { display: flex; } }
+.lang { margin-inline-start: auto; display: inline-flex; padding: 3px; border-radius: 99px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16); }
+.lang button { height: 30px; padding: 0 12px; border-radius: 99px; font-size: 13px; font-weight: 600; color: var(--t2); transition: background-color 150ms ease, color 150ms ease; }
+.lang button[aria-pressed='true'] { background: var(--t1); color: var(--bg); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 15px; font-weight: 650; transition: transform 160ms var(--ease), background-color 200ms ease; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--t1); color: var(--bg); }
+.btn.g { color: var(--t1); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); }
+@media (hover: hover) { .btn.g:hover { background: rgb(255 255 255 / 0.06); } }
+.hd .btn { display: none; height: 38px; }
+@media (min-width: 900px) { .hd .btn { display: inline-flex; } }
+/* 첫 화면 */
+.hero { position: relative; min-height: 100vh; min-height: 100dvh; display: grid; align-items: center; overflow: hidden; }
+.hero::after { content: ""; position: absolute; inset: auto 0 0; height: 26%; background: linear-gradient(transparent, var(--bg)); pointer-events: none; }
+.globe { position: absolute; z-index: 0; right: -4vw; top: 50%; width: min(920px, 66vw); aspect-ratio: 1; transform: translateY(-50%); }
+@media (max-width: 899px) { .hero { min-height: 122dvh; align-items: start; } .globe { right: 50%; top: 38%; width: 132vw; transform: translate(50%, 0); } }
+.globe canvas { width: 100%; height: 100%; }
+.copy { position: relative; z-index: 2; padding-block: 120px 80px; max-width: 36rem; }
+@media (max-width: 899px) { .copy { padding-block: 96px 0; } .copy .meta { display: none; } }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal); }
+.copy h1 { margin-top: 16px; font-size: clamp(40px, 6.2vw, 76px); font-weight: 700; line-height: 1.04; letter-spacing: -0.045em; }
+:lang(ko) .copy h1 { letter-spacing: -0.05em; line-height: 1.12; }
+.copy h1 span { display: block; color: var(--teal); }
+.copy .sub { margin-top: 18px; font-size: 18px; color: var(--t2); max-width: 31rem; }
+@media (max-width: 899px) { .copy .sub { font-size: 16px; } }
+.copy .btns { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+.copy .meta { margin-top: 24px; font-family: var(--mono); font-size: 12px; color: var(--t3); letter-spacing: 0.04em; }
+/* 신호 카드 */
+.sig { position: absolute; z-index: 3; right: 32px; bottom: 8vh; width: min(420px, calc(100vw - 40px)); padding: 16px 18px; border-radius: 16px; background: rgb(10 28 58 / 0.74); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12) inset, 0 20px 50px -20px rgb(0 0 0 / 0.6); transition: opacity 400ms var(--ease), transform 400ms var(--ease); }
+@media (max-width: 899px) { .sig { right: 20px; bottom: 3vh; } }
+.sig.out { opacity: 0; transform: translateY(8px); }
+.route { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; color: var(--t2); text-transform: uppercase; white-space: nowrap; }
+.route b { color: var(--t1); font-weight: 500; }
+.route .hub { color: var(--teal); }
+.route b { overflow: hidden; text-overflow: ellipsis; }
+.route i { min-width: 10px; }
+@media (max-width: 480px) { .route .hub, .route .hub + i { display: none; } }
+.route i { flex: 1; height: 1px; background: linear-gradient(90deg, rgb(54 226 208 / 0.6), rgb(54 226 208 / 0.1)); }
+.sig p { margin-top: 10px; font-size: 16px; font-weight: 600; line-height: 1.45; }
+.sig small { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; font-size: 12.5px; color: var(--t3); }
+.v { display: inline-flex; justify-content: center; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.v.up { background: rgb(95 214 161 / 0.14); color: var(--up); } .v.down { background: rgb(255 139 120 / 0.14); color: var(--down); } .v.flat { background: rgb(255 255 255 / 0.08); color: var(--t2); }
+/* 아래 */
+.sec { position: relative; padding-block: 90px; }
+.h2 { font-size: clamp(28px, 4vw, 46px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.15; }
+.lead { margin-top: 12px; max-width: 36rem; font-size: 17px; color: var(--t2); }
+.flow { display: grid; gap: 1px; margin-top: 40px; background: var(--line); border-radius: 18px; overflow: hidden; }
+@media (min-width: 900px) { .flow { grid-template-columns: repeat(3, 1fr); } }
+.flow li { padding: 26px; background: var(--bg2); }
+.flow .n { font-family: var(--mono); font-size: 12px; color: var(--teal); letter-spacing: 0.1em; }
+.flow b { display: block; margin-top: 10px; font-size: 20px; font-weight: 680; letter-spacing: -0.02em; }
+.flow span { display: block; margin-top: 6px; font-size: 15px; color: var(--t2); }
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; margin-top: 40px; background: var(--line); border-radius: 18px; overflow: hidden; }
+@media (min-width: 900px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+.stats div { padding: 26px; background: var(--bg2); }
+.stats b { display: block; font-size: clamp(30px, 3.6vw, 44px); font-weight: 650; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.stats span { font-size: 13.5px; color: var(--t3); }
+.regions { display: grid; gap: 10px; margin-top: 16px; }
+@media (min-width: 900px) { .regions { grid-template-columns: repeat(3, 1fr); } }
+.reg { padding: 20px; border-radius: 16px; background: var(--bg2); box-shadow: 0 0 0 1px var(--line) inset; }
+.reg .k { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--t2); text-transform: uppercase; letter-spacing: 0.06em; }
+.reg .k b { color: var(--teal); font-weight: 500; }
+.reg .bar { height: 6px; margin-top: 12px; border-radius: 99px; background: rgb(255 255 255 / 0.06); overflow: hidden; }
+.reg .bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--teal), #7fb8ff); transition: width 1200ms var(--ease); }
+.reg p { margin-top: 12px; font-size: 14.5px; color: var(--t2); line-height: 1.5; min-height: 3em; }
+.vows { display: grid; gap: 12px; margin-top: 36px; }
+@media (min-width: 900px) { .vows { grid-template-columns: repeat(3, 1fr); } }
+.vows li { padding: 22px; border-radius: 16px; box-shadow: 0 0 0 1px var(--line) inset; }
+.vows b { display: block; font-size: 17px; font-weight: 650; }
+.vows span { display: block; margin-top: 6px; font-size: 15px; color: var(--t2); }
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+.ft { padding-block: 30px 50px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--t3); }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="9" fill="none" stroke="#eef3fb" stroke-width="1.6"/><ellipse cx="15" cy="15" rx="13" ry="5" fill="none" stroke="#eef3fb" stroke-opacity="0.4" stroke-width="1.1" transform="rotate(-22 15 15)"/><g class="sat"><circle cx="27" cy="11" r="2.4" fill="#36e2d0"/></g></svg>Delfona</a>
+  <nav class="nav" aria-label="Menu"><a href="#how" data-t="navHow">How it works</a><a href="#world" data-t="navWorld">Where news breaks</a><a href="#vow" data-t="navVow">Principles</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-l="en" aria-pressed="true">EN</button><button type="button" data-l="ko" aria-pressed="false">한국어</button></div>
+  <a class="btn p" href="#world" data-t="cta">See live signals</a>
+</div></header>
+<main>
+  <section class="hero">
+    <div class="globe" aria-hidden="true"><canvas id="cv"></canvas></div>
+    <div class="wrap"><div class="copy">
+      <p class="eyebrow" data-t="eyebrow">Live crypto signal network</p>
+      <h1 data-t="h1" data-html>News from anywhere.<span>Signal for everyone.</span></h1>
+      <p class="sub" data-t="sub">Wherever a market-moving story breaks, Delfona reads it, judges it as positive or negative, and sends it to you in your language — with how many outlets reported it.</p>
+      <div class="btns"><a class="btn p" href="#world" data-t="cta">See live signals</a><a class="btn g" href="#how" data-t="how">How it works</a></div>
+      <p class="meta" id="meta">LIVE</p>
+    </div></div>
+    <div class="sig out" id="sig" role="status" aria-live="polite"><p class="route"><b id="from">–</b><i></i><b class="hub">Delfona</b><i></i><b id="to">–</b></p><p id="hl">–</p><small id="sm"></small></div>
+  </section>
+
+  <section class="sec wrap" id="how">
+    <h2 class="h2 reveal" data-t="howH">From a headline to a signal</h2>
+    <ol class="flow reveal">
+      <li><p class="n">01 · DETECT</p><b data-t="f1b">Every source, one stream</b><span data-t="f1s">News outlets, exchange notices and public newswires, collected around the clock. The same story from many places becomes one.</span></li>
+      <li><p class="n">02 · JUDGE</p><b data-t="f2b">Read and judged by AI</b><span data-t="f2s">Each story gets a one-line summary, a positive / negative / neutral call, the coins it touches and how big it is.</span></li>
+      <li><p class="n">03 · DELIVER</p><b data-t="f3b">To everyone, in their language</b><span data-t="f3s">English and Korean today. The same signal, the same evidence, wherever you are.</span></li>
+    </ol>
+  </section>
+
+  <section class="sec wrap" id="world" style="padding-top:20px">
+    <h2 class="h2 reveal" data-t="worldH">Where the news is breaking</h2>
+    <p class="lead reveal" data-t="worldL">Regions are inferred from the countries and institutions each story names. Last 48 hours, duplicates merged.</p>
+    <div class="stats reveal"><div><b id="s1">–</b><span data-t="st1">stories, last 48h</span></div><div><b id="s2">–</b><span data-t="st2">major stories</span></div><div><b id="s3">–</b><span data-t="st3">positive, 24h</span></div><div><b id="s4">–</b><span data-t="st4">negative, 24h</span></div></div>
+    <div class="regions" id="regions"></div>
+  </section>
+
+  <section class="sec wrap" id="vow" style="padding-top:20px">
+    <h2 class="h2 reveal" data-t="vowH">What matters more than speed</h2>
+    <ul class="vows">
+      <li class="reveal"><b data-t="v1b">No trade calls</b><span data-t="v1s">Positive or negative is an interpretation of the news, not a buy or sell signal.</span></li>
+      <li class="reveal"><b data-t="v2b">Evidence attached</b><span data-t="v2s">How many outlets reported it, links to the original article or official notice, and when it was updated.</span></li>
+      <li class="reveal"><b data-t="v3b">Honest about errors</b><span data-t="v3s">Article calls were validated on 1,000 pre-labelled stories; newswire calls are being validated the same way. The AI can be wrong.</span></li>
+    </ul>
+  </section>
+</main>
+<footer class="wrap ft" data-t="ft">Delfona — preview 7 · Orbit v2. Signals on the globe are real; regions are inferred from words in each story. Not investment advice.</footer>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-array@3/dist/d3-array.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-geo@3/dist/d3-geo.min.js"></script>
+<script src="../data.js"></script>
+<script>
+const { esc, vcls, day24 } = DFD, $ = (s) => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// ---------- 언어 ----------
+const T = {
+  en: {}, // 영어는 HTML에 쓴 문장 그대로
+  ko: {
+    navHow: '작동 방식', navWorld: '어디서 나오나', navVow: '원칙', cta: '실시간 신호 보기', eyebrow: '실시간 크립토 신호 네트워크',
+    h1: '어디서 나온 소식이든,<span>모두에게 신호로</span>', how: '작동 방식',
+    sub: '시장을 움직일 소식이 세계 어디서 나오든, Delfona가 읽고 호재·악재를 판정해 당신의 언어로 보내요. 몇 곳이 보도했는지도 함께.',
+    howH: '한 줄의 소식이 신호가 되기까지', f1b: '모든 출처를 한 흐름으로', f1s: '언론사 기사, 거래소 공지, 공개 속보를 하루 종일 모아요. 여러 곳의 같은 소식은 하나로 묶어요.',
+    f2b: 'AI가 읽고 판정', f2s: '소식마다 한 줄 요약, 호재·악재·중립 판정, 관련 코인, 크기를 붙여요.',
+    f3b: '모두에게, 각자의 언어로', f3s: '지금은 영어와 한국어. 어디에 있든 같은 신호, 같은 근거.',
+    worldH: '지금 소식이 나오는 곳', worldL: '소식에 나온 나라·기관 이름으로 지역을 추정했어요. 지난 48시간, 같은 소식은 하나로 셌어요.',
+    st1: '지난 48시간 소식', st2: '큰 소식', st3: '호재 · 24시간', st4: '악재 · 24시간',
+    vowH: '빠른 것보다 중요한 것', v1b: '매매를 권하지 않아요', v1s: '호재·악재는 소식에 대한 해석이에요. 사라, 팔라는 신호가 아니에요.',
+    v2b: '근거를 붙여요', v2s: '몇 곳이 보도했는지, 원문 기사·공식 공지 링크, 갱신 시각을 함께 적어요.',
+    v3b: '틀릴 수 있다고 말해요', v3s: '기사 판정은 정답을 달아 둔 1,000건으로 검증했고, 속보 판정도 같은 방식으로 검증해 나가요. AI는 틀릴 수 있어요.',
+    ft: 'Delfona — 미리보기 7 · 궤도 v2. 지구 위 신호는 실제 데이터이고, 지역은 소식 속 낱말로 추정했어요. 투자 조언이 아니에요.',
+  },
+};
+const EN = {}; document.querySelectorAll('[data-t]').forEach((el) => { EN[el.dataset.t] = el.hasAttribute('data-html') ? el.innerHTML : el.textContent; });
+let LANG = /^ko/i.test(navigator.language) ? 'ko' : 'en';
+try { LANG = localStorage.getItem('df-lang') || LANG; } catch (e) {}
+const V = { en: { '호재': 'Positive', '악재': 'Negative', '중립': 'Neutral' }, ko: { '호재': '호재', '악재': '악재', '중립': '중립' } };
+const REGN = { us: ['United States', '미국'], me: ['Middle East', '중동'], eu: ['Europe', '유럽'], ru: ['Russia–Ukraine', '러시아·우크라이나'], cn: ['China–HK', '중국·홍콩'], jp: ['Japan', '일본'], kr: ['Korea', '한국'], gl: ['Other', '기타 지역'] };
+const rn = (k) => REGN[k][LANG === 'ko' ? 1 : 0];
+function setLang(l) {
+  LANG = l; document.documentElement.lang = l;
+  try { localStorage.setItem('df-lang', l); } catch (e) {}
+  document.querySelectorAll('.lang button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.l === l)));
+  document.querySelectorAll('[data-t]').forEach((el) => { const s = (T[l] || {})[el.dataset.t] ?? EN[el.dataset.t]; if (el.hasAttribute('data-html')) el.innerHTML = s; else el.textContent = s; });
+  document.title = l === 'ko' ? 'Delfona — 어디서 나온 소식이든, 모두에게 신호로' : 'Delfona — News from anywhere. Signal for everyone.';
+  if (D) { stats(D); meta(D); }
+}
+document.querySelector('.lang').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setLang(b.dataset.l); });
+const ago = (t) => { const s = Date.now() / 1000 - t, ko = LANG === 'ko'; return s < 60 ? (ko ? '방금' : 'just now') : s < 3600 ? (ko ? `${Math.floor(s / 60)}분 전` : `${Math.floor(s / 60)}m ago`) : (ko ? `${Math.floor(s / 3600)}시간 전` : `${Math.floor(s / 3600)}h ago`); };
+let ENT = {}; fetch('en.json').then((r) => r.json()).then((m) => { ENT = m; }).catch(() => {});
+const line = (it) => (LANG === 'en' ? ENT[it.id] || it.ko : it.ko);
+// 지역(소식이 다루는 곳)과 도시
+const REG = [
+  { k: 'us', at: [-77.0, 38.9], re: /미국|연준|트럼프|SEC|CFTC|월가|뉴욕|나스닥|S&P|백악관|의회|ETF|파월|코인베이스|블랙록|마이크로소프트|엔비디아|구글|애플|테슬라|아마존|메타|오픈AI|JP모건|골드만|스트래티지|세일러|코어위브/ },
+  { k: 'me', at: [46.7, 24.7], re: /이란|사우디|이스라엘|중동|예멘|후티|카타르|두바이|UAE|호르무즈/ },
+  { k: 'eu', at: [8.7, 50.1], re: /유럽|EU|ECB|독일|프랑스|영국|런던|스위스|이탈리아|스페인|네덜란드|ASML/ },
+  { k: 'ru', at: [30.5, 50.45], re: /러시아|우크라이나|크렘린|젤렌스키|푸틴/ },
+  { k: 'cn', at: [114.2, 22.3], re: /중국|홍콩|베이징|위안|HTX|ZHIPU|즈푸/ },
+  { k: 'jp', at: [139.7, 35.7], re: /일본|BOJ|엔화|도쿄|메타플래닛/ },
+  { k: 'kr', at: [126.98, 37.57], re: /한국|업비트|빗썸|금융위|원화|코스피/ },
+];
+const region = (t) => REG.find((r) => r.re.test(t)) || { k: 'gl', at: [103.8, 1.35] };
+const CITIES = [['New York', '뉴욕', -74.0, 40.7], ['London', '런던', -0.13, 51.5], ['Dubai', '두바이', 55.3, 25.2], ['Singapore', '싱가포르', 103.8, 1.35], ['Seoul', '서울', 126.98, 37.57], ['Tokyo', '도쿄', 139.7, 35.7], ['São Paulo', '상파울루', -46.6, -23.5], ['Sydney', '시드니', 151.2, -33.9], ['Lagos', '라고스', 3.4, 6.5], ['Mumbai', '뭄바이', 72.9, 19.1]];
+
+// ---------- 점 지구 + 궤도 위성 ----------
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let dots = [], rot = [-20, -20], target = null, dpr = Math.min(2, devicePixelRatio || 1), S = 0, satA = 0, ev = null;
+function size() { const r = cv.getBoundingClientRect(); S = r.width; cv.width = S * dpr; cv.height = S * dpr; }
+size(); addEventListener('resize', size);
+async function landDots() {
+  try { const c = sessionStorage.getItem('df-dots'); if (c) return JSON.parse(c); } catch (e) {}
+  const topo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+  const land = topojson.feature(topo, topo.objects.land), pts = [];
+  for (let lat = -80; lat <= 82; lat += 2.2) { const step = 2.2 / Math.max(0.25, Math.cos(lat * Math.PI / 180)); for (let lon = -180; lon < 180; lon += step) if (d3.geoContains(land, [lon, lat])) pts.push([+lon.toFixed(2), +lat.toFixed(2)]); }
+  try { sessionStorage.setItem('df-dots', JSON.stringify(pts)); } catch (e) {}
+  return pts;
+}
+const proj = () => d3.geoOrthographic().scale(S * 0.42 * dpr).translate([S * dpr / 2, S * dpr / 2]).rotate([rot[0], rot[1]]).clipAngle(90);
+const satPos = (a, c, R) => { const rx = R * 1.16, ry = R * 0.44, tilt = -0.36, x = Math.cos(a) * rx, y = Math.sin(a) * ry; return { x: c + x * Math.cos(tilt) - y * Math.sin(tilt), y: c + x * Math.sin(tilt) + y * Math.cos(tilt), front: Math.sin(a) > 0 }; };
+function curve(a, b, bend) { const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1; return { cx: mx - dy / L * L * bend, cy: my + dx / L * L * bend }; }
+function strokeTo(a, b, k, bend, col, w) {
+  const q = curve(a, b, bend); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(a.x, a.y);
+  const N = 32; for (let i = 1; i <= N * k; i++) { const t = i / N, x = (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * q.cx + t * t * b.x, y = (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * q.cy + t * t * b.y; ctx.lineTo(x, y); }
+  ctx.stroke();
+}
+function frame(now) {
+  if (target) { rot[0] += (target[0] - rot[0]) * 0.03; rot[1] += (target[1] - rot[1]) * 0.03; } else if (!reduce) rot[0] += 0.04;
+  if (!reduce) satA += 0.0045;
+  const p = proj(), W = cv.width, c = W / 2, R = S * 0.42 * dpr, center = [-rot[0], -rot[1]], sat = satPos(satA, c, R);
+  ctx.clearRect(0, 0, W, W);
+  const orbit = (front) => { ctx.strokeStyle = `rgba(238,243,251,${front ? 0.22 : 0.08})`; ctx.lineWidth = dpr; ctx.beginPath();
+    for (let i = 0; i <= 120; i++) { const a = (front ? 0 : Math.PI) + (i / 120) * Math.PI, q = satPos(a, c, R); i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); } ctx.stroke(); };
+  const drawSat = () => { ctx.shadowColor = 'rgba(54,226,208,0.9)'; ctx.shadowBlur = 14 * dpr; ctx.fillStyle = '#36e2d0'; ctx.beginPath(); ctx.arc(sat.x, sat.y, 4.4 * dpr, 0, 7); ctx.fill(); ctx.shadowBlur = 0; };
+  orbit(false); if (!sat.front) drawSat();
+  const g = ctx.createRadialGradient(c - R * 0.3, c - R * 0.35, R * 0.1, c, c, R); g.addColorStop(0, 'rgba(40,80,140,0.38)'); g.addColorStop(1, 'rgba(6,20,43,0.95)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = dpr; ctx.stroke();
+  for (const d of dots) { const dist = d3.geoDistance(d, center); if (dist > Math.PI / 2) continue; const xy = p(d); ctx.fillStyle = `rgba(220,232,250,${0.14 + Math.cos(dist) * 0.55})`; ctx.fillRect(xy[0], xy[1], 1.6 * dpr, 1.6 * dpr); }
+  const vis = (ll) => d3.geoDistance(ll, center) < Math.PI / 2 - 0.05;
+  for (const [, , lon, lat] of CITIES) { if (!vis([lon, lat])) continue; const q = p([lon, lat]); ctx.fillStyle = 'rgba(238,243,251,0.75)'; ctx.beginPath(); ctx.arc(q[0], q[1], 2 * dpr, 0, 7); ctx.fill(); }
+  // 신호 한 건: 0~1.2초 출처 → 위성, 1.2~1.6초 위성 반짝, 1.6~3.2초 위성 → 도시들, 이후 서서히 사라짐
+  if (ev) {
+    const e = now - ev.t0, fade = e > 3800 ? Math.max(0, 1 - (e - 3800) / 900) : 1;
+    if (vis(ev.from)) { const f = p(ev.from), A = { x: f[0], y: f[1] };
+      ctx.fillStyle = `rgba(255,255,255,${fade})`; ctx.beginPath(); ctx.arc(A.x, A.y, 3.4 * dpr, 0, 7); ctx.fill();
+      const pr = (e % 1400) / 1400; ctx.strokeStyle = `rgba(255,255,255,${(1 - pr) * 0.6 * fade})`; ctx.lineWidth = 1.2 * dpr; ctx.beginPath(); ctx.arc(A.x, A.y, (4 + pr * 16) * dpr, 0, 7); ctx.stroke();
+      ctx.shadowColor = 'rgba(54,226,208,0.7)'; ctx.shadowBlur = 10 * dpr; strokeTo(A, sat, Math.min(1, e / 1200), 0.18, `rgba(54,226,208,${0.9 * fade})`, 2 * dpr); ctx.shadowBlur = 0; }
+    if (e > 1200 && e < 2000) { const k = (e - 1200) / 800; ctx.strokeStyle = `rgba(54,226,208,${1 - k})`; ctx.lineWidth = 2 * dpr; ctx.beginPath(); ctx.arc(sat.x, sat.y, (6 + k * 34) * dpr, 0, 7); ctx.stroke(); }
+    if (e > 1600) { const k = Math.min(1, (e - 1600) / 1500);
+      ev.to.forEach((ci, i) => { const q = p([ci[2], ci[3]]), B = { x: q[0], y: q[1] }, kk = Math.max(0, Math.min(1, k * 1.3 - i * 0.08));
+        strokeTo(sat, B, kk, -0.12, `rgba(54,226,208,${0.5 * fade})`, 1.3 * dpr);
+        if (kk >= 1) { ctx.fillStyle = `rgba(54,226,208,${fade})`; ctx.beginPath(); ctx.arc(B.x, B.y, 3 * dpr, 0, 7); ctx.fill(); } }); }
+  }
+  orbit(true); if (sat.front) drawSat();
+  requestAnimationFrame(frame);
+}
+// 한 건씩: 출처가 보이게 지구를 돌리고 → 위성 → 보이는 도시들로
+let Q = [], qi = 0, D = null;
+function send() {
+  if (!Q.length) return;
+  const it = Q[qi++ % Q.length], r = region(it.ko);
+  target = [-r.at[0] + 25, Math.max(-30, Math.min(30, -r.at[1] * 0.6))];
+  $('#sig').classList.add('out');
+  setTimeout(() => {
+    const center = [-target[0], -target[1]];
+    const to = CITIES.filter((ci) => d3.geoDistance([ci[2], ci[3]], center) < Math.PI / 2 - 0.15).slice(0, 5);
+    ev = { from: r.at, to, t0: performance.now() };
+    setTimeout(() => {
+      $('#from').textContent = rn(r.k); $('#to').textContent = LANG === 'ko' ? `${to.length}개 도시` : `${to.length} cities`;
+      $('#hl').textContent = line(it);
+      $('#sm').innerHTML = `<span class="v ${vcls(it.v)}">${V[LANG][it.v]}</span><span>${ago(it.t)}${it.n > 1 ? (LANG === 'ko' ? ` · ${it.n}곳 보도` : ` · ${it.n} outlets`) : ''}${it.coins.length ? ' · ' + it.coins.slice(0, 3).map(esc).join(' ') : ''}</span>`;
+      $('#sig').classList.remove('out');
+    }, 1900);
+  }, 900);
+}
+function meta(d) { $('#meta').textContent = LANG === 'ko' ? `LIVE · ${ago(d.at)} 갱신 · 48시간 ${d.items.length}건` : `LIVE · updated ${ago(d.at)} · ${d.items.length} stories in 48h`; }
+Promise.all([landDots(), DFD.flash()]).then(([pts, d]) => {
+  dots = pts; D = d; requestAnimationFrame(frame); setLang(LANG);
+  Q = d.items.filter((it) => it.v !== '중립' || it.s >= 2).slice(0, 24);
+  send(); setInterval(() => { if (!document.hidden) send(); }, reduce ? 9000 : 6200);
+}).catch(() => { requestAnimationFrame(frame); setLang(LANG); });
+setInterval(() => { if (document.hidden) return; DFD.flash().then((d) => { D = d; meta(d); const fresh = d.items.filter((it) => !Q.some((x) => x.id === it.id) && it.v !== '중립').slice(0, 3); if (fresh.length) { Q = fresh.concat(Q).slice(0, 24); qi = 0; } }).catch(() => {}); }, 30000);
+
+let STATS = null;
+function stats(d) {
+  const c = day24(d.items);
+  const cnt = (el, to) => { if (reduce || el.dataset.done) { el.textContent = to; return; } el.dataset.done = 1; const t0 = performance.now(); const f = (n) => { const p = Math.min(1, (n - t0) / 1400); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); };
+  const by = {}; d.items.forEach((it) => { const r = region(it.ko).k; (by[r] ||= []).push(it); });
+  // 지역을 알 수 없는 소식(기타)은 맨 뒤로
+  const top = Object.entries(by).sort((a, b) => (a[0] === 'gl') - (b[0] === 'gl') || b[1].length - a[1].length).slice(0, 6), mx = Math.max(1, ...top.filter(([k]) => k !== 'gl').map(([, xs]) => xs.length));
+  const ul = LANG === 'ko' ? '건' : '';
+  $('#regions').innerHTML = top.map(([k, xs]) => `<article class="reg reveal in"><p class="k"><span>${esc(rn(k))}</span><b>${xs.length}${ul}</b></p><div class="bar"><i style="width:${Math.min(100, xs.length / mx * 100).toFixed(0)}%"></i></div><p>${esc(line(xs[0]))}</p></article>`).join('');
+  STATS = () => { cnt($('#s1'), d.items.length); cnt($('#s2'), d.items.filter((x) => x.s >= 2).length); cnt($('#s3'), c.u); cnt($('#s4'), c.d); };
+  if ($('.stats').classList.contains('in')) STATS();
+}
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; e.target.classList.add('in'); io.unobserve(e.target); if (e.target.classList.contains('stats') && STATS) STATS(); }), { threshold: 0.2 });
+document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

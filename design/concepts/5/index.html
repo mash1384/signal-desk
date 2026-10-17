@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — 시안 5 · 오로라</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#07080a">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 5 · 오로라 — 어두운 고급 톤. 아주 느린 빛(청록·샴페인 금)이 흐르는 검은 바탕 위에,
+   기울어진 유리 기기 화면 속에서 실제 Delfona가 돌아간다(마우스를 따라 살짝 기운다).
+   스크롤하면 왼쪽 설명이 바뀌는 동안 기기 화면이 속보 → 정리 → 코인 → 레이더로 바뀐다. 강조색은 샴페인 금 하나. */
+:root { --bg: #07080a; --s1: #0f1115; --line: rgb(255 255 255 / 0.08); --line2: rgb(255 255 255 / 0.14); --t1: #f2f2f0; --t2: #a6a8ad; --t3: #6e7076;
+  --gold: #d8b677; --gold2: #f0dcae; --up: #5fd3a0; --down: #f08a74;
+  --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; --latin: "Inter Tight", "Pretendard Variable", sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--t1); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 20px; }
+@media (min-width: 900px) { .wrap { padding-inline: 32px; } }
+/* 빛 */
+.aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.aurora i { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.42; }
+.aurora i:nth-child(1) { width: 60vw; height: 40vw; left: -10vw; top: -14vw; background: radial-gradient(closest-side, #1f6f6a, transparent); }
+.aurora i:nth-child(2) { width: 50vw; height: 36vw; right: -12vw; top: 10vh; background: radial-gradient(closest-side, #6b5428, transparent); }
+.aurora i:nth-child(3) { width: 44vw; height: 30vw; left: 30vw; bottom: -14vw; background: radial-gradient(closest-side, #1a3b66, transparent); }
+@media (prefers-reduced-motion: no-preference) { .aurora i:nth-child(1) { animation: a1 22s ease-in-out infinite alternate; } .aurora i:nth-child(2) { animation: a2 27s ease-in-out infinite alternate; } .aurora i:nth-child(3) { animation: a1 31s ease-in-out infinite alternate-reverse; } }
+@keyframes a1 { to { transform: translate(12vw, 6vw) scale(1.15); } } @keyframes a2 { to { transform: translate(-10vw, 8vw) scale(0.9); } }
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+main, .hd, .ft { position: relative; z-index: 2; }
+/* 머리 */
+.logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--latin); font-size: 19px; font-weight: 600; letter-spacing: 0.02em; }
+.logo svg { width: 28px; height: 28px; }
+.hd { position: sticky; top: 0; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgb(7 8 10 / 0.55); border-bottom: 1px solid var(--line); }
+.hd .wrap { display: flex; align-items: center; gap: 28px; height: 64px; }
+.nav { display: none; gap: 24px; font-size: 14px; color: var(--t2); }
+@media (min-width: 900px) { .nav { display: flex; } }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 15px; font-weight: 600; transition: transform 160ms var(--ease), box-shadow 200ms ease, background-color 200ms ease; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: linear-gradient(180deg, var(--gold2), var(--gold)); color: #1b1408; box-shadow: 0 0 0 1px rgb(240 220 174 / 0.4) inset, 0 10px 30px -12px rgb(216 182 119 / 0.6); }
+.btn.g { color: var(--t1); box-shadow: inset 0 0 0 1px var(--line2); }
+@media (hover: hover) { .btn.p:hover { box-shadow: 0 0 0 1px rgb(240 220 174 / 0.5) inset, 0 14px 40px -10px rgb(216 182 119 / 0.75); } .btn.g:hover { background: rgb(255 255 255 / 0.05); } }
+.hd .btn { margin-inline-start: auto; height: 38px; }
+/* 첫 화면 */
+.hero { padding-block: 72px 40px; text-align: center; }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+.eyebrow i { width: 24px; height: 1px; background: var(--gold); }
+.hero h1 { margin-top: 18px; font-size: clamp(38px, 6.8vw, 80px); font-weight: 650; line-height: 1.08; letter-spacing: -0.045em; }
+.hero h1 span { background: linear-gradient(90deg, var(--t1), var(--gold2) 60%, var(--gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero .sub { margin: 18px auto 0; max-width: 36rem; font-size: 18px; color: var(--t2); }
+.hero .btns { display: flex; justify-content: center; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+.fade { opacity: 0; transform: translateY(14px); filter: blur(6px); animation: fade 900ms var(--ease) forwards; }
+.fade:nth-child(2) { animation-delay: 120ms; } .fade:nth-child(3) { animation-delay: 240ms; } .fade:nth-child(4) { animation-delay: 360ms; }
+@keyframes fade { to { opacity: 1; transform: none; filter: none; } }
+/* 유리 기기 */
+.stage { perspective: 1400px; margin-top: 56px; }
+.device { position: relative; width: min(980px, 100%); margin: 0 auto; text-align: start; border-radius: 22px; padding: 10px; background: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.03)); box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12) inset, 0 60px 120px -40px rgb(0 0 0 / 0.9), 0 0 80px -20px rgb(216 182 119 / 0.18); transform: rotateX(18deg) scale(0.96); transform-style: preserve-3d; transition: transform 900ms var(--ease); will-change: transform; }
+.device.flat { transform: rotateX(0) scale(1); }
+.screen { position: relative; border-radius: 14px; background: #0c0e12; box-shadow: 0 0 0 1px var(--line) inset; overflow: hidden; height: clamp(380px, 56vh, 540px); }
+.bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--t2); }
+.bar i { width: 9px; height: 9px; border-radius: 50%; background: #2a2c31; }
+.bar b { margin-inline-start: 10px; color: var(--t1); font-weight: 600; }
+.bar span { margin-inline-start: auto; font-family: var(--mono); font-size: 11.5px; color: var(--t3); }
+.view { position: absolute; inset: 46px 0 0; padding: 18px 20px; opacity: 0; transform: translateY(10px); transition: opacity 500ms var(--ease), transform 500ms var(--ease); }
+.view.on { opacity: 1; transform: none; }
+.row { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 2px 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.v { align-self: start; display: inline-flex; justify-content: center; padding: 2px 0; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.v.up { background: rgb(95 211 160 / 0.12); color: var(--up); } .v.down { background: rgb(240 138 116 / 0.13); color: var(--down); } .v.flat { background: rgb(255 255 255 / 0.06); color: var(--t2); }
+.row p { font-size: 15px; font-weight: 550; line-height: 1.5; }
+.row small { grid-column: 2; font-family: var(--mono); font-size: 11px; color: var(--t3); }
+.row.new { animation: newrow 1.6s var(--ease); }
+@keyframes newrow { from { background: rgb(216 182 119 / 0.12); } }
+.brief .k { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; }
+.brief h3 { margin-top: 10px; font-size: clamp(22px, 2.6vw, 30px); font-weight: 650; line-height: 1.35; letter-spacing: -0.03em; }
+.brief p { margin-top: 12px; font-size: 15px; color: var(--t2); line-height: 1.7; }
+.bal { display: flex; gap: 4px; height: 8px; margin-top: 18px; }
+.bal i { border-radius: 99px; } .bal i:first-child { background: var(--up); } .bal i:last-child { background: var(--down); }
+.coin { display: grid; gap: 14px; }
+.coin .p { font-family: var(--latin); font-size: clamp(36px, 5vw, 56px); font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.coin svg { width: 100%; height: 150px; }
+.coin .ln { fill: none; stroke: var(--gold); stroke-width: 2; }
+.radar .k { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; }
+.radar .cd { margin-top: 10px; font-family: var(--latin); font-size: clamp(44px, 7vw, 84px); font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.radar p { color: var(--t2); }
+/* 스크롤 이야기 */
+.tour { position: relative; }
+.tour .grid { display: grid; gap: 0; }
+@media (min-width: 1000px) { .tour .grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 48px; } }
+.steps li { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; opacity: 0.3; transition: opacity 500ms var(--ease); }
+.steps li.on { opacity: 1; }
+.steps .n { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; color: var(--gold); }
+.steps h2 { margin-top: 10px; font-size: clamp(28px, 3.6vw, 44px); font-weight: 650; letter-spacing: -0.04em; line-height: 1.15; }
+.steps p { margin-top: 12px; max-width: 26rem; font-size: 17px; color: var(--t2); }
+.sticky { position: sticky; top: 12vh; height: 76vh; display: none; align-items: center; }
+@media (min-width: 1000px) { .sticky { display: flex; } .steps li { min-height: 90vh; } }
+.sticky .device { transform: none; }
+@media (max-width: 999px) { .steps li { min-height: auto; padding-block: 40px; opacity: 1; } }
+/* 약속 */
+.vow { padding-block: 100px; text-align: center; }
+.vow h2 { font-size: clamp(28px, 4vw, 48px); font-weight: 650; letter-spacing: -0.04em; line-height: 1.2; }
+.vow ul { display: grid; gap: 1px; margin-top: 40px; background: var(--line); border-radius: 18px; overflow: hidden; text-align: start; }
+@media (min-width: 900px) { .vow ul { grid-template-columns: repeat(3, 1fr); } }
+.vow li { padding: 26px; background: rgb(15 17 21 / 0.92); }
+.vow li b { display: block; font-size: 18px; font-weight: 650; }
+.vow li span { display: block; margin-top: 6px; color: var(--t2); font-size: 15px; }
+.vow li svg { width: 22px; height: 22px; margin-bottom: 14px; fill: none; stroke: var(--gold); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ft { padding-block: 30px 50px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--t3); }
+@media (prefers-reduced-motion: reduce) { .fade { animation: none; opacity: 1; transform: none; filter: none; } .device { transform: none; transition: none; } .view { transition: none; } }
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="grain" aria-hidden="true"></div>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 28 28" aria-hidden="true"><defs><linearGradient id="lg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#f0dcae"/><stop offset="1" stop-color="#b8924f"/></linearGradient></defs><path d="M14 2 25 8.5v11L14 26 3 19.5v-11Z" fill="none" stroke="url(#lg)" stroke-width="1.6"/><path d="M10 9.5h3.2a4.5 4.5 0 0 1 0 9H10Z" fill="url(#lg)"/></svg>DELFONA</a>
+  <nav class="nav" aria-label="메뉴"><a href="#tour">둘러보기</a><a href="#vow">원칙</a></nav>
+  <a class="btn p" href="#tour">시작하기</a>
+</div></header>
+<main>
+  <section class="hero wrap">
+    <p class="eyebrow fade"><i aria-hidden="true"></i>Crypto intelligence, in Korean<i aria-hidden="true"></i></p>
+    <h1 class="fade">시장을 움직이는 소식을<br><span>가장 먼저, 가장 정확하게</span></h1>
+    <p class="sub fade">국내외 속보를 AI가 바로 한국어로 옮기고 호재·악재를 붙여요. 근거는 숨기지 않아요.</p>
+    <div class="btns fade"><a class="btn p" href="#tour">실시간 화면 보기</a><a class="btn g" href="#vow">우리의 원칙</a></div>
+    <div class="stage"><div class="device" id="dev">
+      <div class="screen"><div class="bar"><i></i><i></i><i></i><b>실시간 속보</b><span id="upd">–</span></div>
+        <div class="view on" id="heroFeed"></div></div>
+    </div></div>
+  </section>
+
+  <section class="tour wrap" id="tour"><div class="grid">
+    <ol class="steps" id="steps">
+      <li data-v="0"><p class="n">01 · LIVE</p><h2>해외 속보도<br>바로 한국어로</h2><p>국내외 속보가 들어오면 몇 초 안에 한국어 한 줄과 호재·악재 판정이 붙어요. 같은 소식은 하나로 묶어요.</p></li>
+      <li data-v="1"><p class="n">02 · BRIEF</p><h2>매일 아침 9시,<br>어제를 한 장으로</h2><p>숫자는 프로그램이 세고, AI는 문장만 써요. 자료에 없는 숫자는 쓰지 않아요.</p></li>
+      <li data-v="2"><p class="n">03 · COINS</p><h2>내 코인의 가격과<br>그 코인 소식만</h2><p>별표한 코인의 시세와, 그 코인을 다룬 소식을 따로 모아 보여 줘요.</p></li>
+      <li data-v="3"><p class="n">04 · RADAR</p><h2>큰 발표 전에,<br>지난 기록을</h2><p>미국 큰 경제 발표 때 비트코인이 얼마나 흔들렸는지, 남은 시간과 함께 보여 줘요.</p></li>
+    </ol>
+    <div class="sticky"><div class="device flat" style="width:100%">
+      <div class="screen"><div class="bar"><i></i><i></i><i></i><b id="tabName">실시간 속보</b><span>Delfona</span></div>
+        <div class="view on" id="v0"></div>
+        <div class="view brief" id="v1"><p class="k" id="bk">어제 하루 정리</p><h3 id="bh">–</h3><p id="br"></p><div class="bal" id="bb"><i style="flex:1"></i><i style="flex:1"></i></div></div>
+        <div class="view coin" id="v2"><p class="k" style="font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:var(--gold)">BITCOIN · 24H</p><p class="p" id="cp">–</p><svg id="cs" viewBox="0 0 600 150" preserveAspectRatio="none" aria-hidden="true"></svg><div id="cf"></div></div>
+        <div class="view radar" id="v3"><p class="k">Next release</p><p class="cd" id="rc">–</p><p id="rs"></p></div>
+      </div>
+    </div></div>
+  </div></section>
+
+  <section class="vow wrap" id="vow">
+    <h2>우리가 지키는 것</h2>
+    <ul>
+      <li><svg viewBox="0 0 22 22"><path d="M11 2 19 6v6c0 4.5-3.4 7.6-8 8-4.6-.4-8-3.5-8-8V6Z"/></svg><b>매매를 권하지 않아요</b><span>호재·악재는 해석이에요. 사라, 팔라는 말은 쓰지 않아요.</span></li>
+      <li><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="8"/><path d="M11 7v4l3 2"/></svg><b>근거를 남겨요</b><span>갱신 시각, 몇 곳이 보도했는지, 원문 기사·공식 공지 링크를 함께 적어요.</span></li>
+      <li><svg viewBox="0 0 22 22"><path d="m5 11 4 4 8-8"/></svg><b>틀릴 수 있다고 말해요</b><span>기사 판정은 정답을 달아 둔 1,000건으로 검증했고, 속보 판정도 검증해 나가요.</span></li>
+    </ul>
+  </section>
+</main>
+<footer class="wrap ft">Delfona — 시안 5 · 오로라. 화면 속 속보·시세·정리는 실제 데이터예요. 투자 조언이 아니에요.</footer>
+<script src="../data.js"></script>
+<script>
+const { esc, ago, hm, money, pct, vcls, left } = DFD, $ = (s) => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let F = [], seen = null;
+const row = (it, isNew) => `<div class="row${isNew ? ' new' : ''}"><span class="v ${vcls(it.v)}">${esc(it.v)}</span><p>${esc(it.ko)}</p><small>${[ago(it.t), ...it.coins.slice(0, 3), it.n > 1 ? `${it.n}곳 보도` : ''].filter(Boolean).map(esc).join(' · ')}</small></div>`;
+// 첫 화면 기기: 스크롤하면 기울기가 펴지고, 마우스를 따라 살짝 기운다
+const dev = $('#dev');
+const flatOn = () => dev.classList.toggle('flat', scrollY > 60);
+addEventListener('scroll', flatOn, { passive: true });
+if (!reduce && matchMedia('(hover: hover)').matches) addEventListener('mousemove', (e) => {
+  if (!dev.classList.contains('flat')) return;
+  const x = (e.clientX / innerWidth - 0.5) * 6, y = (e.clientY / innerHeight - 0.5) * -6;
+  dev.style.transform = `rotateX(${y}deg) rotateY(${x}deg)`;
+});
+addEventListener('scroll', () => { if (!dev.classList.contains('flat')) dev.style.transform = ''; }, { passive: true });
+setTimeout(flatOn, 1200);
+// 이야기: 지금 보이는 단계에 맞춰 기기 화면을 바꾼다
+const NAMES = ['실시간 속보', '하루 정리', '코인 · 비트코인', '발표 레이더'];
+const io = new IntersectionObserver((es) => es.forEach((e) => {
+  if (!e.isIntersecting) return;
+  const k = +e.target.dataset.v;
+  document.querySelectorAll('#steps li').forEach((li) => li.classList.toggle('on', li === e.target));
+  document.querySelectorAll('.sticky .view').forEach((v, i) => v.classList.toggle('on', i === k));
+  $('#tabName').textContent = NAMES[k];
+}), { rootMargin: '-45% 0px -45% 0px' });
+document.querySelectorAll('#steps li').forEach((li) => io.observe(li));
+
+async function load() {
+  try {
+    const d = await DFD.flash(); F = d.items;
+    $('#upd').textContent = `${ago(d.at)} 갱신`;
+    $('#heroFeed').innerHTML = d.items.slice(0, 7).map((it) => row(it, seen && !seen.has(it.id))).join('');
+    $('#v0').innerHTML = d.items.slice(0, 7).map((it) => row(it)).join('');
+    $('#cf').innerHTML = d.items.filter((it) => it.coins.includes('BTC')).slice(0, 2).map((it) => row(it)).join('');
+    seen = new Set(d.items.map((x) => x.id));
+  } catch (e) {}
+}
+load(); setInterval(() => { if (!document.hidden) load(); }, 30000);
+DFD.brief().then((b) => { $('#bk').textContent = (b.made < b.end ? '오늘 지금까지 정리 · ' : '어제 하루 정리 · ') + b.date; $('#bh').textContent = b.headline; $('#br').textContent = b.review;
+  $('#bb').innerHTML = `<i style="flex:${b.balance['호재']}"></i><i style="flex:${b.balance['악재']}"></i>`; }).catch(() => {});
+DFD.prices(['BTC']).then((p) => { $('#cp').innerHTML = `${money(p.BTC.p)} <small class="${p.BTC.c >= 0 ? 'up' : 'down'}" style="font-size:.4em">${pct(p.BTC.c)}</small>`; }).catch(() => {});
+fetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=96').then((r) => r.json()).then((k) => {
+  const ps = k.map((x) => +x[4]), lo = Math.min(...ps), hi = Math.max(...ps);
+  $('#cs').innerHTML = `<path class="ln" d="${ps.map((p, i) => `${i ? 'L' : 'M'}${(i / (ps.length - 1) * 600).toFixed(1)},${(140 - (p - lo) / (hi - lo || 1) * 130).toFixed(1)}`).join('')}"/>`;
+}).catch(() => {});
+DFD.nextEvent().then((u) => { if (!u) return; const tick = () => { $('#rc').textContent = left(u.ts); }; tick(); setInterval(tick, 30000);
+  $('#rs').textContent = `${u.name} · ${new Date(u.ts * 1000).getMonth() + 1}월 ${new Date(u.ts * 1000).getDate()}일 ${hm(u.ts)}${u.vs_normal ? ` · 지난 같은 발표 뒤 1시간, 비트코인은 평소의 ${u.vs_normal.toFixed(1)}배로 흔들렸어요.` : ''}`; }).catch(() => {});
+</script>
+</body>
+</html>

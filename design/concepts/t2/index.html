@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Themes · Delfona — T2</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../brand/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../l/lk.css?v=1017145910">
+<style>/* 테마 화면 공통 */
+.ttabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; } .ttabs::-webkit-scrollbar { display: none; }
+.ttabs a { flex: none; display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 99px; font-size: 15px; font-weight: 600; color: var(--ink2); }
+.ttabs a[aria-selected='true'] { background: var(--ink); color: #fff; } @media (hover: hover) { .ttabs a[aria-selected='false']:hover { background: #eef1f6; } }
+.tstat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 14px; color: var(--mute); } .tstat b { color: var(--ink); font-weight: 650; } .tstat b.up { color: var(--up); } .tstat b.down { color: var(--down); }
+.tbal { display: inline-flex; width: 120px; height: 6px; border-radius: 3px; overflow: hidden; background: #e6eaf0; } .tbal i { display: block; } .tbal .u { background: var(--up); } .tbal .d { background: var(--down); }
+.sum .k { font-size: 13px; font-weight: 650; color: var(--primary); } .sum .k span { font-weight: 500; color: var(--faint); }
+.sum ol { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 14px; }
+.sum li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 4px; font-size: 16.5px; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
+.sum li .n { padding-top: 3px; font-size: 12px; color: var(--faint); }
+.ref { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; margin-inline-start: 4px; border-radius: 99px; background: #eef0ff; color: var(--primary); font-size: 11.5px; font-weight: 600; vertical-align: 2px; }
+@media (hover: hover) { .ref:hover { background: #e2e5ff; } }
+.fn { margin-top: 12px; font-size: 12px; color: var(--faint); line-height: 1.5; }
+.flow .lgd { height: 20px; line-height: 20px; min-width: 0; overflow: hidden; contain: inline-size; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; color: var(--mute); font-variant-numeric: tabular-nums; } .flow .lgd b { font-weight: 600; color: var(--ink); } .flow .lgd b.up { color: var(--up); } .flow .lgd b.down { color: var(--down); }
+.flow .lwbox { margin-top: 6px; overflow: hidden; contain: size layout paint; } .mute2 { color: var(--faint); }
+.srows { list-style: none; padding: 0; margin: 0; }
+.srow { display: grid; gap: 6px; width: 100%; padding: 14px 4px; text-align: start; border-bottom: 1px solid var(--line); } .srows li:last-child .srow { border-bottom: 0; }
+.srow .ln { font-size: 15.5px; font-weight: 600; line-height: 1.42; letter-spacing: -0.01em; text-wrap: pretty; } .srow .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } .srow .ou { font-size: 12px; color: var(--faint); }
+@media (hover: hover) { .srow:hover .ln { color: var(--primary); } }
+.more { margin-top: 10px; height: 38px; padding: 0 16px; border-radius: 99px; background: #f1f3f7; font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.ast { width: 100%; border-collapse: collapse; font-size: 14px; } .ast th, .ast td { padding: 9px 6px; text-align: end; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ast thead th { font-size: 11.5px; font-weight: 500; color: var(--faint); } .ast th[scope=row], .ast thead th:first-child { text-align: start; }
+.ast th[scope=row] b { font-weight: 600; } .ast .sym { display: block; font-size: 11px; color: var(--faint); font-weight: 400; } .ast td.p { font-variant-numeric: tabular-nums; } .ast td.c { font-size: 13px; }
+.ast td.g { width: 84px; } .ast canvas.spk { display: block; width: 80px; height: 26px; margin-inline-start: auto; } .ast tbody tr:last-child th, .ast tbody tr:last-child td { border-bottom: 0; }
+.ast td.m { width: 74px; } .ast td.m .mono { font-size: 12.5px; } .mb { display: inline-flex; width: 34px; height: 4px; margin-inline-start: 6px; border-radius: 2px; overflow: hidden; background: #e6eaf0; vertical-align: middle; } .mb i { display: block; } .mb .u { background: var(--up); } .mb .d { background: var(--down); margin-inline-start: auto; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.secs { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.sec-b { display: grid; grid-template-columns: minmax(84px, 9em) minmax(0, 1fr) 32px; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border-radius: 10px; text-align: start; font-size: 14px; }
+.sec-b .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #f1f3f7; } .sec-b .bar i { display: block; } .sec-b .u { background: var(--up); } .sec-b .z { background: #c7cfdb; } .sec-b .d { background: var(--down); }
+.sec-b .num { text-align: end; font-size: 12.5px; color: var(--mute); } .sec-b[aria-pressed='true'] { background: #eef0ff; } @media (hover: hover) { .sec-b[aria-pressed='false']:hover { background: #f6f8fb; } }
+.evs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; } .evs li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: baseline; } .evs .mono { font-size: 12px; color: var(--mute); } .evs li { color: var(--primary); font-size: 10px; } .evs li b { font-size: 14px; font-weight: 600; color: var(--ink); }
+.box { padding: 18px 20px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); } .box > h2, .bh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; font-size: 14px; font-weight: 650; color: var(--ink2); }
+.secf { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 99px; background: #eef0ff; color: var(--primary); font-size: 12.5px; font-weight: 600; }
+.skelt { height: 18px; border-radius: 6px; background: linear-gradient(90deg, #eef1f5, #f6f8fb, #eef1f5); background-size: 200% 100%; margin: 10px 0; } @media (prefers-reduced-motion: no-preference) { .skelt { animation: sk 1.4s linear infinite; } } @keyframes sk { to { background-position: -200% 0; } }
+
+/* 정렬 버튼(라이브와 같은 모양) */
+.mseg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f1f3f7; } .mseg button { height: 28px; padding: 0 11px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.mseg button[aria-pressed='true'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgb(13 37 61 / .12), 0 0 0 1px rgb(13 37 61 / .06); }
+/* 좁은 화면: 정렬 버튼은 한 줄을 꽉, 자산 표는 작은 그래프 칸을 뺀다 */
+@media (max-width: 560px) { .bh .mseg { width: 100%; } .bh .mseg button { flex: 1; padding: 0 6px; } .ast td.g, .ast thead th:nth-child(4) { display: none; } .ast th, .ast td { padding: 9px 4px; } }
+.box, .rail { min-width: 0; } .ast th[scope=row] { white-space: normal; }
+@media (max-width: 360px) { .mb { display: none; } .ast td.m { width: auto; } .box { padding: 16px 14px; } }
+
+/* 오늘 무엇이 달라졌나 */
+.chs .k { font-size: 13px; font-weight: 650; color: var(--primary); } .chs .k span { font-weight: 500; color: var(--faint); }
+.chs ol { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.chg { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: start; gap: 8px; width: 100%; padding: 12px 14px; border-radius: 12px; text-align: start; background: #f6f8fb; font-size: 15.5px; line-height: 1.5; color: var(--ink); }
+.chg .ic { font-size: 12px; padding-top: 3px; color: var(--faint); } .chg.up .ic { color: var(--up); } .chg.down .ic { color: var(--down); }
+.chg .go { align-self: center; font-size: 12px; font-weight: 600; color: var(--primary); white-space: nowrap; } .chg[aria-pressed='true'] { background: #eef0ff; box-shadow: inset 0 0 0 1px #c9ccff; } .chg:disabled { cursor: default; }
+@media (hover: hover) { .chg:not(:disabled):hover { background: #eef1f6; } }
+@media (max-width: 560px) { .chg { grid-template-columns: 18px minmax(0, 1fr); } .chg .go { grid-column: 2; justify-self: start; } }
+.t2 { padding-top: 22px; padding-bottom: 64px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); } .t2 > *, .t2 .two > *, .t2 .col > * { min-width: 0; } .t2 .head { display: grid; gap: 12px; }
+.t2 .cards { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scroll-snap-type: x mandatory; scrollbar-width: thin; overscroll-behavior-x: contain; }
+.t2 .acard { flex: none; width: 172px; padding: 12px 14px 10px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); scroll-snap-align: start; } .t2 .acard.skel { height: 112px; }
+.t2 .acard .nm { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; } .t2 .acard .nm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .t2 .acard .nm span { font-size: 11px; color: var(--faint); }
+.t2 .acard .pr { margin-top: 6px; font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; } .t2 .acard .ch { font-size: 12.5px; } .t2 .acard canvas { display: block; width: 100%; height: 30px; margin-top: 6px; }
+.t2 .two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; } @media (min-width: 1000px) { .t2 .two { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: start; } }
+.t2 .col { display: grid; gap: 18px; } .t2 .sbox { padding: 22px 24px; } @media (min-width: 1000px) { .t2 .sbox { position: sticky; top: 76px; } }
+.t2 .sgrid { display: grid; gap: 0 22px; } @media (min-width: 900px) { .t2 .sgrid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body class="pg-t2">
+<header class="hd"><div class="wrap">
+  <a class="logo" href="../h3/"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="../r3/" data-nav="live" data-t="n1">Live</a><a href="../y1/" data-nav="my" data-t="n5">My assets</a><a href="../t1/" data-nav="themes" data-t="n2">Themes</a><a href="#" data-nav="brief" data-t="n3">Brief</a><a href="#" data-nav="cal" data-t="n4">Calendar</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+</div></header>
+<main id="app"></main>
+<nav class="tabs" aria-label="Menu"><a href="../r3/" data-nav="live"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="../y1/" data-nav="my"><i class="ti my"></i><span data-t="n5">My</span></a><a href="../t1/" data-nav="themes"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="#" data-nav="brief"><i class="ti br"></i><span data-t="n3">Brief</span></a><a href="#" data-nav="cal"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="../data.js"></script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', n5: '내 자산' });
+// 지금 페이지 메뉴 표시(같은 틀을 여러 페이지가 쓴다)
+window.DF_NAV = 'themes'; document.querySelectorAll('[data-nav]').forEach((a) => { if (a.dataset.nav === window.DF_NAV) a.setAttribute('aria-current', 'page'); });</script>
+<script type="module">import '../t/t2.js?v=1017145910';</script>
+</body>
+</html>

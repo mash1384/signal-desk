@@ -1,0 +1,13 @@
+/* B1~B3 · Blender 렌더 영상 오프닝 */
+.hero { background: #f7f9fc; } .hero canvas.gl { display: none; }
+.stage { position: absolute; z-index: 1; top: 50%; left: calc(50% + min(330px, 24vw)); width: min(100vh, 66vw); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
+.stage video { display: block; width: 100%; height: 100%; object-fit: cover;
+  -webkit-mask-image: radial-gradient(closest-side, #000 48%, transparent 99%); mask-image: radial-gradient(closest-side, #000 48%, transparent 99%); }
+.copy.left { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 1240px; margin: 0 auto; padding-inline: 36px; z-index: 3; }
+.copy.left h1 { max-width: 40rem; } .copy.left .sub { max-width: 30rem; }
+@media (max-width: 899px) {
+  .stage { top: calc(72px + (57svh - 72px) / 2); left: 50%; width: min(150vw, 92svh); transform: translate(-50%, -50%); }
+  .copy.left { top: auto; bottom: 6svh; transform: none; padding-inline: 20px; } .copy .sub { font-size: 16px; } }
+.hd .logo, .hd .nav { transition: color 400ms ease; }
+body.dk .hd .logo, body.dk .hd .nav { color: #f2f4fa; }
+body.dk .lang { background: rgb(255 255 255 / .08); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .16); } body.dk .lang button { color: #d7dcf0; } body.dk .lang button[aria-pressed='true'] { background: #fff; color: var(--ink); }

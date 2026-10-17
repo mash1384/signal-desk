@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live signals · Delfona — L1</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../l/lk.css?v=1017145910">
+<style>.l1 { padding-top: 26px; padding-bottom: 60px; }
+.l1 .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.l1 h1 { font-size: clamp(28px, 3.2vw, 40px); font-weight: 300; letter-spacing: -0.04em; line-height: 1.1; } :lang(ko) .l1 h1 { font-weight: 600; letter-spacing: -0.03em; }
+.l1 .sub { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--mute); }
+.l1 .kpi { display: flex; gap: 22px; } .l1 .kpi div { display: grid; } .l1 .kpi b { font-size: 26px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; } .l1 .kpi span { font-size: 12px; color: var(--mute); }
+.l1 .histc { margin-top: 18px; padding: 12px 14px 8px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.l1 .histc canvas { display: block; width: 100%; height: 64px; cursor: pointer; }
+.l1 .hl { display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--faint); } .l1 .hl button { color: var(--primary); font-weight: 600; font-family: var(--mono); font-size: 11px; }
+.l1 .fl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
+.tg { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; } .tg input { appearance: none; width: 34px; height: 20px; border-radius: 99px; background: #dfe4eb; position: relative; transition: background 200ms; cursor: pointer; }
+.tg input::after { content: ''; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .2); transition: transform 200ms var(--ease); } .tg input:checked { background: var(--ink); } .tg input:checked::after { transform: translateX(14px); }
+.l1 .cols { display: grid; gap: 20px; margin-top: 16px; } @media (min-width: 1100px) { .l1 .cols { grid-template-columns: minmax(0, 1fr) 420px; } }
+.l1 .list { border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); padding: 6px 0; }
+.l1 .hh { position: sticky; top: 60px; z-index: 2; padding: 10px 18px 6px 18px; background: linear-gradient(#fff 70%, rgb(255 255 255 / 0)); font-size: 11px; color: var(--faint); letter-spacing: .08em; }
+.l1 .row { position: relative; display: grid; grid-template-columns: 50px 14px minmax(0, 1fr); gap: 10px; width: 100%; padding: 11px 18px; text-align: left; border-radius: 0; transition: background 150ms ease; }
+.l1 .row:hover { background: var(--soft); } .l1 .row.on { background: #f1f0ff; } .l1 .row.on::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--primary); }
+.l1 .tm { padding-top: 2px; font-size: 12px; color: var(--faint); }
+.l1 .dot { position: relative; width: 9px; height: 9px; margin-top: 6px; border-radius: 50%; background: #c8d0dc; } .l1 .dot.u { background: var(--up); } .l1 .dot.d { background: var(--down); }
+.l1 .bd { display: grid; gap: 6px; } .l1 .ln { font-size: 15px; font-weight: 500; line-height: 1.42; letter-spacing: -0.01em; } :lang(ko) .l1 .ln { font-weight: 500; }
+.l1 .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } .l1 .ou { font-size: 12px; color: var(--faint); }
+.l1 .side { display: none; } @media (min-width: 1100px) { .l1 .side { display: block; } .l1 .side .card { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow: auto; padding: 22px 22px 26px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 20px 50px -30px rgb(13 37 61 / .3); } }
+@media (max-width: 899px) { .l1 .kpi b { font-size: 21px; } .l1 .row { grid-template-columns: 42px 12px minmax(0, 1fr); padding: 11px 14px; } .l1 .hh { top: 60px; padding-left: 14px; } .l1 .ln { font-size: 14.5px; } }
+</style>
+</head>
+<body class="pg-l1">
+<header class="hd"><div class="wrap">
+  <a class="logo" href="../h3/"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#0d253d"/><path d="M8 19 12.5 7M13.5 19 18 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="18" cy="7" r="2.2" fill="#8ea2ff"/></svg>Delfona</a>
+  <nav class="nav" aria-label="Menu"><a href="./" aria-current="page" data-t="n1">Live</a><a href="#" data-t="n2">Themes</a><a href="#" data-t="n3">Brief</a><a href="#" data-t="n4">Calendar</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+</div></header>
+<main id="app"></main>
+<nav class="tabs" aria-label="Menu"><a href="./" aria-current="page"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="#"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="#"><i class="ti br"></i><span data-t="n3">Brief</span></a><a href="#"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
+<script src="../data.js"></script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정' });</script>
+<script type="module">import '../l/l1.js?v=1017145910';</script>
+</body>
+</html>

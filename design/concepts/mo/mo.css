@@ -1,0 +1,12 @@
+/* M1 · 2D 브랜드 모션 인트로 + 가운데 정렬 첫 화면 */
+.hero { background: #f7f9fc; } .hero canvas.gl { display: none; }
+.copy.center { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 980px; margin: 0 auto; padding-inline: 24px; text-align: center; }
+.copy.center h1 { margin-inline: auto; } .copy.center .sub { margin-inline: auto; max-width: 34rem; } .copy.center .btns { justify-content: center; }
+.reveal { opacity: 0; filter: none; transform: none; }
+html.intro-on { overflow: hidden; }
+.intro { position: fixed; inset: 0; z-index: 80; }
+.intro .ibg { position: absolute; inset: 0; background: #f7f9fc; }
+.intro video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.hd .logo { will-change: transform; }
+.intro .skip { position: absolute; right: 18px; bottom: 18px; height: 32px; padding: 0 14px; border-radius: 99px; font: 600 12px/1 Inter, system-ui, sans-serif; color: #273951; background: rgb(13 37 61 / .06); }
+@media (hover: hover) and (pointer: fine) { .intro .skip:hover { background: rgb(13 37 61 / .1); } }
