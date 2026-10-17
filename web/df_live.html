@@ -18,12 +18,12 @@
 .r3 .tt button { flex: none; height: 34px; padding: 0 14px; border-radius: 99px; font-size: 14px; font-weight: 600; color: var(--ink2); } .r3 .tt .c { margin-inline-start: 6px; font-size: 11.5px; font-weight: 500; color: var(--faint); }
 .r3 .tt button[aria-selected='true'] { background: var(--ink); color: #fff; } .r3 .tt button[aria-selected='true'] .c { color: rgb(255 255 255 / .6); }
 .r3 .lead { margin-top: 18px; }
-.r3 .ld { display: grid; gap: 20px; width: 100%; padding: 26px 28px; border-radius: 22px; text-align: start; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 24px 60px -36px rgb(13 37 61 / .35); }
-@media (min-width: 1000px) { .r3 .ld { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center; gap: 32px; } }
+.r3 .ld { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; width: 100%; padding: 26px 28px; border-radius: 22px; text-align: start; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 24px 60px -36px rgb(13 37 61 / .35); }
+@media (min-width: 1000px) { .r3 .ld { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; gap: 32px; } }
 .r3 .ld .k { font-size: 13px; font-weight: 600; color: var(--primary); }
 .r3 .ld h1 { margin-top: 10px; font-size: clamp(24px, 2.6vw, 34px); font-weight: 600; letter-spacing: -0.025em; line-height: 1.22; text-wrap: balance; }
 .r3 .ld .alt { margin-top: 8px; font-size: 15px; color: var(--mute); } .r3 .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; } .r3 .ou { font-size: 12px; color: var(--faint); }
-.r3 .ch { display: grid; gap: 8px; } .r3 .cl { font-size: 13px; color: var(--mute); } .r3 .bigc { width: 100%; min-height: 200px; }
+.r3 .ch { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; } .r3 .cl { font-size: 13px; color: var(--mute); } .r3 .bigc { width: 100%; min-height: 200px; }
 .r3 .newpill { margin-top: 12px; }
 .r3 .main { display: grid; gap: 24px; margin-top: 30px; } @media (min-width: 1100px) { .r3 .main { grid-template-columns: minmax(0, 1fr) 300px; } }
 .r3 .sec { font-size: 13px; font-weight: 600; color: var(--mute); margin-bottom: 10px; } .r3 #oh { margin-top: 32px; }

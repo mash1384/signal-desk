@@ -36,6 +36,7 @@ function series(m, iv) {   // [[t, close]] 지난 며칠(5m) 또는 이틀(1m). 
 const mName = (m = M) => MK[m][DFI.lang() === 'ko' ? 'ko' : 'en'];
 async function bigChart(el, t) {   // 맨 위 큰 차트: TradingView Lightweight Charts(포인터·터치 십자선)
   const all = await series(M, '1m'), lbl = el.parentElement.querySelector('[data-chg]'), pts = all ? all.filter((p) => p[0] >= t - 1800) : null;
+  if (!el.isConnected) return;
   const r = lwChart(el, pts, t, { height: innerWidth < 900 ? 200 : 230 });
   if (lbl) { if (!r || r.change == null) { lbl.className = 'chg mono'; lbl.textContent = T('no trading since the story', '소식 이후 거래 없음'); } else { lbl.className = (r.change >= 0 ? 'up' : 'down') + ' chg mono'; lbl.textContent = DFD.pct(r.change) + (r.closed && M !== 'btc' ? T(' · market closed', ' · 장 마감') : ''); } }
 }
@@ -60,7 +61,7 @@ async function chart(cv, t, big) {
     lbl.textContent = after ? `${DFD.pct(ch)}${closed ? T(' · market closed', ' · 장 마감') : ''}` : T('no trading since', '이후 거래 없음'); }
 }
 const mSeg = () => `<span class="mseg" role="group" aria-label="${T('Chart market', '차트 기준')}">${Object.keys(MK).map((m) => `<button type="button" data-mkt="${m}" aria-pressed="${M === m}">${mName(m)}</button>`).join('')}</span>`;
-function drawCharts() { app.querySelectorAll('.bigc[data-t]').forEach((el) => bigChart(el, +el.dataset.t)); app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)); app.querySelectorAll('[data-mname]').forEach((e) => (e.textContent = mName())); }
+function drawCharts() { app.querySelectorAll('.bigc[data-t]:not([data-on])').forEach((el) => { el.dataset.on = '1'; bigChart(el, +el.dataset.t); }); app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)); app.querySelectorAll('[data-mname]').forEach((e) => (e.textContent = mName())); }
 const symOf = (it) => (it.coins || []).find((c) => PRICED_ALL.has(c)) || ((it.th || []).some((k) => k === 'crypto' || k === 'econ' || k === 'nasdaq') || it.mw ? 'BTC' : null);
 function card(it, wide) {
   return `<button type="button" class="cd btnp ${wide ? 'w' : ''} ${store.fresh.has(it.id) ? 'new-in' : ''}" data-id="${it.id}"><span class="mt">${pill(it.v)}${bars(it)}<span class="ou">${ago(it.t)}</span></span><span class="ln">${esc(line(it))}</span>
@@ -72,10 +73,14 @@ function render(force) {
   const now = Date.now() / 1000, recent = ys.filter((x) => now - x.t < 6 * 3600 && x.v !== '중립').sort((a, b) => score(b) - score(a) || b.t - a.t);
   const lead = recent[0];
   if (lead) {
-    $('lead').innerHTML = `<div class="ld"><button type="button" class="tx btnp" data-id="${lead.id}"><p class="k">${T('Biggest story · last 6 hours', '가장 큰 소식 · 최근 6시간')}</p><h1>${esc(line(lead))}</h1>${altLine(lead) ? `<p class="alt">${esc(altLine(lead))}</p>` : ''}
+    const html = `<div class="ld"><button type="button" class="tx btnp" data-id="${lead.id}"><p class="k">${T('Biggest story · last 6 hours', '가장 큰 소식 · 최근 6시간')}</p><h1>${esc(line(lead))}</h1>${altLine(lead) ? `<p class="alt">${esc(altLine(lead))}</p>` : ''}
       <p class="mt">${pill(lead.v)}${bars(lead)}${chips(lead, 3)}<span class="ou">${hm(lead.t)} · ${ago(lead.t)} · ${outlets(lead)}</span></p></button><div class="ch">${mSeg()}<p class="cl"><b data-mname>${mName()}</b> <span data-chg></span> <span class="mute2">${T('since the story', '소식 이후')}</span></p><div class="bigc" data-t="${lead.t}" role="img" aria-label="${T('Price around the story', '소식 전후 가격')}"></div>
-      <p class="src">${M === 'btc' ? T('BTC/USDT · Binance', 'BTC/USDT · 바이낸스') : T('Index futures (trade ~23h a day) · Yahoo Finance', '지수 선물(하루 약 23시간 거래) · Yahoo Finance')}</p></div></div>`; }
-  else $('lead').innerHTML = '';
+      <p class="src">${M === 'btc' ? T('BTC/USDT · Binance', 'BTC/USDT · 바이낸스') : T('Index futures (trade ~23h a day) · Yahoo Finance', '지수 선물(하루 약 23시간 거래) · Yahoo Finance')}</p></div></div>`;
+    // 같은 소식·같은 시장·같은 언어면 차트는 두고 글만 바꾼다(매번 새로 만들면 깜빡이고 십자선이 끊긴다). 5분이 지나면 가격을 새로 그린다.
+    const lk = lead.id + '|' + M + '|' + DFI.lang(), L0 = $('lead'), old = L0.querySelector('.ld > .tx');
+    if (L0.dataset.k === lk && old && Date.now() - +L0.dataset.at < 300000) { const tmp = document.createElement('div'); tmp.innerHTML = html; old.replaceWith(tmp.querySelector('.ld > .tx')); }
+    else { L0.innerHTML = html; L0.dataset.k = lk; L0.dataset.at = Date.now(); } }
+  else { $('lead').innerHTML = ''; $('lead').dataset.k = ''; }
   $('gh').innerHTML = `<span class="ghl"><span>${T('Signals', '신호')}</span>${sSeg()}</span>${mSeg()}`;
   const sig = pick(ys, lead).slice(0, 24);
   $('grid').innerHTML = sig.map((it) => card(it, it.s >= 3)).join('') || `<p class="mute">${SO === 'up' ? T('No bullish stories in this theme in the last 24 hours.', '최근 24시간 이 테마의 호재가 없어요.') : SO === 'down' ? T('No bearish stories in this theme in the last 24 hours.', '최근 24시간 이 테마의 악재가 없어요.') : T('No signals in this theme yet.', '이 테마의 신호가 아직 없어요.')}</p>`;
@@ -92,4 +97,4 @@ app.addEventListener('click', (e) => { const so = e.target.closest('[data-sort]'
   const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }
   const t = e.target.closest('[data-th]'); if (t) { S.th = t.dataset.th; render(true); return; } const b = e.target.closest('[data-id]'); if (b) openSheet(store.byId.get(b.dataset.id)); });
 start(() => render(false)); DFI.onLang(() => render(true));
-let rzT = 0; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)), 200); });   // 작은 그래프는 크기가 바뀌면 다시 그린다(큰 차트는 라이브러리가 맞춘다)
+let rzT = 0, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)), 200); });   // 작은 그래프는 크기가 바뀌면 다시 그린다(큰 차트는 라이브러리가 맞춘다)
