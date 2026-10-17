@@ -1,3 +1,4 @@
+import { watchThreads } from './thr.js';
 // 라이브 페이지 후보 공통: 실시간 속보 받기(30초마다), 테마 나누기, 카드·상세, 24시간 막대, 소식 이후 가격 변화
 export const L = () => DFI.lang() === 'ko';
 export const T = (en, ko) => (L() ? ko : en);
@@ -98,7 +99,7 @@ export function detailHTML(it) {
   return `<p class="meta">${pill(it.v)} ${bars(it)} <span>${kindName(it.kind)}</span><span>·</span><span class="mono">${hm(it.t)}</span><span>${ago(it.t)}</span><span>·</span><span>${outlets(it)}</span></p>
     <h2>${esc(line(it))}</h2>${altLine(it) ? `<p class="alt">${esc(altLine(it))}</p>` : ''}
     <div class="tags">${chips(it, 4)}${it.mw ? `<span class="chip th">${T('Market-wide', '시장 전체')}</span>` : ''}</div>
-    <div class="mystars" data-sid="${it.id}"></div>
+    <div class="mystars" data-sid="${it.id}"></div><div class="thlink" data-sid="${it.id}"></div>
     <h4>${T('Price since this story', '이 소식 이후 가격')}</h4><div class="rx" id="rx"><p class="empty" style="padding:10px 0">${T('Loading…', '불러오는 중…')}</p></div>
     ${rel.length ? `<h4>${T('Related articles', '관련 기사')}</h4><div class="rel">${rel.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}<small>${esc(f.src)} · ${hm(f.t0)}</small></a>`).join('')}</div>` : ''}
     ${src ? `<a class="src" href="${esc(it.link)}" target="_blank" rel="noopener">${T('Original link', '원문 링크')} · ${esc(src)} ↗</a>` : ''}
@@ -225,3 +226,5 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
   chart.subscribeCrosshairMove((p) => { const v = p && p.time && p.seriesData ? p.seriesData.get(post) || p.seriesData.get(pre) : null; legend(v && v.value != null ? { time: p.time, value: v.value } : last); });
   return { chart, change: hasAfter ? (last.value / base - 1) * 100 : null, closed: pts[pts.length - 1][0] < Date.now() / 1000 - 1800 };
 }
+// 이어지는 이야기 표시(소식 카드 · 상세 창)
+watchThreads();
