@@ -98,6 +98,7 @@ export function detailHTML(it) {
   return `<p class="meta">${pill(it.v)} ${bars(it)} <span>${kindName(it.kind)}</span><span>·</span><span class="mono">${hm(it.t)}</span><span>${ago(it.t)}</span><span>·</span><span>${outlets(it)}</span></p>
     <h2>${esc(line(it))}</h2>${altLine(it) ? `<p class="alt">${esc(altLine(it))}</p>` : ''}
     <div class="tags">${chips(it, 4)}${it.mw ? `<span class="chip th">${T('Market-wide', '시장 전체')}</span>` : ''}</div>
+    <div class="mystars" data-sid="${it.id}"></div>
     <h4>${T('Price since this story', '이 소식 이후 가격')}</h4><div class="rx" id="rx"><p class="empty" style="padding:10px 0">${T('Loading…', '불러오는 중…')}</p></div>
     ${rel.length ? `<h4>${T('Related articles', '관련 기사')}</h4><div class="rel">${rel.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}<small>${esc(f.src)} · ${hm(f.t0)}</small></a>`).join('')}</div>` : ''}
     ${src ? `<a class="src" href="${esc(it.link)}" target="_blank" rel="noopener">${T('Original link', '원문 링크')} · ${esc(src)} ↗</a>` : ''}
@@ -213,7 +214,9 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
   if (hasAfter) { post.setData(data.slice(i0)); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: '#0d253d', shape: 'arrowDown', text: T('story', '소식') }]);
     post.createPriceLine({ price: base, color: 'rgba(13,37,61,.35)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); }
   chart.timeScale().fitContent();
-  const fmt = (t) => new Intl.DateTimeFormat(lc, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(new Date(t * 1000));
+  // 범례 시각: 오늘이면 시:분만(좁은 화면에서 '소식 대비'가 잘리지 않게)
+  const today = new Date(Date.now() + off * 1000).toISOString().slice(0, 10);
+  const fmt = (t) => new Intl.DateTimeFormat(lc, new Date(t * 1000).toISOString().slice(0, 10) === today ? { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(new Date(t * 1000));
   // 범례는 항상 한 줄(시각 · 가격 · 소식 대비)로 같은 모양을 유지한다. 포인터가 없으면 최신 값.
   let shownT = null;
   const legend = (d) => { if (d.time === shownT) return; shownT = d.time; const after = hasAfter && d.time >= data[i0].time, ch = (d.value / base - 1) * 100;
