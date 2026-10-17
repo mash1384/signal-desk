@@ -4,7 +4,7 @@
 AI 문장에 입력에 없는 숫자가 나오거나 '뉴스 때문에 올랐다' 같은 인과 표현·매매 권유가 나오면 버리고 다시 쓰게 한다.
 결과는 ~/.signal/flash-branch/daily/<날짜>.json 에 두고, tg_publish.py가 flash 브랜치에 함께 올린다. 사이트 파이프라인이 /daily/ 페이지로 만든다.
 
-설치: ~/.signal/tgvenv/bin/python tools/daily_brief.py --install   (launchd com.signal.daily, 매일 09:07, 로그 ~/.signal/daily.log)
+설치: ~/.signal/tgvenv/bin/python tools/daily_brief.py --install   (launchd com.signal.daily, 30분마다 확인 — 끝난 하루를 바로 만든다, 로그 ~/.signal/daily.log)
 수동: ~/.signal/tgvenv/bin/python tools/daily_brief.py [--date 2026-10-13] [--force] [--dry]
 """
 
