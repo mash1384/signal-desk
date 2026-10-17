@@ -1246,7 +1246,7 @@ def page_404(now):
 
 
 def sitemap(articles, now, dailies=()):
-    urls = [("", now), ("live/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("events/", now), ("about/", now), ("daily/", now)]
+    urls = [("", now), ("live/", now), ("my/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("events/", now), ("about/", now), ("daily/", now)]
     urls += [("daily/%s/" % d["date"], d["made"]) for d in dailies]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
@@ -1300,6 +1300,14 @@ def page_themes_df(k):
     title, desc = THEME_PAGES[k]
     return (tpl.replace("{{TITLE}}", title).replace("{{DESC}}", h(desc)).replace("{{K}}", k)
             .replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
+
+
+def page_my_df():
+    """내 자산(Delfona Y2 · 피드 + 관심 목록): 고른 자산의 소식, 급변 알림('왜 움직여?'), 하루 요약. 정적 틀(web/df_my.html).
+    고른 자산은 브라우저(localStorage)에만 있고, 계산도 브라우저에서 한다(사용자가 늘어도 Mac 부담 없음)."""
+    with open(os.path.join(WEB, "df_my.html"), encoding="utf-8") as f:
+        tpl = f.read()
+    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
 
 
 def df_ver():
@@ -1360,7 +1368,9 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
     for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("calendar", "events/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
         util.write_text(os.path.join(out, old_path, "index.html"), redirect_page(new_path))
-    util.write_text(os.path.join(out, "me", "index.html"), page_me(now))
+    # 내 자산: 옛 /me/(관심 코인)는 /my/ 로 옮겼다. 옛 목록(localStorage 'signal-watch')은 새 페이지가 가져온다
+    util.write_text(os.path.join(out, "my", "index.html"), page_my_df())
+    util.write_text(os.path.join(out, "me", "index.html"), redirect_page("my/"))
     util.write_text(os.path.join(out, "about", "index.html"), page_about(health, now))
     util.write_text(os.path.join(out, "404.html"), page_404(now))
     util.write_text(os.path.join(out, "sitemap.xml"), sitemap(articles, now, dailies))

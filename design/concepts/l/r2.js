@@ -1,6 +1,6 @@
 // R2 · Terminal — Linear 받은편지함·프로 데스크톱 앱 참고. 왼쪽: 보기·테마·코인 거르기(개수와 균형 막대), 가운데: 촘촘한 한 줄 목록(↑↓·J/K로 이동, / 로 검색),
 // 오른쪽: 상세. 아래 상태 줄. 모바일은 목록 + 아래에서 올라오는 상세, 거르기는 위쪽 가로 칩.
-import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, detailHTML, fillRx } from './lk.js?v=1017145910';
+import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, detailHTML, fillRx } from './lk.js?v=1017162450';
 
 const app = document.getElementById('app');
 app.innerHTML = `<div class="r2"><aside class="side" id="side" aria-label="Filters"></aside>

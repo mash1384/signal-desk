@@ -1,8 +1,8 @@
 // R3 · Impact — Perplexity Discover·Kalshi 참고. 맨 위 '지금' 한 장: 최근 6시간 가장 큰 소식 + 그 뒤 가격 흐름(크게).
 // 아래 카드 격자: 세기 3은 두 칸, 카드마다 '소식 이후' 작은 그래프. 정렬·거르기(최신순·호재·악재·강도순); 최신순 밖에선 중립 소식은 '그 밖의 소식' 목록으로. 오른쪽: 많이 언급된 코인.
-import { lwChart, store, start, day, counts, T, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, loadK5, sinceChange, PRICED_ALL } from './lk.js?v=1017145910';
+import { lwChart, store, start, day, counts, T, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, loadK5, sinceChange, PRICED_ALL } from './lk.js?v=1017162450';
 
-import * as Y from '../y/yk.js?v=1017145910';
+import * as Y from '../y/yk.js?v=1017162450';
 const app = document.getElementById('app');
 app.innerHTML = `<div class="pstrip" id="ps" aria-label="Markets"></div><div class="wrap r3"><div class="ttrow"><div class="tt" id="tt" role="tablist"></div><button type="button" class="myonly" id="myonly" aria-pressed="false"><span class="st-ic" aria-hidden="true"></span><span></span></button></div>
   <section class="lead" id="lead"><div class="skel" style="height:280px"></div></section>
@@ -114,7 +114,7 @@ function drawStrip() {
 function drawMy(xs, my) {
   const el = $('myb'); if (!el) return;
   if (!my.length) { el.innerHTML = `<h3>${T('My assets', '내 자산')}</h3><p class="mute3">${T('Star an asset to follow just its news.', '자산에 ☆를 누르면 그 소식만 따라가요.')}</p><div class="pop">${Y.POPULAR.slice(0, 6).map((s) => `<button type="button" class="pchip sm" data-my="${s}" aria-pressed="false"><b>${Y.esc(Y.short(s))}</b></button>`).join('')}</div>`; return; }
-  el.innerHTML = `<h3><span>${T('My assets', '내 자산')}</span><a href="../y1/">${T('Open', '열기')} →</a></h3><ul class="myl">${my.slice(0, 8).map((a) => { const q = MQ[a.sym], n = xs.filter((x) => Y.matches(x, a)).length;
+  el.innerHTML = `<h3><span>${T('My assets', '내 자산')}</span><a href="${window.DF_ROOT ? window.DF_ROOT + 'my/' : '../y2/'}">${T('Open', '열기')} →</a></h3><ul class="myl">${my.slice(0, 8).map((a) => { const q = MQ[a.sym], n = xs.filter((x) => Y.matches(x, a)).length;
     return `<li><span class="nm"><b>${Y.esc(Y.short(a.sym))}</b></span><span class="mono pv">${Y.fmtP(a, q)}</span><span class="mono pc">${Y.fmtCh(a, q)}</span><span class="nn" title="${T('stories in 24h', '24시간 소식')}">${n || ''}</span></li>`; }).join('')}</ul>
     <button type="button" class="more2" data-pick>${T('+ Add or remove', '+ 추가 · 빼기')}</button>`;
 }

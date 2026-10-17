@@ -1,6 +1,6 @@
 // '내 자산' 공통: 고를 수 있는 자산(코인 · 주식 · 지수 · 금리·환율·원자재), 소식과 자산 잇기, 저장(로그인 없이 브라우저), 시세, 급변 감지.
 // 급변 감지: 최근 15분 등락을 그 자산의 평소 15분 흔들림(지난 몇 시간 표준편차)과 비교 — 3배 넘고 최소 폭도 넘을 때만. 같은 시간대 관련 소식을 함께(원인 단정 없이).
-import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, PRICED_ALL } from '../l/lk.js?v=1017145910';
+import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, PRICED_ALL } from '../l/lk.js?v=1017162450';
 export { store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, esc, T, L };
 const WK = 'https://signal-scheduler.mash1384.workers.dev/quotes';
 // [기호, 종류, 영문, 한글, 출처(b 바이낸스 · y 야후), 소식 찾기 정규식(없으면 코인 기호로), 최소 급변 폭(%), 표시]
@@ -168,5 +168,5 @@ export function daySummaryHTML(my, items, th) {
     ${per.length ? `<ul class="lean">${per.slice(0, 8).map((p) => `<li class="${p.lean}"><b>${esc(short(p.s))}</b><span class="mono">${p.n}</span><span class="ls">${leanTxt[p.lean]}</span><span class="mono ud">${p.u}/${p.d}</span></li>`).join('')}</ul>` : ''}
     ${sig.length ? `<p class="sub2">${T('Different from usual', '평소와 다른 점')}</p><ul class="sig">${sig.slice(0, 3).map((c) => `<li>${esc(L() ? c.ko : c.en)}</li>`).join('')}</ul>` : ''}
     ${quiet.length ? `<p class="qt">${T(`Quiet: ${quiet.map(short).join(', ')} — no stories in 24h.`, `조용함: ${quiet.map(short).join(', ')} — 24시간 소식 없음.`)}</p>` : ''}
-    <p class="lk"><a href="../../daily/">${T('Full daily brief', '전체 하루 정리')} →</a></p></div>`;
+    <p class="lk"><a href="${window.DF_ROOT || '../../'}daily/">${T('Full daily brief', '전체 하루 정리')} →</a></p></div>`;
 }

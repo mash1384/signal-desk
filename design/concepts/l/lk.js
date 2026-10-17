@@ -214,7 +214,9 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
   if (hasAfter) { post.setData(data.slice(i0)); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: '#0d253d', shape: 'arrowDown', text: T('story', '소식') }]);
     post.createPriceLine({ price: base, color: 'rgba(13,37,61,.35)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); }
   chart.timeScale().fitContent();
-  const fmt = (t) => new Intl.DateTimeFormat(lc, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(new Date(t * 1000));
+  // 범례 시각: 오늘이면 시:분만(좁은 화면에서 '소식 대비'가 잘리지 않게)
+  const today = new Date(Date.now() + off * 1000).toISOString().slice(0, 10);
+  const fmt = (t) => new Intl.DateTimeFormat(lc, new Date(t * 1000).toISOString().slice(0, 10) === today ? { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' } : { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(new Date(t * 1000));
   // 범례는 항상 한 줄(시각 · 가격 · 소식 대비)로 같은 모양을 유지한다. 포인터가 없으면 최신 값.
   let shownT = null;
   const legend = (d) => { if (d.time === shownT) return; shownT = d.time; const after = hasAfter && d.time >= data[i0].time, ch = (d.value / base - 1) * 100;
