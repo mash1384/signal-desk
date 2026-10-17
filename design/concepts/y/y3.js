@@ -1,6 +1,6 @@
 // Y3 · 자산 집중형 — 트레이딩뷰·로빈후드처럼 자산 하나를 깊게. 위 칩으로 고르고(전체 = 요약), 큰 그래프에 소식 표시(점 색 = 호재/악재) + 그 자산 소식.
-import * as Y from './yk.js?v=1017180212';
-import { mount, feedHTML, counts } from './common.js?v=1017180212';
+import * as Y from './yk.js?v=1017185452';
+import { mount, feedHTML, counts } from './common.js?v=1017185452';
 let chart = null;
 mount((app, S, my, items) => {
   if (S.a && !my.includes(S.a)) S.a = null;

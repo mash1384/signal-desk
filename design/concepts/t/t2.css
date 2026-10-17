@@ -1,5 +1,5 @@
 .t2 { padding-top: 22px; padding-bottom: 64px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); } .t2 > *, .t2 .two > *, .t2 .col > * { min-width: 0; } .t2 .head { display: grid; gap: 12px; }
-.t2 .cards { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scroll-snap-type: x mandatory; scrollbar-width: thin; overscroll-behavior-x: contain; }
+.t2 .cards { display: flex; gap: 10px; overflow-x: auto; padding: 4px 4px 8px; scroll-padding-inline: 4px; scroll-snap-type: x mandatory; scrollbar-width: thin; overscroll-behavior-x: contain; }
 .t2 .acard { flex: none; width: 172px; padding: 12px 14px 10px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); scroll-snap-align: start; } .t2 .acard.skel { height: 112px; }
 .t2 .acard .nm { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; } .t2 .acard .nm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .t2 .acard .nm span { font-size: 11px; color: var(--faint); }
 .t2 .acard .pr { margin-top: 6px; font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; } .t2 .acard .ch { font-size: 12.5px; } .t2 .acard canvas { display: block; width: 100%; height: 30px; margin-top: 6px; }

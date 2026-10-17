@@ -1,5 +1,5 @@
 // Y1~Y3 공통 진행: 소식(라이브와 같은 /flash) + 내 자산 시세(60초) → 화면별 render
-import * as Y from './yk.js?v=1017180212';
+import * as Y from './yk.js?v=1017185452';
 export function mount(render) {
   const app = document.getElementById('app'), S = { so: Y.initSort(), a: null, Q: {}, mv: [], th: null };
   const mine = () => Y.getMy();

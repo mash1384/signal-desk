@@ -61,11 +61,11 @@
 .ai p + p, .ai .k + p { margin-top: 6px; } .ai p:not(.k) { font-size: 14.5px; line-height: 1.6; color: var(--ink2); text-wrap: pretty; }
 .hc { width: 100%; height: 240px; overflow: hidden; contain: size layout paint; }
 .sim .lead { font-size: 14.5px; line-height: 1.55; color: var(--ink2); text-wrap: pretty; margin-bottom: 12px; }
-.assets { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; } .assets::-webkit-scrollbar { display: none; }
+.assets { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 4px; margin: -4px; } .assets::-webkit-scrollbar { display: none; }
 .assets button { flex: none; height: 32px; padding: 0 12px; border-radius: 99px; font-size: 13px; font-weight: 600; color: var(--ink2); background: #f1f3f7; }
 .assets button[aria-selected='true'] { background: var(--ink); color: #fff; }
 .fanw { margin-top: 12px; }
-.fl { height: 20px; line-height: 20px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; contain: inline-size; font-size: 13px; color: var(--mute); } .fl b { color: var(--ink); font-weight: 650; }
+.fl { min-height: 20px; line-height: 20px; font-size: 13px; color: var(--mute); text-wrap: pretty; } .fl b { color: var(--ink); font-weight: 650; }
 .fan { display: block; width: 100%; height: 220px; margin-top: 6px; }
 .lgnd { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 6px; font-size: 12px; color: var(--mute); }
 .lgnd i { display: inline-block; width: 16px; height: 2px; margin-inline-end: 5px; vertical-align: middle; border-radius: 1px; }
@@ -88,7 +88,7 @@ table.stt td b { margin-inline-end: 8px; font-weight: 650; } table.stt td span {
 
 /* 방금 나온 지표 */
 .just { display: grid; gap: 8px; } .just .k { font-size: 13px; font-weight: 650; color: var(--mute); }
-.jl { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px; scroll-snap-type: x proximity; } .jl::-webkit-scrollbar { display: none; }
+.jl { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 4px; scroll-padding-inline: 4px; scroll-snap-type: x proximity; } .jl::-webkit-scrollbar { display: none; }
 .jt { flex: 1 0 210px; max-width: 280px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n d" "v v" "w w"; gap: 2px 8px; padding: 12px 14px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); text-align: start; scroll-snap-align: start; transition: box-shadow 150ms ease, scale 150ms ease-out; }
 .jt:active { scale: 0.98; } .jt.on { box-shadow: 0 0 0 2px var(--primary); }
 .jt .n { grid-area: n; font-size: 13px; font-weight: 600; } .jt .d { grid-area: d; font-size: 11.5px; color: var(--faint); } .jt b { grid-area: v; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; } .jt .w { grid-area: w; font-size: 12.5px; color: var(--mute); }
