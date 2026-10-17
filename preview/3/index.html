@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>델포나 — 시안 3 · 담백(Plain)</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+/* 시안 3 · 담백 — 국내 금융 앱처럼 쉽고 차분하게. 흰 바탕과 옅은 회색 판, 검은 글자, 초록 하나(#16835a).
+   한 화면에 한 문장, 큰 글씨. 휴대폰 화면 안에 실제 속보를 넣어 '이렇게 생겼다'를 먼저 보여 준다. */
+:root { --bg: #fff; --gray: #f2f4f6; --gray2: #e5e8eb; --ink: #191f28; --t2: #4e5968; --t3: #8b95a1; --green: #16835a; --up: #16835a; --down: #d22030; --up-bg: #e8f5ee; --down-bg: #fdecee;
+  --sans: "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; word-break: keep-all; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+/* 심볼: 초록 동그라미 안에 흰 점 하나(데이터 한 점) + 한글 이름 */
+.logo { display: inline-flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 750; letter-spacing: -0.03em; }
+.logo i { position: relative; width: 24px; height: 24px; border-radius: 50%; background: var(--green); }
+.logo i::after { content: ""; position: absolute; right: 5px; top: 5px; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.hd { position: sticky; top: 0; z-index: 10; background: rgb(255 255 255 / 0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.hd .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px; border-radius: 14px; font-size: 16px; font-weight: 700; transition: transform 150ms ease-out, background-color 150ms ease-out; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--green); color: #fff; }
+.btn.g { background: var(--gray); color: var(--ink); }
+.hd .btn { height: 38px; padding: 0 14px; border-radius: 10px; font-size: 14px; }
+/* 화면마다 한 문장 */
+.s { padding: 88px 0; }
+.s h1, .s h2 { font-size: clamp(30px, 5.6vw, 52px); font-weight: 750; line-height: 1.3; letter-spacing: -0.04em; }
+.s .sub { margin-top: 16px; font-size: clamp(17px, 2vw, 20px); color: var(--t2); line-height: 1.6; }
+.hero { display: grid; gap: 48px; align-items: center; padding-block: 56px 72px; }
+@media (min-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr) 360px; padding-block: 88px; } }
+.hero .btns { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+.hero .meta { margin-top: 20px; font-size: 14px; color: var(--t3); }
+/* 휴대폰 */
+.phone { width: min(360px, 100%); margin: 0 auto; border-radius: 44px; padding: 12px; background: #111; box-shadow: 0 30px 60px -20px rgb(25 31 40 / 0.35); }
+.screen { border-radius: 34px; background: #fff; overflow: hidden; height: 640px; display: flex; flex-direction: column; }
+.screen .bar { display: flex; justify-content: space-between; padding: 18px 22px 6px; font-size: 13px; font-weight: 700; }
+.screen h3 { padding: 6px 22px 2px; font-size: 22px; font-weight: 750; letter-spacing: -0.03em; }
+.screen .when { padding: 0 22px 10px; font-size: 13px; color: var(--t3); }
+.tabs { display: flex; gap: 6px; padding: 0 22px 12px; }
+.tabs span { padding: 6px 12px; border-radius: 99px; background: var(--gray); font-size: 13px; font-weight: 650; color: var(--t2); }
+.tabs span:first-child { background: var(--ink); color: #fff; }
+.list { flex: 1; overflow: hidden; padding: 0 12px; }
+.it { display: flex; gap: 12px; padding: 12px 10px; border-radius: 16px; }
+.it + .it { margin-top: 2px; }
+.it .v { flex: none; width: 44px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-size: 12.5px; font-weight: 750; }
+.v.up { background: var(--up-bg); } .v.down { background: var(--down-bg); } .v.flat { background: var(--gray); color: var(--t2); }
+.it p { font-size: 14.5px; font-weight: 600; line-height: 1.45; }
+.it small { display: block; margin-top: 3px; font-size: 12px; color: var(--t3); font-weight: 500; }
+/* 큰 숫자 */
+.nums { display: grid; gap: 16px; margin-top: 40px; }
+@media (min-width: 900px) { .nums { grid-template-columns: repeat(3, 1fr); } }
+.num { padding: 28px; border-radius: 24px; background: var(--gray); }
+.num b { display: block; font-size: 44px; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.num span { display: block; margin-top: 4px; font-size: 16px; color: var(--t2); line-height: 1.5; }
+/* 예시 카드 */
+.ex { margin-top: 36px; padding: 28px; border-radius: 24px; background: var(--gray); }
+.ex .v { display: inline-grid; place-items: center; height: 30px; padding: 0 12px; border-radius: 9px; font-size: 14px; font-weight: 750; }
+.ex p { margin-top: 12px; font-size: 21px; font-weight: 700; line-height: 1.45; letter-spacing: -0.02em; }
+.ex ul { display: grid; gap: 8px; margin-top: 18px; }
+.ex li { display: flex; gap: 10px; font-size: 15.5px; color: var(--t2); }
+.ex li b { flex: none; width: 70px; color: var(--t3); font-weight: 600; }
+.brief { margin-top: 36px; padding: 28px; border-radius: 24px; border: 1px solid var(--gray2); }
+.brief small { font-size: 14px; color: var(--t3); font-weight: 600; }
+.brief p { margin-top: 8px; font-size: clamp(21px, 3vw, 26px); font-weight: 750; line-height: 1.45; letter-spacing: -0.03em; }
+.brief .r { margin-top: 12px; font-size: 16px; color: var(--t2); font-weight: 400; letter-spacing: 0; }
+.promise { display: grid; gap: 12px; margin-top: 36px; }
+.promise li { display: flex; gap: 14px; align-items: flex-start; padding: 22px; border-radius: 20px; background: var(--gray); font-size: 16px; color: var(--t2); }
+.promise li b { display: block; color: var(--ink); font-size: 18px; margin-bottom: 2px; }
+.promise svg { flex: none; width: 26px; height: 26px; }
+.end { text-align: center; padding-block: 96px 72px; }
+.end .btn { margin-top: 28px; height: 56px; padding: 0 32px; font-size: 17px; }
+.ft { padding-block: 28px 48px; border-top: 1px solid var(--gray2); font-size: 13px; color: var(--t3); }
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 600ms cubic-bezier(0.23, 1, 0.32, 1), transform 600ms cubic-bezier(0.23, 1, 0.32, 1); }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap"><a class="logo" href="./"><i aria-hidden="true"></i>델포나</a><a class="btn p" href="#phone">속보 보기</a></div></header>
+<main>
+  <div class="wrap hero">
+    <div>
+      <h1>내 코인에 무슨 일이<br>있었는지, 3초면 알아요</h1>
+      <p class="sub">해외 속보도 바로 한국어로 읽어 드려요.<br>좋은 소식인지 나쁜 소식인지, 근거와 함께.</p>
+      <div class="btns"><a class="btn p" href="#phone">지금 속보 보기</a><a class="btn g" href="#how">어떻게 판단하나요?</a></div>
+      <p class="meta" id="meta">실시간 속보 · 매체 57곳 · 매일 오전 9시 하루 정리</p>
+    </div>
+    <div class="phone" id="phone" aria-label="델포나 앱 화면 예시(실제 데이터)"><div class="screen">
+      <div class="bar"><span id="clock">9:41</span><span>●●● </span></div>
+      <h3>지금 속보</h3><p class="when" id="when">불러오는 중</p>
+      <div class="tabs"><span>전체</span><span>호재</span><span>악재</span><span>내 코인</span></div>
+      <ol class="list" id="list"></ol>
+    </div></div>
+  </div>
+
+  <section class="s" style="background:var(--gray)"><div class="wrap reveal">
+    <h2>하루에 들어오는 소식 <span id="n48">수백</span>개,<br>정말 중요한 건 <span class="up" id="nbig">일부</span>예요</h2>
+    <p class="sub">같은 소식은 하나로 묶고, 큰 소식만 따로 볼 수 있어요.</p>
+    <div class="nums">
+      <div class="num" style="background:#fff"><b class="up" id="nu">–</b><span>지난 24시간<br>좋은 소식(호재)</span></div>
+      <div class="num" style="background:#fff"><b class="down" id="nd">–</b><span>지난 24시간<br>나쁜 소식(악재)</span></div>
+      <div class="num" style="background:#fff"><b id="nn">–</b><span>지난 24시간<br>판단을 보류한 소식(중립)</span></div>
+    </div>
+  </div></section>
+
+  <section class="s" id="how"><div class="wrap reveal">
+    <h2>호재인지 악재인지,<br>이유와 함께 보여 드려요</h2>
+    <p class="sub">판정은 AI의 해석이에요. 그래서 판단할 수 있는 근거를 함께 적어요.</p>
+    <div class="ex" id="ex"><span class="v flat">…</span><p>불러오는 중</p></div>
+  </div></section>
+
+  <section class="s" style="background:var(--gray)"><div class="wrap reveal">
+    <h2>매일 아침 9시,<br>어제를 한 장으로</h2>
+    <p class="sub">숫자는 프로그램이 세고, AI는 문장만 써요. 자료에 없는 숫자는 쓰지 않아요.</p>
+    <div class="brief" style="background:#fff;border:0"><small id="bd">어제 하루 정리</small><p id="bh">–</p><p class="r" id="br"></p></div>
+  </div></section>
+
+  <section class="s"><div class="wrap reveal">
+    <h2>델포나가 약속하는 것</h2>
+    <ul class="promise">
+      <li><svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="#e8f5ee"/><path d="m8 13.5 3.2 3.2L18 9.8" fill="none" stroke="#16835a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>사라, 팔라고 하지 않아요</b>소식을 정리해 드릴 뿐, 매매를 권하지 않아요.</span></li>
+      <li><svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="#e8f5ee"/><path d="m8 13.5 3.2 3.2L18 9.8" fill="none" stroke="#16835a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>모르는 건 모른다고 해요</b>지난 기록이 적으면 숫자를 숨기고, AI가 틀릴 수 있다는 것도 적어요.</span></li>
+      <li><svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="#e8f5ee"/><path d="m8 13.5 3.2 3.2L18 9.8" fill="none" stroke="#16835a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>어디서 왔는지 남겨요</b>몇 곳에서 보도했는지, 원문 기사·공식 공지 링크를 함께 걸어요.</span></li>
+    </ul>
+  </div></section>
+
+  <section class="end wrap reveal"><h2 style="font-size:clamp(28px,5vw,44px);font-weight:750;letter-spacing:-0.04em;line-height:1.3">오늘 아침,<br>어제 무슨 일이 있었는지 보세요</h2><a class="btn p" href="#phone">무료로 보기</a></section>
+</main>
+<footer class="wrap ft">델포나(Delfona) — 시안 3 · 담백. 실시간 속보·정리는 실제 데이터예요. 투자 조언이 아니며, 지난 기록이 앞으로를 보장하지 않아요.</footer>
+<script src="../data.js"></script>
+<script>
+const { esc, ago, hm, vcls, day24 } = DFD, $ = (s) => document.querySelector(s);
+$('#clock').textContent = hm(Date.now() / 1000);
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.2 });
+document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+DFD.flash().then((d) => {
+  $('#when').textContent = `${ago(d.at)} 갱신`;
+  $('#list').innerHTML = d.items.slice(0, 7).map((it) => `<li class="it"><span class="v ${vcls(it.v)}">${esc(it.v)}</span><div><p>${esc(it.ko)}</p><small>${[ago(it.t), ...it.coins.slice(0, 2), it.n > 1 ? `${it.n}곳 보도` : ''].filter(Boolean).map(esc).join(' · ')}</small></div></li>`).join('');
+  const c = day24(d.items); $('#nu').textContent = c.u + '개'; $('#nd').textContent = c.d + '개'; $('#nn').textContent = c.n + '개';
+  $('#n48').textContent = c.all; $('#nbig').textContent = c.big + '개';
+  const ex = d.items.find((x) => x.v !== '중립' && x.n > 1 && x.coins.length) || d.items.find((x) => x.v !== '중립') || d.items[0];
+  if (ex) $('#ex').innerHTML = `<span class="v ${vcls(ex.v)}">${esc(ex.v)}</span><p>${esc(ex.ko)}</p><ul>
+    <li><b>판정</b><span>${esc(ex.v)}${ex.s >= 2 ? ' · 큰 소식' : ''} — 이 소식이 관련 코인 가격에 일반적으로 어떻게 읽히는지에 대한 AI의 해석이에요.</span></li>
+    <li><b>관련 코인</b><span>${ex.coins.length ? ex.coins.map(esc).join(', ') : '특정 코인 없음(시장 전체)'}</span></li>
+    <li><b>보도</b><span>${ex.n > 1 ? `${ex.n}곳에서 같은 소식을 보도했어요` : '한 곳에서 처음 보도했어요'} · ${ago(ex.t)}</span></li>
+    ${/^https?:/.test(ex.link || '') ? `<li><b>원문</b><span><a href="${esc(ex.link)}" target="_blank" rel="noopener nofollow" style="text-decoration:underline">관련 기사·공지 보기</a></span></li>` : ''}</ul>`;
+}).catch(() => {});
+DFD.brief().then((b) => { $('#bd').textContent = (b.made < b.end ? '오늘 지금까지 정리' : '어제 하루 정리') + ' · ' + b.date; $('#bh').textContent = b.headline; $('#br').textContent = b.review; }).catch(() => {});
+</script>
+</body>
+</html>

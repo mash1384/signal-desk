@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona · 심볼 후보 N1~N5</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #0d253d; --mute: #5b6b82; --faint: #8a96aa; --line: #e3e8ee; }
+* { box-sizing: border-box; margin: 0; }
+body { background: #000; color: #fff; font-family: "Pretendard Variable", Pretendard, Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.hero { padding: 72px 24px 56px; text-align: center; }
+.hero h1 { font-size: clamp(26px, 3.4vw, 40px); font-weight: 600; letter-spacing: -0.03em; }
+.hero p { margin-top: 10px; color: #8f9bb0; font-size: 15px; }
+.row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: clamp(28px, 5vw, 64px); padding: 32px 24px 72px; }
+.row svg { width: clamp(64px, 9vw, 112px); height: clamp(64px, 9vw, 112px); color: #fff; }
+.c { display: grid; gap: 0; max-width: 1180px; margin: 0 auto 24px; border-radius: 28px; overflow: hidden; background: #0b0b0c; box-shadow: 0 0 0 1px #1e1f22; }
+@media (min-width: 900px) { .c { grid-template-columns: 1.15fr 1fr; } }
+.c .dark { display: grid; place-items: center; min-height: 380px; background: #000; }
+.c .dark svg.big { width: 200px; height: 200px; color: #fff; }
+.c .info { padding: 32px 32px 30px; background: #fff; color: var(--ink); display: grid; gap: 18px; align-content: start; }
+.c .k { font-family: "JetBrains Mono", monospace; font-size: 12px; color: #533afd; letter-spacing: .06em; }
+.c h2 { font-size: 26px; font-weight: 650; letter-spacing: -0.03em; }
+.c .why { font-size: 15px; line-height: 1.6; color: #273951; }
+.lock { display: flex; align-items: center; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
+.lock svg { width: 40px; height: 40px; color: var(--ink); flex: none; }
+.lock .wm { font-family: Michroma, Inter, sans-serif; font-size: 20px; letter-spacing: .32em; color: var(--ink); }
+.lock.dk { padding: 16px 18px; border: 0; border-radius: 14px; background: #000; } .lock.dk svg, .lock.dk .wm { color: #fff; }
+.sizes { display: flex; align-items: flex-end; gap: 18px; padding-top: 4px; }
+.sizes div { display: grid; justify-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--faint); }
+.sizes svg { color: var(--ink); }
+.app { width: 56px; height: 56px; border-radius: 14px; background: #000; display: grid; place-items: center; } .app svg { width: 34px; height: 34px; color: #fff; }
+.app.l { background: #fff; box-shadow: 0 0 0 1px var(--line); } .app.l svg { color: #000; }
+.foot { padding: 20px 24px 60px; text-align: center; color: #6b7487; font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) {
+  .dark svg.big .draw { stroke-dasharray: 600; stroke-dashoffset: 600; animation: draw 1.6s cubic-bezier(.23,1,.32,1) .2s forwards; }
+  .dark svg.big .fadein { opacity: 0; animation: fade .6s ease 1.1s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } } @keyframes fade { to { opacity: 1; } }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- N1 · Prism: 여러 갈래 소음이 쐐기를 지나 굵은 신호 하나로 나온다 -->
+  <symbol id="n1" viewBox="0 0 100 100">
+    <path d="M4 26 L38 42 M4 50 H38 M4 74 L38 58" fill="none" stroke="currentColor" stroke-width="4.5"/>
+    <path d="M34 22 L70 50 L34 78 Z" fill="currentColor"/>
+    <path d="M64 43 H98 L94 57 H64 Z" fill="currentColor"/>
+  </symbol>
+  <!-- N2 · Delta δ: 소문자 델타(Delfona의 d, 변화의 δ)를 한 획 굵기로 -->
+  <symbol id="n2" viewBox="0 0 100 100">
+    <circle cx="50" cy="64" r="19" fill="none" stroke="currentColor" stroke-width="9"/>
+    <path d="M70 21 C60 13 38 13 38 26 C38 35 50 39 58 47" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="butt"/>
+  </symbol>
+  <!-- N3 · Eclipse: 꽉 찬 원 뒤로 빛의 고리가 비껴 나온다(어둠 속에서 보이는 신호) -->
+  <symbol id="n3" viewBox="0 0 100 100">
+    <defs><mask id="n3k" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"/><circle cx="46" cy="54" r="34" fill="#000"/></mask></defs>
+    <circle cx="46" cy="54" r="30" fill="currentColor"/>
+    <circle cx="53" cy="47" r="31" fill="none" stroke="currentColor" stroke-width="3.2" mask="url(#n3k)"/>
+  </symbol>
+  <!-- N4 · Scanline D: 가로 막대로 쌓은 D, 가운데 한 줄만 길게 뻗는 신호(파형 섹션과 같은 언어) -->
+  <symbol id="n4" viewBox="0 0 100 100"><rect x="16" y="16" width="9" height="68" fill="currentColor"/><rect x="25" y="17.40" width="40.58" height="4.76" fill="currentColor"/><rect x="25" y="24.96" width="50.34" height="4.76" fill="currentColor"/><rect x="25" y="32.51" width="55.46" height="4.76" fill="currentColor"/><rect x="25" y="40.07" width="58.15" height="4.76" fill="currentColor"/><rect x="25" y="47.62" width="72.00" height="4.76" fill="currentColor"/><rect x="25" y="55.18" width="58.15" height="4.76" fill="currentColor"/><rect x="25" y="62.73" width="55.46" height="4.76" fill="currentColor"/><rect x="25" y="70.29" width="50.34" height="4.76" fill="currentColor"/><rect x="25" y="77.84" width="40.58" height="4.76" fill="currentColor"/></symbol>
+  <!-- N5 · Bolt D: 줄기 자리가 번개 모양으로 꺾인 꽉 찬 D — 몇 초 만의 판정 -->
+  <symbol id="n5" viewBox="0 0 100 100">
+    <path d="M30 18 H52 A32 32 0 0 1 52 82 H20 L33 54 H22 Z" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<section class="hero"><h1>Delfona 심볼 후보 N1~N5</h1><p>보내 주신 레퍼런스처럼 단색 · 기하 · 한 덩어리 기호. 어느 회사 로고도 따라 하지 않고, Delfona(D · Δ 변화 · 신호)에서만 만들었어요.</p></section>
+<div class="row" aria-label="모두 나란히"><svg><use href="#n1"/></svg><svg><use href="#n2"/></svg><svg><use href="#n3"/></svg><svg><use href="#n4"/></svg><svg><use href="#n5"/></svg></div>
+
+<template id="card"><article class="c"><div class="dark"><svg class="big"><use/></svg></div><div class="info"><p class="k"></p><h2></h2><p class="why"></p>
+  <div class="lock"><svg><use/></svg><span class="wm">DELFONA</span></div><div class="lock dk"><svg><use/></svg><span class="wm">DELFONA</span></div>
+  <div class="sizes"><div><div class="app"><svg><use/></svg></div>앱</div><div><div class="app l"><svg><use/></svg></div>앱(밝게)</div><div><svg width="32" height="32"><use/></svg>32px</div><div><svg width="16" height="16"><use/></svg>16px</div></div></div></article></template>
+<main id="cards"></main>
+<p class="foot">글자는 Michroma(넓은 기하 서체)로 임시 조판. 확정하면 심볼·글자 모두 벡터로 다듬어 파비콘·앱 아이콘·OG 이미지까지 만들어요.</p>
+<script>
+const C = [
+  ['n1', 'N1 · PRISM', '프리즘', '여러 갈래의 가는 선(소음)이 쐐기를 지나 굵은 신호 하나로 나와요. 소음 속에서 신호를 골라낸다는 우리 일을 그대로 그린 기호.'],
+  ['n2', 'N2 · DELTA δ', '소문자 델타', 'Delfona의 d이자 변화를 뜻하는 δ. 한 가지 굵기의 획 하나로 그려 단단하고 우아해요. 글자형이라 이름과 함께 기억돼요.'],
+  ['n3', 'N3 · ECLIPSE', '일식', '꽉 찬 원 뒤로 빛의 고리가 비껴 나와요. 어둠 속에서 먼저 보이는 신호. 오프닝의 빛 번짐·지구 장면과 같은 결.'],
+  ['n4', 'N4 · SCANLINE D', '스캔라인 D', '가로 막대를 쌓아 만든 D, 가운데 한 줄만 길게 뻗어 나가요. 하루를 파형으로 보여 주는 첫 페이지 장면과 같은 언어.'],
+  ['n5', 'N5 · BOLT D', '볼트 D', '꽉 찬 D의 줄기 자리가 번개처럼 꺾여요. 몇 초 만에 판정하는 속도. 작게 써도 가장 힘 있는 덩어리.'],
+];
+const t = document.getElementById('card'), box = document.getElementById('cards');
+C.forEach(([id, k, n, why]) => { const c = t.content.cloneNode(true); c.querySelectorAll('use').forEach((u) => u.setAttribute('href', '#' + id));
+  c.querySelector('.k').textContent = k; c.querySelector('h2').textContent = n; c.querySelector('.why').textContent = why; box.appendChild(c); });
+</script>
+</body>
+</html>

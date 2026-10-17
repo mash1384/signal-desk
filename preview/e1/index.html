@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — E1 · Eclipse</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../brand/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<style>
+:root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --up: #0e9f6e; --down: #df4a3a;
+  --sans: "Inter", "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+:lang(ko) { --sans: "Pretendard Variable", Pretendard, "Inter", system-ui, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+html, body { overflow-x: clip; }
+body { background: #fff; color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { word-break: keep-all; overflow-wrap: break-word; }
+a { color: inherit; text-decoration: none; } button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.up { color: var(--up); } .down { color: var(--down); } .tnum { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; } @media (min-width: 900px) { .wrap { padding-inline: 36px; } }
+.hd { position: fixed; top: 0; inset-inline: 0; z-index: 30; }
+.hd .wrap { display: flex; align-items: center; gap: 28px; height: 72px; }
+.logo { display: inline-flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 650; letter-spacing: -0.03em; }
+.logo .wm { font-family: Michroma, var(--sans); font-size: 15px; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; }
+.logo svg { width: 26px; height: 26px; }
+.nav { display: none; gap: 26px; font-size: 14.5px; font-weight: 500; color: var(--ink2); } @media (min-width: 900px) { .nav { display: flex; } }
+.lang { margin-inline-start: auto; display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(255 255 255 / 0.6); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.1); }
+.lang button { height: 28px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink2); transition: background-color 150ms ease, color 150ms ease; }
+.lang button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 15px; font-weight: 600; transition: transform 150ms var(--ease), background-color 150ms ease; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--primary); color: #fff; } @media (hover: hover) { .btn.p:hover { background: #4434d4; } }
+.btn.g { background: rgb(255 255 255 / 0.75); backdrop-filter: blur(10px); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.hd .btn { display: none; height: 40px; } @media (min-width: 900px) { .hd .btn { display: inline-flex; } }
+/* 첫 화면 공통 */
+.hero { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #fff; }
+.hero canvas.gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.copy { position: absolute; z-index: 3; pointer-events: none; }
+.copy > * { pointer-events: auto; }
+.kick { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 6px; border-radius: 99px; background: rgb(255 255 255 / 0.7); backdrop-filter: blur(10px); font-size: 13px; font-weight: 600; color: var(--ink2); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.06); }
+.kick b { padding: 2px 8px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0.04em; }
+.copy h1 { margin-top: 16px; font-size: clamp(40px, 5.6vw, 80px); font-weight: 300; line-height: 1.02; letter-spacing: -0.045em; }
+:lang(ko) .copy h1 { font-weight: 500; letter-spacing: -0.05em; line-height: 1.12; }
+.copy .sub { margin-top: 18px; max-width: 30rem; font-size: 18px; color: var(--ink2); }
+.copy .btns { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+.hud { position: absolute; z-index: 3; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--mute); text-transform: uppercase; }
+.reveal { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+.ft { padding-block: 40px 60px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mute); }
+.replay { position: fixed; right: 16px; bottom: 16px; z-index: 90; height: 32px; padding: 0 14px; border-radius: 99px; background: #0d253d; color: #fff; font: 600 12px/1 Inter, system-ui, sans-serif; opacity: .85; }
+/* E1~E3 · 벡터 일식 오프닝 */
+.hero { background: #f7f9fc; }
+.stage { position: absolute; z-index: 2; top: 50%; left: calc(50% + min(330px, 24vw)); width: min(60vh, 40vw); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
+.stage svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.copy.left { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 1240px; margin: 0 auto; padding-inline: 36px; }
+.copy.left h1 { max-width: 40rem; } .copy.left .sub { max-width: 30rem; }
+@media (max-width: 899px) {
+  .stage { top: calc(72px + 4svh); left: 50%; width: min(64vw, 36svh); transform: translateX(-50%); }
+  .copy.left { top: auto; bottom: 6svh; transform: none; padding-inline: 20px; } .copy .sub { font-size: 16px; }
+}
+.e2 .lbl text { font-family: var(--mono); font-size: 2.6px; letter-spacing: .04em; fill: #6b7a90; }
+@media (max-width: 899px) { .e2 .lbl text { font-size: 4px; } }
+.e3hud { left: 50%; bottom: 22px; transform: translateX(-50%); max-width: min(760px, 92vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 13px; color: var(--ink2); opacity: 0; }
+.e3hud b { font-weight: 650; margin-inline-end: 6px; } .e3hud span { margin-inline-start: 6px; color: var(--mute); font-variant-numeric: tabular-nums; }
+@media (max-width: 899px) { .e3hud { top: calc(72px + 4svh + min(64vw, 36svh) + 14px); bottom: auto; font-size: 12.5px; text-align: center; } }
+.nx { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #f7f9fc; --ep: 0; }
+.nx-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.px-lay { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.px-cap { position: absolute; z-index: 3; left: 0; right: 0; top: 13vh; padding: 0 20px; text-align: center; pointer-events: none; transition: opacity 350ms ease; }
+.px-cap b { display: block; font-size: clamp(28px, 3.8vw, 52px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; color: var(--ink); }
+:lang(ko) .px-cap b { font-weight: 500; letter-spacing: -0.04em; }
+.px-cap span { display: block; max-width: 34rem; margin: 10px auto 0; font-size: 16px; line-height: 1.5; color: var(--mute); }
+.px-k { font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); }
+.px-card { position: absolute; left: 0; top: 0; padding: 16px 18px 17px; border-radius: 16px; background: rgb(255 255 255 / .92); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); box-shadow: 0 22px 50px -24px rgb(13 37 61 / .4), 0 0 0 1px rgb(13 37 61 / .06); opacity: 0; will-change: transform, opacity; }
+.px-card .m { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11.5px; color: var(--mute); }
+.px-card .m b { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.px-card .t { margin-top: 6px; font-size: 16px; font-weight: 500; line-height: 1.42; letter-spacing: -0.01em; color: var(--ink); }
+.px-lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); text-align: center; white-space: nowrap; opacity: 0; will-change: transform, opacity; }
+.px-lbl b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); } .px-lbl span { display: block; font-family: var(--mono); font-size: 11px; color: var(--mute); }
+.px-end { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; padding: 20px; text-align: center; opacity: var(--ep); pointer-events: none; }
+.px-end .box { padding: 32px 42px 36px; border-radius: 28px; background: rgb(247 249 252 / .88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 30px 80px -30px rgb(13 37 61 / .45), 0 0 0 1px rgb(13 37 61 / .06); transform: translateY(calc((1 - var(--ep)) * 30px)); }
+.px-end b { display: block; max-width: 13em; font-size: clamp(28px, 3.8vw, 52px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; } :lang(ko) .px-end b { font-weight: 500; }
+.px-end em { font-style: normal; color: var(--primary); font-variant-numeric: tabular-nums; } .px-end .btn { margin-top: 22px; pointer-events: auto; }
+@media (max-width: 899px) { .px-cap { top: 82px; } .px-cap span { font-size: 15px; } .px-card { padding: 13px 14px; } .px-card .t { font-size: 14.5px; } .px-end .box { padding: 24px 20px 26px; } }
+
+.px-cap::before { content: ''; position: absolute; z-index: -1; left: 50%; top: 50%; width: min(980px, 140vw); height: 240%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgb(247 249 252 / .94), rgb(247 249 252 / .7) 55%, rgb(247 249 252 / 0)); pointer-events: none; }
+
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="45" cy="55" r="29"/><path d="M76.75 68.51 A32 32 0 0 0 31.49 23.25 A34.5 34.5 0 0 1 76.75 68.51 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="#" data-t="n1">Product</a><a href="#" data-t="n2">How it works</a><a href="#" data-t="n3">Principles</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+  <a class="btn p" href="#" data-t="cta">Open live signals</a>
+</div></header>
+<section class="hero" id="hero">
+<canvas class="gl" id="gl" aria-hidden="true"></canvas>
+  <div class="copy left">
+    <p class="kick reveal"><b>LIVE</b><span data-t="kick">Tracking market-moving news worldwide</span></p>
+    <h1 class="reveal" data-t="h1" data-html>Market-moving news,<br>judged in seconds.</h1>
+    <p class="sub reveal" data-t="sub">Delfona reads crypto, macro and policy headlines from around the world, calls each one bullish or bearish, and shows how many outlets reported it.</p>
+    <div class="btns reveal"><a class="btn p" href="#" data-t="cta">Open live signals</a><a class="btn g" href="#" data-t="how">How it works</a></div>
+  </div>
+
+</section>
+<section class="nx px" id="nx" aria-label="Signals"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas><div class="px-lay"></div>
+<div class="px-cap"></div><div class="px-end"><div class="box"><b></b><a class="btn p" href="#" data-t="cta">Open live signals</a></div></div></section>
+<footer class="ft wrap" data-t="ft">Delfona — E1 · Eclipse. Live data. Not investment advice.</footer>
+<button class="replay" type="button" onclick="location.reload()">↻ Replay</button>
+<script src="../data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script>
+DFI.init(Object.assign({ n1: '제품', n2: '작동 방식', n3: '원칙', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
+  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 미리보기. 실제 데이터. 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
+</script>
+<script src="../s/common.js"></script>
+
+<script type="module">
+import './../e/e1.js?v=202610161502';
+import '../p/p5.js?v=202610161502';
+</script>
+</body>
+</html>

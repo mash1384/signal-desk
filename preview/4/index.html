@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — 시안 4 · 가격선</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 4 · 가격선 — 대표 그래픽 하나: 비트코인 24시간 가격선 위에 그 시각에 나온 속보가 점으로 찍힌다.
+   선이 그려지고(1.8초), 점이 시간 순서대로 하나씩 떠오르고, 새 속보가 오면 그 자리에서 물결이 퍼진다.
+   색은 흰 바탕 + 짙은 남색 + 청록 하나. 배경엔 아주 옅은 그라데이션이 천천히 흐른다. */
+:root { --bg: #fff; --bg2: #f5f7fa; --navy: #0a1f3c; --ink: #0d1726; --t2: #4b5565; --t3: #6b7280; --line: #e6e9ef; --teal: #0aa59a; --teal-soft: #d9f4f1;
+  --up: #0f8a5f; --up-bg: #e7f6ef; --down: #c2412b; --down-bg: #fdeeea; --flat-bg: #eef1f5;
+  --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; --latin: "Inter Tight", "Pretendard Variable", sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 20px; }
+@media (min-width: 900px) { .wrap { padding-inline: 32px; } }
+.logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--latin); font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
+.logo svg { width: 30px; height: 30px; }
+.hd { position: sticky; top: 0; z-index: 20; background: rgb(255 255 255 / 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgb(10 31 60 / 0.06); }
+.hd .wrap { display: flex; align-items: center; gap: 30px; height: 64px; }
+.nav { display: none; gap: 24px; font-size: 14.5px; font-weight: 550; color: var(--t2); }
+@media (min-width: 900px) { .nav { display: flex; } }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 15px; font-weight: 650; transition: transform 160ms var(--ease), background-color 160ms ease, box-shadow 160ms ease; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--navy); color: #fff; }
+.btn.g { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+@media (hover: hover) { .btn.p:hover { box-shadow: 0 8px 22px -8px rgb(10 31 60 / 0.5); } .btn.g:hover { background: var(--bg2); } }
+.hd .btn { margin-inline-start: auto; height: 40px; }
+.btn .arr { transition: transform 160ms var(--ease); }
+@media (hover: hover) { .btn:hover .arr { transform: translateX(3px); } }
+
+/* 첫 화면 */
+.hero { position: relative; padding-block: 64px 0; overflow: hidden; }
+.mesh { position: absolute; inset: -30% -10% auto; height: 120%; z-index: 0; pointer-events: none; filter: blur(70px); opacity: 0.55; }
+.mesh i { position: absolute; border-radius: 50%; }
+.mesh i:nth-child(1) { width: 46vw; height: 46vw; left: 48%; top: 0; background: #c9e9ff; }
+.mesh i:nth-child(2) { width: 38vw; height: 38vw; left: 66%; top: 18%; background: #c6f1ea; }
+.mesh i:nth-child(3) { width: 30vw; height: 30vw; left: 30%; top: 30%; background: #e3e7ff; }
+@media (prefers-reduced-motion: no-preference) { .mesh i:nth-child(1) { animation: m1 16s ease-in-out infinite alternate; } .mesh i:nth-child(2) { animation: m2 19s ease-in-out infinite alternate; } .mesh i:nth-child(3) { animation: m1 23s ease-in-out infinite alternate-reverse; } }
+@keyframes m1 { to { transform: translate(-6vw, 4vw) scale(1.1); } } @keyframes m2 { to { transform: translate(5vw, -3vw) scale(0.92); } }
+.hero .top { position: relative; z-index: 1; display: grid; gap: 24px; }
+@media (min-width: 1000px) { .hero .top { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: end; } }
+.chip { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 99px; background: rgb(255 255 255 / 0.8); box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; font-weight: 600; color: var(--t2); }
+.chip i { position: relative; width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+.chip i::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid var(--teal); opacity: 0; }
+@media (prefers-reduced-motion: no-preference) { .chip i::after { animation: ping 2s var(--ease) infinite; } }
+@keyframes ping { 0% { opacity: 0.8; transform: scale(0.5); } 100% { opacity: 0; transform: scale(2); } }
+.hero h1 { margin-top: 16px; font-size: clamp(38px, 6.4vw, 72px); font-weight: 780; line-height: 1.06; letter-spacing: -0.05em; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--navy), var(--teal)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero .sub { font-size: 18px; color: var(--t2); max-width: 30rem; }
+.hero .btns { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+.word { display: inline-block; opacity: 0; transform: translateY(14px); filter: blur(6px); animation: word 700ms var(--ease) forwards; }
+@keyframes word { to { opacity: 1; transform: none; filter: none; } }
+@media (prefers-reduced-motion: reduce) { .word { animation: none; opacity: 1; transform: none; filter: none; } }
+
+/* 대표 그래픽: 가격선 */
+.chart { position: relative; z-index: 1; margin-top: 36px; height: clamp(300px, 46vh, 460px); }
+.chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.chart .ln { fill: none; stroke: var(--navy); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .ar { fill: url(#gArea); }
+.chart .grid line { stroke: rgb(10 31 60 / 0.07); }
+.chart .ax { font-family: var(--mono); font-size: 11px; fill: var(--t3); }
+.mk { position: absolute; z-index: 2; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2.5px solid #fff; box-shadow: 0 2px 8px rgb(10 31 60 / 0.25); cursor: pointer; opacity: 0; transform: scale(0.4); transition: opacity 400ms var(--ease), transform 400ms var(--ease); }
+.mk.on { opacity: 1; transform: scale(1); }
+.mk.up { background: var(--up); } .mk.down { background: var(--down); } .mk.flat { background: #9aa3b2; }
+.mk.big { width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+.mk::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid currentColor; opacity: 0; }
+.mk.fresh::after { animation: ping 1.6s var(--ease) 3; }
+.mk.up { color: var(--up); } .mk.down { color: var(--down); }
+.tip { position: absolute; z-index: 3; width: min(320px, 80vw); padding: 14px 16px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 18px 40px -16px rgb(10 31 60 / 0.35); pointer-events: none; opacity: 0; transform: translateY(6px); transition: opacity 180ms var(--ease), transform 180ms var(--ease); }
+.tip.on { opacity: 1; transform: none; }
+.tip .v { display: inline-flex; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.v.up { background: var(--up-bg); } .v.down { background: var(--down-bg); } .v.flat { background: var(--flat-bg); color: var(--t2); }
+.tip p { margin-top: 8px; font-size: 14.5px; font-weight: 600; line-height: 1.5; }
+.tip small { display: block; margin-top: 6px; font-family: var(--mono); font-size: 11.5px; color: var(--t3); }
+.legend { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 14px; padding-bottom: 28px; font-size: 13px; color: var(--t3); }
+.legend b { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-inline-end: 6px; vertical-align: 1px; }
+.price-now { position: absolute; z-index: 2; right: 0; top: -6px; text-align: end; }
+.price-now b { display: block; font-family: var(--latin); font-size: clamp(26px, 3vw, 34px); font-weight: 720; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.price-now small { font-size: 13px; color: var(--t3); }
+
+/* 실시간 흐름 */
+.live { padding-block: 72px; border-top: 1px solid var(--line); background: var(--bg2); }
+.cols { display: grid; gap: 32px; }
+@media (min-width: 1000px) { .cols { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: start; } }
+.h2 { font-size: clamp(28px, 3.8vw, 42px); font-weight: 760; letter-spacing: -0.04em; line-height: 1.18; }
+.lead { margin-top: 12px; font-size: 17px; color: var(--t2); max-width: 30rem; }
+.stack { position: relative; display: grid; gap: 10px; }
+.card { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 14px; padding: 16px 18px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 6px 18px -12px rgb(10 31 60 / 0.25); transition: transform 500ms var(--ease), opacity 500ms var(--ease); }
+.card .v { align-self: start; justify-content: center; display: inline-flex; padding: 2px 0; border-radius: 6px; font-size: 12.5px; font-weight: 700; }
+.card p { font-size: 15.5px; font-weight: 600; line-height: 1.5; }
+.card small { grid-column: 2; font-family: var(--mono); font-size: 11.5px; color: var(--t3); }
+.card.enter { opacity: 0; transform: translateY(-14px) scale(0.98); }
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 28px; }
+.stat { padding: 18px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.stat b { display: block; font-family: var(--latin); font-size: 32px; font-weight: 720; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13.5px; color: var(--t3); }
+
+/* 방법 */
+.how { padding-block: 80px; }
+.steps { display: grid; gap: 14px; margin-top: 32px; }
+@media (min-width: 900px) { .steps { grid-template-columns: repeat(4, 1fr); } }
+.step { position: relative; padding: 22px; border-radius: 18px; box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.step .n { font-family: var(--mono); font-size: 12px; color: var(--teal); }
+.step h3 { margin-top: 10px; font-size: 18px; font-weight: 720; letter-spacing: -0.02em; }
+.step p { margin-top: 6px; font-size: 14.5px; color: var(--t2); }
+.step svg { position: absolute; right: -8px; bottom: -8px; width: 92px; height: 92px; opacity: 0.12; fill: none; stroke: var(--navy); stroke-width: 1.4; }
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+.steps .reveal:nth-child(2) { transition-delay: 90ms; } .steps .reveal:nth-child(3) { transition-delay: 180ms; } .steps .reveal:nth-child(4) { transition-delay: 270ms; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+.end { margin: 0 20px 20px; padding: 64px 28px; border-radius: 28px; background: var(--navy); color: #fff; text-align: center; position: relative; overflow: hidden; }
+@media (min-width: 900px) { .end { margin: 0 32px 32px; } }
+.end h2 { position: relative; font-size: clamp(26px, 3.6vw, 40px); font-weight: 760; letter-spacing: -0.04em; }
+.end p { position: relative; margin-top: 10px; color: rgb(255 255 255 / 0.7); }
+.end .btn { position: relative; margin-top: 24px; background: #fff; color: var(--navy); }
+.end svg { position: absolute; inset: auto 0 0; width: 100%; height: 60%; opacity: 0.22; }
+.ft { padding-block: 24px 48px; font-size: 12.5px; color: var(--t3); }
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#0a1f3c"/><path d="M6.5 19.5 11 15l3.5 3 4.5-7.5 4.5 4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="23.5" cy="14.5" r="2.2" fill="#2fe0cf"/></svg>Delfona</a>
+  <nav class="nav" aria-label="메뉴"><a href="#live">실시간</a><a href="#how">판정 방법</a></nav>
+  <a class="btn p" href="#live">속보 보기 <span class="arr">→</span></a>
+</div></header>
+
+<main>
+  <section class="hero">
+    <div class="mesh" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <p class="chip"><i aria-hidden="true"></i><span id="chipT">실시간으로 기록 중</span></p>
+          <h1 id="h1"><span class="word">가격이</span> <span class="word" style="animation-delay:80ms">움직일</span> <span class="word" style="animation-delay:160ms">때,</span><br><em class="word" style="animation-delay:260ms">무슨</em> <em class="word" style="animation-delay:340ms">소식이</em> <span class="word" style="animation-delay:420ms">있었는지</span></h1>
+        </div>
+        <div>
+          <p class="sub">비트코인 가격선 위에 그 시각 들어온 속보를 찍었어요. 점을 누르면 어떤 소식이었는지, 호재였는지 악재였는지 보여요.</p>
+          <div class="btns"><a class="btn p" href="#live">실시간 속보 <span class="arr">→</span></a><a class="btn g" href="#how">어떻게 판정하나요</a></div>
+        </div>
+      </div>
+      <div class="chart" id="chart" aria-label="비트코인 24시간 가격과 그 시각의 속보">
+        <div class="price-now"><b id="pNow">–</b><small id="pChg">비트코인 · 24시간</small></div>
+        <svg id="svg" aria-hidden="true"><defs><linearGradient id="gArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0aa59a" stop-opacity="0.18"/><stop offset="1" stop-color="#0aa59a" stop-opacity="0"/></linearGradient></defs></svg>
+        <div class="tip" id="tip" role="status"></div>
+      </div>
+      <p class="legend"><span><b style="background:var(--up)"></b>호재</span><span><b style="background:var(--down)"></b>악재</span><span><b style="background:#9aa3b2"></b>중립</span><span>· 점을 누르거나 올려 보세요 · 소식 때문에 움직였다는 뜻은 아니에요</span></p>
+    </div>
+  </section>
+
+  <section class="live" id="live"><div class="wrap cols">
+    <div class="reveal">
+      <h2 class="h2">새 소식이 오면,<br>바로 여기에</h2>
+      <p class="lead">국내외 속보를 AI가 한국어로 옮기고 호재·악재를 붙여요. 같은 소식은 하나로 묶고, 몇 곳이 보도했는지 적어요.</p>
+      <div class="stats"><div class="stat"><b id="n48" data-count>0</b><span>지난 48시간 소식</span></div><div class="stat"><b id="nbig" data-count>0</b><span>그중 큰 소식</span></div></div>
+    </div>
+    <ol class="stack" id="stack"></ol>
+  </div></section>
+
+  <section class="how" id="how"><div class="wrap">
+    <h2 class="h2 reveal">판정은 이렇게 해요</h2>
+    <ol class="steps">
+      <li class="step reveal"><p class="n">01 · 모으기</p><h3>매체 57곳 + 공개 속보</h3><p>기사는 15분, 속보는 실시간으로 받아요.</p><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r="30"/><circle cx="46" cy="46" r="16"/></svg></li>
+      <li class="step reveal"><p class="n">02 · 읽기</p><h3>한국어 한 줄로</h3><p>로컬 AI가 옮기고 호재·악재·중립을 붙여요.</p><svg viewBox="0 0 92 92"><path d="M16 30h60M16 46h44M16 62h52"/></svg></li>
+      <li class="step reveal"><p class="n">03 · 묶기</p><h3>같은 소식은 하나로</h3><p>몇 곳이 보도했는지 세어 함께 적어요.</p><svg viewBox="0 0 92 92"><rect x="18" y="18" width="40" height="40" rx="8"/><rect x="34" y="34" width="40" height="40" rx="8"/></svg></li>
+      <li class="step reveal"><p class="n">04 · 검증</p><h3>틀릴 수 있다고 적어요</h3><p>기사 판정은 정답을 달아 둔 1,000건으로 검증했고, 속보 판정도 검증해 나가요.</p><svg viewBox="0 0 92 92"><path d="m24 48 14 14 30-32"/></svg></li>
+    </ol>
+  </div></section>
+
+  <section class="end reveal"><svg viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 150 C 150 120 250 170 380 130 S 620 60 760 100 S 1000 40 1200 70" fill="none" stroke="#2fe0cf" stroke-width="2"/></svg>
+    <h2>가격 뒤의 이유까지, 한눈에</h2><p>투자 조언은 하지 않아요. 무슨 일이 있었는지를 정확하게 보여 드려요.</p><a class="btn" href="#live">지금 보기 <span class="arr">→</span></a></section>
+</main>
+<footer class="wrap ft">Delfona — 시안 4 · 가격선. 가격선·속보는 실제 데이터예요(Binance 15분봉, Delfona 실시간 속보). 투자 조언이 아니며, 소식과 가격의 인과를 뜻하지 않아요.</footer>
+<script src="../data.js"></script>
+<script>
+const { esc, ago, hm, money, pct, vcls } = DFD, $ = (s) => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let K = null, F = [], drawn = false, known = new Set();
+
+async function klines() {
+  const r = await fetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=96');
+  return (await r.json()).map((k) => [k[0] / 1000, +k[4]]);
+}
+function draw(animate) {
+  const box = $('#chart'), svg = $('#svg'), W = box.clientWidth, H = box.clientHeight, m = { l: 0, r: 0, t: 56, b: 26 };
+  if (!K || W < 50) return;
+  const t0 = K[0][0], t1 = K[K.length - 1][0] + 900, ps = K.map((k) => k[1]), lo = Math.min(...ps), hi = Math.max(...ps), pad = (hi - lo) * 0.12;
+  const xs = (t) => m.l + ((t - t0) / (t1 - t0)) * (W - m.l - m.r), ys = (p) => m.t + (1 - (p - lo + pad) / (hi - lo + 2 * pad)) * (H - m.t - m.b);
+  const d = K.map((k, i) => `${i ? 'L' : 'M'}${xs(k[0]).toFixed(1)},${ys(k[1]).toFixed(1)}`).join('');
+  const grid = [0.25, 0.5, 0.75].map((f) => `<line x1="0" x2="${W}" y1="${m.t + f * (H - m.t - m.b)}" y2="${m.t + f * (H - m.t - m.b)}"/>`).join('');
+  const ticks = [0, 6, 12, 18].map((h) => { const t = t1 - (24 - h) * 3600; return `<text class="ax" x="${xs(t)}" y="${H - 6}">${hm(t)}</text>`; }).join('') + `<text class="ax" x="${W}" y="${H - 6}" text-anchor="end">지금</text>`;
+  svg.innerHTML = svg.querySelector('defs').outerHTML + `<g class="grid">${grid}</g><path class="ar" d="${d}L${xs(K[K.length - 1][0])},${H - m.b}L${xs(t0)},${H - m.b}Z"/><path class="ln" id="ln" d="${d}"/>${ticks}`;
+  if (animate && !reduce) {
+    const ln = $('#ln'), L = ln.getTotalLength();
+    ln.style.strokeDasharray = L; ln.style.strokeDashoffset = L;
+    ln.getBoundingClientRect();
+    ln.style.transition = 'stroke-dashoffset 1800ms cubic-bezier(0.65, 0, 0.35, 1)'; ln.style.strokeDashoffset = 0;
+    $('.ar').style.opacity = 0; requestAnimationFrame(() => { $('.ar').style.transition = 'opacity 1200ms ease 900ms'; $('.ar').style.opacity = 1; });
+  }
+  // 점: 비트코인을 다뤘거나 시장 전체 소식
+  box.querySelectorAll('.mk').forEach((el) => el.remove());
+  const at = (t) => { let j = K.findIndex((k) => k[0] >= t); return j < 0 ? K[K.length - 1][1] : K[Math.max(0, j)][1]; };
+  const pts = F.filter((it) => it.t >= t0 && (it.coins.includes('BTC') || it.mw) && (it.v !== '중립' || it.s >= 2)).slice(0, 40).reverse();
+  pts.forEach((it, i) => {
+    const el = document.createElement('button');
+    el.className = `mk ${vcls(it.v)}${it.s >= 2 ? ' big' : ''}${drawn && !known.has(it.id) ? ' fresh' : ''}`;
+    el.type = 'button'; el.setAttribute('aria-label', `${hm(it.t)} ${it.v}: ${it.ko}`);
+    el.style.left = xs(it.t) + 'px'; el.style.top = ys(at(it.t)) + 'px';
+    el.addEventListener('mouseenter', () => tip(it, el)); el.addEventListener('focus', () => tip(it, el)); el.addEventListener('click', () => tip(it, el));
+    el.addEventListener('mouseleave', () => $('#tip').classList.remove('on')); el.addEventListener('blur', () => $('#tip').classList.remove('on'));
+    box.appendChild(el);
+    setTimeout(() => el.classList.add('on'), animate && !reduce ? 1500 + i * 70 : 0);
+  });
+  pts.forEach((it) => known.add(it.id)); drawn = true;
+  const last = pts[pts.length - 1];
+  if (last && animate && !reduce && innerWidth >= 900) setTimeout(() => { const el = [...box.querySelectorAll('.mk')].pop(); if (el) tip(last, el); }, 1500 + pts.length * 70 + 300);
+}
+function tip(it, el) {
+  const t = $('#tip'), box = $('#chart');
+  t.innerHTML = `<span class="v ${vcls(it.v)}">${esc(it.v)}${it.s >= 2 ? ' · 큰 소식' : ''}</span><p>${esc(it.ko)}</p><small>${hm(it.t)} · ${ago(it.t)}${it.n > 1 ? ` · ${it.n}곳 보도` : ''}</small>`;
+  const x = parseFloat(el.style.left), y = parseFloat(el.style.top), w = Math.min(320, innerWidth * 0.8);
+  t.style.left = Math.max(0, Math.min(box.clientWidth - w, x - w / 2)) + 'px';
+  t.style.top = Math.max(64, y > box.clientHeight / 2 ? y - 150 : y + 18) + 'px';   // 위쪽 가격 표시는 가리지 않게
+  t.classList.add('on');
+}
+function cards(items, fresh) {
+  const box = $('#stack');
+  const html = (it) => `<li class="card" data-id="${esc(it.id)}"><span class="v ${vcls(it.v)}">${esc(it.v)}</span><p>${esc(it.ko)}</p><small>${[ago(it.t), ...it.coins.slice(0, 3), it.n > 1 ? `${it.n}곳 보도` : ''].filter(Boolean).map(esc).join(' · ')}</small></li>`;
+  if (!fresh) { box.innerHTML = items.slice(0, 5).map(html).join(''); return; }
+  fresh.reverse().forEach((it) => { box.insertAdjacentHTML('afterbegin', html(it)); const el = box.firstElementChild; el.classList.add('enter'); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('enter'))); });
+  while (box.children.length > 5) box.lastElementChild.remove();
+}
+function countUp(el, to) { if (reduce) { el.textContent = to; return; } const t0 = performance.now(); const f = (n) => { const p = Math.min(1, (n - t0) / 1400), e = 1 - Math.pow(1 - p, 3); el.textContent = Math.round(to * e); if (p < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; e.target.classList.add('in'); io.unobserve(e.target);
+  if (e.target.querySelector && e.target.querySelector('[data-count]')) e.target.querySelectorAll('[data-count]').forEach((n) => countUp(n, +n.dataset.to || 0)); }), { threshold: 0.2 });
+document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+async function load(first) {
+  try {
+    const d = await DFD.flash();
+    const fresh = first ? null : d.items.filter((it) => !F.some((x) => x.id === it.id)).slice(0, 3);
+    F = d.items; $('#chipT').textContent = `실시간으로 기록 중 · ${ago(d.at)} 갱신`;
+    $('#n48').dataset.to = d.items.length; $('#nbig').dataset.to = d.items.filter((x) => x.s >= 2).length;
+    if (!first) { $('#n48').textContent = d.items.length; $('#nbig').textContent = $('#nbig').dataset.to; }
+    cards(d.items, fresh && fresh.length ? fresh : first ? null : []);
+    if (K) draw(first);
+  } catch (e) {}
+}
+Promise.all([klines().then((k) => { K = k; }), load(true)]).then(() => draw(true));
+DFD.prices(['BTC']).then((p) => { $('#pNow').textContent = money(p.BTC.p); $('#pChg').innerHTML = `비트코인 · 24시간 <span class="${p.BTC.c >= 0 ? 'up' : 'down'}">${pct(p.BTC.c)}</span>`; }).catch(() => {});
+setInterval(() => { if (!document.hidden) load(false); }, 30000);
+setInterval(() => { if (!document.hidden) klines().then((k) => { K = k; draw(false); }); }, 120000);
+let raf; addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => draw(false)); });
+</script>
+</body>
+</html>

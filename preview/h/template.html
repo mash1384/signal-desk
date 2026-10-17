@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — %%TITLE%%</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../brand/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<style>
+:root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --up: #0e9f6e; --down: #df4a3a;
+  --sans: "Inter", "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+:lang(ko) { --sans: "Pretendard Variable", Pretendard, "Inter", system-ui, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+html, body { overflow-x: clip; }
+body { background: #fff; color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { word-break: keep-all; overflow-wrap: break-word; }
+a { color: inherit; text-decoration: none; } button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.up { color: var(--up); } .down { color: var(--down); } .tnum { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; } @media (min-width: 900px) { .wrap { padding-inline: 36px; } }
+.hd { position: fixed; top: 0; inset-inline: 0; z-index: 30; }
+.hd .wrap { display: flex; align-items: center; gap: 28px; height: 72px; }
+.logo { display: inline-flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 650; letter-spacing: -0.03em; color: #000; }
+.logo .wm { font-family: Michroma, var(--sans); font-size: 15px; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; }
+.logo svg { width: 26px; height: 26px; }
+.nav { display: none; gap: 26px; font-size: 14.5px; font-weight: 500; color: var(--ink2); } @media (min-width: 900px) { .nav { display: flex; } }
+.lang { margin-inline-start: auto; display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(255 255 255 / 0.6); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.1); }
+.lang button { height: 28px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink2); transition: background-color 150ms ease, color 150ms ease; }
+.lang button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 15px; font-weight: 600; transition: transform 150ms var(--ease), background-color 150ms ease; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--primary); color: #fff; } @media (hover: hover) { .btn.p:hover { background: #4434d4; } }
+.btn.g { background: rgb(255 255 255 / 0.75); backdrop-filter: blur(10px); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.hd .btn { display: none; height: 40px; } @media (min-width: 900px) { .hd .btn { display: inline-flex; } }
+/* 첫 화면 공통 */
+.hero { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #fff; }
+.hero canvas.gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.copy { position: absolute; z-index: 3; pointer-events: none; }
+.copy > * { pointer-events: auto; }
+.kick { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 6px; border-radius: 99px; background: rgb(255 255 255 / 0.7); backdrop-filter: blur(10px); font-size: 13px; font-weight: 600; color: var(--ink2); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.06); }
+.kick b { padding: 2px 8px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0.04em; }
+.copy h1 { margin-top: 16px; font-size: clamp(40px, 5.6vw, 80px); font-weight: 300; line-height: 1.02; letter-spacing: -0.045em; }
+:lang(ko) .copy h1 { font-weight: 500; letter-spacing: -0.05em; line-height: 1.12; }
+.copy .sub { margin-top: 18px; max-width: 30rem; font-size: 18px; color: var(--ink2); }
+.copy .btns { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+.hud { position: absolute; z-index: 3; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--mute); text-transform: uppercase; }
+.reveal { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+.ft { padding-block: 40px 60px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mute); }
+.replay { position: fixed; right: 16px; bottom: 16px; z-index: 90; height: 32px; padding: 0 14px; border-radius: 99px; background: #0d253d; color: #fff; font: 600 12px/1 Inter, system-ui, sans-serif; opacity: .85; }
+%%CSS%%
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="#" data-t="n1">Product</a><a href="#" data-t="n2">How it works</a><a href="#" data-t="n3">Principles</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+  <a class="btn p" href="#" data-t="cta">Open live signals</a>
+</div></header>
+<section class="hero" id="hero">
+%%HERO%%
+</section>
+%%AFTER%%<footer class="ft wrap" data-t="ft">Delfona — %%TITLE%%. Live data. Not investment advice.</footer>
+<button class="replay" type="button" onclick="location.reload()">↻ Replay</button>
+<script src="../data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script>
+DFI.init(Object.assign({ n1: '제품', n2: '작동 방식', n3: '원칙', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
+  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 미리보기. 실제 데이터. 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
+</script>
+<script src="../s/common.js"></script>
+%%S5%%
+<script type="module">
+%%JS%%
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>정리 타임라인 그래프 후보 · Delfona</title>
+<style>body{margin:0;background:#eef1f5;font-family:-apple-system,"Pretendard",sans-serif;color:#0d253d;line-height:1.55}header{position:sticky;top:0;background:#fff;padding:12px 16px;box-shadow:0 1px 0 #e3e8ee;z-index:2}h1{font-size:17px;margin:0}nav{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}nav a{padding:6px 12px;border-radius:99px;background:#0d253d;color:#fff;font-size:13px;text-decoration:none}section{padding:20px 12px;max-width:1460px;margin:0 auto}h2{font-size:16px;margin:0 0 6px}p{margin:0 0 10px;font-size:13.5px;color:#4b5b72}img{display:block;width:100%;max-width:1440px;margin:0 0 10px;border-radius:8px;box-shadow:0 0 0 1px #d5dbe5;background:#fff}img.m{max-width:390px;display:inline-block;vertical-align:top;margin-right:8px}a.live{color:#533afd;font-weight:600}table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:13px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid #e3e8ee;vertical-align:top}th{font-size:12px;color:#5b6b82}.refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}.refs figure{margin:0;background:#fff;border-radius:10px;padding:8px;box-shadow:0 0 0 1px #e3e8ee}.refs figcaption{font-size:12.5px;color:#4b5b72;margin-top:6px}</style></head>
+<body><header><h1>정리 · 타임라인 그래프 후보 3개 (같은 데이터)</h1><nav><a href="#refs">레퍼런스 분석</a><a href="#g1">1 열지도</a><a href="#g2">2 네모 쌓기</a><a href="#g3">3 흐름선 + 분위기</a></nav></header>
+<section id="refs"><h2>레퍼런스에서 가져온 것</h2>
+<table><tr><th>레퍼런스</th><th>가져온 점</th><th>후보</th></tr>
+<tr><td>GitHub 활동 그래프</td><td>시간 칸을 한 가지 색의 진하기로만. 줄끼리 비교가 쉬움. "적음 ◻◼ 많음" 범례</td><td>1</td></tr>
+<tr><td>Extremists on Both Sides (awwwards 데이터 시각화)</td><td>사건 하나 = 작은 네모 하나. 쌓인 양이 곧 규모</td><td>2</td></tr>
+<tr><td>Ground News</td><td>성향 비율을 얇은 3칸 막대 하나 + %로</td><td>3</td></tr>
+<tr><td>WC 2026 Data Portraits (awwwards)</td><td>같은 모양 작은 그래프를 줄마다 반복(스몰 멀티플), 모든 줄이 같은 축</td><td>공통</td></tr>
+<tr><td>Particle · FieldRank · People's Audit</td><td>메타는 작은 고정폭 한 줄("237 ARTICLES · 2H AGO")</td><td>공통</td></tr>
+<tr><td>Al Jazeera · Cursor · Linear (디자인 문서)</td><td>강조색은 한 가지 뜻에만(여기선 '최근 24시간'), 타임라인 색은 타임라인 안에서만</td><td>공통</td></tr>
+<tr><td>Jakub · Emil 스킬</td><td>색만으로 뜻 전달 금지(범례·글자 함께), 자주 보는 화면은 움직임 없이</td><td>공통</td></tr></table>
+<p style="margin-top:10px">확인했지만 쓰지 않은 것: Obama 기록 사이트(접근 차단 403, 우회 안 함), Ground News 이야기 상세(가입 필요), Polymarket(국가 차단), Where the Shadow Fell·Everest(시각 연출 위주라 정리 화면과 맞지 않음).</p>
+<div class="refs"><figure><img src="ref_gh.png"><figcaption>GitHub 활동 그래프</figcaption></figure><figure><img src="ref_both.png"><figcaption>Extremists on Both Sides — 사건 = 네모</figcaption></figure><figure><img src="ref_ground.png"><figcaption>Ground News — 3칸 비율 막대</figcaption></figure><figure><img src="ref_wc.png"><figcaption>WC 2026 Data Portraits — 스몰 멀티플</figcaption></figure><figure><img src="ref_field.png"><figcaption>FieldRank — 고정폭 메타, 얇은 선 표</figcaption></figure><figure><img src="ref_particle.png"><figcaption>Particle — 한 줄 메타</figcaption></figure></div></section>
+<section id="g1"><h2>1 · 열지도</h2><p>6시간 칸마다 소식 양을 보라 진하기로. 언제 뜨거웠는지가 가장 빨리 보여요. <a class="live" href="../br2heat/">직접 열기</a></p><img src="gs_heat_pc.png"><img class="m" src="gs_heat_m.png"></section>
+<section id="g2"><h2>2 · 네모 쌓기</h2><p>하루 칸마다 소식 하나 = 네모 하나. 정확한 양이 보이고, 최근 24시간은 보라. 큰 소식은 진하게. <a class="live" href="../br2units/">직접 열기</a></p><img src="gs_units_pc.png"><img class="m" src="gs_units_m.png"></section>
+<section id="g3"><h2>3 · 흐름선 + 분위기 막대</h2><p>소식 양의 흐름을 얇은 선(최근 24시간은 보라)으로, 오른쪽에 호재·중립·악재 비율. 분위기까지 한 줄에. <a class="live" href="../br2mood/">직접 열기</a></p><img src="gs_mood_pc.png"><img class="m" src="gs_mood_m.png"></section>
+</body></html>

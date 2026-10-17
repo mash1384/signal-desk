@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My assets · Delfona — 내 자산 소식과 급변 알림</title>
+<meta name="description" content="관심 자산을 고르면 그 자산의 소식만 모아 보고, 평소보다 크게 움직일 때 같은 시간의 소식과 함께 알려 줘요.">
+<link rel="canonical" href="https://mash1384.github.io/signal-desk/my/">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/signal-desk/assets/icon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/signal-desk/assets/df/lk.css?v=cc3ed8eb">
+<style>/* My assets · Y2 */
+/* 내 자산 공통 */
+.yh { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px 16px; } .yh h1 { font-size: clamp(24px, 2.6vw, 32px); font-weight: 650; letter-spacing: -0.025em; } .yh p { font-size: 13.5px; color: var(--mute); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 18px; border-radius: 99px; font-size: 14.5px; font-weight: 600; }
+.btn.p { background: var(--primary); color: #fff; } .btn.g { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line); } .btn.s { height: 34px; padding: 0 14px; font-size: 13.5px; background: #f1f3f7; color: var(--ink2); }
+@media (hover: hover) { .btn.p:hover { background: #4434d4; } .btn.g:hover, .btn.s:hover { background: #eef1f6; } }
+@media (prefers-reduced-motion: no-preference) { .btn { transition: transform 150ms cubic-bezier(.2,0,0,1), background-color 150ms ease; } .btn:not(:disabled):active { transform: scale(0.96); } }
+.alert { padding: 14px 16px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line), inset 4px 0 0 var(--c, var(--ink)); } .alert.up { --c: var(--up); } .alert.down { --c: var(--down); }
+.alert .ah { font-size: 15px; } .alert .ah b { font-weight: 700; margin-inline-end: 2px; } .alert .ah .mono { font-weight: 700; color: var(--c); } .alert .w { font-size: 12.5px; color: var(--mute); }
+.alert .as { margin-top: 8px; font-size: 12px; color: var(--faint); } .alert ul { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 2px; } .alert li button { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; text-align: start; font-size: 14px; }
+.top3 { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; } .top3 button { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px; width: 100%; padding: 14px 16px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); text-align: start; }
+.top3 .n { font-size: 13px; color: var(--faint); padding-top: 2px; } .top3 .b { display: grid; gap: 6px; } .top3 .ln { font-size: 16px; font-weight: 600; line-height: 1.42; letter-spacing: -0.01em; text-wrap: pretty; } .top3 .mt, .srow .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } .ou { font-size: 12px; color: var(--faint); }
+@media (hover: hover) { .top3 button:hover { box-shadow: 0 0 0 1px #d5dbe5, 0 10px 26px -18px rgb(13 37 61 / .35); } }
+.atag { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; background: #fff6dc; color: #8a6100; font-family: var(--mono); font-size: 11px; font-weight: 600; }
+.srows { list-style: none; padding: 0; margin: 0; } .srow { display: grid; gap: 6px; width: 100%; padding: 13px 4px; text-align: start; border-bottom: 1px solid var(--line); } .srows li:last-child .srow { border-bottom: 0; }
+.srow .ln { font-size: 15.5px; font-weight: 600; line-height: 1.42; letter-spacing: -0.01em; text-wrap: pretty; } @media (hover: hover) { .srow:hover .ln { color: var(--primary); } }
+.bh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; font-size: 14px; font-weight: 650; color: var(--ink2); }
+.box { padding: 18px 20px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); min-width: 0; }
+.mute { color: var(--faint); font-size: 14px; padding: 6px 0; }
+.achips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; } .achips::-webkit-scrollbar { display: none; }
+.achip { flex: none; height: 32px; padding: 0 12px; border-radius: 99px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; font-weight: 600; color: var(--ink2); }
+.achip[aria-pressed='true'] { background: var(--ink); color: #fff; box-shadow: none; }
+/* 비었을 때 */
+.empty-my { max-width: 640px; margin: 48px auto; text-align: center; } .empty-my h1 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 650; letter-spacing: -0.03em; } .empty-my > p { margin-top: 10px; color: var(--mute); font-size: 16.5px; text-wrap: pretty; }
+.empty-my .pop { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 24px; } .empty-my .ea { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+.pchip { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 99px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; color: var(--ink2); }
+.pchip b { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); } .pchip[aria-pressed='true'] { background: #fff6dc; box-shadow: inset 0 0 0 1.5px #e8a400; color: var(--ink); }
+@media (hover: hover) { .pchip[aria-pressed='false']:hover { background: #f6f8fb; } }
+/* 고르기 창 */
+.pdlg { width: min(720px, calc(100vw - 24px)); max-height: min(86dvh, 820px); padding: 0; border: 0; border-radius: 22px; box-shadow: 0 40px 90px -30px rgb(13 37 61 / .5); overscroll-behavior: contain; }
+.pdlg::backdrop { background: rgb(13 37 61 / .35); } .pdin { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; max-height: inherit; }
+.pdin header { position: relative; padding: 20px 22px 12px; } .pdin h2 { font-size: 20px; } .pdin header p { margin-top: 4px; font-size: 13.5px; color: var(--mute); } .pdin .x { position: absolute; top: 12px; inset-inline-end: 12px; width: 40px; height: 40px; border-radius: 50%; font-size: 22px; color: var(--mute); }
+.pick { overflow-y: auto; padding: 0 22px 8px; overscroll-behavior: contain; } .psrch { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border-radius: 12px; background: #f3f5f8; color: var(--faint); position: sticky; top: 0; z-index: 1; }
+.psrch input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; font-size: 16px; color: var(--ink); outline: none; } .psrch:focus-within { box-shadow: 0 0 0 2px var(--primary); }
+.pk { margin-top: 16px; } .pk h3 { font-size: 12.5px; font-weight: 600; color: var(--faint); margin-bottom: 8px; } .pchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pdin footer { padding: 12px 22px 18px; display: flex; justify-content: flex-end; box-shadow: 0 -1px 0 var(--line); }
+@media (max-width: 640px) { .pdlg { width: 100vw; max-width: 100vw; max-height: 92dvh; margin: auto 0 0; border-radius: 22px 22px 0 0; } }
+
+/* 정렬 버튼(라이브와 같은 모양) */
+.mseg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f1f3f7; } .mseg button { height: 28px; padding: 0 11px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.mseg button[aria-pressed='true'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgb(13 37 61 / .12), 0 0 0 1px rgb(13 37 61 / .06); }
+@media (max-width: 560px) { .bh .mseg { width: 100%; } .bh .mseg button { flex: 1; padding: 0 6px; } }
+
+/* 내 자산 하루 요약 */
+.dsum .k { font-size: 13px; font-weight: 650; color: var(--primary); } .dsum .k span { font-weight: 500; color: var(--faint); }
+.dsum .big1 { margin-top: 8px; font-size: 18px; font-weight: 500; letter-spacing: -0.01em; } .dsum .big1 b { font-weight: 700; } .dsum .big1 b.up { color: var(--up); } .dsum .big1 b.down { color: var(--down); }
+.dsum .lean { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.dsum .lean li { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; background: #f3f5f8; font-size: 13px; }
+.dsum .lean b { font-family: var(--mono); font-size: 12.5px; } .dsum .lean .mono { font-size: 12px; color: var(--mute); } .dsum .lean .ls { font-weight: 600; } .dsum .lean .ud { color: var(--faint); }
+.dsum .lean li.up { background: #e8f7f0; } .dsum .lean li.up .ls { color: var(--up); } .dsum .lean li.down { background: #fdecea; } .dsum .lean li.down .ls { color: var(--down); } .dsum .lean li.mix .ls { color: #8a6100; } .dsum .lean li.flat .ls { color: var(--faint); font-weight: 500; }
+.dsum .sub2 { margin-top: 14px; font-size: 12px; font-weight: 600; color: var(--faint); } .dsum .sig { margin: 6px 0 0; padding-inline-start: 18px; display: grid; gap: 4px; font-size: 14.5px; }
+.dsum .qt { margin-top: 12px; font-size: 13px; color: var(--mute); } .dsum .lk { margin-top: 12px; font-size: 13.5px; font-weight: 600; } .dsum .lk a { color: var(--primary); }
+.y2 { padding-top: 22px; padding-bottom: 72px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 1000px) { .y2 { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } .y2 .rail { position: sticky; top: 76px; } }
+.y2 .main { display: grid; gap: 24px; min-width: 0; } .y2 .rail { min-width: 0; } @media (max-width: 999px) { .y2 .rail { order: -1; } }
+.wl ul { list-style: none; padding: 0; margin: 0; } .wr { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto 22px; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border-radius: 10px; text-align: start; }
+.wr .nm { display: grid; } .wr .nm b { font-family: var(--mono); font-size: 13px; } .wr .nm span { font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wr canvas.spk { width: 64px; height: 24px; } .wr .pq { display: grid; justify-items: end; font-size: 13.5px; font-variant-numeric: tabular-nums; } .wr .pq .ch { font-size: 12px; } .wr .nn { font-size: 11.5px; color: var(--faint); text-align: end; }
+.wr[aria-pressed='true'] { background: #eef0ff; } @media (hover: hover) { .wr[aria-pressed='false']:hover { background: #f6f8fb; } }
+.fn { margin-top: 8px; font-size: 12px; color: var(--faint); }
+@media (max-width: 999px) { .wl ul { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; } .wl ul::-webkit-scrollbar { display: none; } .wl li { flex: none; } .wr { grid-template-columns: auto; width: 150px; gap: 4px; padding: 10px 12px; box-shadow: inset 0 0 0 1px var(--line); } .wr canvas.spk { width: 100%; } .wr .pq { justify-items: start; } .wr .nn { display: none; } .wl .fn { display: none; } }
+</style>
+</head>
+<body class="pg-y2">
+<header class="hd"><div class="wrap">
+  <a class="logo" href="/signal-desk/"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="/signal-desk/live/" data-t="n1">Live</a><a href="/signal-desk/my/" aria-current="page" data-t="n5">My assets</a><a href="/signal-desk/themes/" data-t="n2">Themes</a><a href="/signal-desk/brief/" data-t="n3">Brief</a><a href="/signal-desk/calendar/" data-t="n4">Calendar</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+</div></header>
+<main id="app"></main>
+<nav class="tabs" aria-label="Menu"><a href="/signal-desk/live/"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="/signal-desk/my/" aria-current="page"><i class="ti my"></i><span data-t="n5">My</span></a><a href="/signal-desk/themes/"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="/signal-desk/brief/"><i class="ti br"></i><span data-t="n3">Brief</span></a><a href="/signal-desk/calendar/"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>window.DF_BASE = '/signal-desk/assets/df/'; window.DF_ROOT = '/signal-desk/';</script>
+<script src="/signal-desk/assets/df/data.js?v=cc3ed8eb"></script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', n5: '내 자산', n5: '내 자산' });</script>
+<script type="module">import '/signal-desk/assets/df/y2.js?v=cc3ed8eb';</script>
+</body>
+</html>

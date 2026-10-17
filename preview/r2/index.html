@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live signals · Delfona — R2</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../brand/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../l/lk.css?v=1017172142">
+<style>/* R2 · Terminal (3-pane) */
+body.pg-r2 { background: #fff; }
+body.pg-r2 .hd .wrap { max-width: none; }
+.r2 { display: grid; grid-template-columns: 236px minmax(0, 1fr) minmax(360px, 460px); height: calc(100dvh - 60px); }
+.r2 .side { overflow-y: auto; padding: 18px 12px 24px; background: #f7f9fc; border-inline-end: 1px solid var(--line); overscroll-behavior: contain; }
+.r2 .lbl { margin: 18px 10px 6px; font-size: 12px; font-weight: 600; color: var(--faint); } .r2 .lbl:first-child { margin-top: 2px; }
+.r2 .f { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--ink2); text-align: start; }
+.r2 .f .n { font-size: 12px; color: var(--faint); } .r2 .f[aria-pressed='true'] { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgb(13 37 61 / .05); }
+@media (hover: hover) { .r2 .f[aria-pressed='false']:hover { background: #eef1f6; } }
+.r2 .mb { display: flex; width: 34px; height: 4px; border-radius: 2px; overflow: hidden; background: #e6eaf0; } .r2 .mb i { display: block; } .r2 .mb .u { background: var(--up); } .r2 .mb .d { background: var(--down); margin-inline-start: auto; }
+.r2 .mid { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.r2 .bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.r2 .srch { flex: 1; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: 10px; background: #f3f5f8; color: var(--faint); }
+.r2 .srch input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; font-size: 16px; color: var(--ink); outline: none; } @media (min-width: 900px) { .r2 .srch input { font-size: 14px; } }
+.r2 .srch kbd { padding: 1px 6px; border-radius: 5px; background: #fff; box-shadow: 0 0 0 1px var(--line); font-family: var(--mono); font-size: 11px; } .r2 .srch:focus-within { box-shadow: 0 0 0 2px var(--primary); }
+.r2 .newpill { position: absolute; top: 120px; left: 0; right: 0; width: max-content; }
+.r2 .lst { flex: 1; overflow-y: auto; list-style: none; padding: 4px 0; margin: 0; overscroll-behavior: contain; outline: none; }
+.r2 .lst li[role=option] { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 44px; padding: 6px 16px; cursor: pointer; border-inline-start: 2px solid transparent; }
+@media (hover: hover) { .r2 .lst li[role=option]:hover { background: #f7f9fc; } }
+.r2 .lst li[aria-selected='true'] { background: #f1f0ff; border-inline-start-color: var(--primary); }
+.r2 .vg { font-size: 11px; color: var(--faint); text-align: center; } .r2 .vg.up { color: var(--up); } .r2 .vg.down { color: var(--down); }
+.r2 .ln { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; }
+.r2 .mt { display: flex; align-items: center; gap: 8px; } .r2 .tm { width: 40px; text-align: end; font-size: 12px; color: var(--faint); } .r2 .ou { font-size: 12px; color: var(--faint); white-space: nowrap; }
+.r2 .status { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--mute); white-space: nowrap; overflow: hidden; }
+.r2 .det-pane { overflow-y: auto; padding: 24px 26px 40px; border-inline-start: 1px solid var(--line); overscroll-behavior: contain; }
+.r2 .empty { padding: 40px 16px; text-align: center; color: var(--faint); list-style: none; }
+.r2 .mute { padding: 6px 10px; font-size: 13px; color: var(--faint); }
+@media (max-width: 1099px) {
+  .r2 { grid-template-columns: 1fr; height: auto; } .r2 .det-pane { display: none; }
+  .r2 .side { display: flex; gap: 6px; padding: 10px 16px; overflow-x: auto; border: 0; border-bottom: 1px solid var(--line); scrollbar-width: none; position: sticky; top: 60px; z-index: 5; } .r2 .side::-webkit-scrollbar { display: none; }
+  .r2 .lbl, .r2 .mb { display: none; } .r2 .f { flex: none; width: auto; height: 32px; border-radius: 99px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); white-space: nowrap; } .r2 .f[aria-pressed='true'] { background: var(--ink); color: #fff; box-shadow: none; } .r2 .f[aria-pressed='true'] .n { color: rgb(255 255 255 / .6); }
+  .r2 .lst { overflow: visible; } .r2 .lst li[role=option] { grid-template-columns: 14px minmax(0, 1fr); align-items: start; padding: 12px 16px; }
+  .r2 .ln { white-space: normal; } .r2 .mt { grid-column: 2; flex-wrap: wrap; } .r2 .tm { width: auto; text-align: start; order: -1; } .r2 .status { display: none; } .r2 .newpill { position: sticky; top: 116px; }
+  .r2 .srch kbd { display: none; }
+}
+</style>
+</head>
+<body class="pg-r2">
+<header class="hd"><div class="wrap">
+  <a class="logo" href="../h3/"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="../r3/" data-nav="live" data-t="n1">Live</a><a href="../y2/" data-nav="my" data-t="n5">My assets</a><a href="../t1/" data-nav="themes" data-t="n2">Themes</a><a href="#" data-nav="brief" data-t="n3">Brief</a><a href="../c1/" data-nav="cal" data-t="n4">Calendar</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+</div></header>
+<main id="app"></main>
+<nav class="tabs" aria-label="Menu"><a href="../r3/" data-nav="live"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="../y2/" data-nav="my"><i class="ti my"></i><span data-t="n5">My</span></a><a href="../t1/" data-nav="themes"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="#" data-nav="brief"><i class="ti br"></i><span data-t="n3">Brief</span></a><a href="../c1/" data-nav="cal"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="../data.js"></script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', n5: '내 자산' });
+// 지금 페이지 메뉴 표시(같은 틀을 여러 페이지가 쓴다)
+window.DF_NAV = 'live'; document.querySelectorAll('[data-nav]').forEach((a) => { if (a.dataset.nav === window.DF_NAV) a.setAttribute('aria-current', 'page'); });</script>
+<script type="module">import '../l/r2.js?v=1017172142';</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>delfona — 시안 A · SONAR</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#050506">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 A · SONAR — 거의 검은 바탕, 가는 큰 글자(300) + 대문자 고정폭 라벨, 그림자 없이 머리카락 선만.
+   색은 오름·호재 민트, 내림·악재 코랄 둘뿐. 브랜드는 흰 글자와 깜빡이는 민트 커서. */
+:root {
+  --bg: #050506; --s1: #0d0d10; --s2: #141418; --line: rgb(255 255 255 / 0.08); --line2: rgb(255 255 255 / 0.16);
+  --t1: #f4f4f5; --t2: #a1a1aa; --t3: #6b6b74;
+  --up: #6ef2c8; --down: #ff7a66;
+  --sans: "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--t1); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+ul, ol { list-style: none; padding: 0; }
+.mono, .lab, time { font-family: var(--mono); }
+.lab { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--t3); }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+@media (min-width: 900px) { .wrap { padding: 0 40px; } }
+
+/* 머리 */
+.hd { position: sticky; top: 0; z-index: 10; background: rgb(5 5 6 / 0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); }
+.hd .wrap { display: flex; align-items: center; height: 56px; gap: 28px; }
+.mark { font-family: var(--mono); font-size: 14px; font-weight: 500; letter-spacing: 0.18em; }
+.mark i { display: inline-block; width: 8px; height: 14px; margin-inline-start: 4px; vertical-align: -2px; background: var(--up); }
+@media (prefers-reduced-motion: no-preference) { .mark i { animation: blink 1.1s steps(1) infinite; } }
+@keyframes blink { 50% { opacity: 0; } }
+.nav { display: none; gap: 22px; }
+.nav a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); transition: color 150ms ease; }
+.nav a[aria-current] { color: var(--t1); }
+@media (hover: hover) { .nav a:hover { color: var(--t1); } }
+@media (min-width: 800px) { .nav { display: flex; } }
+.clock { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--t2); letter-spacing: 0.06em; }
+.clock b { width: 6px; height: 6px; border-radius: 50%; background: var(--up); box-shadow: 0 0 0 3px rgb(110 242 200 / 0.18); }
+
+/* 맥박: 비트코인 숫자 하나를 크게 */
+.pulse { padding: 44px 0 28px; border-bottom: 1px solid var(--line); }
+.pulse .lab { display: flex; gap: 14px; }
+.big { margin-top: 10px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 18px; }
+.big .p { font-size: clamp(52px, 13vw, 132px); font-weight: 250; letter-spacing: -0.055em; line-height: 0.95; font-variant-numeric: tabular-nums; }
+.big .c { font-family: var(--mono); font-size: clamp(16px, 2.6vw, 22px); }
+.row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 26px; border-top: 1px solid var(--line); }
+.row > div { padding: 14px 0 0; }
+.row > div + div { padding-inline-start: 16px; border-inline-start: 1px solid var(--line); }
+.row .v { margin-top: 6px; font-size: clamp(16px, 4.6vw, 20px); font-weight: 350; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.row .v small { display: block; font-family: var(--mono); font-size: 12px; }
+@media (min-width: 700px) { .row .v small { display: inline; margin-inline-start: 6px; } }
+
+/* 본문 두 칸 */
+.grid { display: grid; gap: 0; }
+@media (min-width: 1000px) { .grid { grid-template-columns: minmax(0, 1fr) 380px; } .side { border-inline-start: 1px solid var(--line); padding-inline-start: 32px; } .main { padding-inline-end: 32px; } }
+
+/* 속보 흐름: 로그처럼 */
+.sh { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 28px 0 14px; }
+.sh h2 { font-size: 13px; font-family: var(--mono); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: var(--t2); }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.chips button { height: 30px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--line2); font-family: var(--mono); font-size: 12px; color: var(--t2); white-space: nowrap; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease; }
+.chips button[aria-pressed='true'] { background: var(--t1); color: var(--bg); border-color: var(--t1); }
+.stream li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 14px; padding: 16px 0; border-top: 1px solid var(--line); }
+.stream time { font-size: 12px; color: var(--t3); padding-top: 3px; }
+.stream .t { font-size: 17px; font-weight: 400; line-height: 1.5; letter-spacing: -0.01em; }
+.stream .big2 .t { font-weight: 560; }
+.stream .m { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--t3); }
+.stream .vd { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; margin-inline-end: 8px; }
+.stream li.new { animation: flash 2s var(--ease); }
+@keyframes flash { from { background: rgb(110 242 200 / 0.07); } }
+@media (prefers-reduced-motion: reduce) { .stream li.new { animation: none; } }
+.more { display: block; width: 100%; margin: 8px 0 40px; height: 44px; border: 1px solid var(--line2); border-radius: 999px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t2); }
+
+/* 옆: 오늘, 카운트다운, 상장 */
+.blk { padding: 28px 0; border-top: 1px solid var(--line); }
+@media (min-width: 1000px) { .blk:first-child { border-top: 0; } }
+.blk h3 { margin-top: 10px; font-size: 24px; font-weight: 350; line-height: 1.35; letter-spacing: -0.03em; }
+.bar { margin-top: 16px; font-family: var(--mono); font-size: 13px; letter-spacing: 0; white-space: nowrap; overflow: hidden; }
+.cd { margin-top: 8px; font-family: var(--mono); font-size: clamp(34px, 8vw, 46px); font-weight: 400; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.note { margin-top: 10px; font-size: 14px; color: var(--t2); line-height: 1.6; }
+.n100 { margin-top: 8px; font-size: 72px; font-weight: 200; letter-spacing: -0.06em; line-height: 1; }
+.n100 small { font-size: 18px; font-weight: 400; letter-spacing: -0.01em; color: var(--t2); margin-inline-start: 8px; }
+.ft { padding: 40px 0 60px; border-top: 1px solid var(--line); font-size: 12px; color: var(--t3); font-family: var(--mono); letter-spacing: 0.04em; line-height: 1.8; }
+.tabs { position: fixed; bottom: 0; inset-inline: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); padding-bottom: env(safe-area-inset-bottom); background: rgb(5 5 6 / 0.86); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
+.tabs a { display: grid; place-items: center; height: 54px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--t3); }
+.tabs a[aria-current] { color: var(--t1); }
+@media (min-width: 800px) { .tabs { display: none; } }
+@media (max-width: 799px) { body { padding-bottom: 70px; } }
+.rise { animation: rise 600ms var(--ease) both; }
+.rise:nth-child(2) { animation-delay: 80ms; } .rise:nth-child(3) { animation-delay: 160ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); filter: blur(6px); } }
+@media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="mark" href="./">DELFONA<i aria-hidden="true"></i></a>
+  <nav class="nav" aria-label="메뉴"><a href="#" aria-current="page">Live</a><a href="#">Brief</a><a href="#">Coins</a><a href="#">Radar</a></nav>
+  <span class="clock"><b aria-hidden="true"></b><span id="clk">--:--:--</span> KST</span>
+</div></header>
+
+<main class="wrap">
+  <section class="pulse">
+    <p class="lab rise"><span>BTC / USD</span><span>24H</span><span id="upd">LIVE</span></p>
+    <div class="big rise"><span class="p" id="btcP">$––,–––</span><span class="c" id="btcC"></span></div>
+    <div class="row rise">
+      <div><p class="lab">ETH</p><p class="v" id="ethV">–</p></div>
+      <div><p class="lab">SOL</p><p class="v" id="solV">–</p></div>
+      <div><p class="lab">XRP</p><p class="v" id="xrpV">–</p></div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="main" aria-labelledby="sT">
+      <div class="sh"><h2 id="sT">// 실시간 속보 <span id="cnt"></span></h2></div>
+      <div class="chips" role="group" aria-label="거르기">
+        <button type="button" data-f="all" aria-pressed="true">ALL</button><button type="button" data-f="호재" aria-pressed="false">호재</button><button type="button" data-f="악재" aria-pressed="false">악재</button><button type="button" data-f="big" aria-pressed="false">BIG</button>
+      </div>
+      <ol class="stream" id="stream" aria-live="polite"><li><time>--:--</time><span class="t">불러오는 중…</span></li></ol>
+      <button class="more" id="more" type="button" hidden>LOAD MORE</button>
+    </section>
+
+    <aside class="side">
+      <section class="blk" id="brief"><p class="lab">Today · 하루 정리</p><h3>–</h3><p class="bar"></p></section>
+      <section class="blk"><p class="lab">Next release · 다음 큰 발표</p><h3 id="evN">–</h3><p class="cd" id="evT">T-––:––:––</p><p class="note" id="evS"></p></section>
+      <section class="blk"><p class="lab">Listings · 업비트 새 코인 따라 사면</p><p class="n100"><span class="down">86</span><small>/ 100명 하루 뒤 손해</small></p><p class="note">거래 시작 10분 뒤에 샀다면. 지난 상장 229건, 수수료 포함.</p></section>
+    </aside>
+  </div>
+</main>
+<footer class="ft wrap">DELFONA · 시안 A · SONAR — 실시간 속보와 시세는 실제 데이터예요. 호재·악재는 AI의 일반적인 해석이며 투자 조언이 아니에요.</footer>
+<nav class="tabs" aria-label="아래 메뉴"><a href="#" aria-current="page">LIVE</a><a href="#">BRIEF</a><a href="#">COINS</a><a href="#">RADAR</a></nav>
+
+<script>
+const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = (p) => p >= 1000 ? '$' + Math.round(p).toLocaleString('en-US') : p >= 1 ? '$' + p.toFixed(2) : '$' + p.toPrecision(4);
+const sg = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2) + '%';
+const hm = (t) => new Date(t * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+const two = (n) => String(n).padStart(2, '0');
+setInterval(() => { const d = new Date(); $('#clk').textContent = `${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`; }, 1000);
+
+async function prices() {
+  try {
+    const r = await fetch('https://data-api.binance.vision/api/v3/ticker/24hr?symbols=' + encodeURIComponent('["BTCUSDT","ETHUSDT","SOLUSDT","XRPUSDT"]'));
+    const by = Object.fromEntries((await r.json()).map((x) => [x.symbol.replace('USDT', ''), x]));
+    const b = by.BTC; $('#btcP').textContent = money(+b.lastPrice);
+    $('#btcC').textContent = sg(+b.priceChangePercent); $('#btcC').className = 'c ' + (+b.priceChangePercent >= 0 ? 'up' : 'down');
+    for (const s of ['ETH', 'SOL', 'XRP']) { const x = by[s], c = +x.priceChangePercent; $('#' + s.toLowerCase() + 'V').innerHTML = `${money(+x.lastPrice)}<small class="${c >= 0 ? 'up' : 'down'}">${sg(c)}</small>`; }
+  } catch (e) {}
+}
+prices(); setInterval(prices, 15000);
+
+let D = null, f = 'all', shown = 15, seen = null;
+function render() {
+  if (!D) return;
+  const xs = D.items.filter((it) => f === 'all' ? true : f === 'big' ? it.s >= 2 : it.v === f);
+  $('#cnt').textContent = `— 48H · ${D.items.length}`;
+  $('#stream').innerHTML = xs.slice(0, shown).map((it) => {
+    const c = it.v === '호재' ? 'up' : it.v === '악재' ? 'down' : '';
+    const meta = [...it.coins, ...(it.n > 1 ? [`${it.n} SOURCES`] : []), ...(it.mw ? ['MARKET-WIDE'] : [])];
+    return `<li class="${it.s >= 2 ? 'big2' : ''}${seen && !seen.has(it.id) ? ' new' : ''}"><time>${hm(it.t)}</time><p class="t"><span class="vd ${c}">[${esc(it.v)}]</span>${esc(it.ko)}</p>${meta.length ? `<p class="m">${meta.map(esc).join('<span>·</span>')}</p>` : ''}</li>`;
+  }).join('') || '<li><time>--:--</time><span class="t">해당하는 속보가 없어요.</span></li>';
+  $('#more').hidden = xs.length <= shown;
+}
+async function flash() {
+  try {
+    const d = await (await fetch(FLASH, { cache: 'no-store' })).json();
+    seen = D ? new Set(D.items.map((x) => x.id)) : null; D = d; render();
+    const since = Date.now() / 1000 - 86400, xs = d.items.filter((x) => x.t >= since);
+    const u = xs.filter((x) => x.v === '호재').length, n = xs.filter((x) => x.v === '악재').length, w = 24;
+    const fu = Math.round((u / Math.max(1, u + n)) * w);
+    $('#brief .bar').innerHTML = `<span class="up">${'█'.repeat(fu)}</span><span class="down">${'█'.repeat(w - fu)}</span> ${u}:${n}`;
+  } catch (e) {}
+}
+document.querySelector('.chips').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return; f = b.dataset.f; shown = 15; seen = null;
+  document.querySelectorAll('.chips button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); render();
+});
+$('#more').addEventListener('click', () => { shown += 20; seen = null; render(); });
+flash(); setInterval(flash, 30000);
+
+fetch('https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/2026-10-13.json').then((r) => r.json()).then((d) => { $('#brief h3').textContent = d.headline; }).catch(() => {});
+fetch('https://mash1384.github.io/signal-desk/data/events.json').then((r) => r.json()).then((d) => {
+  const now = Date.now() / 1000, u = d.upcoming.filter((x) => x.ts > now).sort((a, b) => b.level - a.level || a.ts - b.ts)[0];
+  if (!u) return;
+  $('#evN').textContent = u.name;
+  $('#evS').textContent = u.vs_normal ? `지난 같은 발표 뒤 1시간, 비트코인은 평소의 ${u.vs_normal.toFixed(1)}배로 흔들렸어요.` : '';
+  const tick = () => { const s = Math.max(0, u.ts - Date.now() / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60);
+    $('#evT').textContent = `T-${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(x).padStart(2, '0')}`; };
+  tick(); setInterval(tick, 1000);
+}).catch(() => {});
+</script>
+</body>
+</html>

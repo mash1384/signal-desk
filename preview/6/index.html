@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — 시안 6 · 궤도</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#06142b">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 6 · 궤도 — 서비스의 핵심("해외 속보를 한국어로")을 그대로 그림으로.
+   점으로 그린 지구가 천천히 돌고, 실제 속보가 들어온 지역에서 서울로 빛줄기가 날아와 한국어 한 줄이 된다.
+   짙은 남색 바탕 + 흰 점 + 청록 하나. 속보 지역은 낱말(미국·연준·중국·중동…)로 추정한 것. */
+:root { --bg: #06142b; --bg2: #0a1c3a; --line: rgb(255 255 255 / 0.09); --t1: #eef3fb; --t2: #9fb0c8; --t3: #6c7f9b; --teal: #36e2d0; --up: #5fd6a1; --down: #ff8b78;
+  --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; --latin: "Inter Tight", "Pretendard Variable", sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--t1); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; }
+@media (min-width: 900px) { .wrap { padding-inline: 32px; } }
+.logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--latin); font-size: 20px; font-weight: 650; letter-spacing: -0.02em; }
+.logo svg { width: 30px; height: 30px; }
+.hd { position: absolute; top: 0; inset-inline: 0; z-index: 10; }
+.hd .wrap { display: flex; align-items: center; gap: 28px; height: 68px; }
+.nav { display: none; gap: 24px; font-size: 14px; color: var(--t2); }
+@media (min-width: 900px) { .nav { display: flex; } }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 15px; font-weight: 650; transition: transform 160ms var(--ease), background-color 200ms ease; }
+.btn:active { transform: scale(0.96); }
+.btn.p { background: var(--t1); color: var(--bg); }
+.btn.g { color: var(--t1); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); }
+@media (hover: hover) { .btn.g:hover { background: rgb(255 255 255 / 0.06); } }
+.hd .btn { margin-inline-start: auto; height: 38px; }
+/* 첫 화면 */
+.hero { position: relative; min-height: 100vh; min-height: 100dvh; display: grid; align-items: center; overflow: hidden; }
+.hero::after { content: ""; position: absolute; inset: auto 0 0; height: 30%; background: linear-gradient(transparent, var(--bg)); pointer-events: none; }
+.globe { position: absolute; z-index: 0; right: -14vw; top: 50%; width: min(980px, 110vw); aspect-ratio: 1; transform: translateY(-50%); }
+@media (max-width: 899px) { .hero { min-height: 118dvh; align-items: start; } .globe { right: 50%; top: 40%; width: 128vw; transform: translate(50%, 0); } }
+.globe canvas { width: 100%; height: 100%; }
+.glow { position: absolute; z-index: 0; right: 4vw; top: 50%; width: 52vw; height: 52vw; transform: translateY(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgb(54 226 208 / 0.14), transparent); filter: blur(20px); pointer-events: none; }
+.copy { position: relative; z-index: 2; padding-block: 120px 80px; max-width: 34rem; }
+@media (max-width: 899px) { .copy { padding-block: 96px 0; } .copy .sub { font-size: 16px; } .copy .meta { display: none; } }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal); }
+.copy h1 { margin-top: 16px; font-size: clamp(40px, 6.4vw, 76px); font-weight: 720; line-height: 1.06; letter-spacing: -0.05em; }
+.copy .sub { margin-top: 18px; font-size: 18px; color: var(--t2); }
+.copy .btns { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+.copy .meta { margin-top: 24px; font-family: var(--mono); font-size: 12px; color: var(--t3); letter-spacing: 0.04em; }
+/* 도착 카드 */
+.arrive { position: absolute; z-index: 3; right: 32px; bottom: 9vh; width: min(380px, calc(100vw - 40px)); padding: 16px 18px; border-radius: 16px; background: rgb(10 28 58 / 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12) inset, 0 20px 50px -20px rgb(0 0 0 / 0.6); transition: opacity 400ms var(--ease), transform 400ms var(--ease); }
+@media (max-width: 899px) { .arrive { right: 20px; bottom: 3vh; } .arrive p { font-size: 15px; } }
+.arrive.out { opacity: 0; transform: translateY(8px); }
+.route { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--t2); }
+.route b { color: var(--teal); font-weight: 500; }
+.route i { flex: 1; height: 1px; background: linear-gradient(90deg, rgb(54 226 208 / 0.6), transparent); }
+.arrive p { margin-top: 10px; font-size: 16px; font-weight: 600; line-height: 1.5; }
+.arrive small { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 12.5px; color: var(--t3); }
+.v { display: inline-flex; justify-content: center; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.v.up { background: rgb(95 214 161 / 0.14); color: var(--up); } .v.down { background: rgb(255 139 120 / 0.14); color: var(--down); } .v.flat { background: rgb(255 255 255 / 0.08); color: var(--t2); }
+/* 아래 */
+.sec { position: relative; padding-block: 90px; }
+.h2 { font-size: clamp(28px, 4vw, 46px); font-weight: 700; letter-spacing: -0.045em; line-height: 1.15; }
+.lead { margin-top: 12px; max-width: 34rem; font-size: 17px; color: var(--t2); }
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; margin-top: 40px; background: var(--line); border-radius: 18px; overflow: hidden; }
+@media (min-width: 900px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+.stats div { padding: 26px; background: var(--bg2); }
+.stats b { display: block; font-family: var(--latin); font-size: clamp(30px, 3.6vw, 44px); font-weight: 650; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.stats span { font-size: 13.5px; color: var(--t3); }
+.regions { display: grid; gap: 10px; margin-top: 36px; }
+@media (min-width: 900px) { .regions { grid-template-columns: repeat(3, 1fr); } }
+.reg { padding: 20px; border-radius: 16px; background: var(--bg2); box-shadow: 0 0 0 1px var(--line) inset; }
+.reg .k { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--t2); }
+.reg .k b { color: var(--teal); font-weight: 500; }
+.reg .bar { height: 6px; margin-top: 12px; border-radius: 99px; background: rgb(255 255 255 / 0.06); overflow: hidden; }
+.reg .bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--teal), #7fb8ff); transition: width 1200ms var(--ease); }
+.reg p { margin-top: 12px; font-size: 14.5px; color: var(--t2); line-height: 1.5; min-height: 3em; }
+.vows { display: grid; gap: 12px; margin-top: 36px; }
+@media (min-width: 900px) { .vows { grid-template-columns: repeat(3, 1fr); } }
+.vows li { padding: 22px; border-radius: 16px; box-shadow: 0 0 0 1px var(--line) inset; }
+.vows b { display: block; font-size: 17px; font-weight: 650; }
+.vows span { display: block; margin-top: 6px; font-size: 15px; color: var(--t2); }
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+.ft { padding-block: 30px 50px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--t3); }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+</head>
+<body>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="11" fill="none" stroke="#eef3fb" stroke-width="1.6"/><ellipse cx="15" cy="15" rx="11" ry="4.4" fill="none" stroke="#eef3fb" stroke-opacity="0.45" stroke-width="1.2" transform="rotate(-24 15 15)"/><circle cx="23.6" cy="11" r="2.4" fill="#36e2d0"/></svg>Delfona</a>
+  <nav class="nav" aria-label="메뉴"><a href="#world">어디서 오나</a><a href="#vow">원칙</a></nav>
+  <a class="btn p" href="#world">속보 보기</a>
+</div></header>
+<main>
+  <section class="hero">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="globe" aria-hidden="true"><canvas id="cv"></canvas></div>
+    <div class="wrap"><div class="copy">
+      <p class="eyebrow">Global crypto news → 한국어</p>
+      <h1>전 세계 속보가,<br>지금 한국어로</h1>
+      <p class="sub">뉴욕, 런던, 홍콩에서 나온 소식이 몇 초 만에 한국어 한 줄이 돼요. 호재인지 악재인지, 몇 곳이 보도했는지 함께.</p>
+      <div class="btns"><a class="btn p" href="#world">실시간 속보</a><a class="btn g" href="#vow">우리의 원칙</a></div>
+      <p class="meta" id="meta">LIVE · 불러오는 중</p>
+    </div></div>
+    <div class="arrive out" id="arrive" role="status" aria-live="polite"><p class="route"><b id="from">–</b><i></i><b>서울</b></p><p id="ako">–</p><small id="ameta"></small></div>
+  </section>
+
+  <section class="sec wrap" id="world">
+    <h2 class="h2 reveal">어디서 온 소식인지,<br>지난 48시간</h2>
+    <p class="lead reveal">소식에 나온 나라·기관 이름으로 지역을 나눴어요. 같은 소식은 하나로 셌어요.</p>
+    <div class="stats reveal"><div><b id="s1">–</b><span>지난 48시간 소식</span></div><div><b id="s2">–</b><span>그중 큰 소식</span></div><div><b id="s3">–</b><span>호재 · 24시간</span></div><div><b id="s4">–</b><span>악재 · 24시간</span></div></div>
+    <div class="regions" id="regions"></div>
+  </section>
+
+  <section class="sec wrap" id="vow" style="padding-top:20px">
+    <h2 class="h2 reveal">빠른 것보다 중요한 것</h2>
+    <ul class="vows">
+      <li class="reveal"><b>매매를 권하지 않아요</b><span>호재·악재는 소식에 대한 해석이에요. 사라, 팔라는 말은 쓰지 않아요.</span></li>
+      <li class="reveal"><b>근거를 남겨요</b><span>몇 곳이 보도했는지, 원문 기사·공식 공지 링크, 갱신 시각을 함께 적어요.</span></li>
+      <li class="reveal"><b>틀릴 수 있다고 말해요</b><span>기사 판정은 정답을 달아 둔 1,000건으로 검증했고, 속보 판정도 검증해 나가요.</span></li>
+    </ul>
+  </section>
+</main>
+<footer class="wrap ft">Delfona — 시안 6 · 궤도. 지구 위 빛줄기는 실제 속보이고, 지역은 소식 속 낱말로 추정했어요. 투자 조언이 아니에요.</footer>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-array@3/dist/d3-array.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-geo@3/dist/d3-geo.min.js"></script>
+<script src="../data.js"></script>
+<script>
+const { esc, ago, vcls, day24 } = DFD, $ = (s) => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SEOUL = [126.98, 37.57];
+// 낱말 → 지역(속보 원문 위치가 아니라 소식이 다루는 곳)
+const REG = [
+  { k: '미국', at: [-77.0, 38.9], re: /미국|연준|트럼프|SEC|CFTC|월가|뉴욕|나스닥|S&P|백악관|의회|ETF|파월|코인베이스|블랙록|마이크로소프트|엔비디아|구글|애플|테슬라|아마존|메타|오픈AI|JP모건|골드만|스트래티지|마이클 세일러/ },
+  { k: '중동', at: [46.7, 24.7], re: /이란|사우디|이스라엘|중동|예멘|후티|카타르|두바이|UAE|호르무즈/ },
+  { k: '유럽', at: [8.7, 50.1], re: /유럽|EU|ECB|독일|프랑스|영국|런던|스위스|이탈리아|스페인/ },
+  { k: '러시아·우크라이나', at: [30.5, 50.45], re: /러시아|우크라이나|크렘린|젤렌스키|푸틴/ },
+  { k: '중국·홍콩', at: [114.2, 22.3], re: /중국|홍콩|베이징|위안|바이낸스|HTX/ },
+  { k: '일본', at: [139.7, 35.7], re: /일본|BOJ|엔화|도쿄|메타플래닛/ },
+  { k: '한국', at: [126.98, 37.57], re: /한국|업비트|빗썸|금융위|원화|코스피/ },
+];
+const region = (t) => REG.find((r) => r.re.test(t)) || { k: '해외', at: [103.8, 1.35] };
+
+// ---------- 점 지구 ----------
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let dots = [], rot = [-60, -18], target = null, arcs = [], dpr = Math.min(2, devicePixelRatio || 1), S = 0;
+function size() { const r = cv.getBoundingClientRect(); S = r.width; cv.width = S * dpr; cv.height = S * dpr; }
+size(); addEventListener('resize', size);
+async function landDots() {
+  try { const c = sessionStorage.getItem('df-dots'); if (c) return JSON.parse(c); } catch (e) {}
+  const topo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+  const land = topojson.feature(topo, topo.objects.land), pts = [];
+  for (let lat = -80; lat <= 82; lat += 2.2) {
+    const step = 2.2 / Math.max(0.25, Math.cos(lat * Math.PI / 180));
+    for (let lon = -180; lon < 180; lon += step) if (d3.geoContains(land, [lon, lat])) pts.push([+lon.toFixed(2), +lat.toFixed(2)]);
+  }
+  try { sessionStorage.setItem('df-dots', JSON.stringify(pts)); } catch (e) {}
+  return pts;
+}
+const proj = () => d3.geoOrthographic().scale(S * 0.46 * dpr).translate([S * dpr / 2, S * dpr / 2]).rotate([rot[0], rot[1]]).clipAngle(90);
+function frame(now) {
+  if (target) { rot[0] += (target[0] - rot[0]) * 0.035; rot[1] += (target[1] - rot[1]) * 0.035; }
+  else if (!reduce) rot[0] += 0.04;
+  const p = proj(), W = cv.width, c = W / 2, R = S * 0.46 * dpr;
+  ctx.clearRect(0, 0, W, W);
+  const g = ctx.createRadialGradient(c - R * 0.3, c - R * 0.35, R * 0.1, c, c, R);
+  g.addColorStop(0, 'rgba(40,80,140,0.35)'); g.addColorStop(1, 'rgba(6,20,43,0.0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = dpr; ctx.stroke();
+  const center = [-rot[0], -rot[1]];
+  for (const d of dots) {
+    const dist = d3.geoDistance(d, center); if (dist > Math.PI / 2) continue;
+    const xy = p(d); const a = Math.cos(dist);
+    ctx.fillStyle = `rgba(220,232,250,${0.15 + a * 0.55})`; ctx.fillRect(xy[0], xy[1], 1.6 * dpr, 1.6 * dpr);
+  }
+  // 서울
+  if (d3.geoDistance(SEOUL, center) < Math.PI / 2) { const s = p(SEOUL); ctx.fillStyle = '#36e2d0'; ctx.beginPath(); ctx.arc(s[0], s[1], 3.6 * dpr, 0, 7); ctx.fill();
+    const pr = (now / 1600) % 1; ctx.strokeStyle = `rgba(54,226,208,${1 - pr})`; ctx.lineWidth = 1.5 * dpr; ctx.beginPath(); ctx.arc(s[0], s[1], (4 + pr * 18) * dpr, 0, 7); ctx.stroke(); }
+  // 빛줄기: 지역 → 서울, 대원 경로 위로 들어 올린 곡선
+  arcs = arcs.filter((a) => now - a.t0 < 3600);
+  for (const a of arcs) {
+    const k = Math.min(1, (now - a.t0) / 1500), interp = d3.geoInterpolate(a.from, SEOUL), N = 48, pts = [];
+    // 두 점을 이은 화면 위 선분에 수직으로 휘게 해서, 경로 방향과 상관없이 활 모양이 되게
+    const A = p(a.from), Bp = p(SEOUL), dx = Bp[0] - A[0], dy = Bp[1] - A[1], L = Math.hypot(dx, dy) || 1;
+    let nx = -dy / L, ny = dx / L; if (ny > 0) { nx = -nx; ny = -ny; }
+    for (let i = 0; i <= N * k; i++) {
+      const t = i / N, ll = interp(t);
+      if (d3.geoDistance(ll, center) > Math.PI / 2 + 0.25) continue;
+      const xy = p(ll), o = Math.sin(Math.PI * t) * L * 0.28;
+      pts.push([xy[0] + nx * o, xy[1] + ny * o]);
+    }
+    const fade = now - a.t0 > 2600 ? 1 - (now - a.t0 - 2600) / 1000 : 1;
+    if (pts.length > 1) { ctx.shadowColor = 'rgba(54,226,208,0.7)'; ctx.shadowBlur = 12 * dpr; ctx.strokeStyle = `rgba(54,226,208,${0.9 * fade})`; ctx.lineWidth = 2 * dpr; ctx.beginPath(); pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); ctx.stroke();
+      const h = pts[pts.length - 1]; ctx.fillStyle = `rgba(255,255,255,${fade})`; ctx.beginPath(); ctx.arc(h[0], h[1], 2.6 * dpr, 0, 7); ctx.fill(); ctx.shadowBlur = 0; }
+    if (d3.geoDistance(a.from, center) < Math.PI / 2) { const f = p(a.from); ctx.fillStyle = `rgba(255,255,255,${0.9 * fade})`; ctx.beginPath(); ctx.arc(f[0], f[1], 3 * dpr, 0, 7); ctx.fill(); }
+  }
+  requestAnimationFrame(frame);
+}
+// 차례로 보내기: 지구를 경로 가운데로 돌리고 → 빛줄기 → 서울에 도착하면 카드
+let Q = [], qi = 0;
+function send() {
+  if (!Q.length) return;
+  const it = Q[qi++ % Q.length], r = region(it.ko), from = r.k === '한국' ? [127.5, 36.4] : r.at;
+  const mid = d3.geoInterpolate(from, SEOUL)(0.5); target = [-mid[0], Math.max(-35, Math.min(35, -mid[1]))];
+  $('#arrive').classList.add('out');
+  setTimeout(() => {
+    arcs.push({ from, t0: performance.now() });
+    setTimeout(() => {
+      $('#from').textContent = r.k; $('#ako').textContent = it.ko;
+      $('#ameta').innerHTML = `<span class="v ${vcls(it.v)}">${esc(it.v)}</span><span>${ago(it.t)}${it.n > 1 ? ` · ${it.n}곳 보도` : ''}${it.coins.length ? ' · ' + it.coins.slice(0, 3).map(esc).join(' ') : ''}</span>`;
+      $('#arrive').classList.remove('out');
+    }, 1400);
+  }, 900);
+}
+Promise.all([landDots(), DFD.flash()]).then(([pts, d]) => {
+  dots = pts; requestAnimationFrame(frame);
+  Q = d.items.filter((it) => it.v !== '중립' || it.s >= 2).slice(0, 24);
+  $('#meta').textContent = `LIVE · ${ago(d.at)} 갱신 · 48시간 ${d.items.length}건`;
+  send(); setInterval(() => { if (!document.hidden) send(); }, reduce ? 8000 : 5200);
+  stats(d);
+}).catch(() => { requestAnimationFrame(frame); });
+setInterval(() => { if (document.hidden) return; DFD.flash().then((d) => { const fresh = d.items.filter((it) => !Q.some((x) => x.id === it.id) && it.v !== '중립').slice(0, 3); if (fresh.length) { Q = fresh.concat(Q).slice(0, 24); qi = 0; } $('#meta').textContent = `LIVE · ${ago(d.at)} 갱신 · 48시간 ${d.items.length}건`; }).catch(() => {}); }, 30000);
+
+function stats(d) {
+  const c = day24(d.items);
+  const cnt = (el, to) => { if (reduce) { el.textContent = to; return; } const t0 = performance.now(); const f = (n) => { const p = Math.min(1, (n - t0) / 1400); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); };
+  const by = {}; d.items.forEach((it) => { const r = region(it.ko).k; (by[r] ||= []).push(it); });
+  const top = Object.entries(by).sort((a, b) => b[1].length - a[1].length).slice(0, 6), mx = top[0] ? top[0][1].length : 1;
+  $('#regions').innerHTML = top.map(([k, xs]) => `<article class="reg reveal"><p class="k"><span>${esc(k)}</span><b>${xs.length}건</b></p><div class="bar"><i data-w="${(xs.length / mx * 100).toFixed(0)}"></i></div><p>${esc(xs[0].ko)}</p></article>`).join('');
+  STATS = () => { cnt($('#s1'), d.items.length); cnt($('#s2'), d.items.filter((x) => x.s >= 2).length); cnt($('#s3'), c.u); cnt($('#s4'), c.d); };
+  if ($('.stats').classList.contains('in')) STATS();
+  document.querySelectorAll('#regions .reveal').forEach((el) => io.observe(el));
+}
+let STATS = null;
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; e.target.classList.add('in'); io.unobserve(e.target);
+  if (e.target.classList.contains('stats') && STATS) STATS();
+  e.target.querySelectorAll('.bar i').forEach((b) => { b.style.width = b.dataset.w + '%'; }); }), { threshold: 0.2 });
+document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

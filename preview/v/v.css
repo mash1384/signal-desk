@@ -1,0 +1,16 @@
+/* V1~V3 · 셰이더 일식 오프닝(어두운 첫 화면 → 스크롤하면 낮) */
+.hero { background: #f7f9fc; } .hero canvas.gl { display: none; }
+.hero .vgl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.copy.left { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 1240px; margin: 0 auto; padding-inline: 36px; }
+.copy.left h1 { max-width: 40rem; } .copy.left .sub { max-width: 30rem; }
+@media (max-width: 899px) { .copy.left { top: auto; bottom: 6svh; transform: none; padding-inline: 20px; } .copy .sub { font-size: 16px; } }
+.hd .logo, .hd .nav, .copy h1, .copy .sub { transition: color 300ms ease; }
+body.dk .hd .logo, body.dk .hd .nav { color: #f2f4fa; }
+body.dk .lang { background: rgb(255 255 255 / .08); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .16); } body.dk .lang button { color: #d7dcf0; } body.dk .lang button[aria-pressed='true'] { background: #fff; color: var(--ink); }
+body.dk .copy h1 { color: #f4f6fb; } body.dk .copy .sub { color: rgb(236 240 250 / .72); }
+body.dk .kick { background: rgb(255 255 255 / .07); color: #dfe4f3; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12); } body.dk .kick b { background: #fff; color: var(--ink); }
+body.dk .btn.g { background: rgb(255 255 255 / .08); color: #fff; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .2); }
+.dec { position: absolute; z-index: 3; left: 0; right: 0; top: calc(50% + min(20vw, 25vh) + 28px); display: grid; justify-items: center; gap: 12px; pointer-events: none; opacity: 0; }
+.dec .dw { font-family: Michroma, var(--sans); font-weight: 400; font-size: clamp(20px, 2.4vw, 30px); letter-spacing: .42em; padding-left: .42em; color: #f2f4fa; }
+.dec .dn { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: rgb(220 226 245 / .62); font-variant-numeric: tabular-nums; white-space: pre; }
+@media (max-width: 899px) { .dec { top: calc(42% + 31vw + 22px); } }

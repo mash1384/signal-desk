@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>delfona — 시안 E · ECHO</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#000000">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* 시안 E · ECHO — 심볼(◎)은 음파 탐지기다. 화면을 채운 흐린 속보 제목(잡음) 위로 ◎에서 음파가 퍼지고,
+   음파가 닿은 제목만 가변 글꼴 굵기가 300→800으로 바뀌며 호재·악재 색으로 켜진다(데이터가 곧 장면).
+   이어서 '신호만 남긴' 목록, 세로 스크롤 안의 가로 패널(메뉴 4개), 굵기가 함께 차오르는 숫자. */
+html { font-size: clamp(8px, 4.27vw, 22px); background: #000; }
+@media (min-width: 768px) { html { font-size: 2.08vw; } }
+@media (min-width: 1100px) { html { font-size: 1.111vw; } }
+:root { --t1: #ededed; --t2: #a3a3a3; --t3: #5f5f66; --line: rgb(255 255 255 / 0.1); --brand: #4b5bff; --up: #54f2b0; --down: #ff6a4d; --yellow: #ffd23f;
+  --kr: "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif; --wide: "Archivo", "Pretendard Variable", sans-serif; --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+body { background: #000; color: var(--t1); font-family: var(--kr); line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+.mono { font-family: var(--mono); }
+.up { color: var(--up); } .down { color: var(--down); }
+
+/* 심볼: delf◎na */
+.logo { display: inline-flex; align-items: center; font-family: var(--wide); font-stretch: 125%; font-weight: 900; letter-spacing: -0.04em; text-transform: lowercase; color: #fff; }
+.logo .ring { flex: none; width: 0.78em; height: 0.78em; border-radius: 50%; border: 0.16em solid currentColor; box-shadow: 0 0 0 0.09em #000, 0 0 0 0.2em var(--brand); margin: 0 0.1em; }
+.hd { position: fixed; top: 0; inset-inline: 0; z-index: 30; display: flex; align-items: center; gap: 1.5rem; padding: 1.1rem 1.4rem 1.6rem; background: linear-gradient(#000 30%, rgb(0 0 0 / 0.6) 65%, transparent); }
+.hd .logo { font-size: 1.35rem; }
+.nav { display: none; gap: 1.6rem; margin-inline-start: auto; font-size: 0.82rem; font-weight: 600; }
+@media (min-width: 900px) { .nav { display: flex; } }
+.cta { margin-inline-start: auto; height: 2.3rem; padding: 0 1.1rem; border-radius: 99rem; background: #fff; color: #000; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; transition: transform 150ms ease-out; }
+.cta:active { transform: scale(0.95); }
+@media (min-width: 900px) { .cta { margin-inline-start: 0; } }
+
+/* ---------- 장면 1: 잡음 속 음파 ---------- */
+.hero { position: relative; height: 330vh; }
+.scene { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; }
+.noise { position: absolute; inset: -4vh -10vw; display: flex; flex-direction: column; justify-content: space-between; padding: 6vh 0; }
+.lane { display: flex; gap: 2.2rem; white-space: nowrap; will-change: transform; }
+.hl { display: inline-block; font-size: clamp(0.95rem, 2.1vh, 1.35rem); font-weight: 300; color: #2c2c31; letter-spacing: -0.02em; transition: font-weight 420ms var(--ease), color 420ms var(--ease); }
+.hl b { font-weight: inherit; margin-inline-end: 0.4em; }
+.hl.near { color: #8a8a93; font-weight: 500; }
+.hl.lit.up { color: var(--up); font-weight: 800; }
+.hl.lit.down { color: var(--down); font-weight: 800; }
+.hl.lit.flat { color: #6d6d75; font-weight: 600; }
+.pulse { position: absolute; left: 50%; top: 50%; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
+.pulse.scan { border: 1.5px solid rgb(75 91 255 / 0.85); box-shadow: 0 0 40px rgb(75 91 255 / 0.35), inset 0 0 40px rgb(75 91 255 / 0.18); }
+.pulse.idle { width: 10rem; height: 10rem; border: 1px solid rgb(255 255 255 / 0.25); opacity: 0; }
+@media (prefers-reduced-motion: no-preference) { .pulse.idle { animation: idle 3.2s var(--ease) infinite; } .pulse.idle.b { animation-delay: 1.6s; } }
+@keyframes idle { 0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(3.2); } }
+.core { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; text-align: center; pointer-events: none; padding: 0 1.4rem; }
+.core .mark { display: block; width: clamp(4.4rem, 12vh, 7.2rem); height: clamp(4.4rem, 12vh, 7.2rem); margin: 0 auto 1.6rem; border-radius: 50%; border: 1.15rem solid #fff; box-shadow: 0 0 0 0.65rem #000, 0 0 0 1.45rem var(--brand); }
+.core h1 { font-size: clamp(2.1rem, 6.8vw, 4.4rem); font-weight: 860; line-height: 1.04; letter-spacing: -0.055em; text-shadow: 0 0 2rem #000, 0 0 1rem #000; }
+.core p { margin-top: 1rem; font-size: 1rem; color: var(--t2); text-shadow: 0 0 1rem #000; }
+.core .count { margin-top: 1.4rem; display: flex; gap: 1.6rem; justify-content: center; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.12em; color: var(--t2); text-transform: uppercase; }
+.core .count b { display: block; font-family: var(--wide); font-stretch: 125%; font-size: 2.6rem; letter-spacing: -0.04em; line-height: 1; color: #fff; font-weight: 900; }
+.core .count b.up { color: var(--up); } .core .count b.down { color: var(--down); }
+.halo { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(34% 30% at 50% 50%, rgb(0 0 0 / 0.9), rgb(0 0 0 / 0.55) 60%, transparent 100%); }
+@media (max-width: 767px) { .halo { background: radial-gradient(95% 40% at 50% 52%, rgb(0 0 0 / 0.95), rgb(0 0 0 / 0.7) 62%, transparent 100%); } }
+.hint { position: absolute; z-index: 3; bottom: 1.6rem; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em; color: var(--t3); text-transform: uppercase; }
+
+/* ---------- 장면 2: 신호만 남긴 목록 ---------- */
+.sec { padding: 6rem 1.4rem; }
+.wrap { max-width: 72rem; margin: 0 auto; }
+.lab { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--t3); }
+.h2 { margin-top: 0.8rem; font-size: clamp(2.2rem, 6vw, 4.2rem); font-weight: 900; line-height: 1.02; letter-spacing: -0.055em; }
+.h2 .w { display: inline-block; opacity: 0.12; transition: opacity 500ms var(--ease), font-weight 500ms var(--ease); font-weight: 300; }
+.h2.in .w { opacity: 1; font-weight: 900; }
+.h2.in .w:nth-child(2) { transition-delay: 80ms; } .h2.in .w:nth-child(3) { transition-delay: 160ms; } .h2.in .w:nth-child(4) { transition-delay: 240ms; }
+.feed { margin-top: 2.4rem; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.feed li { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr); gap: 0.2rem 1.2rem; padding: 1.3rem 0; border-bottom: 1px solid var(--line); }
+.feed .v { align-self: start; margin-top: 0.15rem; display: inline-flex; justify-content: center; padding: 0.2rem 0; border-radius: 99rem; font-size: 0.8rem; font-weight: 800; }
+.feed .v.up { background: rgb(84 242 176 / 0.14); } .feed .v.down { background: rgb(255 106 77 / 0.15); } .feed .v.flat { background: rgb(255 255 255 / 0.07); color: var(--t2); }
+.feed p { font-size: 1.18rem; font-weight: 600; line-height: 1.45; letter-spacing: -0.02em; }
+.feed small { grid-column: 2; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--t3); text-transform: uppercase; }
+.btn { display: inline-flex; align-items: center; height: 2.9rem; margin-top: 2rem; padding: 0 1.4rem; border-radius: 99rem; background: #fff; color: #000; font-size: 0.95rem; font-weight: 700; transition: transform 150ms ease-out; }
+.btn:active { transform: scale(0.95); }
+
+/* ---------- 장면 3: 세로 스크롤 안의 가로 패널 ---------- */
+.hz { position: relative; height: 320vh; }
+.hz-pin { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.hz-pin .lab { padding: 0 1.4rem; }
+.track { display: flex; gap: 1rem; padding: 1.2rem 1.4rem 0; will-change: transform; }
+.panel { flex: none; width: min(78vw, 46rem); height: min(64vh, 34rem); border-radius: 1.6rem; padding: 1.8rem; display: flex; flex-direction: column; justify-content: space-between; color: #000; }
+.panel .k { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+.panel b { font-size: clamp(3.4rem, 12vw, 7.5rem); font-weight: 920; letter-spacing: -0.07em; line-height: 0.9; }
+.panel p { margin-top: 1rem; max-width: 24rem; font-size: 1.1rem; font-weight: 650; line-height: 1.45; letter-spacing: -0.02em; }
+.p1 { background: var(--up); } .p2 { background: var(--brand); color: #fff; } .p3 { background: var(--yellow); } .p4 { background: var(--down); }
+
+/* ---------- 장면 4: 굵기가 함께 차오르는 숫자 ---------- */
+.stats { display: grid; gap: 3rem; margin-top: 2.6rem; }
+@media (min-width: 900px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+.stat .n { display: block; font-family: var(--wide); font-stretch: 125%; font-size: clamp(4rem, 9vw, 7rem); line-height: 0.9; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; font-weight: 200; }
+.stat p { margin-top: 0.8rem; font-size: 1.02rem; font-weight: 650; line-height: 1.45; letter-spacing: -0.02em; }
+.stat small { display: block; margin-top: 0.3rem; font-size: 0.84rem; font-weight: 500; color: var(--t2); letter-spacing: 0; }
+.ft { padding: 4rem 1.4rem 2rem; border-top: 1px solid var(--line); overflow: hidden; }
+.ft .logo { color: #fff; font-size: 19vw; line-height: 0.8; letter-spacing: -0.07em; }
+.ft .logo .ring { width: 0.66em; height: 0.66em; border-width: 0.12em; box-shadow: 0 0 0 0.06em #000, 0 0 0 0.14em var(--brand); }
+@media (prefers-reduced-motion: no-preference) { .ft .logo .ring { animation: ring 3.2s var(--ease) infinite; } }
+@keyframes ring { 0%, 100% { box-shadow: 0 0 0 0.06em #000, 0 0 0 0.14em var(--brand); } 50% { box-shadow: 0 0 0 0.06em #000, 0 0 0 0.14em var(--brand), 0 0 0 0.18em rgb(75 91 255 / 0.22); } }
+.ft p { margin-top: 2rem; font-size: 0.78rem; color: var(--t3); max-width: 40rem; line-height: 1.6; }
+@media (prefers-reduced-motion: reduce) { .hero, .hz { height: auto; } .scene, .hz-pin { position: relative; } .track { flex-wrap: wrap; } }
+</style>
+</head>
+<body>
+<header class="hd">
+  <a class="logo" href="./" aria-label="delfona">delf<span class="ring" aria-hidden="true"></span>na</a>
+  <nav class="nav" aria-label="메뉴"><a href="#feed">속보</a><a href="#menu">정리</a><a href="#menu">코인</a><a href="#menu">레이더</a></nav>
+  <a class="cta" href="#feed">속보 보기</a>
+</header>
+
+<section class="hero" id="hero" aria-label="소개">
+  <div class="scene" id="scene">
+    <div class="noise" id="noise" aria-hidden="true"></div>
+    <span class="pulse idle" aria-hidden="true"></span><span class="pulse idle b" aria-hidden="true"></span>
+    <span class="pulse scan" id="scan" aria-hidden="true"></span>
+    <div class="halo" aria-hidden="true"></div>
+    <div class="core">
+      <div>
+        <span class="mark" aria-hidden="true"></span>
+        <h1 id="coreH">잡음 속에서,<br>돈이 움직이는 신호만</h1>
+        <p id="coreP">스크롤하면 Delfona가 지금 들어온 속보를 훑어요.</p>
+        <div class="count" id="count" hidden><span><b class="up" id="cU">0</b>호재</span><span><b class="down" id="cD">0</b>악재</span><span><b id="cN">0</b>중립</span></div>
+      </div>
+    </div>
+    <p class="hint" id="hint">Scroll to scan ↓</p>
+  </div>
+</section>
+
+<section class="sec" id="feed" aria-labelledby="fT"><div class="wrap">
+  <p class="lab">Signal · 방금 잡은 신호</p>
+  <h2 class="h2" data-words id="fT"><span class="w">잡음은</span> <span class="w">빼고,</span><br><span class="w">신호만</span> <span class="w">남겼어요</span></h2>
+  <ol class="feed" id="list"><li><span class="v flat">…</span><p>불러오는 중</p></li></ol>
+  <a class="btn" href="#">속보 전체 보기</a>
+</div></section>
+
+<section class="hz" id="menu" aria-label="메뉴">
+  <div class="hz-pin">
+    <p class="lab">Delfona · 네 가지</p>
+    <div class="track" id="track">
+      <article class="panel p1"><span class="k">01 · Live</span><div><b>속보</b><p>국내외 속보를 AI가 바로 한국어로. 호재·악재를 붙이고, 같은 소식은 하나로 묶어요.</p></div></article>
+      <article class="panel p2"><span class="k">02 · Brief</span><div><b>정리</b><p>매일 오전 9시, 어제 하루를 AI가 한 장으로 정리해요.</p></div></article>
+      <article class="panel p3"><span class="k">03 · Coins</span><div><b>코인</b><p>별표한 내 코인의 시세와 그 코인 소식만 따로 모아요.</p></div></article>
+      <article class="panel p4"><span class="k">04 · Radar</span><div><b>레이더</b><p>새 코인 상장과 큰 경제 발표 때 돈이 어떻게 움직였는지, 지난 기록으로.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="sT"><div class="wrap">
+  <p class="lab">Numbers · 지난 기록</p>
+  <h2 class="h2" data-words id="sT"><span class="w">숫자로</span> <span class="w">보면</span></h2>
+  <div class="stats">
+    <div class="stat"><span class="n up" data-count id="s1" data-to="0">0</span><p>지난 48시간 동안 잡은 소식<small>같은 소식은 하나로 묶어 셌어요.</small></p></div>
+    <div class="stat"><span class="n down" data-count data-to="86">0</span><p>새 코인을 따라 산 100명 중 하루 뒤 손해<small>업비트 상장 229건 · 거래 시작 10분 뒤 · 수수료 포함</small></p></div>
+    <div class="stat"><span class="n" style="color:var(--yellow)" data-count id="s3" data-to="0" data-dec="1">0</span><p id="s3p">다음 큰 발표 때 비트코인이 흔들린 정도(평소의 배수)<small></small></p></div>
+  </div>
+</div></section>
+
+<footer class="ft">
+  <p class="logo" aria-label="delfona">delf<span class="ring" aria-hidden="true"></span>na</p>
+  <p>시안 E · ECHO — 실시간 속보와 숫자는 실제 데이터예요. 호재·악재는 AI의 일반적인 해석이며 투자 조언이 아니에요.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.11/dist/lenis.min.js"></script>
+<script>
+const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FALL = Array.from({ length: 60 }, (_, i) => ({ v: ['호재', '악재', '중립'][i % 3], ko: ['비트코인 현물 ETF 자금 흐름', '거래소 해킹 의혹', '연준 금리 발언', '신규 상장 공지', '고래 대량 이동', '규제 법안 통과'][i % 6] }));
+let items = FALL, spans = [], lanes = [], R = 0, mouse = null, REAL = { u: 0, d: 0, n: 0 };
+
+// ---------- 잡음 밭: 레인마다 다른 속도로 흐르는 흐린 제목들 ----------
+function build() {
+  const box = $('#noise');
+  const nLanes = innerWidth < 768 ? 16 : 14;
+  const per = Math.ceil(items.length / nLanes) + 2;
+  box.innerHTML = Array.from({ length: nLanes }, (_, r) => {
+    const row = Array.from({ length: per * 2 }, (_, k) => items[(r * per + k) % items.length]);
+    return `<div class="lane">${row.map((it) => `<span class="hl ${it.v === '호재' ? 'up' : it.v === '악재' ? 'down' : 'flat'}"><b>${esc(it.v)}</b>${esc(it.ko)}</span>`).join('')}</div>`;
+  }).join('');
+  lanes = [...box.querySelectorAll('.lane')].map((el, i) => ({ el, speed: (i % 2 ? 1 : -1) * (12 + (i * 7) % 18), x: -((i * 137) % 400), w: el.scrollWidth / 2 }));
+  // 굵어져도 줄이 흔들리지 않게, 가장 굵을 때 폭으로 고정한다
+  spans = [...box.querySelectorAll('.hl')];
+  spans.forEach((s) => { s.classList.add('lit'); s.style.minWidth = s.getBoundingClientRect().width + 'px'; s.classList.remove('lit'); });
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const cx = innerWidth / 2, cy = innerHeight / 2;
+  lanes.forEach((l) => { if (!reduce) l.x = (l.x + l.speed * dt) % l.w; if (l.x > 0) l.x -= l.w; l.el.style.transform = `translate3d(${l.x}px,0,0)`; });
+  const inView = $('#hero').getBoundingClientRect().bottom > 0;
+  if (inView) {
+    // 먼저 위치를 모두 읽고(레이아웃 한 번), 그다음에 class를 바꾼다(읽기·쓰기를 섞으면 프레임마다 레이아웃이 수백 번 돈다)
+    const rs = spans.map((s) => s.getBoundingClientRect());
+    rs.forEach((r, i) => {
+      if (r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight) return;
+      const x = r.left + r.width / 2, y = r.top + r.height / 2, s = spans[i];
+      const lit = Math.hypot(x - cx, y - cy) <= R, near = !!mouse && Math.hypot(x - mouse[0], y - mouse[1]) < 170;
+      if (s._lit !== lit) { s.classList.toggle('lit', lit); s._lit = lit; }
+      if (s._near !== near) { s.classList.toggle('near', near); s._near = near; }
+    });
+  }
+  requestAnimationFrame(frame);
+}
+
+function setScan(p) {
+  const maxR = Math.hypot(innerWidth, innerHeight) / 2 + 40;
+  R = reduce ? maxR : Math.max(0, (p - 0.05) / 0.75) * maxR;
+  const sc = $('#scan'); sc.style.width = sc.style.height = R * 2 + 'px'; sc.style.opacity = R > 10 && R < maxR - 10 ? 1 : 0;
+  const done = R >= maxR * 0.98;
+  $('#count').hidden = !(R > maxR * 0.35);
+  $('#hint').style.opacity = p > 0.03 ? 0 : 1;
+  if (done) { $('#coreH').innerHTML = '신호를 찾았어요'; $('#coreP').textContent = '지난 24시간, 돈을 움직일 만한 소식만 켜졌어요. 회색은 잡음이에요.'; }
+  else if (p > 0.05) { $('#coreH').innerHTML = '훑는 중…'; $('#coreP').textContent = '음파가 닿은 소식만 켜져요.'; }
+  else { $('#coreH').innerHTML = '잡음 속에서,<br>돈이 움직이는 신호만'; $('#coreP').textContent = '스크롤하면 Delfona가 지금 들어온 속보를 훑어요.'; }
+  // 숫자는 화면 속 글자 수가 아니라 실제 지난 24시간 집계를, 음파가 퍼진 만큼 차오르게
+  const f = Math.min(1, R / maxR), e = 1 - Math.pow(1 - f, 3);
+  $('#cU').textContent = Math.round(REAL.u * e); $('#cD').textContent = Math.round(REAL.d * e); $('#cN').textContent = Math.round(REAL.n * e);
+}
+
+gsap.registerPlugin(ScrollTrigger);
+let lenis = null;
+if (!reduce) {
+  lenis = new Lenis({ lerp: 0.12, smoothWheel: true });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add((t) => lenis.raf(t * 1000)); gsap.ticker.lagSmoothing(0);
+  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => { const id = a.getAttribute('href'); if (id.length > 1) { e.preventDefault(); lenis.scrollTo(id, { offset: -10 }); } }));
+}
+ScrollTrigger.create({ trigger: '#hero', start: 'top top', end: 'bottom bottom', onUpdate: (st) => setScan(st.progress) });
+// 가로 패널: 세로 스크롤만큼 옆으로
+if (!reduce) gsap.to('#track', { x: () => -($('#track').scrollWidth - innerWidth), ease: 'none', scrollTrigger: { trigger: '#menu', start: 'top top', end: 'bottom bottom', scrub: 0.5, invalidateOnRefresh: true } });
+// 낱말이 하나씩 굵어지며 켜지는 제목
+document.querySelectorAll('[data-words]').forEach((el) => ScrollTrigger.create({ trigger: el, start: 'top 80%', once: true, onEnter: () => el.classList.add('in') }));
+// 숫자: 세는 동안 굵기도 200→900
+function countUp(el) {
+  const to = +el.dataset.to, dec = +(el.dataset.dec || 0), o = { v: 0 };
+  gsap.to(o, { v: to, duration: reduce ? 0 : 1.6, ease: 'power3.out', onUpdate: () => { el.textContent = o.v.toFixed(dec); el.style.fontWeight = Math.round(200 + 700 * (o.v / (to || 1))); } });
+}
+document.querySelectorAll('[data-count]').forEach((el) => ScrollTrigger.create({ trigger: el, start: 'top 85%', once: true, onEnter: () => countUp(el) }));
+addEventListener('mousemove', (e) => { mouse = [e.clientX, e.clientY]; }, { passive: true });
+addEventListener('mouseleave', () => { mouse = null; });
+addEventListener('resize', () => { build(); ScrollTrigger.refresh(); });
+
+build(); setScan(0); requestAnimationFrame(frame);
+
+fetch(FLASH, { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+  const since = Date.now() / 1000 - 86400, day = d.items.filter((x) => x.t >= since);
+  REAL = { u: day.filter((x) => x.v === '호재').length, d: day.filter((x) => x.v === '악재').length, n: day.filter((x) => x.v === '중립').length };
+  items = d.items.slice(0, 120); build(); setScan(ScrollTrigger.getAll()[0]?.progress || 0);
+  $('#s1').dataset.to = d.items.length;
+  const ago = (t) => { const s = Date.now() / 1000 - t; return s < 60 ? 'JUST NOW' : s < 3600 ? `${Math.floor(s / 60)}M AGO` : `${Math.floor(s / 3600)}H AGO`; };
+  const sig = d.items.filter((it) => it.v !== '중립').slice(0, 6);
+  $('#list').innerHTML = sig.map((it) => { const c = it.v === '호재' ? 'up' : 'down';
+    return `<li><span class="v ${c}">${esc(it.v)}</span><p>${esc(it.ko)}</p><small>${ago(it.t)}${it.coins.length ? ' · ' + it.coins.map(esc).join(' · ') : ''}${it.n > 1 ? ` · ${it.n} SOURCES` : ''}</small></li>`; }).join('');
+}).catch(() => {});
+fetch('https://mash1384.github.io/signal-desk/data/events.json').then((r) => r.json()).then((d) => {
+  const now = Date.now() / 1000, u = d.upcoming.filter((x) => x.ts > now).sort((a, b) => b.level - a.level || a.ts - b.ts)[0];
+  if (!u || !u.vs_normal) return;
+  $('#s3').dataset.to = u.vs_normal.toFixed(1);
+  $('#s3p').innerHTML = `다음 큰 발표(${esc(u.name)}) 뒤 1시간, 비트코인은 평소의 몇 배로 흔들렸을까<small>지난 같은 발표들의 기록이에요. 방향은 그때그때 달랐어요.</small>`;
+}).catch(() => {});
+</script>
+</body>
+</html>

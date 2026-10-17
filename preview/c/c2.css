@@ -1,0 +1,7 @@
+.c2 .top { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 960px) { .c2 .top { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: stretch; } }
+.c2 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px; } .c2 .chips::-webkit-scrollbar { display: none; }
+.chipb { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 99px; background: #fff; box-shadow: 0 0 0 1px var(--line); font-size: 13px; font-weight: 600; color: var(--ink2); transition: box-shadow 120ms ease; }
+.chipb b { font-weight: 600; color: var(--ink); } .chipb .a { font-size: 10px; color: var(--mute); } .chipb.on { box-shadow: 0 0 0 2px var(--primary); }
+.c2 .split { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 1000px) { .c2 .split { grid-template-columns: 360px minmax(0, 1fr); align-items: start; } .c2 .side { position: sticky; top: 76px; } .c2 .schw { max-height: calc(100dvh - 170px); overflow-y: auto; overscroll-behavior: contain; } }
+.c2 .schw { margin-top: 10px; }
+@media (max-width: 999px) { .c2 .schw { max-height: 360px; overflow-y: auto; overscroll-behavior: contain; } }

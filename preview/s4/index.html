@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Delfona — S4 · Track</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* F1 · Mesh — design.md: Stripe. 흰 캔버스 위 상단 1/3을 덮는 흐르는 그라데이션 메시(WebGL, 파랑·인디고·청록만),
+   그 위에 떠 있는 남색 제품 화면(실시간 신호). 제목은 weight 300 + 좁은 자간, 숫자는 tabular. 채운 버튼은 인디고 하나뿐.
+   모션: 메시가 천천히 흐르고, 카드가 100ms 간격으로 떠오르고(Emil: ease-out 커브, 300ms 안쪽), 새 신호는 위에서 미끄러져 들어온다. */
+:root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --navy2: #15304f;
+  --up: #0e9f6e; --down: #df4a3a; --sans: "Inter", "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+:lang(ko) { --sans: "Pretendard Variable", Pretendard, "Inter", system-ui, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+h1, h2, h3, p { word-break: keep-all; overflow-wrap: break-word; }
+body { background: #fff; color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; } button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+ul, ol { list-style: none; padding: 0; } .tnum { font-variant-numeric: tabular-nums; }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; } @media (min-width: 900px) { .wrap { padding-inline: 32px; } }
+/* 심볼: 기울어진 두 막대 = 신호를 '거르는' 필터 / D의 줄기 */
+.logo { display: inline-flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 650; letter-spacing: -0.03em; }
+.logo svg { width: 26px; height: 26px; }
+.hd { position: absolute; top: 0; inset-inline: 0; z-index: 10; }
+.hd .wrap { display: flex; align-items: center; gap: 28px; height: 72px; }
+.nav { display: none; gap: 26px; font-size: 14.5px; font-weight: 500; color: var(--ink2); } @media (min-width: 900px) { .nav { display: flex; } }
+.lang { margin-inline-start: auto; display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(255 255 255 / 0.55); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.1); }
+.lang button { height: 28px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink2); transition: background-color 150ms ease, color 150ms ease; }
+.lang button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 99px; font-size: 15px; font-weight: 600; transition: transform 150ms var(--ease), background-color 150ms ease, box-shadow 150ms ease; }
+.btn:not(:disabled):active { transform: scale(0.96); }
+.btn.p { background: var(--primary); color: #fff; } @media (hover: hover) { .btn.p:hover { background: #4434d4; } }
+.btn.g { color: var(--ink); background: #fff; box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgb(13 37 61 / 0.06); }
+.btn .arr { transition: transform 150ms var(--ease); } @media (hover: hover) { .btn:hover .arr { transform: translateX(2px); } }
+.hd .btn { display: none; } @media (min-width: 900px) { .hd .btn { display: inline-flex; } }
+/* 메시 */
+.hero { position: relative; padding-top: 140px; }
+.mesh { position: absolute; inset: 0 0 auto; height: 640px; z-index: 0; overflow: hidden; }
+.mesh canvas { width: 100%; height: 100%; display: block; transform: skewY(-8deg); transform-origin: 0 0; }
+.mesh::after { content: ""; position: absolute; inset: auto 0 0; height: 45%; background: linear-gradient(transparent, #fff); }
+.hero .wrap { position: relative; z-index: 1; display: grid; gap: 48px; }
+@media (min-width: 1000px) { .hero .wrap { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; } }
+.kick { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 6px; border-radius: 99px; background: rgb(255 255 255 / 0.6); backdrop-filter: blur(8px); font-size: 13px; font-weight: 600; color: var(--ink2); }
+.kick b { padding: 2px 8px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0.04em; }
+h1 { margin-top: 18px; font-size: clamp(40px, 5.4vw, 74px); font-weight: 300; line-height: 1.02; letter-spacing: -0.045em; }
+:lang(ko) h1 { font-weight: 500; letter-spacing: -0.05em; line-height: 1.12; }
+.sub { margin-top: 20px; max-width: 30rem; font-size: 18px; color: var(--ink2); }
+.btns { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+.proof { display: flex; gap: 22px; margin-top: 34px; font-size: 13.5px; color: var(--mute); flex-wrap: wrap; }
+.proof b { display: block; font-size: 22px; font-weight: 500; color: var(--ink); letter-spacing: -0.02em; }
+/* 떠 있는 제품 화면 */
+.stage { position: relative; min-height: 560px; }
+.panel { position: absolute; border-radius: 14px; background: var(--navy); color: #e8eef7; box-shadow: 0 30px 60px -20px rgb(13 37 61 / 0.45), 0 0 0 1px rgb(255 255 255 / 0.06) inset; opacity: 0; transform: translateY(18px); }
+.panel.in { opacity: 1; transform: none; transition: opacity 600ms var(--ease), transform 600ms var(--ease); }
+.p1 { inset: 0 0 auto 6%; } .p2 { left: 0; top: 350px; width: 54%; background: #fff; color: var(--ink); box-shadow: 0 30px 60px -24px rgb(13 37 61 / 0.35), 0 0 0 1px var(--line); }
+.p3 { right: -2%; top: 380px; width: 46%; }
+@media (max-width: 999px) { .feed { height: auto; max-height: 330px; } .stage { min-height: auto; display: grid; gap: 12px; } .panel { position: relative; inset: auto; width: auto; } }
+.ph { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgb(255 255 255 / 0.08); font-size: 12.5px; font-weight: 600; color: #9fb1c8; }
+.ph .live { display: inline-flex; align-items: center; gap: 6px; color: #7ee0c3; font-family: var(--mono); font-size: 11px; }
+.ph .live i { width: 6px; height: 6px; border-radius: 50%; background: #2fd9a7; }
+@media (prefers-reduced-motion: no-preference) { .ph .live i { animation: blink 1.4s ease-in-out infinite; } }
+@keyframes blink { 50% { opacity: 0.25; } }
+.feed { padding: 4px 16px 10px; overflow: hidden; height: 262px; -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent); }
+.row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 2px 12px; padding: 11px 0; border-bottom: 1px solid rgb(255 255 255 / 0.06); }
+.row.enter { animation: slide 520ms var(--ease) both; }
+@keyframes slide { from { opacity: 0; transform: translateY(-12px); filter: blur(3px); } }
+.v { align-self: start; display: inline-flex; justify-content: center; padding: 3px 0; border-radius: 6px; font-size: 11.5px; font-weight: 650; }
+.v.up { background: rgb(14 159 110 / 0.16); color: #4fe0ab; } .v.down { background: rgb(223 74 58 / 0.18); color: #ff9b8c; } .v.flat { background: rgb(255 255 255 / 0.07); color: #9fb1c8; }
+.row p { font-size: 14px; font-weight: 500; line-height: 1.45; color: #eef3fa; }
+.row small { grid-column: 2; font-family: var(--mono); font-size: 10.5px; color: #7d90a8; }
+.p2 .ph { color: var(--mute); border-color: var(--line); }
+.brief { padding: 14px 16px 16px; } .brief b { display: block; font-size: 16px; font-weight: 600; line-height: 1.4; letter-spacing: -0.015em; }
+.bal { display: flex; gap: 3px; height: 6px; margin-top: 14px; } .bal i { border-radius: 99px; transition: flex-grow 900ms var(--ease); } .bal i:first-child { background: var(--up); } .bal i:last-child { background: var(--down); }
+.balx { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12.5px; font-weight: 600; }
+.coin { padding: 14px 16px 16px; } .coin .px { font-size: 26px; font-weight: 500; letter-spacing: -0.03em; } .coin .px small { font-size: 13px; margin-inline-start: 6px; }
+.coin svg { width: 100%; height: 70px; margin-top: 6px; } .coin .ln { fill: none; stroke: #7aa7ff; stroke-width: 2; }
+/* 아래 구간 */
+.logos { margin-top: 80px; padding-block: 26px; border-block: 1px solid var(--line); }
+.logos .wrap { display: flex; flex-wrap: wrap; gap: 14px 40px; justify-content: space-between; align-items: center; color: var(--mute); font-size: 14px; font-weight: 500; }
+.logos b { color: var(--ink); font-weight: 600; }
+.sec { padding-block: 96px; }
+.eyebrow { font-size: 14px; font-weight: 600; color: var(--primary); }
+.h2 { margin-top: 10px; max-width: 40rem; font-size: clamp(30px, 4vw, 48px); font-weight: 300; line-height: 1.12; letter-spacing: -0.035em; }
+:lang(ko) .h2 { font-weight: 500; }
+.lead { margin-top: 14px; max-width: 38rem; font-size: 17px; color: var(--ink2); }
+.grid3 { display: grid; gap: 16px; margin-top: 44px; } @media (min-width: 900px) { .grid3 { grid-template-columns: repeat(3, 1fr); } }
+.card { padding: 26px; border-radius: 14px; background: var(--soft); box-shadow: 0 0 0 1px var(--line) inset; }
+.card .n { font-family: var(--mono); font-size: 12px; color: var(--primary); }
+.card h3 { margin-top: 12px; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+.card p { margin-top: 8px; font-size: 15px; color: var(--ink2); }
+.card .viz { height: 120px; margin-top: 20px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px var(--line); overflow: hidden; position: relative; }
+.dark { background: var(--navy); color: #e8eef7; }
+.dark .h2, .dark h3 { color: #fff; } .dark .lead, .dark p { color: #a9bbd2; } .dark .eyebrow { color: #8ea2ff; }
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; margin-top: 44px; background: rgb(255 255 255 / 0.08); border-radius: 14px; overflow: hidden; }
+@media (min-width: 900px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+.stats div { padding: 26px; background: var(--navy2); } .stats b { display: block; font-size: 40px; font-weight: 300; letter-spacing: -0.04em; color: #fff; } .stats span { font-size: 13.5px; color: #8fa3bd; }
+.end { text-align: center; } .end .h2 { margin-inline: auto; }
+.ft { padding-block: 30px 48px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mute); }
+.rv { opacity: 0; transform: translateY(16px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); } .rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .rv, .panel { opacity: 1; transform: none; transition: none; } .row.enter { animation: none; } }
+
+/* ---------- 3D: 스크롤에 고정된 '가르기' 장면 ----------
+   실제 속보 카드가 3D 공간에 흩어져 있다가(잡음) → 호재·악재 두 개의 선반으로 날아가 정렬되고(판정) → 두 더미가 숫자로 압축된다(정리). */
+.sort { position: relative; height: 420vh; background: linear-gradient(#fff, #f3f6fb 20%, #eef2f8 80%, #fff); }
+.sort-pin { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; perspective: 1400px; perspective-origin: 50% 42%; }
+.sort-cap { position: absolute; z-index: 5; left: 0; right: 0; top: 9vh; text-align: center; pointer-events: none; padding-inline: 20px; }
+.sort-cap .eyebrow { display: inline-block; }
+.sort-cap h2 { margin-top: 10px; font-size: clamp(28px, 4vw, 52px); font-weight: 300; letter-spacing: -0.04em; line-height: 1.1; }
+:lang(ko) .sort-cap h2 { font-weight: 500; }
+.sort-cap p { margin-top: 10px; font-size: 16px; color: var(--mute); }
+.space { position: absolute; inset: 0; transform-style: preserve-3d; }
+.c3 { position: absolute; left: 50%; top: 56%; width: 300px; margin: -46px 0 0 -150px; padding: 12px 14px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 18px 40px -18px rgb(13 37 61 / 0.35);
+  transform-style: preserve-3d; will-change: transform, opacity; backface-visibility: hidden; font-size: 13px; line-height: 1.4; }
+.c3 .v { display: inline-flex; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 650; margin-bottom: 6px; }
+.c3 .v.up { background: #e3f7ef; color: #087a54; } .c3 .v.down { background: #fde9e6; color: #b5311f; } .c3 .v.flat { background: #eef1f5; color: var(--mute); }
+.c3 p { color: var(--ink); font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.c3 small { display: block; margin-top: 6px; font-family: var(--mono); font-size: 10px; color: var(--mute); }
+.shelf { position: absolute; z-index: 4; top: 22vh; font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0; }
+.shelf b { display: block; margin-top: 4px; font-family: var(--sans); font-size: clamp(48px, 7vw, 96px); font-weight: 300; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; }
+.shelf.l { left: 8vw; color: var(--up); } .shelf.r { right: 8vw; text-align: end; color: var(--down); }
+.sort-brief { position: absolute; z-index: 6; left: 50%; bottom: 8vh; width: min(520px, 90vw); transform: translateX(-50%) translateY(30px); opacity: 0; padding: 18px 20px; border-radius: 14px; background: var(--navy); color: #eef3fa; box-shadow: 0 30px 70px -24px rgb(13 37 61 / 0.6); }
+.sort-brief .k { font-family: var(--mono); font-size: 11px; color: #8ea2ff; letter-spacing: 0.08em; text-transform: uppercase; }
+.sort-brief b { display: block; margin-top: 6px; font-size: 18px; font-weight: 600; line-height: 1.4; letter-spacing: -0.015em; }
+.prog { position: absolute; z-index: 6; left: 50%; bottom: 3vh; transform: translateX(-50%); display: flex; gap: 6px; }
+.prog i { width: 28px; height: 3px; border-radius: 99px; background: rgb(13 37 61 / 0.12); overflow: hidden; } .prog i::after { content: ""; display: block; height: 100%; width: var(--p, 0%); background: var(--ink); }
+@media (max-width: 899px) { .c3 { width: 168px; margin-left: -84px; padding: 9px 10px; font-size: 11.5px; } .c3 small { display: none; } .shelf { top: 31vh; } .shelf b { font-size: 44px; } .shelf.l { left: 5vw; } .shelf.r { right: 5vw; } .sort-cap { top: 7vh; } .sort-cap p { font-size: 14px; } .sort-brief b { font-size: 15px; } }
+/* 첫 화면 카드 3D 시차 */
+.stage { transform-style: preserve-3d; perspective: 1200px; }
+.stage .panel { transition: opacity 600ms var(--ease), transform 600ms var(--ease); }
+@media (prefers-reduced-motion: reduce) { .sort { height: auto; } .sort-pin { position: relative; height: auto; min-height: 100vh; } }
+
+/* ---------- 오프닝(처음 한 번, 약 2.5초) ---------- */
+.mesh { }
+
+h1 .w { display: inline-block; }
+h1.go .w { opacity: 1; transform: none; filter: none; transition: opacity 700ms var(--ease), transform 700ms var(--ease), filter 700ms var(--ease); }
+.storm { position: absolute; inset: 0; z-index: 8; pointer-events: none; perspective: 1000px; overflow: hidden; }
+.chip { position: absolute; left: 0; top: 0; max-width: 300px; padding: 9px 13px; border-radius: 10px; background: rgb(255 255 255 / 0.92); box-shadow: 0 0 0 1px var(--line), 0 12px 28px -12px rgb(13 37 61 / 0.4); font-size: 13.5px; font-weight: 550; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; will-change: transform, opacity; }
+.feed.wait .row { opacity: 0; }
+.row.stamp .v { animation: stamp 520ms cubic-bezier(0.2, 1.4, 0.35, 1) both; }
+.row.stamp p, .row.stamp small { animation: rowin 500ms var(--ease) both; }
+@keyframes stamp { 0% { transform: scale(1.9) rotate(-8deg); opacity: 0; } 60% { opacity: 1; } 100% { transform: none; } }
+@keyframes rowin { from { opacity: 0; transform: translateX(-8px); } }
+.reading { font-family: var(--mono); font-size: 11px; color: #8ea2ff; }
+/* 숫자 계기판 */
+.odo-wrap { display: inline-flex; align-items: flex-start; line-height: 1; }
+.odo-wrap > span { display: inline-block; height: 1em; line-height: 1; }
+.odo { overflow: hidden; }
+.odo .col { display: flex; flex-direction: column; transition: transform 1100ms cubic-bezier(0.22, 1, 0.36, 1); }
+.odo .col i { font-style: normal; height: 1em; line-height: 1; }
+/* 빛 스침 + 유리 반사 */
+.panel { overflow: hidden; }
+.panel::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgb(255 255 255 / 0.12), transparent 45%); }
+.p2.panel::after { background: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgb(83 58 253 / 0.08), transparent 45%); }
+.sweep { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.14) 50%, transparent 65%); transform: translateX(-120%); }
+.sweep.go { transform: translateX(120%); transition: transform 1300ms cubic-bezier(0.65, 0, 0.35, 1); }
+@media (max-width: 899px) { .chip { font-size: 11.5px; padding: 6px 10px; max-width: 220px; } }
+@media (prefers-reduced-motion: reduce) { .mesh { clip-path: none; } h1 .w { opacity: 1; transform: none; filter: none; } }
+</style>
+<style>
+.bloom { position: fixed; inset: 0; z-index: 80; background: #070d18; overflow: hidden; pointer-events: none; display: grid; place-items: center; }
+.bloom .beam { position: absolute; top: -30vh; width: 16vw; min-width: 120px; height: 160vh; border-radius: 50%; filter: blur(46px); opacity: 0; mix-blend-mode: screen;
+  background: linear-gradient(180deg, transparent 5%, #533afd 35%, #7aa7ff 55%, #2fd9c4 75%, transparent 95%); transform-origin: 50% 50%; }
+.bloom .b1 { left: 34vw; } .bloom .b2 { left: 50vw; }
+.bloom .core { position: absolute; width: 30vw; height: 30vw; border-radius: 50%; background: radial-gradient(closest-side, rgb(255 255 255 / .9), rgb(142 162 255 / .4) 40%, transparent 70%); filter: blur(20px); opacity: 0; }
+.bloom .t { position: relative; text-align: center; color: #fff; padding: 0 20px; }
+.bloom .t p:first-child { font-family: var(--mono); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: #8ea2ff; opacity: 0; }
+.bloom .t p:last-child { margin-top: 14px; font-size: clamp(36px, 6vw, 76px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.05; opacity: 0; }
+.bloom .flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+</style>
+<script>document.documentElement.classList.add("pre-hide")</script>
+</head>
+<body>
+<div class="bloom" id="bloom" aria-hidden="true"><span class="beam b1"></span><span class="beam b2"></span><span class="core"></span>
+  <div class="t"><p id="bk">Delfona</p><p id="bt">Signal, out of the noise.</p></div><span class="flash"></span></div>
+<header class="hd"><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#0d253d"/><path d="M8 19 12.5 7M13.5 19 18 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="18" cy="7" r="2.2" fill="#8ea2ff"/></svg>Delfona</a>
+  <nav class="nav" aria-label="Menu"><a href="#product" data-t="n1">Product</a><a href="#how" data-t="n2">How it works</a><a href="#trust" data-t="n3">Principles</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+  <a class="btn p" href="#product" data-t="cta">Open live signals</a>
+</div></header>
+
+<section class="hero">
+  <div class="storm" id="storm" aria-hidden="true"></div>
+  <div class="mesh" aria-hidden="true"><canvas id="mesh"></canvas></div>
+  <div class="wrap">
+    <div>
+      <p class="kick rv"><b>LIVE</b><span id="kick" data-t="kick">Tracking market-moving news worldwide</span></p>
+      <h1 class="rv" data-t="h1" data-html>Market-moving news,<br>judged in seconds.</h1>
+      <p class="sub rv" data-t="sub">Delfona reads crypto, macro and policy headlines from around the world, calls each one positive or negative, and shows how many outlets reported it.</p>
+      <div class="btns rv"><a class="btn p" href="#product"><span data-t="cta">Open live signals</span> <span class="arr">→</span></a><a class="btn g" href="#how" data-t="how">How it works</a></div>
+      <div class="proof rv"><div><b class="tnum" id="pr1">–</b><span data-t="pr1">stories in 48h</span></div><div><b class="tnum" id="pr2">–</b><span data-t="pr2">sources merged</span></div><div><b class="tnum" id="pr3">09:00</b><span data-t="pr3">daily brief (KST)</span></div></div>
+    </div>
+    <div class="stage" id="product" aria-label="Delfona live product">
+      <div class="panel p1"><p class="ph"><span data-t="pf">Signal feed</span><span class="live"><i></i><span id="upd">LIVE</span></span></p><ol class="feed" id="feed"></ol></div>
+      <div class="panel p2"><p class="ph"><span data-t="pb">Daily brief</span><span class="tnum" id="bdate"></span></p><div class="brief"><b id="bh">–</b><div class="bal"><i id="bu" style="flex:1"></i><i id="bd" style="flex:1"></i></div><p class="balx"><span class="up" id="bun">–</span><span class="down" id="bdn">–</span></p></div></div>
+      <div class="panel p3"><p class="ph"><span>BTC · 24H</span><span class="tnum" id="cc"></span></p><div class="coin"><p class="px tnum" id="cp">–</p><svg id="cs" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true"></svg></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sort" id="sort" aria-label="How Delfona sorts the news">
+  <div class="sort-pin">
+    <div class="sort-cap"><p class="eyebrow" data-t="se">Watch it work</p><h2 id="capH" data-t="sh">Every headline lands somewhere.</h2><p id="capP" data-t="sp">Scroll to let Delfona read and sort the last 48 hours.</p></div>
+    <p class="shelf l" id="shL"><span data-t="sl">Positive · 24h</span><b id="nL">0</b></p>
+    <p class="shelf r" id="shR"><span data-t="sr">Negative · 24h</span><b id="nR">0</b></p>
+    <div class="space" id="space" aria-hidden="true"></div>
+    <div class="sort-brief" id="sBrief"><p class="k" id="sbk">Daily brief</p><b id="sbh">–</b></div>
+    <div class="prog" aria-hidden="true"><i id="pg1"></i><i id="pg2"></i><i id="pg3"></i></div>
+  </div>
+</section>
+
+<div class="logos"><div class="wrap"><span data-t="lg">What Delfona reads</span><b data-t="lg1">57 news outlets</b><b data-t="lg2">Exchange notices</b><b data-t="lg3">Public newswires</b><b data-t="lg4">Economic calendar</b></div></div>
+
+<section class="sec wrap" id="how">
+  <p class="eyebrow rv" data-t="e1">How it works</p>
+  <h2 class="h2 rv" data-t="h2a">From thousands of headlines to the few that move money.</h2>
+  <div class="grid3">
+    <article class="card rv"><p class="n">01</p><h3 data-t="c1h">Collect</h3><p data-t="c1p">Outlets, exchange notices and newswires, around the clock. Duplicates are merged into one story.</p></article>
+    <article class="card rv"><p class="n">02</p><h3 data-t="c2h">Judge</h3><p data-t="c2p">AI writes one clear line, calls it positive, negative or neutral, and tags coins and sectors.</p></article>
+    <article class="card rv"><p class="n">03</p><h3 data-t="c3h">Deliver</h3><p data-t="c3p">Live on the web, and a daily brief every morning. English and Korean today.</p></article>
+  </div>
+</section>
+
+<section class="sec dark" id="trust"><div class="wrap">
+  <p class="eyebrow rv" data-t="e2">Built to be trusted</p>
+  <h2 class="h2 rv" data-t="h2b">Evidence first. No trade calls.</h2>
+  <p class="lead rv" data-t="l2">Every signal shows how many outlets reported it and links to the original article or official notice. Positive or negative is an interpretation, not advice.</p>
+  <div class="stats rv"><div><b class="tnum" id="s1">–</b><span data-t="s1">stories, 48h</span></div><div><b class="tnum" id="s2">–</b><span data-t="s2">major stories</span></div><div><b class="tnum" id="s3">–</b><span data-t="s3">positive, 24h</span></div><div><b class="tnum" id="s4">–</b><span data-t="s4">negative, 24h</span></div></div>
+</div></section>
+
+<section class="sec end wrap"><h2 class="h2 rv" data-t="h2c">Know what moved the market, before you open the chart.</h2><div class="btns rv" style="justify-content:center"><a class="btn p" href="#product"><span data-t="cta">Open live signals</span> <span class="arr">→</span></a></div></section>
+<footer class="wrap ft" data-t="ft">Delfona — F1b · Mesh + 3D sorting (design.md: Stripe). Live data. Not investment advice.</footer>
+
+<script src="../data.js"></script>
+<script>
+const { esc, money, pct, vcls, day24 } = DFD, $ = (s) => document.querySelector(s), I = DFI;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+I.init({ se: '이렇게 일해요', sh: '모든 소식은 어딘가에 놓여요.', sp: '스크롤하면 Delfona가 지난 48시간 소식을 읽고 갈라요.', sl: '호재 · 24시간', sr: '악재 · 24시간', n1: '제품', n2: '작동 방식', n3: '원칙', cta: '실시간 신호 열기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
+  sub: 'Delfona는 전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', pr1: '48시간 소식', pr2: '묶은 출처', pr3: '하루 정리(한국 시간)',
+  pf: '실시간 신호', pb: '하루 정리', lg: 'Delfona가 읽는 것', lg1: '언론사 57곳', lg2: '거래소 공지', lg3: '공개 속보', lg4: '경제 일정', e1: '작동 방식', h2a: '수천 개의 소식에서, 돈을 움직이는 몇 개로.',
+  c1h: '모으기', c1p: '매체, 거래소 공지, 속보를 하루 종일 받아요. 같은 소식은 하나로 묶어요.', c2h: '판정하기', c2p: 'AI가 한 줄로 정리하고 호재·악재·중립을 판정하고, 코인과 섹터를 붙여요.',
+  c3h: '전달하기', c3p: '웹에서 실시간으로, 매일 아침에는 하루 정리로. 지금은 영어와 한국어.', e2: '신뢰를 위해', h2b: '근거가 먼저. 매매 권유는 없어요.',
+  l2: '신호마다 몇 곳이 보도했는지와 원문 기사·공식 공지 링크를 붙여요. 호재·악재는 해석이지 조언이 아니에요.', s1: '48시간 소식', s2: '큰 소식', s3: '호재 · 24시간', s4: '악재 · 24시간',
+  h2c: '차트를 열기 전에, 무엇이 시장을 움직였는지.', ft: 'Delfona — F1 · Mesh (design.md: Stripe). 실제 데이터. 투자 조언이 아니에요.' });
+
+// ---------- 흐르는 그라데이션 메시 (WebGL) ----------
+(function mesh() {
+  const cv = $('#mesh'), gl = cv.getContext('webgl', { premultipliedAlpha: false, antialias: false });
+  if (!gl) { cv.style.background = 'linear-gradient(120deg,#cfe0ff,#8ea2ff 40%,#7ee0d3 70%,#e9f0ff)'; return; }
+  const vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+  const fs = `precision mediump float;uniform vec2 r;uniform float t;
+  vec3 c1=vec3(.80,.87,1.),c2=vec3(.33,.30,.99),c3=vec3(.18,.80,.75),c4=vec3(.55,.66,1.),c5=vec3(.95,.97,1.);
+  float n(vec2 p){return sin(p.x)*cos(p.y);}
+  void main(){vec2 u=gl_FragCoord.xy/r;float a=t*.05;
+    vec2 q=u*vec2(2.2,1.3);q+=.35*vec2(n(q*1.7+a),n(q.yx*1.3-a));q+=.25*vec2(n(q*2.3-a*1.4),n(q*1.9+a));
+    float w1=smoothstep(.0,1.,.5+.5*sin(q.x*1.6+a*3.)),w2=smoothstep(.0,1.,.5+.5*cos(q.y*2.1-a*2.)),w3=.5+.5*sin((q.x+q.y)*1.2+a*2.4);
+    vec3 col=mix(mix(c1,c4,w1),mix(c2,c3,w2),w3*.75);col=mix(col,c5,smoothstep(.55,1.,u.y)*.55);
+    gl_FragColor=vec4(col,1.);}`;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const ur = gl.getUniformLocation(pr, 'r'), ut = gl.getUniformLocation(pr, 't');
+  const size = () => { const s = 0.5; cv.width = cv.clientWidth * s; cv.height = cv.clientHeight * s; gl.viewport(0, 0, cv.width, cv.height); };
+  size(); addEventListener('resize', size);
+  let t0 = performance.now(), on = true;
+  new IntersectionObserver((e) => { on = e[0].isIntersecting; }).observe(cv);
+  const loop = (now) => { if (on) { gl.uniform2f(ur, cv.width, cv.height); gl.uniform1f(ut, reduce ? 20 : (now - t0) / 1000); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } if (!reduce) requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+})();
+
+// ---------- 들어오는 순서 ----------
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.15 });
+document.querySelectorAll('.rv').forEach((el, i) => { el.style.transitionDelay = (el.closest('.hero') ? i * 100 : 0) + 'ms'; io.observe(el); });
+/* 패널 등장은 아래 오프닝 스크립트가 맡는다 */
+
+// ---------- 데이터 ----------
+let D = null, shown = [];
+const row = (it, enter) => `<li class="row${enter ? ' enter' : ''}"><span class="v ${vcls(it.v)}">${esc(I.v(it.v))}</span><p>${esc(I.line(it))}</p><small>${[I.ago(it.t), I.outlets(it.n), ...it.coins.slice(0, 3)].map(esc).join(' · ')}</small></li>`;
+function feed(first) {
+  if (!D) return;
+  const xs = D.items.filter((it) => I.has(it) && (it.v !== '중립' || it.s >= 2)).slice(0, 6);
+  $('#feed').innerHTML = xs.map((it) => row(it, false)).join(''); shown = xs.map((x) => x.id);
+  $('#upd').textContent = I.ago(D.at);
+}
+// 실제로 새 소식이 오기 전에도 '살아 있음'이 보이게: 10초마다 최근 신호를 하나씩 맨 위로 다시 들인다
+let rot = 6;
+setInterval(() => { if (!D || document.hidden || reduce) return; const xs = D.items.filter((it) => I.has(it) && it.v !== '중립'); if (xs.length < 8) return;
+  const it = xs[rot++ % Math.min(24, xs.length)]; const ol = $('#feed'); ol.insertAdjacentHTML('afterbegin', row(it, true)); while (ol.children.length > 6) ol.lastElementChild.remove(); }, 4200);
+function stats() {
+  if (!D) return; const c = day24(D.items);
+  const cnt = (el, to) => { if (reduce) { el.textContent = to.toLocaleString(); return; } const t0 = performance.now(), f = (n) => { const p = Math.min(1, (n - t0) / 1200); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString(); if (p < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); };
+  cnt($('#pr1'), D.items.length); cnt($('#pr2'), D.items.reduce((a, x) => a + x.n, 0)); cnt($('#s1'), D.items.length); cnt($('#s2'), D.items.filter((x) => x.s >= 2).length); cnt($('#s3'), c.u); cnt($('#s4'), c.d);
+  $('#bu').style.flexGrow = c.u; $('#bd').style.flexGrow = c.d;
+  $('#bun').textContent = `${I.v('호재')} ${c.u}`; $('#bdn').textContent = `${I.v('악재')} ${c.d}`;
+}
+const bh = () => { if (B) $('#bh').textContent = I.line({ id: 'brief:' + B.date, ko: B.headline }) || B.headline; };
+I.onLang(() => { feed(); stats(); bh(); });
+let B = null;
+DFD.flash().then((d) => { D = d; feed(true); stats(); });
+DFD.brief().then((b) => { B = b; $('#bdate').textContent = b.date; bh(); }).catch(() => {});
+DFD.prices(['BTC']).then((p) => { $('#cp').textContent = money(p.BTC.p); $('#cc').innerHTML = `<span class="${p.BTC.c >= 0 ? 'up' : 'down'}">${pct(p.BTC.c)}</span>`; }).catch(() => {});
+fetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=96').then((r) => r.json()).then((k) => {
+  const ps = k.map((x) => +x[4]), lo = Math.min(...ps), hi = Math.max(...ps);
+  $('#cs').innerHTML = `<path class="ln" id="cl" d="${ps.map((p, i) => `${i ? 'L' : 'M'}${(i / (ps.length - 1) * 300).toFixed(1)},${(64 - (p - lo) / (hi - lo || 1) * 58).toFixed(1)}`).join('')}"/>`;
+  const ln = $('#cl'), L = ln.getTotalLength(); if (!reduce) { ln.style.strokeDasharray = L; ln.style.strokeDashoffset = L; ln.getBoundingClientRect(); ln.style.transition = 'stroke-dashoffset 1600ms cubic-bezier(0.65,0,0.35,1) 700ms'; ln.style.strokeDashoffset = 0; }
+}).catch(() => {});
+setInterval(() => { if (!document.hidden) DFD.flash().then((d) => { D = d; $('#upd').textContent = I.ago(d.at); }).catch(() => {}); }, 30000);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s), I = DFI, esc = DFD.esc, vcls = DFD.vcls;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  gsap.registerPlugin(ScrollTrigger);
+  // 첫 화면 카드: 마우스를 따라 층마다 다른 깊이로 기운다
+  const stage = $('.stage');
+  if (!reduce && matchMedia('(hover: hover)').matches) addEventListener('mousemove', (e) => {
+    if (document.documentElement.classList.contains('scrolly')) return;
+    const x = e.clientX / innerWidth - 0.5, y = e.clientY / innerHeight - 0.5;
+    [['.p1', 1], ['.p2', 1.8], ['.p3', 2.6]].forEach(([sel, d]) => { const el = $(sel); if (el && el.classList.contains('in')) el.style.transform = `translate3d(${x * 14 * d}px, ${y * 10 * d}px, 0) rotateX(${-y * 6}deg) rotateY(${x * 8}deg)`; });
+  }, { passive: true });
+
+  let built = false, tl = null;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function build(items) {
+    const space = $('#space'), mob = innerWidth < 900;
+    const xs = items.filter((it) => I.has(it)).slice(0, mob ? 22 : 34);
+    space.innerHTML = xs.map((it) => `<div class="c3"><span class="v ${vcls(it.v)}">${esc(I.v(it.v))}</span><p>${esc(I.line(it))}</p><small>${esc(I.ago(it.t))} · ${esc(I.outlets(it.n))}</small></div>`).join('');
+    const els = [...space.children];
+    if (tl) { tl.scrollTrigger.kill(); tl.kill(); }
+    let iu = 0, id = 0;
+    const W = innerWidth, colX = mob ? W * 0.25 : Math.min(W * 0.27, 380);
+    els.forEach((el, i) => {
+      const v = xs[i].v;
+      // 흩어진 상태(잡음)
+      gsap.set(el, { x: rnd(-W * 0.48, W * 0.48), y: rnd(-innerHeight * 0.12, innerHeight * 0.34), z: rnd(-1400, 250), rotationX: rnd(-50, 50), rotationY: rnd(-70, 70), rotationZ: rnd(-25, 25), opacity: 1 });
+      el._to = v === '호재' ? { x: -colX, y: (mob ? 20 : -40) + (iu++) * (mob ? 16 : 26), z: -(iu) * 6, rotationX: 0, rotationY: 22, rotationZ: 0, opacity: 1 }
+        : v === '악재' ? { x: colX, y: (mob ? 20 : -40) + (id++) * (mob ? 16 : 26), z: -(id) * 6, rotationX: 0, rotationY: -22, rotationZ: 0, opacity: 1 }
+        : { x: rnd(-W * 0.2, W * 0.2), y: rnd(-80, 160), z: -1800, rotationX: 0, rotationY: 0, rotationZ: 0, opacity: 0.12 };
+    });
+    if (reduce) { els.forEach((el) => gsap.set(el, el._to)); gsap.set(['#shL', '#shR'], { opacity: 1 }); $('#nL').textContent = C.u; $('#nR').textContent = C.d; return; }
+    tl = gsap.timeline({ scrollTrigger: { trigger: '#sort', start: 'top top', end: 'bottom bottom', scrub: 0.8,
+      onUpdate: (st) => { const p = st.progress; [['#pg1', p / 0.33], ['#pg2', (p - 0.33) / 0.33], ['#pg3', (p - 0.66) / 0.34]].forEach(([s, f]) => $(s).style.setProperty('--p', Math.max(0, Math.min(1, f)) * 100 + '%')); caption(p); } } });
+    // 1) 떠다니는 잡음: 천천히 돈다
+    tl.to(els, { rotationY: '+=30', rotationX: '+=10', z: '+=200', duration: 1, ease: 'none', stagger: { each: 0.004, from: 'random' } }, 0)
+    // 2) 판정: 각자 자리로 날아간다
+      .add(() => {}, 1)
+    els.forEach((el, i) => tl.to(el, { ...el._to, duration: 1.4, ease: 'power3.inOut' }, 1 + (i % 12) * 0.05));
+    tl.to(['#shL', '#shR'], { opacity: 1, duration: 0.4 }, 2.1)
+      .to({ v: 0 }, { v: 1, duration: 0.8, onUpdate() { const f = this.targets()[0].v; $('#nL').textContent = Math.round(C.u * f); $('#nR').textContent = Math.round(C.d * f); } }, 2.1)
+    // 3) 정리: 더미가 압축되고 하루 정리가 앞으로
+      .to(els.filter((el) => el._to.opacity === 1), { y: (i, el) => el._to.y * 0.18 + 30, z: (i, el) => el._to.z * 3 - 120, rotationY: (i, el) => el._to.rotationY * 1.6, duration: 1, ease: 'power2.inOut' }, 3)
+      .to('#sBrief', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 3.4)
+      .to('#space', { rotationX: 8, duration: 1, ease: 'power1.inOut' }, 3);
+    built = true;
+  }
+  const CAP = { en: [['Every headline lands somewhere.', 'Scroll to let Delfona read and sort the last 48 hours.'], ['Judged, one by one.', 'Positive to the left, negative to the right. Neutral fades back.'], ['And summed up every morning.', 'The count is real — the last 24 hours, de-duplicated.']],
+    ko: [['모든 소식은 어딘가에 놓여요.', '스크롤하면 Delfona가 지난 48시간 소식을 읽고 갈라요.'], ['하나하나, 판정해요.', '호재는 왼쪽, 악재는 오른쪽. 중립은 뒤로 물러나요.'], ['그리고 매일 아침, 한 장으로.', '숫자는 실제 지난 24시간, 같은 소식은 하나로 셌어요.']] };
+  let stageIx = -1;
+  function caption(p) { const k = p < 0.3 ? 0 : p < 0.66 ? 1 : 2; if (k === stageIx) return; stageIx = k; const c = CAP[I.lang()] || CAP.en;
+    gsap.to(['#capH', '#capP'], { opacity: 0, y: -8, duration: 0.15, onComplete: () => { $('#capH').textContent = c[k][0]; $('#capP').textContent = c[k][1]; gsap.to(['#capH', '#capP'], { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }); } }); }
+  let C = { u: 0, d: 0 }, ITEMS = [];
+  DFD.flash().then((d) => { ITEMS = d.items; C = DFD.day24(d.items); build(ITEMS); });
+  DFD.brief().then((b) => { const f = () => { $('#sbk').textContent = (I.lang() === 'ko' ? '하루 정리 · ' : 'Daily brief · ') + b.date; $('#sbh').textContent = I.line({ id: 'brief:' + b.date }) || b.headline; }; f(); I.onLang(f); }).catch(() => {});
+  I.onLang(() => { stageIx = -1; if (ITEMS.length) build(ITEMS); ScrollTrigger.refresh(); });
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (ITEMS.length) build(ITEMS); ScrollTrigger.refresh(); }, 250); });
+})();
+</script>
+
+<script src="../op.js"></script>
+<script>
+
+(() => {
+  const { $, reduce } = DFO, I = DFI, el = $('#bloom');
+  const finish = () => { DFO.words(); DFO.heroRest(200); DFO.showPanels(140); DFO.nums(650); };
+  if (reduce) { el.remove(); finish(); return; }
+  DFO.replay();
+  if (I.lang() === 'ko') { $('#bt').textContent = '잡음 속에서, 신호만.'; }
+  const E = 'cubic-bezier(0.23, 1, 0.32, 1)', A = (q, k, o) => $(q).animate(k, { fill: 'forwards', easing: E, ...o });
+  A('.bloom .t p:first-child', [{ opacity: 0, letterSpacing: '.5em' }, { opacity: 1, letterSpacing: '.18em' }], { duration: 900, delay: 150 });
+  A('#bt', [{ opacity: 0, filter: 'blur(10px)', transform: 'translateY(12px)' }, { opacity: 1, filter: 'blur(0)', transform: 'none' }], { duration: 900, delay: 350 });
+  // 두 빛줄기(로고의 //)가 아래에서 위로 쓸어 올라오며 밝아진다
+  [['.b1', 0], ['.b2', 140]].forEach(([q, d]) => A(q, [{ opacity: 0, transform: 'translateY(55vh) rotate(18deg) scaleX(.35)' }, { opacity: .95, transform: 'translateY(0) rotate(18deg) scaleX(1)' }], { duration: 1300, delay: 500 + d }));
+  A('.core', [{ opacity: 0, transform: 'scale(.4)' }, { opacity: 1, transform: 'scale(1.3)' }], { duration: 900, delay: 1300 });
+  // 빛이 화면을 채우고(흰색) → 걷히면 본 화면
+  A('.flash', [{ opacity: 0 }, { opacity: 1 }], { duration: 520, delay: 1900, easing: 'ease-in' });
+  setTimeout(() => { finish(); el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: 'ease-out', fill: 'forwards' }).onfinish = () => el.remove(); }, 2450);
+})();
+</script>
+<script src="../s/common.js"></script>
+<script src="../s/s4.js"></script>
+</body>
+</html>

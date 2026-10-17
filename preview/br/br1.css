@@ -1,0 +1,2 @@
+.b1 .cols { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); } .b1 .list { display: grid; gap: 14px; } .b1 .rail { display: grid; gap: 14px; align-content: start; }
+@media (min-width: 1040px) { .b1 .cols { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; } .b1 .rail { position: sticky; top: 76px; } }
