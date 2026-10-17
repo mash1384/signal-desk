@@ -1,6 +1,6 @@
 // '내 자산' 공통: 고를 수 있는 자산(코인 · 주식 · 지수 · 금리·환율·원자재), 소식과 자산 잇기, 저장(로그인 없이 브라우저), 시세, 급변 감지.
 // 급변 감지: 최근 15분 등락을 그 자산의 평소 15분 흔들림(지난 몇 시간 표준편차)과 비교 — 3배 넘고 최소 폭도 넘을 때만. 같은 시간대 관련 소식을 함께(원인 단정 없이).
-import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, PRICED_ALL } from '../l/lk.js?v=1017185452';
+import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, PRICED_ALL } from '../l/lk.js?v=1017210046';
 export { store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, esc, T, L };
 const WK = 'https://signal-scheduler.mash1384.workers.dev/quotes';
 // [기호, 종류, 영문, 한글, 출처(b 바이낸스 · y 야후), 소식 찾기 정규식(없으면 코인 기호로), 최소 급변 폭(%), 표시]

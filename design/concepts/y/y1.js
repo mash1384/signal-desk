@@ -1,6 +1,6 @@
 // Y1 · 카드형 — 야후 'My Portfolio'·로빈후드처럼 자산 카드가 먼저. 급변 띠 → 오늘 중요한 3건 → 자산 카드(가격·24시간·작은 그래프·호재/악재·가장 중요한 소식) → 내 자산 소식 전체.
-import * as Y from './yk.js?v=1017185452';
-import { mount, feedHTML, counts } from './common.js?v=1017185452';
+import * as Y from './yk.js?v=1017210046';
+import { mount, feedHTML, counts } from './common.js?v=1017210046';
 mount((app, S, my, items) => {
   const cards = my.map((s) => { const a = Y.BY[s], q = S.Q[s], c = counts(items, a);
     return `<article class="acard"><div class="ah"><p><b>${Y.esc(Y.short(s))}</b><span>${Y.esc(Y.nm(a))}</span></p><button type="button" class="mystar ic" data-my="${s}" aria-pressed="true" aria-label="${Y.T(`Remove ${s} from My assets`, `${s} 내 자산에서 빼기`)}"><span class="st-ic" aria-hidden="true"></span></button></div>
