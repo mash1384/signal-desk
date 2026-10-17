@@ -188,6 +188,9 @@ export function crosshair(cv, m) {
 
 // ---------- TradingView Lightweight Charts(오픈소스)로 '소식 전후' 차트 ----------
 // 소식 전은 회색 선, 소식 후는 소식 시점 가격을 기준선으로 위는 초록·아래는 빨강. PC는 포인터, 휴대폰은 누르고 끌면 십자선과 시각·가격·소식 대비 변화.
+// 화면에서 사라진 차트는 다음 차트를 만들 때 정리한다(크기 감시·그리기 루프가 쌓이지 않게)
+const LIVE = [];
+function sweep() { for (let i = LIVE.length - 1; i >= 0; i--) if (!LIVE[i].box.isConnected) { try { LIVE[i].chart.remove(); } catch (e) {} LIVE.splice(i, 1); } }
 const TZ = () => -new Date().getTimezoneOffset() * 60;   // 라이브러리는 UTC로 그리므로 현지 시각으로 옮겨 준다
 export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
   if (!window.LightweightCharts || !pts || pts.length < 2) { el.innerHTML = `<p class="mute">${T('No price data for this time.', '이 시간의 가격 자료가 없어요.')}</p>`; return null; }
@@ -199,6 +202,7 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
     crosshair: { mode: LC.CrosshairMode.Magnet, vertLine: { color: 'rgba(13,37,61,.45)', width: 1, style: 0, labelBackgroundColor: '#0d253d' }, horzLine: { color: 'rgba(13,37,61,.25)', width: 1, style: 2, labelBackgroundColor: '#0d253d' } },
     handleScroll: { mouseWheel: false, pressedMouseMove: false, horzTouchDrag: false, vertTouchDrag: true }, handleScale: false,
     localization: { locale: lc, timeFormatter: (t) => new Intl.DateTimeFormat(lc, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(new Date(t * 1000)), priceFormatter: (v) => v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) } });
+  sweep(); LIVE.push({ chart, box });
   const seen = new Set(), data = pts.filter((p) => p[1] != null && !seen.has(Math.floor(p[0])) && seen.add(Math.floor(p[0]))).map((p) => ({ time: Math.floor(p[0]) + off, value: p[1] }));
   let i0 = data.findIndex((d) => d.time >= tStory + off); const hasAfter = i0 >= 0; if (!hasAfter) i0 = data.length - 1;
   const base = data[i0].value;
@@ -210,9 +214,11 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
     post.createPriceLine({ price: base, color: 'rgba(13,37,61,.35)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); }
   chart.timeScale().fitContent();
   const fmt = (t) => new Intl.DateTimeFormat(lc, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(new Date(t * 1000));
-  const legend = (d, live = true) => { const after = live && d.time >= data[i0].time && hasAfter, ch = (d.value / base - 1) * 100;
-    lgd.innerHTML = `<span class="mono">${fmt(d.time)}</span><b class="mono">${d.value.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}</b>${after ? `<span class="mono ${ch >= 0 ? 'up' : 'down'}">${DFD.pct(ch)} ${T('vs story', '소식 대비')}</span>` : live ? `<span class="b4">${T('before the story', '소식 전')}</span>` : `<span class="b4">${T('latest · point or drag on the chart', '최신 · 차트에 포인터를 올리거나 끌어 보세요')}</span>`}`; };
-  const last = data[data.length - 1]; legend(last, false);
-  chart.subscribeCrosshairMove((p) => { if (!p || !p.time || !p.seriesData) { legend(last, false); return; } const v = p.seriesData.get(post) || p.seriesData.get(pre); if (v && v.value != null) legend({ time: p.time, value: v.value }); else legend(last, false); });
+  // 범례는 항상 한 줄(시각 · 가격 · 소식 대비)로 같은 모양을 유지한다. 포인터가 없으면 최신 값.
+  let shownT = null;
+  const legend = (d) => { if (d.time === shownT) return; shownT = d.time; const after = hasAfter && d.time >= data[i0].time, ch = (d.value / base - 1) * 100;
+    lgd.innerHTML = `<span class="mono">${fmt(d.time)}</span><b class="mono">${d.value.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}</b>${after ? `<span class="mono ${ch >= 0 ? 'up' : 'down'}">${DFD.pct(ch)} ${T('vs story', '소식 대비')}</span>` : `<span class="b4">${T('before the story', '소식 전')}</span>`}`; };
+  const last = data[data.length - 1]; legend(last);
+  chart.subscribeCrosshairMove((p) => { const v = p && p.time && p.seriesData ? p.seriesData.get(post) || p.seriesData.get(pre) : null; legend(v && v.value != null ? { time: p.time, value: v.value } : last); });
   return { chart, change: hasAfter ? (last.value / base - 1) * 100 : null, closed: pts[pts.length - 1][0] < Date.now() / 1000 - 1800 };
 }
