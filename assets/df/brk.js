@@ -1,0 +1,165 @@
+import { T, L, esc, store, openSheet, pill, hm } from './lk.js?v=e2db2637';
+
+const DATA = DFD.data('daily/');
+export const THEMES5 = [['all', 'All', '전체'], ['crypto', 'Crypto', '크립토'], ['nasdaq', 'Nasdaq', '나스닥'], ['econ', 'Economy', '경제'], ['ai', 'AI', 'AI'], ['world', 'World', '세계']];
+let TH = null, TXT = null, HAS_TXT = false;
+export async function loadThreads() {
+  if (TH) return TH;
+  const q = '?t=' + Math.floor(Date.now() / 300000);
+  let r = window.DF_THREADS ? await fetch(window.DF_THREADS + q) : await fetch(DATA + 'threads-core.json' + q);
+  if (!window.DF_THREADS && !r.ok) r = await fetch(DATA + 'threads.json' + q);
+  if (!r.ok) throw new Error('threads ' + r.status);
+  TH = await r.json();
+  HAS_TXT = Object.values(TH.stories).some((x) => x.ko);
+  Object.entries(TH.stories).forEach(([id, x]) => { if (!store.byId.has(id)) store.byId.set(id, Object.assign({ id, th: x.th || [] }, x)); });
+  const seen = new Set(); TH.list = TH.threads.filter((x) => x.ai && !seen.has(x.id) && seen.add(x.id));   // 같은 번호가 두 번 오면 앞의 것만(두 카드가 함께 펼쳐지지 않게)
+  return TH;
+}
+export const hasText = () => HAS_TXT;
+export function loadText() {
+  if (HAS_TXT || !TH) return Promise.resolve(TH);
+  return TXT || (TXT = fetch(DATA + 'threads-text.json?t=' + TH.made).then((r) => { if (!r.ok) throw new Error('text ' + r.status); return r.json(); })
+    .then((m) => { Object.entries(m.text || {}).forEach(([id, [ko, en]]) => { const s = TH.stories[id], it = store.byId.get(id);
+      if (s) { s.ko = ko; s.en = en; } if (it && !it.ko) { it.ko = ko; it.en = en; } }); HAS_TXT = true; return TH; })
+    .catch((e) => { TXT = null; throw e; }));
+}
+export async function loadDaily(D) {
+  const d = D && D.daily_latest; if (!d) return null;
+  try { const r = await fetch(DATA + d + '.json?t=' + Math.floor(Date.now() / 600000)); return r.ok ? await r.json() : null; } catch (e) { return null; }
+}
+const lc = () => (L() ? 'ko-KR' : 'en-GB');
+export const tx = (x) => x.ai && x.ai[L() ? 'ko' : 'en'];
+export const dayOf = (t) => new Intl.DateTimeFormat(lc(), { month: 'short', day: 'numeric', weekday: 'short' }).format(new Date(t * 1000));
+
+export function metaHTML(x) {
+  const days = T(`day ${x.days}`, `${x.days}일째`);
+  return `<p class="tm"><span class="d">${days}</span><span>${T(`${x.n} stories`, `소식 ${x.n}건`)}</span>${x.u ? `<span class="u">${T('bullish', '호재')} ${x.u}</span>` : ''}${x.d ? `<span class="dn">${T('bearish', '악재')} ${x.d}</span>` : ''}${x.new24 ? `<span class="nw">${T(`+${x.new24} in 24h`, `24시간 +${x.new24}`)}</span>` : ''}</p>`;
+}
+export function stripHTML(x, D) {
+  const its = x.ids.map((id) => D.stories[id]).filter(Boolean), t0 = its[0].t, t1 = Math.max(D.made, its[its.length - 1].t);
+  const X = (t) => (((t - t0) / Math.max(1, t1 - t0)) * 100).toFixed(2);
+  const days = []; const d = new Date(t0 * 1000); d.setHours(24, 0, 0, 0); for (; d.getTime() / 1000 < t1; d.setDate(d.getDate() + 1)) days.push(d.getTime() / 1000);
+  const dots = its.map((s) => `<i class="${s.v === '호재' ? 'u' : s.v === '악재' ? 'dn' : 'z'}${s.s >= 2 ? ' b' : ''}" style="left:${X(s.t)}%" title="${esc(hm(s.t))} ${esc(L() ? s.ko : s.en || s.ko)}"></i>`).join('');
+  return `<div class="strip" role="img" aria-label="${T(`${x.n} stories over ${x.days} days`, `${x.days}일에 걸친 소식 ${x.n}건`)}"><span class="base"></span>${days.map((t) => `<span class="dl" style="left:${X(t)}%"></span>`).join('')}${dots}</div>
+    <p class="sl"><span>${dayOf(t0)}</span><span>${T('now', '지금')}</span></p>`;
+}
+export function axisOf(xs, D) {
+  const t0 = Math.min(...xs.map((x) => x.first)), d = new Date(t0 * 1000); d.setHours(0, 0, 0, 0);
+  const a0 = d.getTime() / 1000, a1 = D.made, days = [];
+  for (const q = new Date(a0 * 1000); q.getTime() / 1000 < a1; q.setDate(q.getDate() + 1)) days.push(q.getTime() / 1000);
+  return { a0, a1, days, X: (t) => Math.max(0, Math.min(100, ((t - a0) / Math.max(1, a1 - a0)) * 100)) };
+}
+const dshort = (t) => new Intl.DateTimeFormat(L() ? 'ko-KR' : 'en-GB', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(new Date(t * 1000));
+const dtiny = (t, prev) => { const d = new Date(t * 1000); if (L()) return `${d.getDate()}일`;
+  const p = prev == null ? null : new Date(prev * 1000);
+  return !p || p.getMonth() !== d.getMonth() ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(d) : String(d.getDate()); };
+export function axisHTML(A) {
+  return `<div class="axis" aria-hidden="true">${A.days.map((t, i) => { const s = dtiny(t, i ? A.days[i - 1] : null);
+    return `<span style="left:${A.X(t).toFixed(2)}%"${/\D/.test(s) && !L() ? ' data-m="1"' : ''}>${s}</span>`; }).join('')}</div>`;
+}
+export function fitAxis(root) {
+  (root || document).querySelectorAll('.axis').forEach((ax) => {
+    const sp = [...ax.children]; sp.forEach((s) => { s.style.visibility = ''; s.style.transform = ''; });
+    const box = ax.getBoundingClientRect(), placed = [];
+    const last = sp[sp.length - 1], order = sp.filter((s) => s.dataset.m).concat(last && !last.dataset.m ? [last] : [], sp.filter((s) => !s.dataset.m && s !== last));
+    for (const s of order) {
+      const r = s.getBoundingClientRect(), shift = Math.min(0, box.right - r.right);
+      const l = r.left + parseFloat(getComputedStyle(s).paddingLeft || 0) + shift, rr = r.right + shift;
+      if (placed.every((q) => l >= q.right + 3 || rr + 3 <= q.left)) { placed.push({ left: l, right: rr }); if (shift) s.style.transform = `translateX(${shift.toFixed(1)}px)`; }
+      else s.style.visibility = 'hidden';
+    }
+  });
+}
+export function trackHTML(x, D, A) {
+  const its = x.ids.map((id) => D.stories[id]).filter(Boolean), cut = D.made - 86400;
+  const l = A.X(x.first), r = A.X(x.last), c = Math.max(l, A.X(cut));
+  return `<div class="track" aria-hidden="true">${A.days.map((t) => `<i class="g" style="left:${A.X(t).toFixed(2)}%"></i>`).join('')}
+    <i class="bar" style="left:${l.toFixed(2)}%;width:${Math.max(0.6, r - l).toFixed(2)}%"></i>${x.last > cut ? `<i class="bar hot" style="left:${c.toFixed(2)}%;width:${Math.max(0.6, r - c).toFixed(2)}%"></i>` : ''}
+    ${its.map((s) => `<i class="tk${s.s >= 2 ? ' b' : ''}${s.t > cut ? ' hot' : ''}" style="left:${A.X(s.t).toFixed(2)}%"></i>`).join('')}</div>`;
+}
+export function laneMeta(x) {
+  return `<span class="lm"><span>${T(`${x.n} stories · ${x.days} ${x.days > 1 ? 'days' : 'day'}`, `${x.n}건 · ${x.days}일`)}</span>${x.new24 ? `<span class="new"><i></i>${T(`${x.new24} new`, `새 소식 ${x.new24}`)}</span>` : ''}</span>`;
+}
+export function railHTML(x, D) {
+  const its = x.ids.map((id) => [id, D.stories[id]]).filter(([, s]) => s).reverse(), cut = D.made - 86400;
+  let html = '', last = '';
+  for (const [id, s] of its) {
+    const dk = new Date(s.t * 1000).toDateString();
+    if (dk !== last) { html += `<li class="dh">${dshort(s.t)}</li>`; last = dk; }
+    html += `<li><button type="button" class="ri${s.t > cut ? ' hot' : ''}" data-sid="${id}"><span class="t mono">${hm(s.t)}</span><span class="l">${esc(L() ? s.ko : s.en || s.ko)}</span>${s.v !== '중립' ? `<span class="v ${s.v === '호재' ? 'u' : 'dn'}">${T(s.v === '호재' ? 'Bullish' : 'Bearish', s.v)}</span>` : ''}</button></li>`;
+  }
+  return `<ol class="rail2">${html}</ol>`;
+}
+export function detailHTML2(x, D) {
+  const a = tx(x);
+  return `<article class="dt2" data-th="${x.id}"><p class="ths2">${x.th.map((k) => esc((THEMES5.find((q) => q[0] === k) || [k, k, k])[L() ? 2 : 1])).join(' · ')}</p>
+    <h2>${esc(a.title)}</h2><p class="dm">${T(`${x.n} stories over ${x.days} ${x.days > 1 ? 'days' : 'day'}`, `${x.days}일 동안 소식 ${x.n}건`)}${x.u || x.d ? ` · ${T(`bullish ${x.u}, bearish ${x.d}`, `호재 ${x.u} · 악재 ${x.d}`)}` : ''}</p>
+    <section class="sf"><h3>${T('So far', '지금까지')}</h3>${a.so_far.map((q) => `<p>${sentHTML(q)}</p>`).join('')}</section>
+    ${a.today ? `<section class="sf td2"><h3><i></i>${T('New in the last 24 hours', '최근 24시간')}</h3><p>${sentHTML(a.today)}</p></section>` : ''}
+    <section class="sf"><h3>${T('Every story', '소식 전체')}</h3>${railHTML(x, D)}</section></article>`;
+}
+
+export function buckets(x, D, A, hrs = 6) {
+  const W = hrs * 3600, n = Math.max(1, Math.ceil((A.a1 - A.a0) / W)), c = new Array(n).fill(0), hot = new Array(n).fill(0), cut = D.made - 86400;
+  x.ids.forEach((id) => { const s = D.stories[id]; if (!s) return; const i = Math.min(n - 1, Math.floor((s.t - A.a0) / W)); c[i]++; if (s.t > cut) hot[i]++; });
+  return { c, hot, n, W };
+}
+export function metaMono(x) {
+  return `<span class="mm">${T(`${x.n} stories`, `소식 ${x.n}`)}<i>·</i>${T(`${x.days}d`, `${x.days}일`)}${x.new24 ? `<i>·</i><b>${T(`${x.new24} new`, `새 ${x.new24}`)}</b>` : ''}</span>`;
+}
+const LV = (k) => (k <= 0 ? 0 : k === 1 ? 1 : k <= 3 ? 2 : k <= 6 ? 3 : 4);
+export function heatHTML(x, D, A) {
+  const B = buckets(x, D, A);
+  return `<div class="heat" style="--n:${B.n}" aria-hidden="true">${B.c.map((k, i) => `<i class="l${LV(k)}" title="${k}"></i>`).join('')}</div>`;
+}
+export const heatLegend = () => `<span class="hlg">${T('Fewer', '적음')} <i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i> ${T('More', '많음')}</span>`;
+export function unitsHTML(x, D, A) {
+  const cut = D.made - 86400, cols = A.days.map((t) => ({ t, xs: [] }));
+  x.ids.forEach((id) => { const s = D.stories[id]; if (!s) return; let k = cols.length - 1; while (k > 0 && s.t < cols[k].t) k--; cols[k].xs.push(s); });
+  return `<div class="units" style="--d:${A.days.length}" aria-hidden="true">${cols.map((c) => `<span class="uc">${c.xs.slice(0, 40).map((s) => `<i class="${s.t > cut ? 'hot' : ''}${s.s >= 2 ? ' b' : ''}"></i>`).join('')}${c.xs.length > 40 ? `<em>+${c.xs.length - 40}</em>` : ''}</span>`).join('')}</div>`;
+}
+export function moodHTML(x, D, A) {
+  const B = buckets(x, D, A), mx = Math.max(1, ...B.c), W = 100, H = 22, X = (i) => (B.n === 1 ? 0 : (i / (B.n - 1)) * W), Y = (k) => H - 2 - (k / mx) * (H - 6);
+  const pts = B.c.map((k, i) => `${X(i).toFixed(2)},${Y(k).toFixed(2)}`).join(' '), ci = Math.max(0, Math.floor((D.made - 86400 - A.a0) / B.W));
+  const hotPts = B.c.map((k, i) => [i, k]).filter(([i]) => i >= ci).map(([i, k]) => `${X(i).toFixed(2)},${Y(k).toFixed(2)}`).join(' ');
+  const z = x.n - x.u - x.d, pct = (v) => Math.round((v / Math.max(1, x.n)) * 100);
+  return `<div class="mood"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline class="ln" points="${pts}"/>${hotPts.includes(' ') ? `<polyline class="ln hot" points="${hotPts}"/>` : ''}</svg>
+    <span class="mb2" role="img" aria-label="${T(`bullish ${pct(x.u)}%, neutral ${pct(z)}%, bearish ${pct(x.d)}%`, `호재 ${pct(x.u)}%, 중립 ${pct(z)}%, 악재 ${pct(x.d)}%`)}"><span class="bar3"><i class="u" style="width:${pct(x.u)}%"></i><i class="z" style="width:${pct(z)}%"></i><i class="dn" style="width:${pct(x.d)}%"></i></span>
+    <span class="pl">${pct(z) >= 60 ? `<b>${T('Mostly neutral', '대부분 중립')}</b>` : x.d > x.u ? `<b class="dn">${T('Bearish', '악재')} ${pct(x.d)}%</b>` : x.u > x.d ? `<b class="u">${T('Bullish', '호재')} ${pct(x.u)}%</b>` : `<b>${T('Mixed', '반반')}</b>`}</span></span></div>`;
+}
+
+export function sentHTML(q) {
+  return `${esc(q.s)} ${q.refs.slice(0, 3).map((id, i) => `<button type="button" class="ref" data-sid="${id}" aria-label="${T('Open source story', '근거 소식 열기')} ${i + 1}">${i + 1}</button>`).join('')}`;
+}
+export function cardHTML(x, D, { big = false, open = false } = {}) {
+  const a = tx(x);
+  return `<article class="thc${big ? ' big' : ''}" data-th="${x.id}">
+    <header><p class="ths">${x.th.map((k) => `<span>${esc((THEMES5.find((q) => q[0] === k) || [k, k, k])[L() ? 2 : 1])}</span>`).join('')}</p><h3>${esc(a.title)}</h3>${metaHTML(x)}</header>
+    ${stripHTML(x, D)}
+    <div class="sofar"><p class="k">${T('So far', '지금까지')}</p>${a.so_far.map((q) => `<p>${sentHTML(q)}</p>`).join('')}</div>
+    ${a.today ? `<div class="today"><p class="k">${T('New in the last 24 hours', '최근 24시간 새로 붙은 것')}</p><p>${sentHTML(a.today)}</p></div>` : ''}
+    <details${open ? ' open' : ''}><summary>${T(`All ${x.n} stories`, `소식 ${x.n}건 모두 보기`)}</summary><ol class="sts">${x.ids.slice().reverse().map((id) => { const s = D.stories[id]; return s ? `<li><button type="button" data-sid="${id}"><span class="t mono">${dayOf(s.t)} ${hm(s.t)}</span>${pill(s.v)}<span class="l">${esc(L() ? s.ko : s.en || s.ko)}</span></button></li>` : ''; }).join('')}</ol></details>
+  </article>`;
+}
+export function filtHTML(D, cur) {
+  const n = (k) => (k === 'all' ? D.list.length : D.list.filter((x) => x.th.includes(k)).length);
+  return `<div class="filt" role="group" aria-label="${T('Theme', '테마')}">${THEMES5.filter(([k]) => k === 'all' || n(k)).map(([k, en, ko]) => `<button type="button" data-f="${k}" aria-pressed="${cur === k}">${L() ? ko : en}<span class="c mono">${n(k)}</span></button>`).join('')}</div>`;
+}
+export const pickList = (D, f) => (f === 'all' ? D.list : D.list.filter((x) => x.th.includes(f)));
+export function dailyHTML(dy) {
+  if (!dy) return '';
+  const b = dy.balance || {}, m = dy.market || {}, en = dy.en && (dy.en.headline || (dy.en.insights || []).length || dy.en.review) ? dy.en : null;
+  const body = (d) => `<h3>${esc(d.headline || '')}</h3>${(d.insights || []).length ? `<ol class="dins">${d.insights.slice(0, 3).map((x) => `<li><b>${esc(x.t)}</b><span>${esc(x.s)}</span></li>`).join('')}</ol>` : `<p class="rv">${esc(d.review || '')}</p>`}`;
+  return `<p class="k">${T('Latest daily brief', '최근 하루 정리')} <span>· ${esc(dy.date)}</span></p>
+    ${L() ? body(dy) : en ? body(en) : `<h3>${T('Daily brief', '하루 정리')} · ${esc(dy.date)}</h3><p class="rv">${T('The written summary is in Korean for now.', '')}</p>`}
+    <p class="nums"><span><b class="mono">${(dy.counts || {}).stories || 0}</b> ${T('stories', '건')}</span><span class="u"><b class="mono">${b['호재'] || 0}</b> ${T('bullish', '호재')}</span><span class="dn"><b class="mono">${b['악재'] || 0}</b> ${T('bearish', '악재')}</span>${m.btc ? `<span>BTC <b class="mono ${m.btc.chg >= 0 ? 'u' : 'dn'}">${m.btc.chg >= 0 ? '+' : ''}${m.btc.chg.toFixed(2)}%</b></span>` : ''}</p>
+    <a class="more" href="${window.DF_ROOT || '../../'}daily/${esc(dy.date)}/">${T('Read the full daily brief', '하루 정리 전체 보기')} →</a>`;
+}
+export function wire(app, S, render) {
+  app.addEventListener('click', (e) => {
+    const f = e.target.closest('[data-f]'); if (f) { S.f = f.dataset.f; render(); return; }
+    const s = e.target.closest('[data-sid]'); if (s) { loadText().catch(() => {}).then(() => { const it = store.byId.get(s.dataset.sid); if (it) openSheet(it); }); return; }
+    const t = e.target.closest('[data-pick]'); if (t) { const id = t.dataset.pick; S.sel = S.sel === id && !matchMedia('(min-width: 1040px)').matches ? null : id; render(); return; }
+  });
+}
+export function fresh(D) { const m = Math.round((Date.now() / 1000 - D.made) / 60); return T(`Updated ${m < 60 ? m + ' min' : Math.round(m / 60) + ' h'} ago · every 30 min`, `${m < 60 ? m + '분' : Math.round(m / 60) + '시간'} 전 갱신 · 30분마다`); }
