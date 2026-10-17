@@ -85,17 +85,17 @@ async function indexCandles(ctx, s, i) {
 // 테마 화면 시세: 지수 선물·대형주·금리·달러·원자재. 목록에 없는 기호는 받지 않는다
 const QUOTES = new Set(['NQ=F', 'ES=F', 'YM=F', '^VIX', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'TSLA', 'AVGO', 'AMD', 'TSM', 'PLTR', 'ORCL', 'NFLX', 'COIN', 'MSTR', 'HOOD', 'INTC', 'MU', 'ARM', 'SMCI', 'CRM', 'ADBE', 'QCOM', 'ASML',
   '^TNX', '^FVX', '^TYX', '^IRX', 'DX-Y.NYB', 'GC=F', 'SI=F', 'CL=F', 'NG=F', 'HG=F', 'KRW=X', 'JPY=X', 'EURUSD=X', 'CNY=X']);
-async function quotes(ctx, list) {
-  const syms = [...new Set(list)].sort(), cache = caches.default, key = new Request(`https://signal-cache/quotes-${encodeURIComponent(syms.join(','))}`);
+async function quotes(ctx, list, iv = '1h') {   // iv: 1h(5일, 작은 그래프) · 5m(하루, 급변 감지)
+  const syms = [...new Set(list)].sort(), cache = caches.default, key = new Request(`https://signal-cache/quotes-${iv}-${encodeURIComponent(syms.join(','))}`);
   const hit = await cache.match(key); if (hit) return hit;
-  const up = await fetch(`https://query1.finance.yahoo.com/v8/finance/spark?symbols=${encodeURIComponent(syms.join(','))}&range=5d&interval=1h`, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } });
-  let out = { at: Math.floor(Date.now() / 1000), q: {} }, ok = up.ok;
+  const up = await fetch(`https://query1.finance.yahoo.com/v8/finance/spark?symbols=${encodeURIComponent(syms.join(','))}&range=${iv === '5m' ? '1d' : '5d'}&interval=${iv}`, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } });
+  let out = { at: Math.floor(Date.now() / 1000), i: iv, q: {} }, ok = up.ok;
   if (ok) {
     try {
       const d = await up.json();
       for (const s of syms) { const v = d[s]; if (!v || !(v.timestamp || []).length) continue;
         const ts = v.timestamp, cl = v.close || [];
-        out.q[s] = { p: v.fulldayPrice ?? cl[cl.length - 1], chg: v.fulldayChangePercent ?? null, prev: v.previousClose ?? null, c: ts.map((t, k) => [t, cl[k]]).filter((x) => x[1] != null).slice(-48) }; }
+        out.q[s] = { p: v.fulldayPrice ?? cl[cl.length - 1], chg: v.fulldayChangePercent ?? null, prev: v.previousClose ?? null, c: ts.map((t, k) => [t, cl[k]]).filter((x) => x[1] != null).slice(iv === '5m' ? -160 : -48) }; }
     } catch (e) { ok = false; }
   }
   const res = new Response(JSON.stringify(out), { status: ok ? 200 : 502, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'max-age=60', ...CORS } });
@@ -135,7 +135,8 @@ export default {
       const list = (searchParams.get('s') || '').split(',').map((x) => x.trim()).filter(Boolean);
       if (!list.length || list.length > 30) return bad('s: 1–30 symbols');
       const badOne = list.find((x) => !QUOTES.has(x)); if (badOne) return bad('symbol not allowed: ' + badOne);
-      return quotes(ctx, list);
+      const iv = searchParams.get('i') || '1h'; if (iv !== '1h' && iv !== '5m') return bad('i must be 1h or 5m');
+      return quotes(ctx, list, iv);
     }
     if (pathname === '/') return new Response('SIGNAL scheduler: dispatches pipeline every 15 minutes\n', { headers: CORS });
     return new Response('not found', { status: 404, headers: CORS });
