@@ -125,7 +125,9 @@ def collect(np, now):
     meta, vec = load_store(np)
     con = P.db()
     # 보관함이 비었으면(처음) 판정 DB 에 남은 만큼(72시간) 채운다
-    rows, vecs = P.load(con, now - (30 if meta else 71) * 3600)
+    # 라이브(tg_publish)와 같은 범위로 묶어야 소식 번호가 같아진다(다른 화면이 같은 소식을 이야기와 이어 붙인다)
+    since = now - P.WINDOW - P.GAP if meta else now - 71 * 3600
+    rows, vecs = P.load(con, since)
     con.close()
     if not rows:
         return meta, vec
@@ -139,11 +141,18 @@ def collect(np, now):
         it["th"] = themes_of(it)
         it.pop("link", None)
         if it["id"] in by:
+            it["_fresh"] = True
             meta[by[it["id"]]] = it
             vec[by[it["id"]]] = c
         else:
             add_m.append(it)
             add_v.append(c)
+    # 다시 묶은 범위 안에서 이번 결과에 없는 옛 묶음은 지운다(묶음이 바뀌면 번호도 바뀐다 — 옛것이 남으면 같은 소식이 두 번 들어간다)
+    fresh = {m["id"] for m in add_m} | {m["id"] for m in meta if m.get("_fresh")}
+    keep0 = [i for i, m in enumerate(meta) if m["t"] < since + P.GAP or m["id"] in fresh]
+    meta, vec = [meta[i] for i in keep0], vec[keep0] if len(vec) else vec
+    for m in meta:
+        m.pop("_fresh", None)
     if add_m:
         meta = meta + add_m
         vec = np.vstack([vec, np.array(add_v, dtype=np.float32)]) if len(vec) and vec.shape[1] == len(add_v[0]) else np.array(add_v, dtype=np.float32)
@@ -495,6 +504,18 @@ def main():
     with open(out + ".tmp", "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
     os.replace(out + ".tmp", out)
+    # 다른 화면(라이브·테마·내 자산)이 가볍게 읽는 색인: 소식 → 이야기(요약이 붙은 이야기만)
+    idx = {"made": doc["made"], "s": {}, "t": {}}
+    for x in doc["threads"]:
+        if not x.get("ai"):
+            continue
+        idx["t"][x["id"]] = [x["ai"]["ko"]["title"], x["ai"]["en"]["title"], x["days"], x["n"]]
+        for sid in x["ids"]:
+            idx["s"].setdefault(sid, x["id"])
+    ipath = os.path.join(os.path.dirname(out), "thread_index.json")
+    with open(ipath + ".tmp", "w", encoding="utf-8") as f:
+        json.dump(idx, f, ensure_ascii=False, separators=(",", ":"))
+    os.replace(ipath + ".tmp", ipath)
     log("완료", out, "줄기", len(doc["threads"]), "여러 날", sum(1 for x in doc["threads"] if x["days"] >= 2), "최대", max([x["n"] for x in doc["threads"]] or [0]))
 
 

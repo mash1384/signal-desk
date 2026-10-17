@@ -30,7 +30,7 @@ ARTICLES = "https://mash1384.github.io/signal-desk/data/articles.json"
 LABEL = "com.signal.themes"
 EVERY = 3 * 3600
 
-NAME = {"crypto": "크립토", "nasdaq": "나스닥·미국 증시", "econ": "경제", "ai": "AI"}
+NAME = {"crypto": "크립토", "nasdaq": "나스닥·미국 증시", "econ": "경제", "ai": "AI", "world": "세계"}
 CRYPTO_W = re.compile(r"비트코인|이더리움|코인|가상자산|암호화폐|스테이블코인|거래소|ETF|토큰|블록체인|디파이|채굴|온체인|NFT|웹3")
 STOCK_W = re.compile(r"나스닥|S&P|다우|미국 증시|뉴욕 증시|미 증시|미국 주식|빅테크|엔비디아|애플|테슬라|마이크로소프트|메타|아마존|알파벳|구글|반도체|기술주|주가|증시")
 STOCK_EN = re.compile(r"Nasdaq|S&P|Dow|Wall Street|stocks?\b|equities|Nvidia|Apple|Tesla|Microsoft|Amazon|Alphabet|Meta\b|chipmakers?", re.I)
@@ -76,6 +76,13 @@ SECT = {
            ("fund", "투자·자금", "Funding & deals", r"투자|유치|인수|기업가치|평가|자금|파이낸싱|IPO"),
            ("policy", "규제·정책", "Regulation & policy", r"규제|법안|정부|정책|저작권|소송|의회|EU"),
            ("biz", "기업·실적", "Companies & earnings", r".")],
+    # 세계: 다른 네 테마에 안 들어가는 소식(사이트 lk.js themesOf 와 같은 기준)
+    "world": [("war", "전쟁·분쟁", "Conflicts", r"공격|폭격|미사일|드론|전쟁|교전|휴전|침공|반군|피격|폭발|봉쇄|요격|군사|병력"),
+              ("energy", "에너지·해운", "Energy & shipping", r"유가|원유|석유|가스|LNG|유조선|해협|선박|해운|OPEC|정유"),
+              ("sanc", "제재·무역", "Sanctions & trade", r"제재|관세|수출|수입|무역|금수"),
+              ("diplo", "외교·정상", "Diplomacy & summits", r"회담|정상|외교|협상|대사|합의|방문|G7|G20|유엔|UN|특사"),
+              ("pol", "정치·선거", "Politics & elections", r"선거|대통령|의회|총리|정부|여당|야당|탄핵|대변인|장관"),
+              ("other", "기타", "Other", r".")],
 }
 SECT_RX = {k: [(a, b, c, re.compile(r)) for a, b, c, r in v] for k, v in SECT.items()}
 # 종목 이름 → 기호(나스닥·AI 테마 자산 언급 세기)
@@ -99,7 +106,7 @@ def mentions(k, xs):
         ko = x.get("ko") or ""
         if k == "crypto":
             keys = x.get("coins") or []
-        elif k == "econ":
+        elif k in ("econ", "world"):
             keys = [s for s, rx in ECON_ASSET if re.search(rx, ko)]
         else:
             keys = list(dict.fromkeys(t for n, t in TICK.items() if n in ko))
@@ -169,7 +176,7 @@ def load_items(now):
 
 
 # ---------- '오늘 무엇이 달라졌나': 평소(최근 며칠)와 비교한 변화. 숫자도 문장도 프로그램이 만든다(AI 아님) ----------
-TN = {"crypto": ("크립토", "crypto"), "nasdaq": ("나스닥", "Nasdaq"), "econ": ("경제", "economy"), "ai": ("AI", "AI")}
+TN = {"crypto": ("크립토", "crypto"), "nasdaq": ("나스닥", "Nasdaq"), "econ": ("경제", "economy"), "ai": ("AI", "AI"), "world": ("세계", "world")}
 
 
 def history(now, days=7):
@@ -208,8 +215,9 @@ def changes(k, H, xs, now):
         r = len(today) / b
         if r >= 1.4 or r <= 0.6:
             out.append({"k": "vol", "score": abs(r - 1) * 2, "tone": "flat",
-                        "ko": f"오늘 {nm_ko} 소식이 평소(최근 {nd}일 평균)보다 {r:.1f}배 {'많아요' if r > 1 else '적어요'}.",
-                        "en": f"{nm_en.capitalize()} news volume is {r:.1f}× {'above' if r > 1 else 'below'} normal (the {nd}-day average).", "ids": []})
+                        # 많을 땐 'N배', 적을 땐 '평소의 N% 수준'('0.4배 적어요'는 어색하다)
+                        "ko": f"오늘 {nm_ko} 소식이 평소(최근 {nd}일 평균)보다 {r:.1f}배 많아요." if r > 1 else f"오늘 {nm_ko} 소식이 평소(최근 {nd}일 평균)의 {r * 100:.0f}% 수준으로 적어요.",
+                        "en": f"{nm_en.capitalize()} news volume is {r:.1f}× normal (the {nd}-day average)." if r > 1 else f"{nm_en.capitalize()} news volume is at {r * 100:.0f}% of normal (the {nd}-day average).", "ids": []})
     # 2) 섹터 급증 — 비율은 채널 글 수(기준과 같은 잣대), 문장 속 건수·판정은 묶인 소식 수(화면 숫자와 같게)
     for key, sko, sen, _ in SECT_RX[k]:
         if key == SECT_RX[k][-1][0]:
@@ -233,7 +241,7 @@ def changes(k, H, xs, now):
         if a in ("USDT", "USDC"):
             continue
         rel = [y for y in xs if a in (y.get("coins") or []) or any(n in (y.get("ko") or "") for n, t in TICK.items() if t == a)
-               or (k == "econ" and any(s == a and re.search(rx, y.get("ko") or "") for s, rx in ECON_ASSET))]
+               or (k in ("econ", "world") and any(s == a and re.search(rx, y.get("ko") or "") for s, rx in ECON_ASSET))]
         bn = avg(mb.get(a, {"n": 0})["n"])
         r = m["n"] / bn if bn > 0 else None
         if len(rel) < (3 if r else 4) or (r is not None and r < 2):   # 평소 0이던 자산은 4건 이상일 때만
@@ -320,14 +328,22 @@ def buckets(items, arts):
     A = {k: [] for k in NAME}
     for x in items:
         ko = x.get("ko") or ""
+        hit = False
         if x.get("coins") or CRYPTO_W.search(ko):
             T["crypto"].append(x)
+            hit = True
         if STOCK_W.search(ko):
             T["nasdaq"].append(x)
+            hit = True
         if ECON_W.search(ko) or (x.get("kind") == "data" and not x.get("coins")):
             T["econ"].append(x)
+            hit = True
         if "ai" in (x.get("sectors") or []) or AI_W.search(ko):
             T["ai"].append(x)
+            hit = True
+        # 세계: 다른 네 테마 어디에도 안 들어간 소식
+        if not hit:
+            T["world"].append(x)
     for a in arts:
         t, to = a.get("title") or "", a.get("title_orig") or ""
         if STOCK_W.search(t) or STOCK_EN.search(to):
@@ -422,7 +438,8 @@ def run():
         themes[-1]["changes"] = themes[-1]["changes_all"][:4]   # 테마 화면은 상위 4개, 내 자산 화면은 자산 신호 전부(changes_all)
         th = themes[-1]; have = {x["id"] for x in th["top"] + th["latest"]}; byid = {x["id"]: x for x in xs}
         th["more"] = [compact(byid[i]) | {"sec": sector_of(k, byid[i].get("ko") or "")} for i in dict.fromkeys(i for c in th["changes_all"] for i in c["ids"]) if i not in have and i in byid]   # 신호가 가리키는 소식도 화면에서 열 수 있게
-    hsrc = "\n".join(f"[{NAME[t['k']]}] {t['ko']}" for t in themes)
+    # 오늘의 한 줄은 예전처럼 네 테마만 보고 쓴다(세계를 섞으면 첫 화면 한 줄의 성격이 바뀐다)
+    hsrc = "\n".join(f"[{NAME[t['k']]}] {t['ko']}" for t in themes if t["k"] != "world")
     hl = {"ko": "", "en": ""}
     for attempt in range(4):
         try:
@@ -433,12 +450,14 @@ def run():
         if ok_ko(o.get("ko", ""), hsrc) and ok_en(o.get("en", "")) and len(o.get("ko", "")) <= 60:
             hl = o
             break
-    if not all(t["ko"] for t in themes if t["n"]) or not hl.get("ko"):
+    # 세계는 새로 붙인 테마라 요약이 비어도 나머지 저장은 막지 않는다(화면이 '요약 없음'을 보여 준다)
+    if not all(t["ko"] for t in themes if t["n"] and t["k"] != "world") or not hl.get("ko"):
         log("요약이 비어 저장하지 않음", [t["k"] for t in themes if t["n"] and not t["ko"]], bool(hl.get("ko")))
         return
     doc = {"v": 2, "made": int(now), "next": int(now + EVERY), "from": int(now - 86400), "src": origin, "model": MODEL, "total": len(items), "articles": len(arts),
            "sect": {k: [[a, b, c] for a, b, c, _ in v] for k, v in SECT.items()}, "base_days": HIST["days"] if HIST else 0,
-           "headline": {"ko": hl["ko"], "en": hl["en"]}, "themes": themes, "dropped": dropped}
+           # themes: 기존 네 테마(첫 화면 지구 장면이 이 넷만 안다) · themes_x: 세계(테마 화면만 읽는다)
+           "headline": {"ko": hl["ko"], "en": hl["en"]}, "themes": [t for t in themes if t["k"] != "world"], "themes_x": [t for t in themes if t["k"] == "world"], "dropped": dropped}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT + ".tmp", "w") as f:
         json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))

@@ -1,8 +1,8 @@
 // B2 · Timeline — 모든 이야기가 같은 시간 축 위에(Linear 로드맵·The Verge StoryStream 참고): 줄마다 시작~지금 막대 하나, 소식은 눈금,
 // 최근 24시간만 강조색 하나. PC는 오른쪽에 고른 이야기, 휴대폰은 그 줄 바로 아래 펼침.
-import { T, esc } from '../l/lk.js?v=1017224009';
-import * as B from './brk.js?v=1017224009';
-import { mount } from './bc.js?v=1017224009';
+import { T, esc } from '../l/lk.js?v=1018053947';
+import * as B from './brk.js?v=1018053947';
+import { mount } from './bc.js?v=1018053947';
 const wide = () => matchMedia('(min-width: 1040px)').matches;
 mount((D, dy, S) => {
   const xs = B.pickList(D, S.f); if (!xs.some((x) => x.id === S.sel)) S.sel = wide() ? xs[0] && xs[0].id : null;
