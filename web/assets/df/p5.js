@@ -119,7 +119,9 @@ loop(sec, r, scene, cam, (t, dt) => {
   capEl.style.opacity = k < 0 ? 0 : k >= 4 ? clamp(Math.min((RP - 0.7) / 0.03, RP > 0.82 ? (RP - 0.82) / 0.03 : (0.82 - RP) / 0.02, (0.95 - RP) / 0.02)) : 1 - ZC;
   // 카메라: 정면 위에서 하루 전체 → 낮게 내려와 훑는 빛을 따라간다 → 다시 물러남
   const f = ss(0.3, 0.42, P) * (1 - ss(0.84, 0.93, P)), follow = mob ? 0.92 : 0.45;
-  cp.set(lerp(0, sx * follow - 1.5, f), lerp(mob ? 8 : 7, mob ? 5.2 : 4.4, f), lerp(mob ? 24 : 20, mob ? 15 : 13.5, f)); lk.set(lerp(0, sx * follow + (mob ? 0 : 0.8), f), lerp(-0.4, 0.4, f), 0);
+  // 휴대폰(세로 화면)은 하루 전체 폭(WX)이 화면에 다 들어오도록 화면 비율에 맞춰 더 뒤에서 본다
+  const fitZ = mob ? Math.max(24, (WX / 2 + 0.9) / (Math.tan((cam.fov * Math.PI) / 360) * cam.aspect)) : 20, fitK = fitZ / (mob ? 24 : 20);
+  cp.set(lerp(0, sx * follow - 1.5, f), lerp((mob ? 8 : 7) * fitK, mob ? 5.2 : 4.4, f), lerp(fitZ, mob ? 15 : 13.5, f)); lk.set(lerp(0, sx * follow + (mob ? 0 : 0.8), f), lerp(-0.4, 0.4, f), 0);
   // 줌 아웃: 훑던 자리에서 위로·뒤로 크게 물러나며, 왼쪽(지난날들)과 앞뒤(다른 흐름)로 펼쳐진 거대한 파형을 내려다본다
   const Z2 = ss(0.8, 1, RP);   // 다 물러난 뒤에도 천천히 옆으로 흐르며 더 높이(웅장하게)
   fP.set((mob ? 10 : 18) - Z2 * (mob ? 4 : 9), (mob ? 44 : 27) + Z2 * (mob ? 10 : 9), (mob ? 52 : 40) + Z2 * 8); fL.set((mob ? -6 : -22) - Z2 * (mob ? 5 : 11), -3, mob ? -12 : -10);
@@ -129,10 +131,12 @@ loop(sec, r, scene, cam, (t, dt) => {
   FU.uT.value = t; FU.uRev.value = lerp(0, mob ? 170 : 240, ss(0.66, 0.93, RP)); FU.uSz.value = m.U.uSz.value; FU.uA.value = ss(0.64, 0.7, RP) * (1 - ss(0.95, 0.99, RP) * 0.5);
   box.material.opacity = ss(0.72, 0.78, RP) * (1 - ss(0.93, 0.97, RP)) * 0.9;
   glow.material.opacity = ss(0.7, 0.8, RP) * (1 - ss(0.95, 0.99, RP) * 0.6) * 0.9;
-  { v.set(-WX / 2 - 0.25, -1.4, WZ / 2 + 0.3); const [x, y, z] = project(cam, sec, v); today.style.transform = `translate(${x}px,${y + 8}px)`; today.style.opacity = z < 1 ? ss(0.74, 0.8, RP) * (1 - ss(0.93, 0.97, RP)) : 0; }
-  m.U.uA.value = 1 - ss(0.95, 0.99, RP) * 0.6; m.U.uHiOn.value *= 1 - ZC; m.U.uSz.value = (mob ? 1.05 : 0.95) * (1 + Z * 1.6);
+  { v.set(-WX / 2 - 0.25, -1.4, WZ / 2 + 0.3); const [x, y, z] = project(cam, sec, v); today.style.transform = `translate(${x}px,${y + 8}px)`; today.style.opacity = z < 1 ? ss(0.74, 0.8, RP) * (1 - ss(0.93, 0.97, RP)) * clamp((x - 10) / 24) * clamp((sec.clientWidth - 10 - x - today.offsetWidth) / 24 + 1) : 0; }
+  m.U.uA.value = 1 - ss(0.95, 0.99, RP) * 0.6; m.U.uHiOn.value *= 1 - ZC; m.U.uSz.value = (mob ? 1.05 : 0.95) * (1 + Z * 1.6) * lerp(Math.pow(fitK, 0.75), 1, Math.max(f, Z));
   // 시간 눈금
-  ticks.forEach((q) => { v.set(xOf(q.u), -1.6, WZ / 2 + 0.5); const [x, y, z] = project(cam, sec, v); q.e.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; q.e.style.opacity = z < 1 ? Math.max(ss(0.12, 0.2, P), ss(0.6, 1.2, PRE)) * (1 - f * 0.6) * (1 - ZC) : 0; });
+  // 화면 가장자리에 가까워지면 흐려진다(장면 상자 밖으로 반쯤 잘려 보이지 않게)
+  const SW = sec.clientWidth, SH = lay.clientHeight || innerHeight, edge = (x, y) => clamp((x - 18) / 24) * clamp((SW - 18 - x) / 24) * clamp((SH - 18 - y) / 24) * clamp((y - 18) / 24);
+  ticks.forEach((q) => { v.set(xOf(q.u), -1.6, WZ / 2 + 0.5); const [x, y, z] = project(cam, sec, v); q.e.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; q.e.style.opacity = z < 1 ? Math.max(ss(0.12, 0.2, P), ss(0.6, 1.2, PRE)) * (1 - f * 0.6) * (1 - ZC) * edge(x, y) : 0; });
   // 훑는 빛 위 카드: 그 시간의 가장 큰 소식
   if (ready) { const hh = Math.min(23, Math.floor(scanU * 24)), H = HOURS[hh];
     if (hh !== lastH) { lastH = hh; card.innerHTML = `<p class="m"><span>${hm(H.a)}–${hm(H.a + 3600)}</span><span>· ${H.n} ${T('stories', '건')}</span><span class="up">${H.u}↑</span><span class="down">${H.d}↓</span></p>` + (H.top ? `<p class="t"><b class="${DFD.vcls(H.top.v)}" style="font-size:11px;margin-right:6px;text-transform:uppercase">${DFI.v(H.top.v)}</b>${DFD.esc(line(H.top, ENT))}</p>` : `<p class="t" style="color:var(--mute)">${T('A quiet hour.', '조용한 시간이었어요.')}</p>`); }
