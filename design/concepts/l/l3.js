@@ -1,6 +1,6 @@
 // L3 · Pulse — 레이더 위에 소식이 점으로 찍힌다. 가운데 = 지금, 바깥으로 갈수록 오래된 소식(1·6·24시간 고르기).
 // 다섯 구역 = 테마, 점 크기 = 세기, 색 = 호재·악재. 스윕이 돌고, 새 소식은 파문을 내며 나타난다. 옆(모바일은 아래)에 같은 소식 목록.
-import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, L } from './lk.js?v=1017162450';
+import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, L } from './lk.js?v=1017172142';
 
 const app = document.getElementById('app'), SEC = ['crypto', 'nasdaq', 'econ', 'ai', 'world'];
 app.innerHTML = `<div class="wrap l3"><section class="top"><div><h1 data-x="t"></h1><p class="sub"><span class="livedot"></span><span id="upd"></span></p></div><div class="seg" id="rng"></div></section>

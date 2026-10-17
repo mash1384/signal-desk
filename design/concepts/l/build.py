@@ -11,12 +11,12 @@ for f in os.listdir("/tmp/concepts/l"):
         p = f"/tmp/concepts/l/{f}"; s = open(p).read()
         import re; s = re.sub(r"from './lk\.js(\?v=\w+)?'", f"from './lk.js?v={V}'", s); open(p, "w").write(s)
 # 공통 모듈(lk·yk·tk)은 모든 페이지가 같은 버전 주소로 불러야 한 번만 실행된다
-for d in ("l", "t", "y"):
+for d in ("l", "t", "y", "c"):
     for f in os.listdir(f"/tmp/concepts/{d}"):
         if f.endswith(".js"):
             p = f"/tmp/concepts/{d}/{f}"; s = open(p).read(); s = re.sub(r"\?v=(%%V%%|\d+)'", f"?v={V}'", s); open(p, "w").write(s)
 for d in os.listdir("/tmp/concepts"):
     h = f"/tmp/concepts/{d}/index.html"
-    if os.path.exists(h) and ("../l/" in open(h).read() or "../t/" in open(h).read() or "../y/" in open(h).read()):
+    if os.path.exists(h) and any(x in open(h).read() for x in ("../l/", "../t/", "../y/", "../c/")):
         s = open(h).read(); s = re.sub(r"(\.(?:js|css))\?v=\d+", lambda m: f"{m.group(1)}?v={V}", s); open(h, "w").write(s)
 print("built", V)

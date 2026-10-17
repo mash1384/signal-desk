@@ -1,6 +1,6 @@
 // R1 · River — Followin·코인니스·Techmeme 참고. 테마 탭(위에 고정) → '지금 꼭 볼 소식' 3장 → 시간별로 흐르는 목록(소식 이후 가격 칩·몇 곳 보도)
 // 오른쪽 고정 칸: 시세, 지금 많이 언급되는 코인, 테마별 24시간 균형. 새 소식은 'N개 새 소식' 버튼으로(읽던 자리가 밀리지 않게).
-import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, loadK5, PRICED_ALL } from './lk.js?v=1017162450';
+import { store, start, day, counts, T, esc, line, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, loadK5, PRICED_ALL } from './lk.js?v=1017172142';
 
 const app = document.getElementById('app');
 app.innerHTML = `<div class="tabsbar"><div class="wrap"><div class="tt" id="tt" role="tablist"></div><p class="upd"><span class="livedot"></span><span id="upd"></span></p></div></div>

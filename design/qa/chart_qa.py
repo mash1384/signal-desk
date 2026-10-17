@@ -2,7 +2,7 @@ import sys, json, asyncio
 from playwright.async_api import async_playwright
 # 차트 위로 포인터를 움직이며 범례·차트·카드·문서 높이가 바뀌는지, 크기 감시가 몇 번 일어나는지 잰다
 WATCH = """() => { window.__rz = 0; const ro = new ResizeObserver((es) => { window.__rz += es.length; });
-  document.querySelectorAll('.lgd, .lwbox, .bigc, .ld, #flow, .rxc, .lwc').forEach((e) => ro.observe(e)); window.__ro = ro; }"""
+  document.querySelectorAll('.lgd, .lwbox, .bigc, .ld, #flow, .rxc, .lwc, #hc, #detail, .fanw, .dt').forEach((e) => ro.observe(e)); window.__ro = ro; }"""
 SNAP = """(sel) => { const q = (s) => [...document.querySelectorAll(s)].map((e) => Math.round(e.getBoundingClientRect().height * 10) / 10);
   const ch = document.querySelector(sel); const r = ch && ch.getBoundingClientRect();
   return { lgd: q('.lgd'), box: q('.lwbox'), ld: q('.ld'), top: r ? Math.round(r.top * 10) / 10 : null, doc: document.documentElement.scrollHeight, txt: [...document.querySelectorAll('.lgd')].map((e) => e.textContent).join(' | ') }; }"""

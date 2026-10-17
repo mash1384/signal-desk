@@ -1,0 +1,4 @@
+.c1 { max-width: 920px; }
+.c1 .row2 { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 860px) { .c1 .row2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; } }
+.c1 .schw { margin-top: 10px; max-height: 420px; overflow-y: auto; overscroll-behavior: contain; }
+.c1 .brd { margin-top: 10px; }
