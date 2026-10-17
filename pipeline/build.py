@@ -1246,7 +1246,7 @@ def page_404(now):
 
 
 def sitemap(articles, now, dailies=()):
-    urls = [("", now), ("map/", now), ("live/", now), ("listings/", now), ("events/", now), ("about/", now), ("daily/", now)]
+    urls = [("", now), ("live/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("events/", now), ("about/", now), ("daily/", now)]
     urls += [("daily/%s/" % d["date"], d["made"]) for d in dailies]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
@@ -1282,6 +1282,24 @@ def page_live_df():
     with open(os.path.join(WEB, "df_live.html"), encoding="utf-8") as f:
         tpl = f.read()
     return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+
+
+THEME_PAGES = {
+    "crypto": ("Crypto", "크립토 테마 — 지난 24시간 비트코인·이더리움·알트코인 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 관련 시세."),
+    "nasdaq": ("Nasdaq", "나스닥 테마 — 지난 24시간 미국 기술주·지수 선물 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 관련 시세."),
+    "econ": ("Economy", "경제 테마 — 지난 24시간 금리·물가·달러·원자재 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 다음 주요 일정."),
+    "ai": ("AI", "AI 테마 — 지난 24시간 AI 기업·반도체 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 관련 시세."),
+}
+
+
+def page_themes_df(k):
+    """테마(Delfona T2 · 대시보드): 자산 띠, 24시간 흐름, 섹터, '오늘 무엇이 달라졌나', 주요 소식. 정적 틀(web/df_themes.html).
+    자료는 브라우저가 themes.json(Mac 이 3시간마다) · Binance · Worker /market 에서 받는다."""
+    with open(os.path.join(WEB, "df_themes.html"), encoding="utf-8") as f:
+        tpl = f.read()
+    title, desc = THEME_PAGES[k]
+    return (tpl.replace("{{TITLE}}", title).replace("{{DESC}}", h(desc)).replace("{{K}}", k)
+            .replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
 
 
 def df_ver():
@@ -1334,11 +1352,13 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     util.write_text(os.path.join(out, "daily", "index.html"), page_daily_index(dailies, now))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
-    util.write_text(os.path.join(out, "map", "index.html"), page_map(market, now))
-    util.write_text(os.path.join(out, "listings", "index.html"), page_listings(now))
+    # 테마: /themes/<k>/ (첫 화면은 크립토). 옛 시그널 보드·상장 레이더는 테마로 합쳐졌다
+    for k in THEME_PAGES:
+        util.write_text(os.path.join(out, "themes", k, "index.html"), page_themes_df(k))
+    util.write_text(os.path.join(out, "themes", "index.html"), page_themes_df("crypto"))
     util.write_text(os.path.join(out, "events", "index.html"), page_events(extra.get("events.json"), now))
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
-    for old_path, new_path in (("feed", "live/"), ("markets", "map/"), ("calendar", "events/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
+    for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("calendar", "events/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
         util.write_text(os.path.join(out, old_path, "index.html"), redirect_page(new_path))
     util.write_text(os.path.join(out, "me", "index.html"), page_me(now))
     util.write_text(os.path.join(out, "about", "index.html"), page_about(health, now))
