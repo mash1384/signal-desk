@@ -106,3 +106,10 @@ button:focus:not(:focus-visible) { outline: none; }
 [aria-pressed='true'] > .st-ic { --star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z'/%3E%3C/svg%3E"); color: #e8a400; }
 .mystar[aria-pressed='true'] { background: #fff6dc; color: var(--ink); }
 @media (hover: hover) { .mystar:hover { background: #e9edf3; } .mystar[aria-pressed='true']:hover { background: #ffefc2; } }
+
+/* 이어지는 이야기: 카드의 작은 표시(링크 아님) · 상세 창의 링크 카드 */
+.thb { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 99px; background: #f1f0ff; color: var(--primary); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.thlink:empty { display: none; } .thlink { margin-top: 14px; }
+.thl { display: grid; gap: 3px; padding: 12px 14px; border-radius: 12px; background: #f6f5ff; box-shadow: inset 0 0 0 1px #e4e0ff; transition: background-color 120ms ease; }
+.thl .k { font-size: 11.5px; font-weight: 600; color: var(--primary); } .thl b { font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--ink); } .thl .go { font-size: 12.5px; font-weight: 600; color: var(--primary); }
+@media (hover: hover) { .thl:hover { background: #efedff; } }

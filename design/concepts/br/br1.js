@@ -1,7 +1,7 @@
 // B1 · Stories — Particle·Ground News 식 이야기 목록: 줄기 카드가 위에서 아래로(최근에 움직인 순). PC는 오른쪽에 어제 하루 정리.
-import { T } from '../l/lk.js?v=1018053947';
-import * as B from './brk.js?v=1018053947';
-import { mount } from './bc.js?v=1018053947';
+import { T } from '../l/lk.js?v=1018063205';
+import * as B from './brk.js?v=1018063205';
+import { mount } from './bc.js?v=1018063205';
 mount((D, dy, S) => { const xs = B.pickList(D, S.f);
   return `<div class="wrap brf b1"><header class="ph"><h1>${T('Brief', '정리')}</h1><p>${T('The stories that keep moving — what happened so far and what was added today.', '며칠째 이어지는 이야기들 — 지금까지 무슨 일이 있었고, 오늘 무엇이 더해졌는지.')}</p><p class="fr">${B.fresh(D)}</p></header>
   ${B.filtHTML(D, S.f)}

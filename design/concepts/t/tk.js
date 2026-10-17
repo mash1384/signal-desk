@@ -1,7 +1,7 @@
 // 테마 화면 공통: 크립토 · 나스닥 · 경제 · AI 한 테마를 깊게. 랜딩 지구 장면의 '상세판'.
 // 자료: themes.json(3시간마다 Mac 에서 — AI 요약 6문장, 1시간 단위 호재·악재, 섹터, 주요·최근 소식, 자산 언급, 문장별 근거 소식)
 //       시세 — 코인은 바이낸스, 주식·지수 선물·금리·달러·원자재는 우리 Worker /quotes(야후). 숫자는 모두 프로그램이 센 것, 문장만 AI.
-import { T, L, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, store, pxChip, fillPx, PRICED_ALL } from '../l/lk.js?v=1018053947';
+import { T, L, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, store, pxChip, fillPx, PRICED_ALL } from '../l/lk.js?v=1018063205';
 export const THEME_KEYS = ['crypto', 'nasdaq', 'econ', 'ai', 'world'];
 export const TNAME = { crypto: ['Crypto', '크립토'], nasdaq: ['Nasdaq', '나스닥'], econ: ['Economy', '경제'], ai: ['AI', 'AI'], world: ['World', '세계'] };
 export const tn = (k) => TNAME[k][L() ? 1 : 0];
@@ -88,8 +88,10 @@ export function spark(cv, pts, { up = null } = {}) {
   g.strokeStyle = good ? '#0e9f6e' : '#df4a3a'; g.lineWidth = 1.5; g.lineJoin = 'round'; g.stroke();
 }
 // ---------- 조각 ----------
+// 테마 주소: 사이트에선 /themes/<k>/, 미리보기에선 ?t=<k>
+const tHref = (k) => (window.DF_TBASE ? window.DF_TBASE + k + '/' : '?t=' + k);
 export function tabsHTML(k) {
-  return `<nav class="ttabs" role="tablist" aria-label="${T('Themes', '테마')}">${THEME_KEYS.map((x) => `<a role="tab" href="?t=${x}" data-theme="${x}" aria-selected="${x === k}">${tn(x)}</a>`).join('')}</nav>`;
+  return `<nav class="ttabs" role="tablist" aria-label="${T('Themes', '테마')}">${THEME_KEYS.map((x) => `<a role="tab" href="${tHref(x)}" data-theme="${x}" aria-selected="${x === k}">${tn(x)}</a>`).join('')}</nav>`;
 }
 export function statusHTML(doc, t) {
   const tot = Math.max(1, t.u + t.d), fu = t.u / tot;
@@ -175,7 +177,7 @@ export async function eventsHTML() {
 }
 export function wire(app, S, render) {
   app.addEventListener('click', (e) => {
-    const th = e.target.closest('[data-theme]'); if (th) { e.preventDefault(); S.k = th.dataset.theme; S.sec = null; S.chg = null; history.replaceState(null, '', '?t=' + S.k); render(); return; }
+    const th = e.target.closest('[data-theme]'); if (th) { e.preventDefault(); S.k = th.dataset.theme; S.sec = null; S.chg = null; history.pushState({ k: S.k }, '', tHref(S.k)); render(); return; }
     const so = e.target.closest('[data-sort]'); if (so) { S.so = so.dataset.sort; try { localStorage.setItem('df-sort', S.so); } catch (x) {} render(true); return; }
     const sc = e.target.closest('[data-sec]'); if (sc) { S.sec = S.sec === sc.dataset.sec ? null : sc.dataset.sec; S.chg = null; render(true); return; }
     const cg = e.target.closest('[data-chg]'); if (cg) { const i = +cg.dataset.chg; S.chg = S.chg === i ? null : i; S.sec = null; render(true); if (S.chg != null) document.getElementById('stories')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); return; }
@@ -184,7 +186,7 @@ export function wire(app, S, render) {
   });
 }
 export function initState() {
-  const k = new URLSearchParams(location.search).get('t'); let so = 'new'; try { so = localStorage.getItem('df-sort') || 'new'; } catch (e) {}
+  const k = window.DF_THEME || new URLSearchParams(location.search).get('t'); let so = 'new'; try { so = localStorage.getItem('df-sort') || 'new'; } catch (e) {}
   return { k: THEME_KEYS.includes(k) ? k : 'crypto', so: SORTS[so] ? so : 'new', sec: null, chg: null, more: false };
 }
 export { fillPx };

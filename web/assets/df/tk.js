@@ -2,8 +2,8 @@
 // 자료: themes.json(3시간마다 Mac 에서 — AI 요약 6문장, 1시간 단위 호재·악재, 섹터, 주요·최근 소식, 자산 언급, 문장별 근거 소식)
 //       시세 — 코인은 바이낸스, 주식·지수 선물·금리·달러·원자재는 우리 Worker /quotes(야후). 숫자는 모두 프로그램이 센 것, 문장만 AI.
 import { T, L, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, store, pxChip, fillPx, PRICED_ALL } from './lk.js';
-export const THEME_KEYS = ['crypto', 'nasdaq', 'econ', 'ai'];
-export const TNAME = { crypto: ['Crypto', '크립토'], nasdaq: ['Nasdaq', '나스닥'], econ: ['Economy', '경제'], ai: ['AI', 'AI'] };
+export const THEME_KEYS = ['crypto', 'nasdaq', 'econ', 'ai', 'world'];
+export const TNAME = { crypto: ['Crypto', '크립토'], nasdaq: ['Nasdaq', '나스닥'], econ: ['Economy', '경제'], ai: ['AI', 'AI'], world: ['World', '세계'] };
 export const tn = (k) => TNAME[k][L() ? 1 : 0];
 const WK = 'https://signal-scheduler.mash1384.workers.dev/quotes';
 // 자산 목록: [기호, 출처(b=바이낸스, y=야후), 영문, 한글, 표시 방식]
@@ -15,10 +15,12 @@ export const ASSETS = {
     ['CL=F', 'y', 'WTI crude', 'WTI 유가'], ['KRW=X', 'y', 'USD/KRW', '원/달러', 'krw']],
   ai: [['NVDA', 'y', 'Nvidia', '엔비디아'], ['AMD', 'y', 'AMD', 'AMD'], ['TSM', 'y', 'TSMC', 'TSMC'], ['AVGO', 'y', 'Broadcom', '브로드컴'], ['MSFT', 'y', 'Microsoft', '마이크로소프트'],
     ['GOOGL', 'y', 'Alphabet', '알파벳'], ['META', 'y', 'Meta', '메타'], ['PLTR', 'y', 'Palantir', '팔란티어'], ['TAO', 'b', 'Bittensor', '비트텐서'], ['FET', 'b', 'Artificial Superintelligence', 'FET']],
+  // 세계(전쟁·외교·에너지 등): 지정학 소식에 가장 먼저 반응하는 가격들
+  world: [['CL=F', 'y', 'WTI crude', 'WTI 유가'], ['GC=F', 'y', 'Gold', '금'], ['DX-Y.NYB', 'y', 'US dollar index', '달러 지수'], ['^TNX', 'y', 'US 10-year yield', '미국 10년물 금리', 'pct'], ['BTC', 'b', 'Bitcoin', '비트코인']],
 };
 const YAHOO_OK = new Set(['NQ=F', 'ES=F', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'TSLA', 'AVGO', 'AMD', 'TSM', 'PLTR', 'ORCL', 'NFLX', 'COIN', 'MSTR', 'HOOD', 'INTC', 'MU', 'ARM', 'SMCI', 'CRM', 'ADBE', 'QCOM', 'ASML']);
 // 흐름 그래프 위에 겹치는 대표 가격
-export const BENCH = { crypto: ['BTC', 'b', 'BTC'], nasdaq: ['NQ=F', 'y', T('Nasdaq 100 fut.', '나스닥 100 선물')], econ: ['^TNX', 'y', T('US 10Y', '미국 10년물')], ai: ['NVDA', 'y', 'NVDA'] };
+export const BENCH = { crypto: ['BTC', 'b', 'BTC'], nasdaq: ['NQ=F', 'y', T('Nasdaq 100 fut.', '나스닥 100 선물')], econ: ['^TNX', 'y', T('US 10Y', '미국 10년물')], ai: ['NVDA', 'y', 'NVDA'], world: ['CL=F', 'y', T('WTI crude', 'WTI 유가')] };
 // ---------- 자료 ----------
 let THEMES_DOC = null;
 export async function loadThemes() {
@@ -26,10 +28,11 @@ export async function loadThemes() {
   const r = await fetch((window.DF_THEMES || 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/themes.json') + '?t=' + Math.floor(Date.now() / 60000));
   THEMES_DOC = await r.json();
   // 소식 상세 창(openSheet)이 같은 소식을 찾을 수 있게 store 에 넣어 둔다
-  THEMES_DOC.themes.forEach((t) => [...(t.top || []), ...(t.latest || []), ...(t.more || [])].forEach((x) => { if (!store.byId.has(x.id)) store.byId.set(x.id, Object.assign({ th: [t.k] }, x)); }));
+  [...THEMES_DOC.themes, ...(THEMES_DOC.themes_x || [])].forEach((t) => [...(t.top || []), ...(t.latest || []), ...(t.more || [])].forEach((x) => { if (!store.byId.has(x.id)) store.byId.set(x.id, Object.assign({ th: [t.k] }, x)); }));
   return THEMES_DOC;
 }
-export const themeOf = (doc, k) => doc.themes.find((t) => t.k === k);
+// 세계는 별도 칸(themes_x)에 있다(첫 화면 지구 장면은 기존 네 테마만 읽기 때문)
+export const themeOf = (doc, k) => doc.themes.find((t) => t.k === k) || (doc.themes_x || []).find((t) => t.k === k) || { k, n: 0, u: 0, d: 0, s_ko: [], s_en: [], refs: [], hours: [], sectors: [], mentions: {}, top: [], latest: [], more: [], changes: [], changes_all: [] };
 // 바이낸스: 24시간 시세 + 1시간 봉 24개(작은 그래프)
 async function binance(syms) {
   const out = {}; if (!syms.length) return out;
@@ -85,6 +88,7 @@ export function spark(cv, pts, { up = null } = {}) {
   g.strokeStyle = good ? '#0e9f6e' : '#df4a3a'; g.lineWidth = 1.5; g.lineJoin = 'round'; g.stroke();
 }
 // ---------- 조각 ----------
+// 테마 주소: 사이트에선 /themes/<k>/, 미리보기에선 ?t=<k>
 const tHref = (k) => (window.DF_TBASE ? window.DF_TBASE + k + '/' : '?t=' + k);
 export function tabsHTML(k) {
   return `<nav class="ttabs" role="tablist" aria-label="${T('Themes', '테마')}">${THEME_KEYS.map((x) => `<a role="tab" href="${tHref(x)}" data-theme="${x}" aria-selected="${x === k}">${tn(x)}</a>`).join('')}</nav>`;

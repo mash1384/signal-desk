@@ -489,7 +489,10 @@ def run(no_ai=False):
         with open(cpath + ".tmp", "w") as f:
             json.dump(cache, f, ensure_ascii=False)
         os.replace(cpath + ".tmp", cpath)
-    doc = {"v": 1, "made": now, "next": now + EVERY, "threads": threads, "stories": stories, "model": MODEL,
+    # 정리 화면이 '어제 하루 정리'를 날짜 추측 없이 읽게 가장 최근 하루 정리 날짜를 적어 둔다
+    ddir = os.path.join(os.path.dirname(OUT))
+    dates = sorted(f[:-5] for f in os.listdir(ddir) if re.fullmatch(r"\d{4}-\d\d-\d\d\.json", f)) if os.path.isdir(ddir) else []
+    doc = {"v": 1, "made": now, "next": now + EVERY, "threads": threads, "stories": stories, "model": MODEL, "daily_latest": dates[-1] if dates else None,
            "params": {"sim_merge": SIM_MERGE, "sim_seed": SIM_SEED, "gap_h": GAP // 3600, "cap": CAP, "weak_df": WEAK_DF}}
     return doc, meta
 

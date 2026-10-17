@@ -40,7 +40,7 @@ async def main():
             ko = await pg.evaluate("() => document.querySelector('#app').textContent.includes('지난 24시간')"); print(tag, 'ko', ko)
             if not ko: bad.append(f'{tag} ko')
             await pg.screenshot(path=f'/tmp/cq/th_{tag}_ko.png', full_page=True)
-            for k in ('econ', 'ai'):
+            for k in ('econ', 'ai', 'world'):
                 await pg.goto(BASE + f'themes/{k}/', wait_until='networkidle'); await pg.wait_for_selector('#flow .lwbox', timeout=20000); await pg.wait_for_timeout(1500)
                 n = await pg.evaluate("() => ({ sel: document.querySelector('.ttabs [aria-selected=true]')?.dataset.theme, stories: document.querySelectorAll('#stories .srow').length, cards: document.querySelectorAll('.acard:not(.skel)').length })"); print(tag, k, n)
                 if n['sel'] != k or n['stories'] < 1: bad.append(f'{tag} {k} {n}')

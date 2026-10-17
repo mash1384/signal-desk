@@ -1,6 +1,6 @@
 // T1 · Briefing — Perplexity 금융 첫 화면처럼 '읽는 요약'이 주인공. 왼쪽 넓게 AI 요약 6문장(번호, 근거 소식 연결) · 오른쪽 24시간 흐름 그래프.
 // 그 아래 왼쪽 주요 소식(정렬·섹터 거르기) · 오른쪽 자산 시세와 섹터 분포(경제는 다음 일정).
-import * as K from './tk.js?v=1018053947';
+import * as K from './tk.js?v=1018063205';
 const app = document.getElementById('app'), S = K.initState();
 let doc, assets = {}, bench = {}, chart = null;
 async function render(soft) {

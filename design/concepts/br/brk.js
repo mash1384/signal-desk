@@ -1,6 +1,6 @@
 // 정리(Brief) 공통: 지금 이어지는 이야기(줄기) + 어제 하루 정리. 줄기는 Mac 이 30분마다(tools/story_threads.py), 하루 정리는 daily_brief.py.
 // 줄기 문장은 AI(근거 소식 번호가 붙은 문장만, 숫자는 근거 소식에 있는 것만), 개수·날짜·호재/악재는 프로그램이 센 것.
-import { T, L, esc, store, openSheet, pill, hm, ago } from '../l/lk.js?v=1018053947';
+import { T, L, esc, store, openSheet, pill, hm, ago } from '../l/lk.js?v=1018063205';
 
 const RAW = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/';
 export const THEMES5 = [['all', 'All', '전체'], ['crypto', 'Crypto', '크립토'], ['nasdaq', 'Nasdaq', '나스닥'], ['econ', 'Economy', '경제'], ['ai', 'AI', 'AI'], ['world', 'World', '세계']];
@@ -15,11 +15,10 @@ export async function loadThreads() {
   TH.list = TH.threads.filter((x) => x.ai);
   return TH;
 }
-// 어제(한국 시각) 하루 정리. 없으면 그 전날.
-export async function loadDaily() {
-  const kst = (d) => new Date(Date.now() + 9 * 3600e3 - d * 864e5).toISOString().slice(0, 10);
-  for (const d of [1, 2, 3]) { try { const r = await fetch(RAW + kst(d) + '.json?t=' + Math.floor(Date.now() / 600000)); if (r.ok) return await r.json(); } catch (e) {} }
-  return null;
+// 가장 최근 하루 정리(이야기 엔진이 날짜를 적어 둔다 — 날짜를 추측해 없는 파일을 부르지 않게)
+export async function loadDaily(D) {
+  const d = D && D.daily_latest; if (!d) return null;
+  try { const r = await fetch(RAW + d + '.json?t=' + Math.floor(Date.now() / 600000)); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
 const lc = () => (L() ? 'ko-KR' : 'en-GB');
 export const tx = (x) => x.ai && x.ai[L() ? 'ko' : 'en'];
@@ -143,7 +142,7 @@ export const pickList = (D, f) => (f === 'all' ? D.list : D.list.filter((x) => x
 export function dailyHTML(dy) {
   if (!dy) return '';
   const b = dy.balance || {}, m = dy.market || {};
-  return `<p class="k">${T('Yesterday in one page', '어제 하루 정리')} <span>· ${esc(dy.date)}</span></p>
+  return `<p class="k">${T('Latest daily brief', '최근 하루 정리')} <span>· ${esc(dy.date)}</span></p>
     ${L() ? `<h3>${esc(dy.headline || '')}</h3><p class="rv">${esc(dy.review || '')}</p>` : `<h3>${T('Daily brief', '하루 정리')} · ${esc(dy.date)}</h3><p class="rv">${T('The written summary is in Korean for now.', '')}</p>`}
     <p class="nums"><span><b class="mono">${(dy.counts || {}).stories || 0}</b> ${T('stories', '건')}</span><span class="u"><b class="mono">${b['호재'] || 0}</b> ${T('bullish', '호재')}</span><span class="dn"><b class="mono">${b['악재'] || 0}</b> ${T('bearish', '악재')}</span>${m.btc ? `<span>BTC <b class="mono ${m.btc.chg >= 0 ? 'u' : 'dn'}">${m.btc.chg >= 0 ? '+' : ''}${m.btc.chg.toFixed(2)}%</b></span>` : ''}</p>
     <a class="more" href="${window.DF_ROOT || '../../'}daily/${esc(dy.date)}/">${T('Read the full daily brief', '하루 정리 전체 보기')} →</a>`;

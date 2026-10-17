@@ -1,4 +1,4 @@
-import { watchThreads } from './thr.js?v=1018053947';
+import { watchThreads } from './thr.js?v=1018063205';
 // 라이브 페이지 후보 공통: 실시간 속보 받기(30초마다), 테마 나누기, 카드·상세, 24시간 막대, 소식 이후 가격 변화
 export const L = () => DFI.lang() === 'ko';
 export const T = (en, ko) => (L() ? ko : en);

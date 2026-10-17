@@ -1,7 +1,7 @@
 // C3 · Dashboard — Trading Economics·블룸버그식 '숫자 먼저': 위 요약 + 오른쪽 다음 발표·일정, 가운데 지표 카드 전체, 아래 상세(2열: 기록 | 과거에 비슷했을 때).
-import { T } from '../l/lk.js?v=1018053947';
-import * as C from './ck.js?v=1018053947';
-import { mount } from './cc.js?v=1018053947';
+import { T } from '../l/lk.js?v=1018063205';
+import * as C from './ck.js?v=1018063205';
+import { mount } from './cc.js?v=1018063205';
 mount((doc, S) => `<div class="wrap cal c3">
   ${C.justHTML(doc, S.k)}
   <div class="top"><section class="box ov">${C.overviewHTML(doc)}</section>
