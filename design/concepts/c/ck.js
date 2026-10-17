@@ -1,6 +1,6 @@
 // 일정(경제지표) 화면 공통: 다가오는 발표, 지금 경제 한눈에(AI), 지표 카드, 지표 상세(긴 그래프 · 지난 발표 표 · 과거에 비슷했을 때).
 // 자료: econ.json(Mac 에서 1시간마다 — ALFRED 발표 당일 값, 야후 일봉, Forex Factory 예상치, FRED·연준 일정). 숫자는 모두 프로그램, 문장만 AI.
-import { T, L, esc } from '../l/lk.js?v=1017172142';
+import { T, L, esc } from '../l/lk.js?v=1017180212';
 
 export const ECON_URL = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/econ.json';
 let DOC = null;
@@ -105,6 +105,17 @@ export function scheduleHTML(doc, { from = -7, to = 21, sel = null } = {}) {
   }
   return `<ol class="sch">${html || `<li class="mute">${T('No scheduled releases in this window.', '이 기간에 예정된 발표가 없어요.')}</li>`}</ol>
     <p class="fn">${T('Times in your time zone. Forecasts from Forex Factory for this week only.', '시각은 내 시간대 기준이에요. 예상치는 이번 주 것만 있어요(Forex Factory).')}</p>`;
+}
+
+// ---------- 조각: 방금 나온 지표(최근 4일) ----------
+const VS = { above: ['▲', 'above forecast', '예상보다 높음'], below: ['▼', 'below forecast', '예상보다 낮음'], inline: ['■', 'in line', '예상과 같음'] };
+export function justHTML(doc, sel) {
+  const now = Date.now() / 1000, xs = doc.indicators.filter((x) => x.latest.ts <= now && now - x.latest.ts < 4 * 86400).slice(0, 5);
+  if (!xs.length) return '';
+  return `<section class="just" aria-label="${T('Just released', '방금 나온 지표')}"><p class="k">${T('Just released', '방금 나온 지표')}</p><div class="jl">${xs.map((x) => {
+    const L0 = x.latest, v = VS[L0.vs], sv = VS[L0.vs_sub];
+    const note = v ? `${v[0]} ${L() ? v[2] : v[1]} <span class="mono">${esc(L0.fc)}</span>` : sv ? `${T('m/m', '전월 대비')} <span class="mono">${L0.sub.toFixed(x.dec)}%</span> · ${sv[0]} ${L() ? sv[2] : sv[1]}` : `${arrow(x.sit.dir)} ${T('vs previous', '직전 대비')} <span class="mono">${fchg(x, x.sit.chg)}</span>`;
+    return `<button type="button" class="jt${sel === x.k ? ' on' : ''}" data-ind="${x.k}" aria-pressed="${sel === x.k}"><span class="n">${esc(nm(x))}</span><b class="mono">${fv(x, L0.v)}</b><span class="w">${note}</span><span class="d">${day(L0.ts, { weekday: undefined })}</span></button>`; }).join('')}</div></section>`;
 }
 
 // ---------- 조각: 지표 카드 ----------

@@ -85,3 +85,17 @@ table.stt td b { margin-inline-end: 8px; font-weight: 650; } table.stt td span {
 .skel { height: 120px; border-radius: 14px; background: linear-gradient(90deg, #eef1f5, #f6f8fb, #eef1f5); }
 @media (prefers-reduced-motion: no-preference) { .skel { background-size: 200% 100%; animation: sk 1.4s linear infinite; } @keyframes sk { to { background-position: -200% 0; } } }
 .err { padding: 18px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); font-size: 14px; }
+
+/* 방금 나온 지표 */
+.just { display: grid; gap: 8px; } .just .k { font-size: 13px; font-weight: 650; color: var(--mute); }
+.jl { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px; scroll-snap-type: x proximity; } .jl::-webkit-scrollbar { display: none; }
+.jt { flex: 1 0 210px; max-width: 280px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n d" "v v" "w w"; gap: 2px 8px; padding: 12px 14px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); text-align: start; scroll-snap-align: start; transition: box-shadow 150ms ease, scale 150ms ease-out; }
+.jt:active { scale: 0.98; } .jt.on { box-shadow: 0 0 0 2px var(--primary); }
+.jt .n { grid-area: n; font-size: 13px; font-weight: 600; } .jt .d { grid-area: d; font-size: 11.5px; color: var(--faint); } .jt b { grid-area: v; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; } .jt .w { grid-area: w; font-size: 12.5px; color: var(--mute); }
+@media (hover: hover) { .jt:not(.on):hover { box-shadow: 0 0 0 1px #c9d1dc, 0 8px 22px -16px rgb(13 37 61 / .4); } }
+
+/* 휴대폰: 지표 카드를 2열로 짧게(작은 그래프 · 10년 막대 숨김) */
+@media (max-width: 640px) {
+  .ics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .ic { padding: 12px; } .ic .sp, .ic .rk, .ic .rkl { display: none; } .ic .v { font-size: 20px; } .ic .h { flex-direction: column; gap: 0; } .ic .c .w { display: block; }
+}

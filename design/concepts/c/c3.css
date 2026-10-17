@@ -1,3 +1,8 @@
 .c3 .top { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 1000px) { .c3 .top { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; } }
 .c3 .rail { display: grid; gap: 20px; } .c3 .schw { margin-top: 10px; max-height: 300px; overflow-y: auto; overscroll-behavior: contain; }
-@media (min-width: 1100px) { .c3 #detail .dt { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; column-gap: 32px; } .c3 #detail .dth, .c3 #detail .ai { grid-column: 1 / -1; } .c3 #detail .tbl { grid-column: 1 / -1; } }
+/* PC 상세: 왼쪽 = 지난 흐름 + 최근 발표 표, 오른쪽 = 과거에 비슷했을 때(두 줄 차지) → 양쪽 높이가 비슷해진다 */
+@media (min-width: 1100px) {
+  .c3 #detail .dt { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; column-gap: 32px; }
+  .c3 #detail .dth, .c3 #detail .ai { grid-column: 1 / -1; }
+  .c3 #detail .hist { grid-column: 1; grid-row: 3; } .c3 #detail .sim { grid-column: 2; grid-row: 3 / span 2; } .c3 #detail .tbl { grid-column: 1; grid-row: 4; }
+}

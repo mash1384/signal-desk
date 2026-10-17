@@ -756,7 +756,7 @@ def meaning_line(ind, x, lang):
 
 
 def ai_indicator(ind, x, state):
-    key = "%s|%s|v9" % (ind["k"], x["latest"]["d"])
+    key = "%s|%s|v10" % (ind["k"], x["latest"]["d"])
     if key in state["ai"]:
         return state["ai"][key]
     out = {}
@@ -868,12 +868,14 @@ def build(no_ai=False):
         dec = ind["dec"]
 
         def rnd(x, dd=dec):
-            return None if x is None else round(x, dd + (1 if ind["unit"] == "%" else 0))
+            return None if x is None else round(x, dd + (2 if ind["unit"] == "%" else 1))
         inds.append({
             "k": ind["k"], "en": ind["en"], "ko": ind["ko"], "unit": ind["unit"], "grp": ind["grp"], "dec": dec, "hot": ind["hot"],
             "sub": ind.get("sub"), "n": len(hist), "since": hist[0]["d"],
             "latest": {"d": last["d"], "ts": last["ts"], "period": last["period"], "v": rnd(last["v"]), "prev": rnd(last["prev"]), "sub": rnd(last["sub"]),
-                       "fc": fc.get(last["d"] + "|main"), "fc_sub": fc.get(last["d"] + "|sub")},
+                       "fc": fc.get(last["d"] + "|main"), "fc_sub": fc.get(last["d"] + "|sub"),
+                       # 예상 대비(프로그램 판정: 예상치 자릿수로 맞춰 비교)
+                       "vs": vs_fc(ind, last["v"], fc.get(last["d"] + "|main"), dec), "vs_sub": vs_fc(ind, last["sub"], fc.get(last["d"] + "|sub"), dec)},
             "sit": {k2: (rnd(v2) if k2 in ("chg", "vs_avg12") else v2) for k2, v2 in situation(ind, hist).items()},
             # 지난 발표 표(최근 24회) · 긴 그래프(전체, 관측월과 값)
             "rows": [{"d": r["d"], "ts": r["ts"], "period": r["period"], "v": rnd(r["v"]), "prev": rnd(r["prev"]), "sub": rnd(r["sub"]),
