@@ -1,4 +1,3 @@
-import json
 from pytest_bdd import given, when, then, parsers, scenarios
 from playwright.sync_api import expect
 from tests.e2e.test_matrix import path_for, SELECTORS

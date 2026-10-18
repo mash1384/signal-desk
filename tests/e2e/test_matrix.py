@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 from urllib.parse import urlsplit
-import pytest
 from tests.e2e.conftest import axe_script
 
 # From template and render functions: r3.js, y2.js, t2.js, br2.js, c3.js,
