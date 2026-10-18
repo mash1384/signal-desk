@@ -40,8 +40,9 @@ jobs:
           path: llm
           fetch-depth: 1
 
-      # 운영자 Mac의 하루 정리(tools/daily_brief.py가 flash 브랜치 daily/에 올림). 없으면 하루 정리 페이지만 비어 있다
-      - name: Checkout daily briefs (optional)
+      # flash는 빌드·계약 검사의 필수 입력. 첫 checkout 실패만 한 번 재시도한다
+      - name: Checkout required flash data
+        id: flash_checkout
         continue-on-error: true
         uses: actions/checkout@v4
         with:
@@ -49,14 +50,31 @@ jobs:
           path: flash
           fetch-depth: 1
 
+      - name: Retry required flash checkout
+        if: steps.flash_checkout.outcome == 'failure'
+        uses: actions/checkout@v4
+        with:
+          ref: flash
+          path: flash
+          fetch-depth: 1
+
+      - name: Verify required flash files
+        run: |
+          for file in flash/flash.json flash/daily/econ.json; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Required flash input is missing: $file"
+              exit 1
+            fi
+          done
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: tests/requirements.txt
+          cache-dependency-path: tests/requirements-gate.txt
 
       - name: Install test tools
-        run: python -m pip install --quiet -r tests/requirements.txt
+        run: python -m pip install --quiet -r tests/requirements-gate.txt
 
       - name: Ruff (existing findings must be resolved before deployment)
         run: python -m ruff check pipeline tools tests   # 규칙은 ruff.toml
@@ -68,7 +86,6 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          python -m pip install --quiet playwright
           if [ -n "$ANTHROPIC_API_KEY" ]; then python -m pip install --quiet anthropic; fi
 
       - name: Korean fonts for share cards
@@ -90,21 +107,22 @@ jobs:
           SIGNAL_UPBIT_PROXY: ${{ vars.SIGNAL_UPBIT_PROXY }}
         run: python -m pipeline.run --prev site --out dist
 
-      # 브라우저 설치는 3분 검사 시간에 넣지 않는다(설치가 느린 날 배포가 막히지 않게). 내려받은 브라우저는 캐시
+      # pip·OS 의존성·브라우저 준비는 아래 gate 180초 제한 밖이다. 추가 시간 전체 3분은 원격 실측이 필요하다
+      # 브라우저 캐시와 필요한 headless shell만 사용해 cold 다운로드를 줄인다
       - name: Cache QA browser
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ hashFiles('tests/requirements.txt') }}
+          key: pw-${{ runner.os }}-${{ hashFiles('tests/requirements-gate.txt') }}
 
       - name: Install QA browser
-        run: python -m playwright install --with-deps chromium
+        run: python -m playwright install --with-deps --only-shell chromium
 
       # Local build gate: no credentials are passed to the browser/tests.
       # The complete 48-case matrix and BDD live in qa-harness.yml.
       - name: Validate public artifacts and browser smoke
         timeout-minutes: 3
-        run: python -m tests.gate --site dist --flash flash
+        run: python -m tests.gate --site dist --flash flash --seconds 150
 
       - name: Publish to gh-pages
         run: |
