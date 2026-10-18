@@ -194,7 +194,7 @@ export function crosshair(cv, m) {
 const LIVE = [];
 function sweep() { for (let i = LIVE.length - 1; i >= 0; i--) if (!LIVE[i].box.isConnected) { try { LIVE[i].chart.remove(); } catch (e) {} LIVE.splice(i, 1); } }
 const TZ = () => -new Date().getTimezoneOffset() * 60;   // 라이브러리는 UTC로 그리므로 현지 시각으로 옮겨 준다
-export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
+export function lwChart(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel = null, preLabel = null } = {}) {
   if (!window.LightweightCharts || !pts || pts.length < 2) { el.innerHTML = `<p class="mute">${T('No price data for this time.', '이 시간의 가격 자료가 없어요.')}</p>`; return null; }
   const LC = window.LightweightCharts, off = TZ(), lc = DFI.lang() === 'ko' ? 'ko-KR' : 'en-GB';
   el.innerHTML = '<div class="lgd"></div><div class="lwbox"></div>'; const box = el.querySelector('.lwbox'), lgd = el.querySelector('.lgd'); box.style.height = height + 'px';
@@ -216,7 +216,7 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
   pre.setData([...padL, ...data.slice(0, i0 + 1)]);
   const post = chart.addBaselineSeries({ baseValue: { type: 'price', price: base }, topLineColor: '#12b07c', topFillColor1: 'rgba(18,176,124,.22)', topFillColor2: 'rgba(18,176,124,.02)',
     bottomLineColor: '#e5533f', bottomFillColor1: 'rgba(229,83,63,.02)', bottomFillColor2: 'rgba(229,83,63,.22)', lineWidth: 2, priceLineVisible: false });
-  if (hasAfter) { post.setData([...data.slice(i0), ...padR]); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: '#0d253d', shape: 'arrowDown', text: T('story', '소식') }]);
+  if (hasAfter) { post.setData([...data.slice(i0), ...padR]); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: '#0d253d', shape: 'arrowDown', text: mark || T('story', '소식') }]);
     post.createPriceLine({ price: base, color: 'rgba(13,37,61,.35)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); }
   chart.timeScale().fitContent();
   // 범례 시각: 오늘이면 시:분만(좁은 화면에서 '소식 대비'가 잘리지 않게)
@@ -225,7 +225,7 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
   // 범례는 항상 한 줄(시각 · 가격 · 소식 대비)로 같은 모양을 유지한다. 포인터가 없으면 최신 값.
   let shownT = null;
   const legend = (d) => { if (d.time === shownT) return; shownT = d.time; const after = hasAfter && d.time >= data[i0].time, ch = (d.value / base - 1) * 100;
-    lgd.innerHTML = `<span class="mono">${fmt(d.time)}</span><b class="mono">${d.value.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}</b>${after ? `<span class="mono ${ch >= 0 ? 'up' : 'down'}">${DFD.pct(ch)} ${T('vs story', '소식 대비')}</span>` : `<span class="b4">${T('before the story', '소식 전')}</span>`}`; };
+    lgd.innerHTML = `<span class="mono">${fmt(d.time)}</span><b class="mono">${d.value.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}</b>${after ? `<span class="mono ${ch >= 0 ? 'up' : 'down'}">${DFD.pct(ch)} ${vsLabel || T('vs story', '소식 대비')}</span>` : `<span class="b4">${preLabel || T('before the story', '소식 전')}</span>`}`; };
   const last = data[data.length - 1]; legend(last);
   chart.subscribeCrosshairMove((p) => { const v = p && p.time && p.seriesData ? p.seriesData.get(post) || p.seriesData.get(pre) : null; legend(v && v.value != null ? { time: p.time, value: v.value } : last); });
   return { chart, change: hasAfter ? (last.value / base - 1) * 100 : null, closed: pts[pts.length - 1][0] < Date.now() / 1000 - 1800 };

@@ -2,7 +2,7 @@
 import { T } from './lk.js';
 import * as C from './ck.js';
 
-export function mount(layout) {
+export function mount(layout, hooks = {}) {
   const app = document.getElementById('app');
   const S = { k: null, asset: '^GSPC', range: '10y' };
   let doc = null;
@@ -21,6 +21,7 @@ export function mount(layout) {
     if (!S.k || !doc.by[S.k]) S.k = pick();
     app.innerHTML = layout(doc, S);
     C.drawSparks(app, doc); drawDetail(); C.tickUntil(app);
+    if (hooks.after) hooks.after(app, doc);
   }
   function select(k, scroll) {
     if (!doc.by[k]) return; S.k = k;
@@ -36,7 +37,7 @@ export function mount(layout) {
   });
   // 폭이 바뀔 때만 다시 그림(휴대폰 주소창 높이 변화는 무시)
   let rzT = 0, rzW = innerWidth;
-  addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => { if (!doc) return; app.querySelectorAll('canvas[data-spark]').forEach((c) => { delete c.dataset.w; }); C.drawSparks(app, doc); const cv = app.querySelector('#fan'); if (cv) C.drawFan(cv, app.querySelector('#fl'), doc, doc.by[S.k], S.asset); }, 200); });
-  C.loadEcon().then((d) => { doc = d; render(); }).catch(() => { app.innerHTML = `<div class="wrap cal"><p class="err">${T('Unable to load the economic data. Check your connection and reload the page.', '경제지표 자료를 불러오지 못했어요. 연결을 확인하고 새로 고침해 주세요.')}</p></div>`; });
+  addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => { if (!doc) return; app.querySelectorAll('canvas[data-spark]').forEach((c) => { delete c.dataset.w; }); C.drawSparks(app, doc); const cv = app.querySelector('#fan'); if (cv) C.drawFan(cv, app.querySelector('#fl'), doc, doc.by[S.k], S.asset); if (hooks.resize) hooks.resize(app, doc); }, 200); });
+  C.loadEcon().then((d) => { doc = d; render(); if (hooks.live) hooks.live(doc, render); }).catch(() => { app.innerHTML = `<div class="wrap cal"><p class="err">${T('Unable to load the economic data. Check your connection and reload the page.', '경제지표 자료를 불러오지 못했어요. 연결을 확인하고 새로 고침해 주세요.')}</p></div>`; });
   DFI.onLang(() => { if (doc) render(); });
 }

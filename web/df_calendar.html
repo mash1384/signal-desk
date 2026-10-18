@@ -122,6 +122,83 @@ table.stt td b { margin-inline-end: 8px; font-weight: 650; } table.stt td span {
   .c3 #detail .dth, .c3 #detail .ai { grid-column: 1 / -1; }
   .c3 #detail .hist { grid-column: 1; grid-row: 3; } .c3 #detail .sim { grid-column: 2; grid-row: 3 / span 2; } .c3 #detail .tbl { grid-column: 1; grid-row: 4; }
 }
+
+/* 발표 순간(방금 발표 · 곧 발표) — 왼쪽 글 · 오른쪽 그래프(넓은 화면) */
+.rk { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; font-weight: 650; color: var(--primary); }
+.rk .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--down); box-shadow: 0 0 0 4px rgb(223 74 58 / .15); }
+@media (prefers-reduced-motion: no-preference) { .rk .dot { animation: pulse 1.6s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgb(223 74 58 / 0); } } }
+.rh { margin-top: 10px; font-size: clamp(22px, 2.6vw, 32px); font-weight: 650; letter-spacing: -0.025em; line-height: 1.22; text-wrap: balance; }
+.rp { margin-top: 8px; font-size: 14.5px; line-height: 1.6; color: var(--ink2); }
+.rel { display: grid; gap: 24px 40px; grid-template-columns: minmax(0, 1fr); } .rel > * { min-width: 0; }
+@media (min-width: 1100px) { .rel { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: start; } .rel .rf { grid-column: 1 / -1; } }
+.rl { display: grid; gap: 18px; align-content: start; } .rl .rh { margin-top: -10px; }
+.rv { display: flex; flex-wrap: wrap; gap: 16px 40px; }
+.rvi { display: grid; gap: 4px; } .rvi .n { font-size: 13px; font-weight: 600; color: var(--mute); }
+.rvi > b { font-size: clamp(34px, 4vw, 46px); font-weight: 400; letter-spacing: -0.035em; line-height: 1.05; }
+.rvi .w { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 13px; color: var(--mute); } .rvi .w .mono { color: var(--ink); }
+.vs { font-weight: 650; } .vs.above { color: #b45309; } .vs.below { color: #1d4ed8; } .vs.inline { color: var(--ink2); }
+.rs { display: grid; gap: 10px; max-width: 68ch; } .rs p { font-size: 15.5px; line-height: 1.7; color: var(--ink2); text-wrap: pretty; } .rs p:first-child { color: var(--ink); }
+.nm { font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
+.rn { font-size: 14px; line-height: 1.55; color: var(--ink2); } .rn b { margin-inline-end: 6px; color: var(--primary); }
+.rr { display: grid; gap: 22px; align-content: start; }
+.rel h3, .ins h3 { font-size: 13px; font-weight: 650; color: var(--mute); margin-bottom: 8px; } .rel h3 .mute2, .ins h3 .mute2 { font-weight: 500; margin-inline-start: 4px; }
+.mxr { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; min-height: 20px; margin-bottom: 4px; font-size: 12.5px; color: var(--ink2); }
+.mxr i { display: inline-block; width: 8px; height: 8px; margin-inline-end: 5px; border-radius: 2px; vertical-align: 0; } .mxr b { font-weight: 650; }
+.mxc { display: block; width: 100%; height: 230px; cursor: crosshair; }
+/* FOMC 확률 전 → 후(덤벨): 빈 점 = 발표 직전, 찬 점 = 1시간 뒤 */
+.db { display: grid; grid-template-columns: minmax(0, 7em) minmax(0, 1fr) auto; grid-template-areas: "l t v"; align-items: center; gap: 6px 14px; padding: 10px 0; } .db + .db { border-top: 1px solid var(--line); }
+@media (max-width: 560px) { .db { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "l v" "t t"; } }
+.db .dl { grid-area: l; font-size: 14px; font-weight: 600; } .db .dv { grid-area: v; font-size: 13px; color: var(--mute); white-space: nowrap; } .db .dv b { color: var(--ink); font-weight: 650; }
+.db .dt { grid-area: t; position: relative; height: 20px; }
+.db .dt::before { content: ''; position: absolute; inset-inline: 0; top: 9px; height: 2px; border-radius: 1px; background: #e6eaf0; }
+.db .dt .g50 { position: absolute; inset-inline-start: 50%; top: 4px; width: 1px; height: 12px; background: #d5dbe5; }
+.db .dt .seg { position: absolute; top: 8px; height: 4px; border-radius: 2px; background: var(--ink); opacity: .35; }
+.db .dt .p0, .db .dt .p1 { position: absolute; top: 4px; width: 12px; height: 12px; margin-inline-start: -6px; border-radius: 50%; }
+.db .dt .p0 { background: #fff; box-shadow: inset 0 0 0 2px #8a96aa; } .db .dt .p1 { background: var(--ink); box-shadow: 0 0 0 2px #fff; }
+.dbk { display: flex; gap: 14px; margin-top: 6px; font-size: 12px; } .dbk i { display: inline-block; width: 10px; height: 10px; margin-inline-end: 5px; border-radius: 50%; vertical-align: -1px; }
+.dbk .k0 { box-shadow: inset 0 0 0 2px #8a96aa; } .dbk .k1 { background: var(--ink); }
+.upd { color: #b45309; font-weight: 650; } .dnd { color: #1d4ed8; font-weight: 650; }
+.rf { margin-top: 0; }
+.soon .rh { margin-top: 8px; font-size: clamp(20px, 2.2vw, 26px); } .soon .rh .mute2 { font-size: 15px; font-weight: 500; margin-inline-start: 6px; }
+
+/* 이 화면의 작은 글자 · 오르내림 색은 흰 바탕 명암비 4.5:1 이상으로(회색 #8a96aa 2.99 → #64748b 4.76, 초록 3.39 → 5.35, 빨강 4.06 → 5.26) */
+.cal { --faint: #64748b; --up: #087a55; --down: #c43a2c; }
+.mxc:focus-visible, .tlc:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 6px; }
+
+/* 지금 미국 경제 */
+.ins { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); } .ins > * { min-width: 0; }
+.insh { margin-top: 8px; font-size: clamp(22px, 2.6vw, 32px); font-weight: 650; letter-spacing: -0.025em; line-height: 1.22; text-wrap: balance; }
+.ig { display: grid; gap: 28px 40px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 1000px) { .ig { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } }
+.ig > *, .ib > * { min-width: 0; }
+.it p { font-size: 15.5px; line-height: 1.7; color: var(--ink2); text-wrap: pretty; max-width: 68ch; } .it p + p { margin-top: 10px; } .it p:first-child { color: var(--ink); }
+.it h3 { margin-top: 22px; } .wl { list-style: none; padding: 0; display: grid; gap: 6px; }
+.wl li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; font-size: 14px; line-height: 1.5; } .wl li .mono { font-size: 12.5px; color: var(--primary); padding-top: 1px; }
+.rgm { margin: 0; } .rgc { display: block; width: 100%; height: 280px; } .rgm figcaption { margin-top: 8px; font-size: 12px; line-height: 1.5; }
+/* 지금 숫자: 큰 숫자 + 작은 설명 4칸(머큐리식 숫자 띠) */
+.kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border-radius: 14px; overflow: hidden; background: var(--line); box-shadow: 0 0 0 1px var(--line); }
+@media (min-width: 760px) { .kv { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.kv div { display: grid; gap: 4px; align-content: start; padding: 14px 16px; background: #fff; }
+.kv dt { font-size: 12.5px; color: var(--mute); } .kv dd { display: grid; gap: 2px; } .kv dd .mono { font-size: 24px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; } .kv dd .mute2 { font-size: 11.5px; }
+.pa .pac { display: block; width: 100%; height: 230px; }
+.ans { list-style: none; padding: 0; margin-top: 18px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 760px) { .ans { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* 닮은 과거: 색 띠 · 색 배경 없이(머큐리 · 스트라이프식 숫자 타일) — 차트 선 색은 이름 앞 짧은 선으로만 */
+.an { display: grid; gap: 10px; align-content: start; padding: 16px 18px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.anh { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; } .anh b { font-size: 14px; font-weight: 650; } .anh .mute2 { font-size: 12px; margin-inline-start: auto; }
+.anh .sw { width: 14px; height: 3px; border-radius: 2px; }
+.anv { display: grid; gap: 2px; } .anv b { font-size: 30px; font-weight: 400; letter-spacing: -0.03em; line-height: 1.1; } .anv span { font-size: 12px; color: var(--mute); }
+.anp { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 99px; background: #f1f3f7; font-size: 12px; font-weight: 500; color: var(--ink2); }
+.pl i { width: 6px; height: 6px; border-radius: 50%; background: #c3cad6; } .pl i.on { background: var(--down); } .pl b { font-weight: 600; }
+.ant { font-size: 11.5px; color: var(--mute); padding-top: 10px; border-top: 1px solid var(--line); }
+.ib { display: grid; gap: 32px 40px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 1000px) { .ib { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; } }
+.tl .tlc { display: block; width: 100%; height: 210px; touch-action: pan-y; cursor: crosshair; }
+.tlf { min-height: 20px; margin-top: 4px; font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.lgnd i.rc { height: 10px; background: rgba(13,37,61,.12); } .lgnd i.rr { height: 10px; background: rgba(83,58,253,.28); } .lgnd i.lc { height: 2px; background: var(--ink); } .lgnd i.lb { width: 10px; height: 10px; background: rgba(14,159,110,.5); }
+table.cmp { white-space: normal; } table.cmp td { white-space: nowrap; } table.cmp thead th { white-space: normal; vertical-align: bottom; } table.cmp thead th .mute2 { display: block; font-weight: 500; }
+table.cmp td b { display: block; margin: 0; } table.cmp td .mute2 { display: block; font-size: 11.5px; } table.cmp th[scope=row] { font-weight: 600; font-size: 12.5px; white-space: normal; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.fo { margin-top: 22px; } .foc { display: block; width: 100%; height: 170px; }
+.c3 .top { grid-template-columns: minmax(0, 1fr); } @media (min-width: 1100px) { .c3 .top { grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); } }
 </style>
 </head>
 <body class="pg-c3">
