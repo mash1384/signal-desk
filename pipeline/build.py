@@ -434,7 +434,8 @@ def page_daily(doc, prev, nxt, now):
             cats += ('<li><span>{n}</span><span class="bar" role="img" aria-label="{u} / {d}"><i class="u" style="width:{wu:.1f}%"></i><i class="dn" style="width:{wd:.1f}%"></i></span>'
                      '<span class="c"><span class="up">+{u}</span> / <span class="down">−{d}</span></span></li>').format(
                 n=L(DAILY_EN[k], name), u=u, d=d, wu=100 * u / (u + d), wd=100 * d / (u + d))
-    secs = " · ".join("%s <span class=\"up\">+%d</span>/<span class=\"down\">−%d</span>" % (L(h(SECTOR_EN.get(s, s)), h(judge_sector_name(s))), u, d)
+    sg = lambda v, c, sign: '<span class="%s">%s%d</span>' % (c, sign, v) if v else "0"
+    secs = " · ".join("%s %s/%s" % (L(h(SECTOR_EN.get(s, s)), h(judge_sector_name(s))), sg(u, "up", "+"), sg(d, "down", "−"))
                       for s, u, d in doc.get("sectors", [])[:5])
     mk = ""
     if m.get("btc"):
@@ -493,7 +494,7 @@ def page_daily(doc, prev, nxt, now):
   {sched}
   <p class="fn2">{note}</p>
   {pager}
-</div>""".format(B=B, brief=L("Brief", "정리"), label=L(label_en, label_ko), k=L("Daily recap · " + label_en, label_ko + " 하루 정리"),
+</div>""".format(B=B, brief=L("Brief", "정리"), label=L(label_en, label_ko), k=L("Daily recap", "하루 정리"),
                  range=L("%s – %s KST" % (util.kst(doc["start"]).strftime("%b %-d %H:%M"), util.kst(doc["end"]).strftime("%b %-d %H:%M")),
                          "한국 시간 %s ~ %s" % (util.kst(doc["start"]).strftime("%-m/%-d %H:%M"), util.kst(doc["end"]).strftime("%-m/%-d %H:%M"))),
                  head=h(doc["headline"]), partial=partial,
