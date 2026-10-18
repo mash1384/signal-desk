@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "at": {
+      "type": "number"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t0": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "t0",
+          "title",
+          "src",
+          "assets",
+          "url"
+        ],
+        "$comment": ""
+      }
+    }
+  },
+  "required": [
+    "at",
+    "items"
+  ],
+  "$comment": "web/assets/df/lk.js start, related, detailHTML",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://delfona.example/schemas/related"
+}

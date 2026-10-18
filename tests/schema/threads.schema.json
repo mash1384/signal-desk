@@ -1,0 +1,299 @@
+{
+  "type": "object",
+  "properties": {
+    "v": {
+      "type": "integer"
+    },
+    "made": {
+      "type": "number"
+    },
+    "next": {
+      "type": "number"
+    },
+    "daily_latest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "stories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "t": {
+            "type": "number"
+          },
+          "ko": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "v": {
+            "enum": [
+              "호재",
+              "악재",
+              "중립"
+            ]
+          },
+          "s": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "coins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mw": {
+            "type": "boolean"
+          },
+          "n": {
+            "type": "integer"
+          },
+          "link": {
+            "type": "string"
+          },
+          "th": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "t",
+          "ko",
+          "en",
+          "v",
+          "s",
+          "kind",
+          "coins",
+          "n"
+        ],
+        "$comment": "web/assets/df/lk.js pull, detailHTML; brk.js stripHTML, cardHTML"
+      }
+    },
+    "threads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "n": {
+            "type": "integer"
+          },
+          "first": {
+            "type": "number"
+          },
+          "last": {
+            "type": "number"
+          },
+          "days": {
+            "type": "integer"
+          },
+          "new24": {
+            "type": "integer"
+          },
+          "u": {
+            "type": "integer"
+          },
+          "d": {
+            "type": "integer"
+          },
+          "th": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ai": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "ko": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "so_far": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "s": {
+                              "type": "string"
+                            },
+                            "refs": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "s",
+                            "refs"
+                          ],
+                          "$comment": ""
+                        }
+                      },
+                      "today": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "s": {
+                                "type": "string"
+                              },
+                              "refs": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "s",
+                              "refs"
+                            ],
+                            "$comment": ""
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "so_far"
+                    ],
+                    "$comment": ""
+                  },
+                  "en": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "so_far": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "s": {
+                              "type": "string"
+                            },
+                            "refs": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "s",
+                            "refs"
+                          ],
+                          "$comment": ""
+                        }
+                      },
+                      "today": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "s": {
+                                "type": "string"
+                              },
+                              "refs": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "s",
+                              "refs"
+                            ],
+                            "$comment": ""
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "so_far"
+                    ],
+                    "$comment": ""
+                  }
+                },
+                "required": [
+                  "ko",
+                  "en"
+                ],
+                "$comment": ""
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "ids",
+          "n",
+          "first",
+          "last",
+          "days",
+          "new24",
+          "u",
+          "d",
+          "th"
+        ],
+        "$comment": ""
+      }
+    }
+  },
+  "required": [
+    "made",
+    "stories",
+    "threads"
+  ],
+  "$comment": "web/assets/df/brk.js loadThreads, stripHTML, axisOf, cardHTML",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://delfona.example/schemas/threads"
+}

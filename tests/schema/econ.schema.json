@@ -1,0 +1,528 @@
+{
+  "type": "object",
+  "properties": {
+    "v": {
+      "type": "integer"
+    },
+    "made": {
+      "type": "number"
+    },
+    "next": {
+      "type": "number"
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "k": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "ko": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "k",
+          "en",
+          "ko"
+        ],
+        "$comment": ""
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sym": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "ko": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sym",
+          "en",
+          "ko",
+          "kind"
+        ],
+        "$comment": ""
+      }
+    },
+    "horizons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "k": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "ko": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "grp": {
+            "type": "string"
+          },
+          "dec": {
+            "type": "integer"
+          },
+          "hot": {
+            "type": "number"
+          },
+          "latest": {
+            "type": "object",
+            "properties": {
+              "d": {
+                "type": "string"
+              },
+              "ts": {
+                "type": "number"
+              },
+              "period": {
+                "type": "string"
+              },
+              "v": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "prev": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "sub": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "fc": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "vs": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "d",
+              "ts",
+              "period",
+              "v",
+              "prev"
+            ],
+            "$comment": ""
+          },
+          "sit": {
+            "type": "object",
+            "properties": {
+              "dir": {
+                "type": "string"
+              },
+              "chg": {
+                "type": "number"
+              },
+              "trend": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "rank10y": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "vs_avg12": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "dir",
+              "chg",
+              "trend",
+              "rank10y",
+              "vs_avg12"
+            ],
+            "$comment": ""
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "d": {
+                  "type": "string"
+                },
+                "ts": {
+                  "type": "number"
+                },
+                "v": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "d",
+                "ts",
+                "v"
+              ],
+              "$comment": ""
+            }
+          },
+          "long": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "similar": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "stats": {
+            "type": "object"
+          },
+          "paths": {
+            "type": "object"
+          },
+          "ai": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "ko": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "en": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "ko",
+                  "en"
+                ],
+                "$comment": ""
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "disp": {
+            "type": "object",
+            "properties": {
+              "v": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "prev": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "chg": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "v",
+              "prev",
+              "chg"
+            ],
+            "$comment": ""
+          }
+        },
+        "required": [
+          "k",
+          "en",
+          "ko",
+          "unit",
+          "grp",
+          "dec",
+          "hot",
+          "latest",
+          "sit",
+          "rows",
+          "long",
+          "similar",
+          "stats",
+          "paths"
+        ],
+        "$comment": "web/assets/df/ck.js loadEcon, fv, overviewHTML, indicator cards/details"
+      }
+    },
+    "upcoming": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "number"
+          },
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "en": {
+            "type": "string"
+          },
+          "ko": {
+            "type": "string"
+          },
+          "impact": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "ts",
+          "keys",
+          "en",
+          "ko",
+          "impact"
+        ],
+        "$comment": ""
+      }
+    },
+    "regime": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "insight": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ko": {
+              "type": "object",
+              "properties": {
+                "head": {
+                  "type": "string"
+                },
+                "s": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "head",
+                "s"
+              ],
+              "$comment": ""
+            },
+            "en": {
+              "type": "object",
+              "properties": {
+                "head": {
+                  "type": "string"
+                },
+                "s": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "head",
+                "s"
+              ],
+              "$comment": ""
+            }
+          },
+          "required": [
+            "ko",
+            "en"
+          ],
+          "$comment": ""
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "overview": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ko": {
+              "type": "object",
+              "properties": {
+                "head": {
+                  "type": "string"
+                },
+                "s": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "head",
+                "s"
+              ],
+              "$comment": ""
+            },
+            "en": {
+              "type": "object",
+              "properties": {
+                "head": {
+                  "type": "string"
+                },
+                "s": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "head",
+                "s"
+              ],
+              "$comment": ""
+            }
+          },
+          "required": [
+            "ko",
+            "en"
+          ],
+          "$comment": ""
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "fomc": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "made",
+    "groups",
+    "assets",
+    "horizons",
+    "indicators",
+    "upcoming"
+  ],
+  "$comment": "web/assets/df/ck.js loadEcon, overviewHTML, nextEvent; ek.js regime and insight",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://delfona.example/schemas/econ"
+}

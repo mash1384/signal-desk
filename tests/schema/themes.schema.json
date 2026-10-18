@@ -1,0 +1,641 @@
+{
+  "type": "object",
+  "properties": {
+    "v": {
+      "type": "integer"
+    },
+    "made": {
+      "type": "number"
+    },
+    "next": {
+      "type": "number"
+    },
+    "themes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "k": {
+            "type": "string"
+          },
+          "n": {
+            "type": "integer"
+          },
+          "u": {
+            "type": "integer"
+          },
+          "d": {
+            "type": "integer"
+          },
+          "ko": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "s_ko": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "s_en": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "refs": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "hours": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "sectors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "mentions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "top": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "t": {
+                  "type": "number"
+                },
+                "ko": {
+                  "type": "string"
+                },
+                "en": {
+                  "type": "string"
+                },
+                "v": {
+                  "enum": [
+                    "호재",
+                    "악재",
+                    "중립"
+                  ]
+                },
+                "s": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "coins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "mw": {
+                  "type": "boolean"
+                },
+                "n": {
+                  "type": "integer"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "th": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "t",
+                "ko",
+                "en",
+                "v",
+                "s",
+                "kind",
+                "n"
+              ],
+              "$comment": "theme_brief.compact article rows omit coins; lk.js chips/detailHTML use (it.coins || [])"
+            }
+          },
+          "latest": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "t": {
+                  "type": "number"
+                },
+                "ko": {
+                  "type": "string"
+                },
+                "en": {
+                  "type": "string"
+                },
+                "v": {
+                  "enum": [
+                    "호재",
+                    "악재",
+                    "중립"
+                  ]
+                },
+                "s": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "coins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "mw": {
+                  "type": "boolean"
+                },
+                "n": {
+                  "type": "integer"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "th": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "t",
+                "ko",
+                "en",
+                "v",
+                "s",
+                "kind",
+                "n"
+              ],
+              "$comment": "theme_brief.compact article rows omit coins; lk.js chips/detailHTML use (it.coins || [])"
+            }
+          },
+          "more": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "t": {
+                  "type": "number"
+                },
+                "ko": {
+                  "type": "string"
+                },
+                "en": {
+                  "type": "string"
+                },
+                "v": {
+                  "enum": [
+                    "호재",
+                    "악재",
+                    "중립"
+                  ]
+                },
+                "s": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "coins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "mw": {
+                  "type": "boolean"
+                },
+                "n": {
+                  "type": "integer"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "th": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "t",
+                "ko",
+                "en",
+                "v",
+                "s",
+                "kind",
+                "n"
+              ],
+              "$comment": "theme_brief.compact article rows omit coins; lk.js chips/detailHTML use (it.coins || [])"
+            }
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "k",
+          "n",
+          "u",
+          "d",
+          "s_ko",
+          "s_en",
+          "hours",
+          "sectors",
+          "mentions",
+          "top",
+          "latest"
+        ],
+        "$comment": "web/assets/df/tk.js loadThemes, themeOf, loadAssets; t2.js summary and asset panels"
+      }
+    },
+    "themes_x": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "k": {
+            "type": "string"
+          },
+          "n": {
+            "type": "integer"
+          },
+          "u": {
+            "type": "integer"
+          },
+          "d": {
+            "type": "integer"
+          },
+          "ko": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "s_ko": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "s_en": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "refs": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "hours": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "sectors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "mentions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "top": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "t": {
+                  "type": "number"
+                },
+                "ko": {
+                  "type": "string"
+                },
+                "en": {
+                  "type": "string"
+                },
+                "v": {
+                  "enum": [
+                    "호재",
+                    "악재",
+                    "중립"
+                  ]
+                },
+                "s": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "coins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "mw": {
+                  "type": "boolean"
+                },
+                "n": {
+                  "type": "integer"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "th": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "t",
+                "ko",
+                "en",
+                "v",
+                "s",
+                "kind",
+                "n"
+              ],
+              "$comment": "theme_brief.compact article rows omit coins; lk.js chips/detailHTML use (it.coins || [])"
+            }
+          },
+          "latest": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "t": {
+                  "type": "number"
+                },
+                "ko": {
+                  "type": "string"
+                },
+                "en": {
+                  "type": "string"
+                },
+                "v": {
+                  "enum": [
+                    "호재",
+                    "악재",
+                    "중립"
+                  ]
+                },
+                "s": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "coins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "mw": {
+                  "type": "boolean"
+                },
+                "n": {
+                  "type": "integer"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "th": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "t",
+                "ko",
+                "en",
+                "v",
+                "s",
+                "kind",
+                "n"
+              ],
+              "$comment": "theme_brief.compact article rows omit coins; lk.js chips/detailHTML use (it.coins || [])"
+            }
+          },
+          "more": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "t": {
+                  "type": "number"
+                },
+                "ko": {
+                  "type": "string"
+                },
+                "en": {
+                  "type": "string"
+                },
+                "v": {
+                  "enum": [
+                    "호재",
+                    "악재",
+                    "중립"
+                  ]
+                },
+                "s": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "coins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "mw": {
+                  "type": "boolean"
+                },
+                "n": {
+                  "type": "integer"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "th": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "t",
+                "ko",
+                "en",
+                "v",
+                "s",
+                "kind",
+                "n"
+              ],
+              "$comment": "theme_brief.compact article rows omit coins; lk.js chips/detailHTML use (it.coins || [])"
+            }
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "k",
+          "n",
+          "u",
+          "d",
+          "s_ko",
+          "s_en",
+          "hours",
+          "sectors",
+          "mentions",
+          "top",
+          "latest"
+        ],
+        "$comment": "web/assets/df/tk.js loadThemes, themeOf, loadAssets; t2.js summary and asset panels"
+      }
+    },
+    "headline": {
+      "type": "object",
+      "properties": {
+        "ko": {
+          "type": "string"
+        },
+        "en": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ko",
+        "en"
+      ],
+      "$comment": ""
+    }
+  },
+  "required": [
+    "made",
+    "themes"
+  ],
+  "$comment": "web/assets/df/tk.js loadThemes and themeOf; globe.js load; yk.js headlines",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://delfona.example/schemas/themes"
+}

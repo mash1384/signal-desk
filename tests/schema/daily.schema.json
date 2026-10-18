@@ -1,0 +1,141 @@
+{
+  "type": "object",
+  "properties": {
+    "v": {
+      "type": "integer"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "made": {
+      "type": "number"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "review": {
+      "type": "string"
+    },
+    "insights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string"
+          },
+          "s": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "t",
+          "s"
+        ],
+        "$comment": ""
+      }
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "stories": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stories"
+      ],
+      "$comment": ""
+    },
+    "balance": {
+      "type": "object",
+      "properties": {
+        "호재": {
+          "type": "integer"
+        },
+        "악재": {
+          "type": "integer"
+        },
+        "중립": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "호재",
+        "악재",
+        "중립"
+      ],
+      "$comment": ""
+    },
+    "market": {
+      "type": "object",
+      "properties": {
+        "btc": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "chg": {
+                  "type": "number"
+                },
+                "close": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "chg",
+                "close"
+              ],
+              "$comment": ""
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "eth": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "chg": {
+                  "type": "number"
+                },
+                "close": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "chg",
+                "close"
+              ],
+              "$comment": ""
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "$comment": ""
+    },
+    "sections": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "date",
+    "made",
+    "headline",
+    "review",
+    "counts",
+    "balance",
+    "market",
+    "sections"
+  ],
+  "$comment": "web/assets/df/brk.js dailyHTML; yk.js dailyHTML; pipeline/build.py page_daily",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://delfona.example/schemas/daily"
+}

@@ -1,0 +1,352 @@
+{
+  "type": "object",
+  "properties": {
+    "v": {
+      "type": "integer"
+    },
+    "at": {
+      "type": "number"
+    },
+    "last_got": {
+      "type": "number"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "t": {
+            "type": "number"
+          },
+          "ko": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "v": {
+            "enum": [
+              "호재",
+              "악재",
+              "중립"
+            ]
+          },
+          "s": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "coins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mw": {
+            "type": "boolean"
+          },
+          "n": {
+            "type": "integer"
+          },
+          "link": {
+            "type": "string"
+          },
+          "th": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "t",
+          "ko",
+          "en",
+          "v",
+          "s",
+          "kind",
+          "coins",
+          "n",
+          "id",
+          "sectors",
+          "mw",
+          "link"
+        ],
+        "$comment": "web/assets/df/lk.js pull, detailHTML; brk.js stripHTML, cardHTML"
+      }
+    },
+    "release": {
+      "type": "object",
+      "properties": {
+        "made": {
+          "type": "number"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ts": {
+                "type": "number"
+              },
+              "ko": {
+                "type": "string"
+              },
+              "en": {
+                "type": "string"
+              },
+              "values": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "disp": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "disp_prev": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "v": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "prev": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "fc": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "vs": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "disp",
+                    "disp_prev"
+                  ],
+                  "$comment": ""
+                }
+              },
+              "ai": {
+                "type": "object",
+                "properties": {
+                  "ko": {
+                    "type": "object",
+                    "properties": {
+                      "head": {
+                        "type": "string"
+                      },
+                      "s": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "next": {
+                        "type": "string"
+                      },
+                      "by": {
+                        "type": "string"
+                      },
+                      "checked": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "head",
+                      "s",
+                      "by"
+                    ],
+                    "$comment": ""
+                  },
+                  "en": {
+                    "type": "object",
+                    "properties": {
+                      "head": {
+                        "type": "string"
+                      },
+                      "s": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "next": {
+                        "type": "string"
+                      },
+                      "by": {
+                        "type": "string"
+                      },
+                      "checked": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "head",
+                      "s",
+                      "by"
+                    ],
+                    "$comment": ""
+                  }
+                },
+                "required": [
+                  "ko",
+                  "en"
+                ],
+                "$comment": ""
+              },
+              "market": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "ko": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    },
+                    "pts": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "d60": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ko",
+                    "en"
+                  ],
+                  "$comment": ""
+                }
+              },
+              "odds": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "rows": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "ko": {
+                              "type": "string"
+                            },
+                            "en": {
+                              "type": "string"
+                            },
+                            "before": {
+                              "type": "number"
+                            },
+                            "after": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "ko",
+                            "en",
+                            "before",
+                            "after"
+                          ],
+                          "$comment": ""
+                        }
+                      }
+                    },
+                    "required": [
+                      "rows"
+                    ],
+                    "$comment": ""
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "ts",
+              "ko",
+              "en",
+              "values",
+              "ai"
+            ],
+            "$comment": "web/assets/df/ek.js loadRelease, recent, releaseHTML"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "$comment": ""
+    }
+  },
+  "required": [
+    "at",
+    "items"
+  ],
+  "$comment": "web/assets/df/data.js flash; lk.js pull; ek.js d.release.items is optional",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://delfona.example/schemas/flash"
+}

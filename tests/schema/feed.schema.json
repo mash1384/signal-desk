@@ -1,0 +1,121 @@
+{
+  "type": "object",
+  "properties": {
+    "at": {
+      "type": "number"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "t0": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "lang": {
+            "type": "string"
+          },
+          "cat": {
+            "type": "string"
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "imp": {
+            "type": "integer"
+          },
+          "etype": {
+            "type": "string"
+          },
+          "sum": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ex": {
+            "type": "string"
+          },
+          "llm": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": "string"
+          },
+          "st": {
+            "type": "string"
+          },
+          "h": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rx": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ai": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "t0",
+          "title",
+          "src",
+          "lang",
+          "cat",
+          "assets",
+          "imp",
+          "etype",
+          "sum",
+          "ex",
+          "llm",
+          "url",
+          "st",
+          "h",
+          "rx",
+          "ai"
+        ],
+        "$comment": ""
+      }
+    }
+  },
+  "required": [
+    "at",
+    "items"
+  ],
+  "$comment": "pipeline/build.py feed_item; web/assets/app.js feed consumers (legacy); public contract retained",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://delfona.example/schemas/feed"
+}
