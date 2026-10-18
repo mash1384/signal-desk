@@ -5,3 +5,7 @@ __pycache__/
 screenshots/
 .DS_Store
 render/out/
+.qa/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
