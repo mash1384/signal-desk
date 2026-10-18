@@ -1,5 +1,5 @@
 // 테마 화면 공통: 크립토 · 나스닥 · 경제 · AI 한 테마를 깊게. 랜딩 지구 장면의 '상세판'.
-// 자료: themes.json(3시간마다 Mac 에서 — AI 요약 6문장, 1시간 단위 호재·악재, 섹터, 주요·최근 소식, 자산 언급, 문장별 근거 소식)
+// 자료: themes.json(6시간마다 Mac 에서 — AI 요약 5문장, 1시간 단위 호재·악재, 섹터, 주요·최근 소식, 자산 언급, 문장별 근거 소식)
 //       시세 — 코인은 바이낸스, 주식·지수 선물·금리·달러·원자재는 우리 Worker /quotes(야후). 숫자는 모두 프로그램이 센 것, 문장만 AI.
 import { T, L, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, store, pxChip, fillPx, PRICED_ALL } from './lk.js';
 export const THEME_KEYS = ['crypto', 'nasdaq', 'econ', 'ai', 'world'];

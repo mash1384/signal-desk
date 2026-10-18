@@ -143,7 +143,7 @@ export function dailyHTML(dy) {
   if (!dy) return '';
   const b = dy.balance || {}, m = dy.market || {};
   return `<p class="k">${T('Latest daily brief', '최근 하루 정리')} <span>· ${esc(dy.date)}</span></p>
-    ${L() ? `<h3>${esc(dy.headline || '')}</h3><p class="rv">${esc(dy.review || '')}</p>` : `<h3>${T('Daily brief', '하루 정리')} · ${esc(dy.date)}</h3><p class="rv">${T('The written summary is in Korean for now.', '')}</p>`}
+    ${L() ? `<h3>${esc(dy.headline || '')}</h3>${(dy.insights || []).length ? `<ol class="dins">${dy.insights.slice(0, 3).map((x) => `<li><b>${esc(x.t)}</b><span>${esc(x.s)}</span></li>`).join('')}</ol>` : `<p class="rv">${esc(dy.review || '')}</p>`}` : `<h3>${T('Daily brief', '하루 정리')} · ${esc(dy.date)}</h3><p class="rv">${T('The written summary is in Korean for now.', '')}</p>`}
     <p class="nums"><span><b class="mono">${(dy.counts || {}).stories || 0}</b> ${T('stories', '건')}</span><span class="u"><b class="mono">${b['호재'] || 0}</b> ${T('bullish', '호재')}</span><span class="dn"><b class="mono">${b['악재'] || 0}</b> ${T('bearish', '악재')}</span>${m.btc ? `<span>BTC <b class="mono ${m.btc.chg >= 0 ? 'u' : 'dn'}">${m.btc.chg >= 0 ? '+' : ''}${m.btc.chg.toFixed(2)}%</b></span>` : ''}</p>
     <a class="more" href="${window.DF_ROOT || '../../'}daily/${esc(dy.date)}/">${T('Read the full daily brief', '하루 정리 전체 보기')} →</a>`;
 }

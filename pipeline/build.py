@@ -194,7 +194,7 @@ THEME_PAGES = {
 
 def page_themes_df(k):
     """테마(Delfona T2 · 대시보드): 자산 띠, 24시간 흐름, 섹터, '오늘 무엇이 달라졌나', 주요 소식. 정적 틀(web/df_themes.html).
-    자료는 브라우저가 themes.json(Mac 이 3시간마다) · Binance · Worker /market 에서 받는다."""
+    자료는 브라우저가 themes.json(Mac 이 6시간마다) · Binance · Worker /market 에서 받는다."""
     with open(os.path.join(WEB, "df_themes.html"), encoding="utf-8") as f:
         tpl = f.read()
     title, desc = THEME_PAGES[k]
@@ -478,6 +478,7 @@ def page_daily(doc, prev, nxt, now):
   </header>
   <p class="enonly" data-l="en">This daily recap is written in Korean by a local AI model. Menus and labels switch with the language button.</p>
   {partial}
+  {insights}
   {review}
   <div class="grid2">
     <section class="box2"><h2>{bt}</h2>
@@ -499,6 +500,10 @@ def page_daily(doc, prev, nxt, now):
                          "한국 시간 %s ~ %s" % (util.kst(doc["start"]).strftime("%-m/%-d %H:%M"), util.kst(doc["end"]).strftime("%-m/%-d %H:%M"))),
                  head=h(doc["headline"]), partial=partial,
                  review=('<section class="box2"><h2>%s</h2><p class="rv" lang="ko">%s</p></section>' % (L("AI review", "AI 리뷰"), h(doc["review"]))) if doc.get("review") else "",
+                 insights=('<section class="ins2" aria-label="%s"><h2>%s <span>%s</span></h2><ol>%s</ol></section>' % (
+                     h("Insights"), L("Three things that mattered", "그날의 핵심 3가지"), L("AI (DeepSeek) · checked against the source stories", "AI(DeepSeek) · 원문 소식과 대조 확인"),
+                     "".join('<li><span class="n mono">%d</span><b lang="ko">%s</b><p lang="ko">%s</p></li>' % (i + 1, h(x.get("t", "")), h(x.get("s", ""))) for i, x in enumerate(doc["insights"][:3]))))
+                 if doc.get("insights") else "",
                  bt=L("Bullish vs bearish", "호재 vs 악재"), lu=L("Bullish", "호재"), ld=L("Bearish", "악재"), ln=L("Neutral", "중립"),
                  u=b["호재"], d=b["악재"], nn=b.get("중립", 0), wu=100 * b["호재"] / tot, wd=100 * b["악재"] / tot, cats=cats,
                  secs=('<p class="mv2">%s %s</p>' % (L("Sectors", "섹터"), secs)) if secs else "",
