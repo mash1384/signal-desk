@@ -348,11 +348,11 @@ def page_article(a, rel, now):
             L("Summary", "요약"), "".join("<li>%s</li>" % h(s) for s in a["summary"]),
             L("Written by AI from the headline and excerpt only. Check the original for details.", "AI가 원문 제목·발췌만 보고 썼어요. 정확한 내용은 원문을 확인하세요."))
     elif a.get("excerpt"):
-        lead = '<section class="box2"><h2>%s</h2><p class="quote2" lang="%s">%s</p><p class="fn2">%s</p></section>' % (
-            L("From the source", "원문 발췌"), lang, h(a["excerpt"]),
+        lead = '<section class="box2"><h2>%s</h2><p class="quote2" lang="%s">%s</p><p class="fn2" data-source-name="%s">%s</p></section>' % (
+            L("From the source", "원문 발췌"), lang, h(a["excerpt"]), src,
             L("A short excerpt only — the full story is at %s." % src, "짧은 발췌만 실었어요. 전체 기사는 %s에서 볼 수 있어요." % src))
     else:
-        lead = '<p class="fn2">%s</p>' % L("No excerpt yet — read the story at %s." % src, "아직 발췌가 없어요. %s에서 기사를 확인하세요." % src)
+        lead = '<p class="fn2" data-source-name="%s">%s</p>' % (src, L("No excerpt yet — read the story at %s." % src, "아직 발췌가 없어요. %s에서 기사를 확인하세요." % src))
     orig = '<p class="orig" lang="%s">%s</p>' % (lang, h(a["title_orig"])) if a.get("title_orig") and a["title_orig"] != a["title"] else ""
     ai = a.get("ai")
     verdict = ""
@@ -373,18 +373,18 @@ def page_article(a, rel, now):
               "%s %s 뒤: %s%s%s" % (h(hd["asset"]), WIN_KO.get(hd["win"], h(hd["win"])), "시장 대비 " if hd.get("adj") else "", val, g_ko)),
             L("Measured from the story's time. Other things may have happened at the same time — this doesn't mean the story moved the price.",
               "소식 시각부터 잰 값이에요. 같은 시간에 다른 일이 겹쳤을 수 있고, 소식이 가격을 움직였다는 뜻은 아니에요."))
-    rows = "".join('<li><a href="%s"><b lang="%s">%s</b><span>%s · %s</span></a></li>' % (article_path(r), r.get("lang") or "ko", h(r["title"]), h(r["source_name"]), ts_html(r["t0"]))
+    rows = "".join('<li><a href="%s"><b lang="%s">%s</b><span data-source-name="%s">%s · %s</span></a></li>' % (article_path(r), r.get("lang") or "ko", h(r["title"]), h(r["source_name"]), h(r["source_name"]), ts_html(r["t0"]))
                    for r in rel)
     related_html = ('<section class="box2"><h2>%s</h2><ul class="rl">%s</ul></section>' % (L("Related stories", "관련 소식"), rows)) if rows else ""
     body = """<div class="wrap st">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="{B}live/">{live}</a><span aria-hidden="true">/</span><span>{cat}</span></nav>
   <header>
-    <div class="meta"><span class="tag">{cat}</span><span>{src}</span>{when}</div>
+    <div class="meta"><span class="tag">{cat}</span><span data-source-name="{src}">{src}</span>{when}</div>
     <h1 lang="{lang}">{title}</h1>
     {orig}
   </header>
   {lead}
-  <div class="acts"><a class="btn2 p" href="{url}" target="_blank" rel="noopener nofollow">{read} ↗</a><button class="btn2 g" type="button" data-copy><span class="lb">{copy}</span><span class="ok" role="status">{copied}</span></button></div>
+  <div class="acts"><a class="btn2 p" data-source-name="{src}" href="{url}" target="_blank" rel="noopener nofollow">{read} ↗</a><button class="btn2 g" type="button" data-copy><span class="lb">{copy}</span><span class="ok" role="status">{copied}</span></button></div>
   {verdict}
   {move}
   {related}
