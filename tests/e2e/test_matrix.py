@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from urllib.parse import urlsplit
 from tests.e2e.conftest import axe_script
+from tests.e2e.contrast import ratios, regressions
 
 # From template and render functions: r3.js, y2.js, t2.js, br2.js, c3.js,
 # df_landing.html, pipeline/build.py page_daily/page_about.
@@ -111,9 +112,10 @@ def test_page(case, session_page, qa, site_server, request):
     # 무한 반복 애니메이션(라이브 점 등)은 끝나지 않으므로 기다리지 않는다
     page.evaluate("""() => Promise.race([Promise.all(document.getAnimations().filter((a) => { const t = a.effect && a.effect.getComputedTiming(); return t && isFinite(t.endTime); }).map((a) => a.finished.catch(() => null))), new Promise((r) => setTimeout(r, 4000))])""")
     page.add_script_tag(path=axe_script(offline))
-    result = page.evaluate("""async () => { const r = await axe.run(document, {runOnly: {type:'tag', values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}); return {violations:r.violations.map(v=>({id:v.id,impact:v.impact,help:v.help,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))})), incomplete:r.incomplete.map(v=>v.id)}; }""")
+    result = page.evaluate("""async () => { const r = await axe.run(document, {runOnly: {type:'tag', values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}); const pack = vs => vs.map(v=>({id:v.id,impact:v.impact,help:v.help,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary,checks:[...n.any,...n.all,...n.none]}))})); return {violations:pack(r.violations), incomplete:pack(r.incomplete), passes:pack(r.passes)}; }""")
     row["axe_details"] = result["violations"]
     row["axe_incomplete"] = result["incomplete"]
+    row["contrast"] = ratios(result)
     row["axe"] = sorted(v["id"] + "|" + json.dumps(n["target"], sort_keys=True) for v in result["violations"] for n in v["nodes"])
     if offline.unmapped:
         row["errors"].append({"kind": "fixture-missing", "urls": offline.unmapped})
@@ -121,6 +123,14 @@ def test_page(case, session_page, qa, site_server, request):
     if not qa["capture"]:
         assert key in qa["baseline"]["axe"], "case missing from accessibility baseline"
         new = set(row["axe"]) - set(qa["baseline"]["axe"][key])
+        if "contrast" in qa["baseline"]:
+            expected = qa["baseline"]["contrast"][key]
+            tolerance = qa["baseline"]["contrast_measurement"]["tolerance"]
+            row["errors"].extend(regressions(expected, row["contrast"], tolerance))
+            incomplete = {v["id"] + "|" + json.dumps(n["target"], sort_keys=True) for v in result["incomplete"] for n in v["nodes"]}
+            missing = (set(expected) & incomplete) - row["contrast"].keys()
+            if missing:
+                row["errors"].append({"kind": "contrast-unmeasurable", "nodes": sorted(missing)})
         if new:
             row["errors"].append({"kind": "new-accessibility", "violations": sorted(new)})
         if row["bytes"] > qa["baseline"]["budget_bytes"][name]:
