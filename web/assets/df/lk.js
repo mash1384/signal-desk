@@ -209,10 +209,14 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2 } = {}) {
   let i0 = data.findIndex((d) => d.time >= tStory + off); const hasAfter = i0 >= 0; if (!hasAfter) i0 = data.length - 1;
   const base = data[i0].value;
   const pre = chart.addLineSeries({ color: '#b8c1ce', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: true });
-  pre.setData(data.slice(0, i0 + 1));
+  // '소식' 표시가 그래프 왼쪽 · 오른쪽 끝에 붙으면 글자가 잘린다 → 그쪽에 빈 칸(값 없는 시각)을 조금 둔다
+  const step = data.length > 1 ? Math.max(1, data[1].time - data[0].time) : 60, padN = Math.ceil(data.length * 0.07) + 2;
+  const padL = i0 < padN ? Array.from({ length: padN - i0 }, (_, k) => ({ time: data[0].time - (padN - i0 - k) * step })) : [];
+  const padR = hasAfter && data.length - 1 - i0 < padN ? Array.from({ length: padN - (data.length - 1 - i0) }, (_, k) => ({ time: data[data.length - 1].time + (k + 1) * step })) : [];
+  pre.setData([...padL, ...data.slice(0, i0 + 1)]);
   const post = chart.addBaselineSeries({ baseValue: { type: 'price', price: base }, topLineColor: '#12b07c', topFillColor1: 'rgba(18,176,124,.22)', topFillColor2: 'rgba(18,176,124,.02)',
     bottomLineColor: '#e5533f', bottomFillColor1: 'rgba(229,83,63,.02)', bottomFillColor2: 'rgba(229,83,63,.22)', lineWidth: 2, priceLineVisible: false });
-  if (hasAfter) { post.setData(data.slice(i0)); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: '#0d253d', shape: 'arrowDown', text: T('story', '소식') }]);
+  if (hasAfter) { post.setData([...data.slice(i0), ...padR]); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: '#0d253d', shape: 'arrowDown', text: T('story', '소식') }]);
     post.createPriceLine({ price: base, color: 'rgba(13,37,61,.35)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); }
   chart.timeScale().fitContent();
   // 범례 시각: 오늘이면 시:분만(좁은 화면에서 '소식 대비'가 잘리지 않게)
