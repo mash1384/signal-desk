@@ -4,6 +4,7 @@ import math
 import os
 from pathlib import Path
 import time
+from urllib.parse import urlsplit
 import pytest
 from playwright.sync_api import sync_playwright
 from tests.e2e.server import serve
@@ -45,7 +46,7 @@ def qa(request):
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(json.dumps({k: v for k, v in state.items() if k != "baseline"}, ensure_ascii=False, indent=2) + "\n")
     if capture:
-        if len(state["cases"]) != 48 or any(r.get("incomplete") for r in state["cases"]):
+        if len(state["cases"]) != 48 or any(r.get("incomplete") or r.get("errors") for r in state["cases"]):
             pytest.fail("incomplete matrix: refusing to create a baseline")
         measured = {p: max(r["bytes"] for r in state["cases"] if r["page"] == p) for p in PAGES}
         data = {"measured_bytes": measured, "budget_bytes": {p: math.ceil(v * 1.15) for p, v in measured.items()}, "axe": {r["key"]: r["axe"] for r in state["cases"]}, "measurement": "cold browser; local HTTP response bytes + mocked external response bytes; no production compression or live prices", "axe_version": "4.10.3"}
@@ -74,10 +75,26 @@ def session_page(browser, site_server, request):
     offline = Offline(request.config.getoption("--site"), request.config.getoption("--flash"), site_server)
     context.route("**/*", offline.handle)
     page = context.new_page()
+    failures, warnings = [], []
+
+    def our_response(response):
+        if response.status < 400:
+            return
+        url = urlsplit(response.url)
+        own = url.netloc == urlsplit(site_server).netloc or (url.hostname == "mash1384.github.io" and url.path.startswith("/signal-desk/"))
+        (failures if own else warnings).append({"status": response.status, "url": response.url})
+
+    page.on("response", our_response)
+    page.on("pageerror", lambda error: failures.append({"pageerror": str(error)}))
     page.clock.set_fixed_time(dt.datetime.fromtimestamp(offline.now, dt.timezone.utc))
     page.set_default_timeout(12000)
     yield page, context, offline
-    context.close()
+    try:
+        print("session external warnings", json.dumps(warnings))
+        assert not failures, failures
+        assert not offline.unmapped, offline.unmapped
+    finally:
+        context.close()
 
 
 def axe_script(offline):

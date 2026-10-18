@@ -115,7 +115,7 @@
     "at",
     "items"
   ],
-  "$comment": "pipeline/build.py feed_item; web/assets/app.js feed consumers (legacy); public contract retained",
+  "$comment": "pipeline/build.py feed_item public build contract; current df consumers fetch related.json rather than feed.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://delfona.example/schemas/feed"
 }

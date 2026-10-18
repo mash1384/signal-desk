@@ -29,4 +29,3 @@ def repository_modules():
         assert Path(module.__file__).resolve().parent == ROOT / "tools", name
     # story_threads prepends its installation directory even at import time.
     sys.path[:] = [p for p in sys.path if Path(p).resolve() != Path.home() / ".signal"]
-

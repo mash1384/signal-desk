@@ -53,10 +53,14 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install test tools
+        run: python -m pip install --quiet -r tests/requirements.txt
+
+      - name: Ruff (existing findings must be resolved before deployment)
+        run: python -m ruff check --select F,E9,B pipeline tools tests
+
       - name: Unit tests
-        run: |
-          python -m pip install --quiet -r tests/requirements.txt
-          python -m tests.run_unit
+        run: python -m tests.run_unit
 
       - name: Install optional packages
         env:
