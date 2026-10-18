@@ -272,7 +272,7 @@ def main(argv=None):
     if prev_og and os.path.isdir(prev_og):
         os.makedirs(os.path.join(out, "og"), exist_ok=True)
         for f in os.listdir(prev_og):
-            if f in ("default.jpg", "brief.jpg") or f[:-4] in keep_ids:
+            if f in ("default.jpg", "brief.jpg") or f.startswith("default-v") or f[:-4] in keep_ids:
                 shutil.copy2(os.path.join(prev_og, f), os.path.join(out, "og", f))
     if not args.no_images:
         cam = og.Camera()
