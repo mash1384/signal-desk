@@ -1,0 +1,100 @@
+{
+  "at": 1792342109,
+  "items": [
+    {
+      "id": "fixture",
+      "t": 1792342109,
+      "ko": "회사가 발표했다",
+      "en": "The company announced results",
+      "v": "중립",
+      "s": 1,
+      "kind": "event",
+      "coins": [
+        "BTC"
+      ],
+      "sectors": [],
+      "mw": false,
+      "n": 1,
+      "link": "https://example.org/news"
+    }
+  ],
+  "release": {
+    "made": 1792342109,
+    "items": [
+      {
+        "id": "review-cpi",
+        "ts": 1792334909,
+        "updated": 1792342109,
+        "ko": "소비자물가 발표",
+        "en": "CPI release",
+        "values": {
+          "cpi": {
+            "v": 3.7,
+            "prev": 3.6,
+            "fc": "3.6%",
+            "vs": "above",
+            "disp": [
+              "3.7%",
+              "3.7%"
+            ],
+            "disp_prev": [
+              "3.6%",
+              "3.6%"
+            ]
+          }
+        },
+        "ai": {
+          "ko": {
+            "head": "물가가 발표됐어요",
+            "s": [
+              "소비자물가는 3.7%로 발표됐어요."
+            ],
+            "by": "program"
+          },
+          "en": {
+            "head": "CPI released",
+            "s": [
+              "CPI came in at 3.7%."
+            ],
+            "by": "program"
+          }
+        },
+        "market": {
+          "BTC": {
+            "ko": "비트코인",
+            "en": "Bitcoin",
+            "base": 100,
+            "pts": [
+              [
+                1792333109,
+                99
+              ],
+              [
+                1792334849,
+                100
+              ],
+              [
+                1792334909,
+                100.1
+              ],
+              [
+                1792335809,
+                100.4
+              ],
+              [
+                1792338509,
+                101.2
+              ],
+              [
+                1792340309,
+                101.5
+              ]
+            ],
+            "d15": 0.4,
+            "d60": 1.2
+          }
+        }
+      }
+    ]
+  }
+}

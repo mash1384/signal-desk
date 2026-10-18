@@ -386,7 +386,661 @@
     "regime": {
       "anyOf": [
         {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "current": {
+              "type": "object",
+              "properties": {
+                "ym": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])$"
+                },
+                "q": {
+                  "enum": [
+                    "hot",
+                    "stag",
+                    "gold",
+                    "slow"
+                  ]
+                },
+                "cpi": {
+                  "type": "number"
+                },
+                "dcpi": {
+                  "type": "number"
+                },
+                "nfp3": {
+                  "type": "number"
+                },
+                "nfp3p": {
+                  "type": "number"
+                },
+                "ff": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "q",
+                "cpi",
+                "dcpi",
+                "nfp3",
+                "nfp3p"
+              ],
+              "$comment": "ek.js insightHTML directly formats cpi and momentum; ff has a null fallback"
+            },
+            "quads": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "k": {
+                    "enum": [
+                      "hot",
+                      "stag",
+                      "gold",
+                      "slow"
+                    ]
+                  },
+                  "ko": {
+                    "type": "string"
+                  },
+                  "en": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "k",
+                  "ko",
+                  "en"
+                ],
+                "$comment": ""
+              }
+            },
+            "months": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])$"
+                  },
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "hot",
+                          "stag",
+                          "gold",
+                          "slow"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  {
+                    "enum": [
+                      0,
+                      1
+                    ]
+                  },
+                  {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                ],
+                "items": false,
+                "minItems": 7,
+                "maxItems": 7
+              },
+              "minItems": 1,
+              "contains": {
+                "prefixItems": [
+                  {},
+                  {},
+                  {},
+                  {
+                    "type": "number"
+                  }
+                ],
+                "minItems": 4
+              }
+            },
+            "analogs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "ym": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])$"
+                  },
+                  "q": {
+                    "enum": [
+                      "hot",
+                      "stag",
+                      "gold",
+                      "slow"
+                    ]
+                  },
+                  "cpi": {
+                    "type": "number"
+                  },
+                  "nfp3": {
+                    "type": "number"
+                  },
+                  "un": {
+                    "type": "number"
+                  },
+                  "after": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "spx": {
+                            "type": "number"
+                          },
+                          "ff": {
+                            "type": "number"
+                          },
+                          "rec": {
+                            "enum": [
+                              0,
+                              1
+                            ]
+                          }
+                        },
+                        "required": [
+                          "spx",
+                          "ff",
+                          "rec"
+                        ],
+                        "$comment": "ek.js insightHTML analog after: pctS(spx), ff / 100, rec"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "ym",
+                  "q",
+                  "cpi",
+                  "nfp3",
+                  "un"
+                ],
+                "$comment": ""
+              }
+            },
+            "paths": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "analogs": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 13,
+                        "maxItems": 13
+                      }
+                    },
+                    "like": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "integer"
+                            },
+                            "p25": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 13,
+                              "maxItems": 13
+                            },
+                            "p50": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 13,
+                              "maxItems": 13
+                            },
+                            "p75": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 13,
+                              "maxItems": 13
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "p25",
+                            "p50",
+                            "p75"
+                          ],
+                          "$comment": ""
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "typical": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "integer"
+                            },
+                            "p25": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 13,
+                              "maxItems": 13
+                            },
+                            "p50": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 13,
+                              "maxItems": 13
+                            },
+                            "p75": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 13,
+                              "maxItems": 13
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "p25",
+                            "p50",
+                            "p75"
+                          ],
+                          "$comment": ""
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "analogs"
+                  ],
+                  "$comment": ""
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "rare": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "episodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "from": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])$"
+                          },
+                          "to": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])$"
+                          }
+                        },
+                        "required": [
+                          "from",
+                          "to"
+                        ],
+                        "$comment": ""
+                      }
+                    },
+                    "after": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "integer"
+                            },
+                            "rec": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "spx": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "med": {
+                                      "type": "number"
+                                    },
+                                    "up": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    },
+                                    "n": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "required": [
+                                    "med",
+                                    "up",
+                                    "n"
+                                  ],
+                                  "$comment": ""
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "y10": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "med": {
+                                      "type": "number"
+                                    },
+                                    "up": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    },
+                                    "n": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "required": [
+                                    "med",
+                                    "up",
+                                    "n"
+                                  ],
+                                  "$comment": ""
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "ff": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "med": {
+                                      "type": "number"
+                                    },
+                                    "up": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    },
+                                    "n": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "required": [
+                                    "med",
+                                    "up",
+                                    "n"
+                                  ],
+                                  "$comment": ""
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "cpi": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "med": {
+                                      "type": "number"
+                                    },
+                                    "up": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    },
+                                    "n": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "required": [
+                                    "med",
+                                    "up",
+                                    "n"
+                                  ],
+                                  "$comment": ""
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "rec"
+                          ],
+                          "$comment": "ek.js table checks individual stats before rendering"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [],
+                  "$comment": ""
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "after_all": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "n": {
+                      "type": "integer"
+                    },
+                    "rec": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "spx": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "med": {
+                              "type": "number"
+                            },
+                            "up": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "n": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "med",
+                            "up",
+                            "n"
+                          ],
+                          "$comment": ""
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "y10": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "med": {
+                              "type": "number"
+                            },
+                            "up": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "n": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "med",
+                            "up",
+                            "n"
+                          ],
+                          "$comment": ""
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "ff": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "med": {
+                              "type": "number"
+                            },
+                            "up": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "n": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "med",
+                            "up",
+                            "n"
+                          ],
+                          "$comment": ""
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "cpi": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "med": {
+                              "type": "number"
+                            },
+                            "up": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "n": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "med",
+                            "up",
+                            "n"
+                          ],
+                          "$comment": ""
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "n",
+                    "rec"
+                  ],
+                  "$comment": "ek.js table checks individual stats before rendering"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "current",
+            "quads",
+            "months"
+          ],
+          "$comment": "ek.js insightHTML/drawRegime/drawTimeline require current/quads/months. Historical null values are filtered; at least one numeric CPI is needed for ms[n-1]. Optional analogs/paths/rare have explicit JS fallbacks; present internals are strict. drawPaths accesses all 13 monthly samples."
         },
         {
           "type": "null"
@@ -398,6 +1052,9 @@
         {
           "type": "object",
           "properties": {
+            "at": {
+              "type": "number"
+            },
             "ko": {
               "type": "object",
               "properties": {
@@ -438,10 +1095,11 @@
             }
           },
           "required": [
+            "at",
             "ko",
             "en"
           ],
-          "$comment": ""
+          "$comment": "ek.js insightHTML formats insight.at as a date"
         },
         {
           "type": "null"
@@ -506,7 +1164,104 @@
     "fomc": {
       "anyOf": [
         {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "now": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "outcomes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "k": {
+                            "type": "string"
+                          },
+                          "p": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "ko": {
+                            "type": "string"
+                          },
+                          "en": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "k",
+                          "p",
+                          "ko",
+                          "en"
+                        ],
+                        "$comment": ""
+                      }
+                    }
+                  },
+                  "required": [
+                    "outcomes"
+                  ],
+                  "$comment": ""
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "days": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            }
+          },
+          "required": [],
+          "$comment": "ek.js insightHTML and drawFomc: now can be absent/null; outcomes are filtered with (p || 0); days indexed by outcome k",
+          "allOf": [
+            {
+              "if": {
+                "required": [
+                  "now"
+                ],
+                "properties": {
+                  "now": {
+                    "type": "object"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "days"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "null"

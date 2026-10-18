@@ -255,14 +255,32 @@
                     "en": {
                       "type": "string"
                     },
+                    "base": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
                     "pts": {
                       "type": "array",
                       "items": {
                         "type": "array",
-                        "items": {
-                          "type": "number"
-                        }
+                        "prefixItems": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 2,
+                        "maxItems": 2
                       }
+                    },
+                    "d15": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
                     },
                     "d60": {
                       "type": [
@@ -273,9 +291,11 @@
                   },
                   "required": [
                     "ko",
-                    "en"
+                    "en",
+                    "base",
+                    "pts"
                   ],
-                  "$comment": ""
+                  "$comment": "tools/release_watch.py reaction emits base and pairs; ek.js drawRelease maps pts and divides by base; short series are explicitly filtered"
                 }
               },
               "odds": {
