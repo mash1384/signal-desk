@@ -120,7 +120,7 @@ export function openSheet(it) {
   const sh = document.getElementById('sheet'), det = document.getElementById('det'); det.innerHTML = detailHTML(it); sh.classList.add('on'); sh.setAttribute('aria-hidden', 'false'); fillRx(it, det);
   sh.querySelectorAll('[data-close]').forEach((b) => (b.onclick = () => { sh.classList.remove('on'); sh.setAttribute('aria-hidden', 'true'); }));
 }
-addEventListener('keydown', (e) => { if (e.key === 'Escape') { const sh = document.getElementById('sheet'); sh && sh.classList.remove('on'); } });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { const sh = document.getElementById('sheet'); if (sh) { sh.classList.remove('on'); sh.setAttribute('aria-hidden', 'true'); } } });
 
 // ---------- 필터 막대 ----------
 export function segHTML(cur, xs) {

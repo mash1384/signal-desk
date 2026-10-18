@@ -7,7 +7,6 @@
 받은 응답은 /tmp/signal-backfill-cache.json 에 남겨, 중간에 끊겨도 다시 받지 않는다.
 """
 
-import json
 import os
 import re
 import sys
@@ -43,7 +42,7 @@ def all_notices():
     out = []
     for page in range(1, 200):
         url = "https://api-manager.upbit.com/api/v1/announcements?os=web&page=%d&per_page=20&category=trade" % page
-        data = cached("list-%d" % page, lambda: util.http_json(url, retries=2))
+        data = cached("list-%d" % page, lambda: util.http_json(url, retries=2))  # noqa: B023 — 반복 안에서 바로 호출(늦은 바인딩 아님)
         rows = (data.get("data") or {}).get("notices") or []
         out += rows
         if len(rows) < 20:
@@ -104,7 +103,7 @@ def backfill_listings():
             if t:
                 body_ts = t  # 후속 '변경 안내'가 있으면 마지막 값이 최종 시각
         tc, trade_ts, why = listings.trade_curve(e["sym"], e["notice_ts"], body_ts, fetch=upbit_fetch)
-        nc = cached("bn-%s-%d" % (e["sym"], e["notice_ts"]), lambda: listings.notice_curve(e["sym"], e["notice_ts"]))
+        nc = cached("bn-%s-%d" % (e["sym"], e["notice_ts"]), lambda: listings.notice_curve(e["sym"], e["notice_ts"]))  # noqa: B023 — 반복 안에서 바로 호출(늦은 바인딩 아님)
         rec = {"sym": e["sym"], "uid": e["uid"], "title": e["title"], "notice_ts": e["notice_ts"], "trade_ts": trade_ts,
                "mode": e["mode"], "notice": nc, "trade": tc}
         if why:
@@ -210,7 +209,7 @@ def backfill_events():
     kinds["fomc"], kinds["fomc_press"], kinds["minutes"] = decisions, press, minutes
     util.log("fomc", len(kinds["fomc"]), "press", len(kinds["fomc_press"]), "minutes", len(kinds["minutes"]))
     moves = {}
-    for kind, tss in kinds.items():
+    for _kind, tss in kinds.items():
         for t in tss:
             if t > now - 3700:  # 1시간 뒤 값이 확정된 과거 발표만
                 continue

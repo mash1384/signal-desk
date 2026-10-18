@@ -52,12 +52,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
 
       - name: Install test tools
         run: python -m pip install --quiet -r tests/requirements.txt
 
       - name: Ruff (existing findings must be resolved before deployment)
-        run: python -m ruff check --select F,E9,B pipeline tools tests
+        run: python -m ruff check pipeline tools tests   # 규칙은 ruff.toml
 
       - name: Unit tests
         run: python -m tests.run_unit
@@ -88,13 +90,21 @@ jobs:
           SIGNAL_UPBIT_PROXY: ${{ vars.SIGNAL_UPBIT_PROXY }}
         run: python -m pipeline.run --prev site --out dist
 
+      # 브라우저 설치는 3분 검사 시간에 넣지 않는다(설치가 느린 날 배포가 막히지 않게). 내려받은 브라우저는 캐시
+      - name: Cache QA browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('tests/requirements.txt') }}
+
+      - name: Install QA browser
+        run: python -m playwright install --with-deps chromium
+
       # Local build gate: no credentials are passed to the browser/tests.
       # The complete 48-case matrix and BDD live in qa-harness.yml.
       - name: Validate public artifacts and browser smoke
         timeout-minutes: 3
-        run: |
-          python -m playwright install --with-deps chromium
-          python -m tests.gate --site dist --flash flash
+        run: python -m tests.gate --site dist --flash flash
 
       - name: Publish to gh-pages
         run: |

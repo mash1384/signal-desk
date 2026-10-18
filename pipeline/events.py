@@ -8,7 +8,7 @@
 import os
 import statistics
 
-from . import config, market, util
+from . import market, util
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HISTORY = os.path.join(HERE, "static", "events_history.json")

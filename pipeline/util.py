@@ -43,7 +43,7 @@ def http_get(url, timeout=15, retries=2, accept=None):
         except urllib.error.HTTPError as e:
             last = e
             if 400 <= e.code < 500 and e.code != 429:
-                raise FetchError("HTTP %d %s" % (e.code, url))
+                raise FetchError("HTTP %d %s" % (e.code, url)) from e
         except Exception as e:  # 네트워크 오류, 타임아웃
             last = e
         time.sleep(1.5 * (attempt + 1))

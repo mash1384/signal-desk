@@ -64,6 +64,9 @@ def test_page(case, session_page, qa, site_server, request):
         row["errors"].append({"kind": "overflow", "scrollWidth": scroll, "viewport": width})
     if page.locator("html").get_attribute("lang") != lang:
         row["errors"].append({"kind": "language", "expected": lang})
+    # 등장 효과(.reveal 서서히 나타남)가 도는 중이면 반투명 글자로 대비가 낮게 잡힌다 — 끝날 때까지(최대 4초) 기다린 뒤 검사.
+    # 무한 반복 애니메이션(라이브 점 등)은 끝나지 않으므로 기다리지 않는다
+    page.evaluate("""() => Promise.race([Promise.all(document.getAnimations().filter((a) => { const t = a.effect && a.effect.getComputedTiming(); return t && isFinite(t.endTime); }).map((a) => a.finished.catch(() => null))), new Promise((r) => setTimeout(r, 4000))])""")
     page.add_script_tag(path=axe_script(offline))
     result = page.evaluate("""async () => { const r = await axe.run(document, {runOnly: {type:'tag', values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}); return {violations:r.violations.map(v=>({id:v.id,impact:v.impact,help:v.help,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))})), incomplete:r.incomplete.map(v=>v.id)}; }""")
     row["axe_details"] = result["violations"]

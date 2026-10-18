@@ -79,7 +79,7 @@ def parse_feed(body):
     text = body.decode("utf-8", errors="replace")
     for block in re.findall(r"<item[\s>].*?</item>", text, re.S | re.I):
         def grab(tag):
-            m = re.search(r"<%s[^>]*>(.*?)</%s>" % (tag, tag), block, re.S | re.I)
+            m = re.search(r"<%s[^>]*>(.*?)</%s>" % (tag, tag), block, re.S | re.I)  # noqa: B023 — 반복 안에서 바로 호출(늦은 바인딩 아님)
             if not m:
                 return ""
             val = m.group(1)

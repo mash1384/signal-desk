@@ -1,7 +1,6 @@
 """시세·지표 데이터. 바이낸스가 막히면 코인베이스로 넘어간다."""
 
 import json
-import re
 import time
 from urllib.parse import quote
 

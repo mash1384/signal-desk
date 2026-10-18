@@ -179,7 +179,6 @@ def measure(articles, vol_cache, now, caps=None):
             todo.append((a, p))
     if not todo:
         return 0
-    adj_of = {}
     need = {}
     for a, pend in todo:
         adj = dict(subjects(a))

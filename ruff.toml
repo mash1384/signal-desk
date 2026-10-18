@@ -1,0 +1,7 @@
+# 로컬 Mac 은 Python 3.9, CI 는 3.12 — 둘 다에서 돌아야 한다
+target-version = "py39"
+
+[lint]
+select = ["F", "E9", "B"]
+# B905(zip strict=)는 3.10 이상 문법이라 3.9 에서 쓸 수 없다
+ignore = ["B905"]

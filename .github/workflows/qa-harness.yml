@@ -21,7 +21,7 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install ruff==0.17.1
       # Existing findings deliberately fail. No baseline suppression.
-      - run: python -m ruff check --select F,E9,B pipeline tools tests
+      - run: python -m ruff check pipeline tools tests
   unit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
