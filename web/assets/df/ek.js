@@ -136,12 +136,8 @@ export function insightHTML(doc) {
   const c = r.current, at = new Intl.DateTimeFormat(lc(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(doc.insight.at * 1000));
   // 국면 지도(투자 시계식 산점도): 가로 = 고용 흐름, 세로 = 물가 흐름, 최근 12개월 궤적 + 지금 점. 칸 이름은 모서리에 옅게
   const quad = `<figure class="rgm"><canvas class="rgc" id="rgc" role="img" aria-label="${T('Regime map', '국면 지도')}: ${esc(qName(r, c.q))}, ${T('last 12 months', '최근 12개월')}"></canvas>
-    <figcaption class="mute2">${T('Across: payroll momentum (3-release avg vs the 3 before). Up: CPI inflation vs 3 releases ago. Dots: last 12 months.', '가로 = 고용 흐름(3번 평균이 그 앞 3번보다 얼마나 커졌나), 세로 = 물가 흐름(3번 전보다 얼마나 올랐나). 점 = 최근 12개월.')}</figcaption></figure>`;
-  const kv = `<dl class="kv">
-    <div><dt>${T('CPI inflation', '소비자물가 상승률')}</dt><dd><span class="mono">${c.cpi.toFixed(1)}%</span><span class="mute2">${sgn(c.dcpi, '%p', 2)} ${T('vs 3 releases ago', '3번 전보다')}</span></dd></div>
-    <div><dt>${T('Payroll gains, 3-release avg', '고용 증가(3번 평균)')}</dt><dd><span class="mono">${c.nfp3}k</span><span class="mute2">${T('prior 3', '그 앞 3번')} ${c.nfp3p}k</span></dd></div>
-    <div><dt>${T('Unemployment rate', '실업률')}</dt><dd><span class="mono">${c.un.toFixed(1)}%</span><span class="mute2">${sgn(c.dun, '%p', 2)} ${T('vs 12-month low', '1년 최저보다')}</span></dd></div>
-    ${c.ff != null ? `<div><dt>${T('Fed funds rate', '기준금리')}</dt><dd><span class="mono">${c.ff.toFixed(2)}%</span></dd></div>` : ''}</dl>`;
+    <figcaption class="mute2"><b class="rgn">${T('Now', '지금')}: ${T('CPI', '물가')} <span class="mono">${c.cpi.toFixed(1)}%</span> (${T('vs 3 releases ago', '3번 전보다')} <span class="mono">${sgn(c.dcpi, '%p', 2)}</span>) · ${T('payroll gains, 3-release avg', '고용 증가 3번 평균')} <span class="mono">${c.nfp3}k</span> (${T('the 3 before', '그 앞 3번')} <span class="mono">${c.nfp3p}k</span>)</b>
+      ${T('Across: payroll momentum. Up: CPI momentum. Dots: last 12 months.', '가로 = 고용 흐름, 세로 = 물가 흐름, 점 = 최근 12개월.')}</figcaption></figure>`;
   const an = (r.analogs || []).map((a, i) => { const f = a.after || {};
     return `<li class="an"><p class="anh"><i class="sw" style="background:${ANC[i]}" aria-hidden="true"></i><b>${esc(ym(a.ym))}</b><span class="mute2">${esc(qName(r, a.q))}</span></p>
       ${a.after ? `<p class="anv"><b class="mono ${f.spx > 0 ? 'up' : 'down'}">${pctS(f.spx)}</b><span>${T('S&P 500, 12 months on', 'S&P 500 · 12개월 뒤')}</span></p>
@@ -155,19 +151,18 @@ export function insightHTML(doc) {
     ${row(T('Fed funds', '기준금리'), 'ff', (v) => sgn(v, 'bp', 0), T('higher', '인상'))}${row(T('CPI inflation', '물가 상승률'), 'cpi', (v) => sgn(v, '%p', 2), T('higher', '높아짐'))}
     <tr><th scope="row">${T('Recession within 12m', '12개월 안 경기침체')}</th><td><b class="mono">${Math.round(s.rec * s.n)}/${s.n}</b></td><td><b class="mono">${Math.round(b.rec * b.n)}/${b.n}</b></td></tr></tbody></table></div>
     <p class="fn">${T('Medians over the next 12 months. Small numbers are counts of months.', '그 뒤 12개월 중앙값. 작은 글씨는 달 수예요.')}</p>` : '';
-  const f = doc.fomc && doc.fomc.now, fo = f ? `<div class="fo"><h3>${T('Next FOMC odds', '다음 FOMC 확률')} <span class="mute2">Kalshi · ${T('last 30 days', '최근 30일')}</span></h3>
+  const f = doc.fomc && doc.fomc.now, fo = f ? `<div class="fo"><h3>${T('Next FOMC odds', '다음 FOMC 확률')} <span class="mute2">Kalshi · ${T('last 30 days', '최근 30일')}${c.ff != null ? ` · ${T('Fed funds now', '지금 기준금리')} <span class="mono">${c.ff.toFixed(2)}%</span>` : ''}</span></h3>
     <canvas class="foc" id="foc" role="img" aria-label="${esc(f.outcomes.filter((o) => (o.p || 0) >= 0.03).map((o) => `${L() ? o.ko : o.en} ${Math.round(o.p * 100)}%`).join(', '))}"></canvas></div>` : '';
-  const watch = (ins.watch || []).filter((w) => w.what).map((w) => `<li><span class="mono">${esc(w.when || '')}</span><span>${esc(w.what)}</span></li>`).join('');
   const P = r.paths;
   return `<section class="box ins" aria-labelledby="insh">
     <header class="ih"><p class="ovk">${T('The US economy now', '지금 미국 경제')} <span>· ${T('AI analysis (DeepSeek), fact-checked', 'AI 해설(DeepSeek) · 숫자 대조 확인')} · ${esc(at)}</span></p>
       <h2 class="insh" id="insh">${esc(ins.head)}</h2></header>
     <div class="ig">
-      <div class="it">${ins.s.map((x) => `<p>${numHi(x)}</p>`).join('')}${watch ? `<h3>${T('What to check next', '다음에 확인할 것')}</h3><ul class="wl">${watch}</ul>` : ''}
+      <div class="it">${ins.s.map((x) => `<p>${numHi(x)}</p>`).join('')}
 </div>
       <div class="iv">${quad}</div>
     </div>
-    ${kv}
+
     ${P && P.like ? `<div class="pa"><h3>${T('After the closest past months: the S&P 500 over 12 months', '지금과 가장 닮은 과거, 그 뒤 12개월 S&P 500')} <span class="mute2">${T('month-end, start = 0%', '달 끝 종가 · 시작 = 0%')}</span></h3>
       <canvas class="pac" id="pac" role="img" aria-label="${esc((r.analogs || []).map((a) => `${ym(a.ym)} ${a.after ? pctS(a.after.spx) : ''}`).join(', '))}"></canvas>
       <ul class="ans">${an}</ul></div>` : ''}

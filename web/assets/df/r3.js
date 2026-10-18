@@ -9,7 +9,7 @@ app.innerHTML = `<div class="pstrip" id="ps" aria-label="Markets"></div><div cla
   <section class="lead" id="lead"><div class="skel" style="height:280px"></div></section>
   <button type="button" class="newpill" id="np"></button>
   <section class="main"><div><h2 class="sec" id="gh"></h2><div class="grid" id="grid"></div><h2 class="sec" id="oh"></h2><ul class="other" id="other"></ul></div>
-  <aside class="rail"><div class="box mybox" id="myb"></div><div class="box" id="tr"></div><div class="box" id="mk"></div></aside></section></div>`;
+  <aside class="rail"><div class="box" id="tr"></div></aside></section></div>`;
 const $ = (id) => document.getElementById(id), S = { th: 'all', mine: false };
 // 신호 정렬·거르기: 최신순(중립 포함 모든 소식) · 호재 · 악재 · 강도순(세기 → 보도 수 → 최신). 선택은 저장
 const SORTS = { new: ['Latest', '최신순'], up: ['Bullish', '호재'], down: ['Bearish', '악재'], str: ['Strongest', '강도순'] };
@@ -74,7 +74,7 @@ function render(force) {
   if (S.mine && !my.length) S.mine = false;
   const xs = all.filter((x) => gate.visible(x)), ys = xs.filter((x) => (S.th === 'all' || x.th.includes(S.th)) && (!S.mine || mineOf(x)));
   $('myonly').setAttribute('aria-pressed', String(S.mine)); $('myonly').lastChild.textContent = T('My assets only', '내 자산만'); $('myonly').hidden = !my.length;
-  LASTXS = xs; drawMy(xs, my);
+  LASTXS = xs;
   $('tt').innerHTML = THEMES.map((t) => { const n = t.k === 'all' ? xs.length : xs.filter((x) => x.th.includes(t.k)).length; return `<button type="button" role="tab" aria-selected="${S.th === t.k}" data-th="${t.k}">${t[DFI.lang() === 'ko' ? 'ko' : 'en']}<span class="c mono">${n}</span></button>`; }).join('');
   const now = Date.now() / 1000, recent = ys.filter((x) => now - x.t < 6 * 3600 && x.v !== '중립').sort((a, b) => score(b) - score(a) || b.t - a.t);
   const lead = recent[0];
@@ -96,7 +96,6 @@ function render(force) {
   drawCharts();
   fillPx(app);
   trending(xs, now);
-  const c24 = counts(xs); $('mk').innerHTML = `<h3>${T('Last 24 hours', '지난 24시간')}</h3><p class="big3"><span><b class="mono">${c24.n}</b>${T('stories', '건')}</span><span><b class="mono up">${c24.u}</b>${T('bullish', '호재')}</span><span><b class="mono down">${c24.d}</b>${T('bearish', '악재')}</span></p>`;
 }
 
 // ---------- 맨 위 가격 띠(업계 표준: 숫자 먼저) · 오른쪽 '내 자산' 칸 ----------
@@ -104,21 +103,16 @@ const STRIP = ['BTC', 'ETH', 'NQ=F', 'ES=F', '^TNX', 'GC=F'];
 let PQ = {}, pqAt = 0, MQ = {}, LASTXS = [];
 async function loadStrip() {
   if (Date.now() - pqAt < 60000) return; pqAt = Date.now();
-  const want = [...new Set([...STRIP, ...Y.getMy()])]; const q = await Y.loadQuotes(want); PQ = q; MQ = q; drawStrip(); drawMy(LASTXS, Y.getMy().map((k) => Y.BY[k]).filter(Boolean));
+  const want = [...new Set([...STRIP, ...Y.getMy()])]; const q = await Y.loadQuotes(want); PQ = q; MQ = q; drawStrip();
 }
+// 가격 띠: 내 자산(☆)을 앞에, 기본 시장(BTC · ETH · 지수 · 금리 · 금)은 그 뒤에 — 오른쪽의 '내 자산' 칸은 이 띠와 겹쳐서 없앴다
 function drawStrip() {
-  $('ps').innerHTML = `<div class="wrap pin">${STRIP.map((s) => { const a = Y.BY[s], q = PQ[s];
+  const syms = [...new Set([...Y.getMy(), ...STRIP])].filter((s) => Y.BY[s]);
+  $('ps').innerHTML = `<div class="wrap pin">${syms.map((s) => { const a = Y.BY[s], q = PQ[s];
     return `<div class="pi"><span class="nm">${Y.esc(Y.nm(a))}</span><span class="mono pv">${Y.fmtP(a, q)}</span><span class="mono pc">${Y.fmtCh(a, q)}</span><canvas class="spk" data-sym="${Y.esc(s)}" aria-hidden="true"></canvas><button type="button" class="mystar ic" data-my="${s}" aria-pressed="${Y.hasMy(s)}" aria-label="${T(`Add ${s} to My assets`, `${s} 내 자산에 추가`)}"><span class="st-ic" aria-hidden="true"></span></button></div>`; }).join('')}</div>`;
   Y.drawSparks($('ps'), PQ);
 }
-function drawMy(xs, my) {
-  const el = $('myb'); if (!el) return;
-  if (!my.length) { el.innerHTML = `<h3>${T('My assets', '내 자산')}</h3><p class="mute3">${T('Star an asset to follow just its news.', '자산에 ☆를 누르면 그 소식만 따라가요.')}</p><div class="pop">${Y.POPULAR.slice(0, 6).map((s) => `<button type="button" class="pchip sm" data-my="${s}" aria-pressed="false"><b>${Y.esc(Y.short(s))}</b></button>`).join('')}</div>`; return; }
-  el.innerHTML = `<h3><span>${T('My assets', '내 자산')}</span><a href="${window.DF_ROOT ? window.DF_ROOT + 'my/' : '../y2/'}">${T('Open', '열기')} →</a></h3><ul class="myl">${my.slice(0, 8).map((a) => { const q = MQ[a.sym], n = xs.filter((x) => Y.matches(x, a)).length;
-    return `<li><span class="nm"><b>${Y.esc(Y.short(a.sym))}</b></span><span class="mono pv">${Y.fmtP(a, q)}</span><span class="mono pc">${Y.fmtCh(a, q)}</span><span class="nn" title="${T('stories in 24h', '24시간 소식')}">${n || ''}</span></li>`; }).join('')}</ul>
-    <button type="button" class="more2" data-pick>${T('+ Add or remove', '+ 추가 · 빼기')}</button>`;
-}
-// 가격은 1분마다 띠·내 자산 칸만 고친다(본문을 다시 그리면 차트가 깜빡인다). 내 자산이 바뀌면 거르기 때문에 본문도 다시 그린다.
+// 가격은 1분마다 띠만 고친다(본문을 다시 그리면 차트가 깜빡인다). 내 자산이 바뀌면 거르기 때문에 본문도 다시 그린다.
 addEventListener('df-my', () => { pqAt = 0; if (!document.getElementById('pickdlg')?.open) { loadStrip(); render(true); } });
 
 app.addEventListener('click', (e) => {

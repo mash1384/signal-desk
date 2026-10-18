@@ -12,6 +12,7 @@ async function render(soft) {
   if (soft) { app.querySelector('#stories').outerHTML = grid; app.querySelector('#secs').innerHTML = K.sectorsHTML(t, S.sec); app.querySelector('.sbox').innerHTML = K.changesHTML(doc, t, S.chg); K.fillPx(app); return; }
   app.innerHTML = `<div class="wrap t2"><div class="head">${K.tabsHTML(S.k)}${K.statusHTML(doc, t)}</div>
     <section class="strip" aria-label="${ko() ? '관련 자산' : 'Related assets'}"><div class="cards" id="cards">${'<div class="acard skel"></div>'.repeat(5)}</div></section>
+    ${(t.s_ko || []).length ? `<section class="box tsum">${K.summaryHTML(doc, t)}</section>` : ''}
     <div class="two"><div class="col"><section class="box flow"><h2 class="bh"><span>${ko() ? '지난 24시간 흐름' : 'Last 24 hours'}</span><span class="mute2 mono" style="font-size:12px">${ko() ? '막대 = 시간당 호재·악재 · 선 = ' : 'bars = bullish/bearish per hour · line = '}${K.BENCH[S.k][2]}</span></h2><div id="flow"></div></section>
       <section class="box"><h2 class="bh">${ko() ? '섹터별 분포' : 'By sector'}</h2><div id="secs">${K.sectorsHTML(t, S.sec)}</div></section>${S.k === 'econ' ? `<section class="box"><h2 class="bh">${ko() ? '다음 주요 일정' : 'Coming up'}</h2><div id="evs"></div></section>` : ''}</div>
       <section class="box sbox">${K.changesHTML(doc, t, S.chg)}</section></div>${grid}</div>`;

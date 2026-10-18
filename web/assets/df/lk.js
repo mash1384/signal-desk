@@ -40,7 +40,7 @@ async function pull() {
   setTimeout(() => store.fresh.clear(), 4000);
 }
 export function start(onData) { store.subs.push(onData); pull(); setInterval(pull, 30000); DFI.onLang(onData);
-  fetch('https://mash1384.github.io/signal-desk/data/feed.json').then((r) => r.json()).then((d) => { store.feed = d.items || []; }).catch(() => {}); }
+  fetch((window.DF_ROOT || 'https://mash1384.github.io/signal-desk/') + 'data/related.json').then((r) => r.json()).then((d) => { store.feed = d.items || []; }).catch(() => {}); }
 export const day = () => { const s = Date.now() / 1000 - 86400; return store.items.filter((x) => x.t >= s); };
 export const counts = (xs) => ({ n: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length });
 

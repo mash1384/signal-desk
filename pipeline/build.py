@@ -499,7 +499,8 @@ def page_daily(doc, prev, nxt, now):
                  range=L("%s – %s KST" % (util.kst(doc["start"]).strftime("%b %-d %H:%M"), util.kst(doc["end"]).strftime("%b %-d %H:%M")),
                          "한국 시간 %s ~ %s" % (util.kst(doc["start"]).strftime("%-m/%-d %H:%M"), util.kst(doc["end"]).strftime("%-m/%-d %H:%M"))),
                  head=h(doc["headline"]), partial=partial,
-                 review=('<section class="box2"><h2>%s</h2><p class="rv" lang="ko">%s</p></section>' % (L("AI review", "AI 리뷰"), h(doc["review"]))) if doc.get("review") else "",
+                 # 핵심 3가지가 있으면 AI 리뷰는 같은 사건을 되풀이해서 싣지 않는다(옛 정리에만)
+                 review=('<section class="box2"><h2>%s</h2><p class="rv" lang="ko">%s</p></section>' % (L("AI review", "AI 리뷰"), h(doc["review"]))) if doc.get("review") and not doc.get("insights") else "",
                  insights=('<section class="ins2" aria-label="%s"><h2>%s <span>%s</span></h2><ol>%s</ol></section>' % (
                      h("Insights"), L("Three things that mattered", "그날의 핵심 3가지"), L("AI (DeepSeek) · checked against the source stories", "AI(DeepSeek) · 원문 소식과 대조 확인"),
                      "".join('<li><span class="n mono">%d</span><b lang="ko">%s</b><p lang="ko">%s</p></li>' % (i + 1, h(x.get("t", "")), h(x.get("s", ""))) for i, x in enumerate(doc["insights"][:3]))))
@@ -679,3 +680,6 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
     util.write_text(os.path.join(out, "sitemap.xml"), sitemap(articles, now, dailies))
     util.write_text(os.path.join(out, "robots.txt"), "User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml\n" % config.SITE_URL)
     util.write_json(os.path.join(out, "data", "feed.json"), {"at": now, "items": [feed_item(a) for a in articles[: config.FEED_JSON_LIMIT]]})
+    # 상세 창의 '관련 기사'용 가벼운 목록(제목 · 시각 · 매체 · 코인 · 주소만) — feed.json 의 1/3 안팎
+    util.write_json(os.path.join(out, "data", "related.json"), {"at": now, "items": [{"t0": a["t0"], "title": a["title"], "src": a["source_name"], "assets": a.get("assets", []), "url": a["url"]}
+                                                                                    for a in articles[: config.FEED_JSON_LIMIT]]})
