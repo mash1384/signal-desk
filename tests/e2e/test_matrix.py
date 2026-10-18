@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlsplit
 from tests.e2e.conftest import axe_script
@@ -6,6 +7,47 @@ from tests.e2e.conftest import axe_script
 # From template and render functions: r3.js, y2.js, t2.js, br2.js, c3.js,
 # df_landing.html, pipeline/build.py page_daily/page_about.
 SELECTORS = {"": ["#hero h1", "#nx"], "live/": ["#ps .pi", "#grid button", "#tt [role=tab]"], "my/": [".wl [data-asset]", "#feed"], "themes/crypto/": [".tsum", "#flow", "#stories"], "brief/": [".lanes .lane", ".dly"], "calendar/": ["#detail", ".schw", ".ins"], "daily/": ["h1", ".ins2"], "about/": ["h1", "main"]}
+
+
+# Count rendered content, not the container. Sources: yk.js topHTML/row/daySummaryHTML,
+# r3.js card, tk.js storyRow, br2.js lane, ck.js cardHTML, build.py page_daily/about.
+CONTENT = {
+    "": {"#hero h1": 1, "#hero .sub": 1, "#hero .btns a": 1},
+    "live/": {"#grid [data-id]": 1, "#lead [data-id]": 1},
+    "my/": {"#feed [data-id]": 1, ".top3 [data-id]": 1, ".dsum .lean li": 1},
+    "themes/crypto/": {"#stories .srow[data-id]": 1, ".tsum li": 1},
+    "brief/": {".lanes .lane[data-pick]": 1},
+    "calendar/": {".ics .ic[data-ind]": 1, "#detail tbody tr": 1},
+    "daily/": {".ins2 ol > li": 3},
+    "about/": {"main p": 1, "main li": 1},
+}
+
+
+def my_fixture_counts(offline):
+    doc = json.loads((offline.flash / "flash.json").read_text())
+    day = [x for x in doc["items"] if x["t"] >= offline.now - 86400]
+    mine = [x for x in day if set(x.get("coins", [])) & {"BTC", "ETH"} or re.search(r"엔비디아|nvidia|\bNVDA\b", x["ko"] + " " + x["en"], re.I)]
+    return {"feed": len(mine), "top": sum(x["v"] != "중립" for x in mine)}
+
+
+def content_checks(page, name, row, offline):
+    targets = CONTENT[name]
+    # Even if fixture content disappears, these assertions remain enabled.
+    if name == "my/":
+        row["fixture_content"] = my_fixture_counts(offline)
+        if not all(row["fixture_content"].values()):
+            row["errors"].append({"kind": "missing-content-fixture", "counts": row["fixture_content"]})
+    try:
+        page.wait_for_function("targets => Object.entries(targets).every(([s,n]) => document.querySelectorAll(s).length >= n)", arg=targets, timeout=5000)
+    except Exception:
+        pass  # The per-selector counts below produce an actionable failure.
+    row["content"] = {s: page.locator(s).count() for s in targets}
+    for selector, minimum in targets.items():
+        count = row["content"][selector]
+        if count < minimum or (name == "daily/" and count != 3):
+            row["errors"].append({"kind": "missing-content", "selector": selector, "count": count, "expected": minimum})
+        elif not page.locator(selector).first.inner_text().strip():
+            row["errors"].append({"kind": "missing-content", "selector": selector, "reason": "empty text"})
 
 
 def path_for(name, site):
@@ -58,6 +100,7 @@ def test_page(case, session_page, qa, site_server, request):
             page.locator(selector).first.wait_for(state="visible", timeout=7000)
         except Exception:
             row["errors"].append({"kind": "missing", "selector": selector})
+    content_checks(page, name, row, offline)
     page.wait_for_timeout(500)
     scroll = page.evaluate("document.documentElement.scrollWidth")
     if scroll > width:
