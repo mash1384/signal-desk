@@ -38,10 +38,19 @@ def polling(args):
 
             steps = []
 
-            def advance(minutes, target=page, steps=steps):
+            pending = set()
+            page.on('request', lambda r, bag=pending: bag.add(r) if urlsplit(r.url).hostname == 'signal-scheduler.mash1384.workers.dev' else None)
+            page.on('requestfinished', lambda r, bag=pending: bag.discard(r))
+            page.on('requestfailed', lambda r, bag=pending: bag.discard(r))
+
+            def advance(minutes, target=page, steps=steps, pending=pending):
                 for _ in range(minutes * 2):
                     target.clock.run_for(30000)
-                    target.wait_for_timeout(100)
+                    # 진행 중인 Worker 요청이 끝난 뒤 다음 30초로: 가짜 시계가 실제 응답보다 먼저 8초 제한을 넘겨 끊지 않게
+                    for _ in range(100):
+                        target.wait_for_timeout(50)
+                        if not pending:
+                            break
                     steps.append(len(worker_urls()))
 
             try:
@@ -76,7 +85,9 @@ def polling(args):
                 page.evaluate(HIDE, False)
                 page.wait_for_timeout(400)
                 catchup = len(worker_urls()) - before_hidden
-                assert catchup == (1 if mode == 'modern' else 3), ('catch-up duplicated/missing', mode, catchup)
+                # 404(legacy) · 형식 오류(malformed)는 묶음 요청을 끈 채로 기존 경로 3건, 일시 실패(error · disconnect)는 5분이 지나 묶음 요청을 1번 다시 시도 + 기존 3건
+                expect = {'modern': 1, 'legacy': 3, 'malformed': 3, 'error': 4, 'disconnect': 4}[mode]
+                assert catchup == expect, ('catch-up duplicated/missing', mode, catchup)
                 assert not errors and not offline.unmapped, (errors, offline.unmapped)
                 rows.append({'mode': mode, 'initial': initial, 'minutes': minutes, 'visible': visible,
                              'per_minute': visible / minutes, 'hidden_10_minutes': hidden, 'catchup': catchup})
