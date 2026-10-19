@@ -108,6 +108,10 @@ async def prepare(browser, base, site=None, flash=None, width=390, lang='ko', de
     return context, page, offline
 
 
+class EmptyMeasurement(ValueError):
+    """측정 도구가 값을 못 받음(화면 내용은 있음)."""
+
+
 async def measure(browser, base, name, device, site=None, flash=None, lang='ko', delay=0, block=False, throttle=True, daily_path=None):
     context, page, offline = await prepare(browser, base, site, flash, DEVICES[device], lang, delay, block, wire=bool(site))
     requests, errors = {}, []
@@ -174,7 +178,11 @@ async def measure(browser, base, name, device, site=None, flash=None, lang='ko',
                   'js_bytes': sum(r['bytes'] for r in rows if r.get('type') == 'Script'),
                   'content': content, 'errors': errors, 'resources': rows, 'observed': observed}
         if not result['lcp_ms'] or not result['bytes']:
-            raise ValueError('empty performance measurement: ' + name)
+            empty = [k for k in ('lcp_ms', 'bytes') if not result[k]]
+            # 화면 핵심 내용까지 비었으면 제품 문제 — 다시 재지 않는다
+            if not any(content.values()):
+                raise ValueError('empty performance measurement with empty page content: %s %s' % (name, empty))
+            raise EmptyMeasurement('empty performance measurement: %s %s %s' % (name, device, empty))
         return result
     finally:
         await context.close()
@@ -208,9 +216,21 @@ def summarize(report):
     return report
 
 
+async def with_remeasure(sample, log, where, tries=3):
+    """빈 측정(내용 있는 화면)만 최대 tries 번까지 다시 잰다. 다시 잰 기록은 log 에 남기고, 끝까지 비면 실패."""
+    for retry in range(tries):
+        try:
+            return await sample()
+        except EmptyMeasurement as e:
+            log.append(dict(where, reason=str(e)))
+            print('REMEASURE', str(e), flush=True)
+            if retry == tries - 1:
+                raise
+
+
 async def run(args):
     from playwright.async_api import async_playwright
-    start, runs = time.monotonic(), []
+    start, runs, remeasured = time.monotonic(), [], []
     with ExitStack() as stack:
         base = args.live.rstrip('/') + '/' if args.live else stack.enter_context(serve_wire(args.site, args.flash, args.compression))
         daily_path = None
@@ -225,13 +245,16 @@ async def run(args):
             for name in args.pages:
                 for device in args.devices:
                     for attempt in range(args.runs):
-                        row = await measure(browser, base, name, device, None if args.live else args.site, args.flash,
-                                            args.lang, args.delay_data, args.block_data, daily_path=daily_path)
+                        # Linux 헤드리스 Chromium 은 드물게 LCP 항목을 내지 않는다(2026-10-19 CI 1회, 로컬 Chrome 12회 재현 안 됨).
+                        # 내용이 있는 화면의 빈 측정만 같은 회차를 최대 2번 다시 재고, 다시 잰 사실은 보고서에 남긴다
+                        row = await with_remeasure(lambda name=name, device=device: measure(browser, base, name, device, None if args.live else args.site, args.flash,
+                                                                    args.lang, args.delay_data, args.block_data, daily_path=daily_path),
+                                                   remeasured, {'page': name, 'device': device, 'attempt': attempt + 1})
                         row['attempt'] = attempt + 1
                         runs.append(row)
                         print(json.dumps({k: row[k] for k in ('page', 'device', 'attempt') + METRICS}, ensure_ascii=False), flush=True)
             await browser.close()
-    return {'method': {'version': 5, 'cold_context': True, 'cache_disabled': True, 'reduced_motion': True, 'viewport_height': 1000,
+    return {'remeasured': remeasured, 'method': {'version': 5, 'cold_context': True, 'cache_disabled': True, 'reduced_motion': True, 'viewport_height': 1000,
                        'mobile_network': {'latency_ms': 150, 'download_bytes_per_second': 200000, 'upload_bytes_per_second': 93750},
                        'transfer': 'CDP Network.loadingFinished.encodedDataLength (body + response headers)',
                        'local_transport': 'Public GETs without fixtures' if args.live else 'Offline fixtures over real local TLS sockets (not route.fulfill); no external network',
