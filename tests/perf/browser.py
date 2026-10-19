@@ -43,7 +43,15 @@ def polling(args):
             try:
                 page.goto(base + 'live/', wait_until='networkidle')
                 page.wait_for_function("!!document.querySelector('#ps .pv') && !['', '–', '—'].includes(document.querySelector('#ps .pv').textContent.trim()) && document.querySelectorAll('#grid [data-id]').length > 0")
-                page.wait_for_timeout(300)
+                # 처음 요청이 다 나간 뒤에 센다: 컴퓨터가 바쁘면 첫 요청이 늦게 나가 '보이는 동안' 수에 섞였다(고장 주입 실행에서 21/20)
+                stable, last_n = 0, -1
+                for _ in range(50):
+                    page.wait_for_timeout(100)
+                    n = len(worker_urls())
+                    stable = stable + 1 if n == last_n else 0
+                    last_n = n
+                    if stable >= 5:
+                        break
                 initial = len(worker_urls())
                 minutes = 10 if mode in ('modern', 'legacy') else 1
                 advance(minutes)
