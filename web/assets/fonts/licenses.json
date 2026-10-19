@@ -1,0 +1,14 @@
+{
+  "JetBrainsMono-OFL.txt": {
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/OFL.txt",
+    "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d"
+  },
+  "Michroma-OFL.txt": {
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/michroma/OFL.txt",
+    "sha256": "33c39ce59a45bfb0dae3280e98bdb46be59d6d68efc62d4dc5fae90a26d2f393"
+  },
+  "Inter-OFL.txt": {
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/OFL.txt",
+    "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+  }
+}

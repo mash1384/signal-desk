@@ -281,6 +281,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}}catch(e){{}}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{desc}">
@@ -294,11 +295,10 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 {og}<meta name="theme-color" content="#ffffff">
 <link rel="icon" href="{B}assets/icon.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:opsz,wght@14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="{B}assets/fonts/subsets.css?v={V}"><link rel="stylesheet" href="{B}assets/fonts/inter.css?v={V}">
 <link rel="stylesheet" href="{B}assets/df/lk.css?v={V}">
 <link rel="stylesheet" href="{B}assets/df/st.css?v={V}">
-<script>try{{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}}catch(e){{}}</script>
 </head>
 <body class="pg-st">
 <header class="hd"><div class="wrap">
