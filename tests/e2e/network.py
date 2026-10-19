@@ -72,7 +72,13 @@ class Offline:
                 n = int(q.get("limit", ["300"])[0])
                 step = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "1d": 86400}[q.get("interval", ["1m"])[0]]
                 start = int(q["startTime"][0]) // 1000 if "startTime" in q else None
-                respond([[t * 1000, str(p), str(p + 1), str(p - 1), str(p + .1), "10", (t + step) * 1000] for t, p in self.series(n, step, start)])
+                # endTime selects a suffix of the same deterministic 1000-row
+                # series, so overlapping chart points never depend on limit.
+                points = self.series(1000, step)[-n:] if "endTime" in q else self.series(n, step, start)
+                # The real API never emits future klines (the old fake did).
+                if start is not None:
+                    points = [p for p in points if p[0] <= self.now]
+                respond([[t * 1000, str(p), str(p + 1), str(p - 1), str(p + .1), "10", (t + step) * 1000] for t, p in points])
             else:
                 self.unmapped.append(req.url)
                 route.fulfill(status=502, body="unmapped binance fixture", headers=headers)

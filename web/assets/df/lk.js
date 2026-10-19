@@ -1,3 +1,4 @@
+import { sinceLimit } from './candles.js';
 import { whenVisible } from './charts.js';
 import { watchThreads } from './thr.js';
 // 라이브 페이지 후보 공통: 실시간 속보 받기(30초마다), 테마 나누기, 카드·상세, 24시간 막대, 소식 이후 가격 변화
@@ -80,7 +81,7 @@ export function drawHist(cv, xs, { sel = null, h = 64 } = {}) {
 const pxCache = new Map();
 async function since(sym, t) {
   const key = sym + t; if (pxCache.has(key)) return pxCache.get(key);
-  const p = fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}USDT&interval=1m&startTime=${(t - 60) * 1000}&limit=1000`).then((r) => r.ok ? r.json() : null).then((k) => (k && k.length ? k.map((x) => [x[0] / 1000, +x[4]]) : null)).catch(() => null);
+  const p = fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}USDT&interval=1m&startTime=${(t - 60) * 1000}&limit=${sinceLimit(t - 60)}`).then((r) => r.ok ? r.json() : null).then((k) => (k && k.length ? k.map((x) => [x[0] / 1000, +x[4]]) : null)).catch(() => null);
   pxCache.set(key, p); return p;
 }
 function spark(cv, pts) {

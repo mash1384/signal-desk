@@ -1,3 +1,4 @@
+import { recentLimit } from './candles.js';
 import * as V from './rv.js';
 import { SORTS, MK } from './rv.js';
 // R3 · Impact — Perplexity Discover·Kalshi 참고. 맨 위 '지금' 한 장: 최근 6시간 가장 큰 소식 + 그 뒤 가격 흐름(크게).
@@ -28,8 +29,10 @@ let M = (() => { try { return localStorage.getItem('df-mkt') || 'btc'; } catch (
 const WK = 'https://signal-scheduler.mash1384.workers.dev/index-candles';
 const sc = new Map();
 function series(m, iv) {   // [[t, close]] 지난 며칠(5m) 또는 이틀(1m). 60초 보관
-  const key = m + (m === 'btc' ? iv : '1m'), hit = sc.get(key); if (hit && Date.now() - hit.at < 60000) return hit.p;
-  const p = (m === 'btc' ? fetch(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=${iv}&limit=1000`).then((r) => r.ok ? r.json() : null).then((k) => (k ? k.map((x) => [x[0] / 1000, +x[4]]) : null))
+  const times = [...app.querySelectorAll(iv === '1m' ? '.bigc[data-t]' : 'canvas[data-t]')].map(el => +el.dataset.t);
+  const earliest = Math.min(...times) - (iv === '1m' ? 1800 : 3600), limit = recentLimit(earliest, iv === '1m' ? 60 : 300);
+  const key = m + (m === 'btc' ? iv + ':' + limit : '1m'), hit = sc.get(key); if (hit && Date.now() - hit.at < 60000) return hit.p;
+  const p = (m === 'btc' ? fetch(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=${iv}&limit=${limit}&endTime=${Date.now()}`).then((r) => r.ok ? r.json() : null).then((k) => (k ? k.map((x) => [x[0] / 1000, +x[4]]) : null))
     : fetch(`${WK}?s=${m}&i=1m`).then((r) => r.ok ? r.json() : null).then((d) => (d && d.c ? d.c : null))).catch(() => null);
   sc.set(key, { at: Date.now(), p }); return p;
 }
