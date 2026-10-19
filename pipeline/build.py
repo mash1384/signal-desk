@@ -1,5 +1,6 @@
 """정적 페이지 생성. 서버 없이 GitHub Pages에서 그대로 열리는 HTML을 만든다."""
 
+from contextvars import ContextVar
 import hashlib
 import html
 import json
@@ -7,10 +8,11 @@ import os
 import re
 import shutil
 
-from . import config, judge, util, prerender, public_data
+from . import config, judge, util, prerender, public_data, article_bundle
 from .impact import assets_for, subjects
 
 OG_DEFAULT = False
+_BUILD_VERSION = ContextVar("build_version", default=None)
 
 B = config.SITE_BASE
 WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
@@ -399,7 +401,7 @@ def page_article(a, rel, now):
                  nl2=L("Brief", "정리"), nl2d=L("Stories that have run for days, on one timeline", "며칠째 이어지는 이야기를 한 시간 축에"))
     desc = (a["summary"][0] if a.get("summary") else a.get("excerpt") or a["title"])[:150]
     og = "%s/og/%s.jpg" % (config.SITE_URL, a["id"]) if a.get("og") else None
-    return df_page("live", a["title"], desc, article_path(a)[len(B):], body, og=og, ogtype="article")
+    return article_bundle.article_html(df_page("live", a["title"], desc, article_path(a)[len(B):], body, og=og, ogtype="article"))
 
 
 def _dl_row(it, news=False):
@@ -621,6 +623,8 @@ def redirect_page(new_path):
 
 def df_ver():
     """web/assets/df/ 파일 내용으로 만든 버전(바뀌면 브라우저가 새로 받는다)."""
+    if _BUILD_VERSION.get() is not None:
+        return _BUILD_VERSION.get()
     d = os.path.join(WEB, "assets", "df")
     h = hashlib.sha1()
     for n in sorted(os.listdir(d)):
@@ -643,6 +647,15 @@ def stamp_df_imports(out):
 
 
 def build_site(out, articles, market, cal, imp, health, now, extra=None, prerendered=None):
+    # One digest per build; never retain it across a later build/source edit.
+    token = _BUILD_VERSION.set(df_ver())
+    try:
+        return _build_site(out, articles, market, cal, imp, health, now, extra, prerendered)
+    finally:
+        _BUILD_VERSION.reset(token)
+
+
+def _build_site(out, articles, market, cal, imp, health, now, extra=None, prerendered=None):
     """out 디렉터리에 사이트 전체를 쓴다. 기존 data/와 og/는 호출자가 미리 채워 둔다.
     extra = 새 화면 데이터 {파일 이름: 문서}. 없으면 out/data/ 에서 읽는다."""
     if extra is None:
@@ -651,6 +664,7 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None, prerend
         prerendered = prerender.render(B)
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     public_data.copy_daily(config.FLASH_DIR, out)
+    article_bundle.bundle(WEB, out)
     util.write_text(os.path.join(out, ".nojekyll"), "")
     stamp_df_imports(out)
     util.write_text(os.path.join(out, "index.html"), page_landing_df())
