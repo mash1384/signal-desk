@@ -1,4 +1,5 @@
 """Offline performance contracts; separate from the short deployment gate."""
+from collections import Counter
 import argparse
 import asyncio
 import datetime as dt
@@ -61,7 +62,6 @@ def polling(args):
                 visible = len(worker_urls()) - initial
                 assert visible > 0, 'the visible tab stopped refreshing'
                 if mode == 'modern':
-                    from collections import Counter
                     assert visible <= 2 * minutes, ('Worker budget exceeded', visible, minutes, dict(Counter(urlsplit(u).path for u in worker_urls()[initial:])), 'per-step totals', steps, 'initial', initial)
                     assert all(urlsplit(u).path == '/live' for u in worker_urls()), worker_urls()
                 else:
