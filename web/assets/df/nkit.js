@@ -16,9 +16,9 @@ export function loop(el, r, scene, cam, tick, onSize) {
   const f = (now) => { requestAnimationFrame(f); if (!on || document.hidden) { last = now; return; } const dt = Math.min(0.05, (now - last) / 1000); last = now; tick(now / 1000, dt); r.render(scene, cam); };
   requestAnimationFrame(f);
 }
-export const SANS = '"Inter", "Pretendard Variable", Pretendard, system-ui, sans-serif', KSANS = '"Pretendard Variable", Pretendard, "Inter", system-ui, sans-serif', MONO = '"JetBrains Mono", ui-monospace, monospace';
+export const SANS = '"Pretendard Variable", Pretendard, system-ui, sans-serif', KSANS = '"Pretendard Variable", Pretendard, system-ui, sans-serif', MONO = '"JetBrains Mono", ui-monospace, monospace';
 export async function fonts(text = '') {
-  await Promise.all([document.fonts.load(`300 40px Inter`), document.fonts.load(`600 40px Inter`), document.fonts.load(`500 40px "Pretendard Variable"`, text || '가나다'), document.fonts.load(`400 20px "JetBrains Mono"`)].map((p) => p.catch(() => {})));
+  await Promise.all([document.fonts.load(`300 40px "Pretendard Variable"`), document.fonts.load(`600 40px "Pretendard Variable"`), document.fonts.load(`500 40px "Pretendard Variable"`, text || '가나다'), document.fonts.load(`400 20px "JetBrains Mono"`)].map((p) => p.catch(() => {})));
   await document.fonts.ready;
 }
 // 띄어쓰기 기준 줄바꿈(너무 긴 낱말은 글자 단위로), 최대 줄 수 넘으면 말줄임

@@ -76,7 +76,7 @@ export function makeBrief(kind, { scene, sec, lay, mob, sample }) {
   // 2 · 입자 헤드라인(정적), 5 · 입자 카드(정적)는 한 번만 짓는다
   let HL = null;
   function buildHeadline() {
-    const g = document.createElement('canvas').getContext('2d'), font = `700 120px "Pretendard Variable", Pretendard, Inter, sans-serif`; g.font = font;
+    const g = document.createElement('canvas').getContext('2d'), font = `700 120px "Pretendard Variable", Pretendard, sans-serif`; g.font = font;
     const head = L() ? D.headline : (DFI.line({ id: 'brief:' + D.date }) || D.headline), lines = wrap(g, head, mob ? 720 : 1500, 4);
     const pts = textPoints(lines.join('\n'), { font, hgt: 1, step: mob ? 4 : 3 }), ratio = pts.W / pts.H, hgt = Math.min(mob ? 4.2 : 3.6, (mob ? 6.4 : 14) / ratio), M = pts.length;
     m.set(1, (i, o) => { const p = pts[i % M], c = i % 7 === 0 ? COL.ind : COL.ink, dust = i >= M * 2;

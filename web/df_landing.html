@@ -17,13 +17,13 @@
 <link rel="icon" href="{{B}}assets/icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#ffffff">
 <link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"></noscript>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="{{B}}assets/fonts/subsets.css?v={{V}}"><link rel="stylesheet" href="{{B}}assets/fonts/inter.css?v={{V}}"><noscript><link rel="stylesheet" href="{{B}}assets/fonts/subsets.css?v={{V}}"><link rel="stylesheet" href="{{B}}assets/fonts/inter.css?v={{V}}"></noscript>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="{{B}}assets/fonts/subsets.css?v={{V}}"><noscript><link rel="stylesheet" href="{{B}}assets/fonts/subsets.css?v={{V}}"></noscript>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <style>
 :root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --up: #0e9f6e; --down: #df4a3a;
-  --sans: "Inter", "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
-:lang(ko) { --sans: "Pretendard Variable", Pretendard, "Inter", system-ui, sans-serif; }
+  --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+:lang(ko) { --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 html, body { overflow-x: clip; }
 body { background: #fff; color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
@@ -59,7 +59,7 @@ a { color: inherit; text-decoration: none; } button { font: inherit; color: inhe
 .hud { position: absolute; z-index: 3; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--mute); text-transform: uppercase; }
 .reveal { opacity: 0; transform: translateY(16px); filter: blur(6px); }
 .ft { padding-block: 40px 60px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mute); }
-.replay-unused { position: fixed; right: 16px; bottom: 16px; z-index: 90; height: 32px; padding: 0 14px; border-radius: 99px; background: #0d253d; color: #fff; font: 600 12px/1 Inter, system-ui, sans-serif; opacity: .85; }
+.replay-unused { position: fixed; right: 16px; bottom: 16px; z-index: 90; height: 32px; padding: 0 14px; border-radius: 99px; background: #0d253d; color: #fff; font: 600 12px/1 "Pretendard Variable", system-ui, sans-serif; opacity: .85; }
 .copy.left { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 1240px; margin: 0 auto; padding-inline: 36px; }
 .copy.left h1 { max-width: 42rem; } .copy.left .sub { max-width: 30rem; }
 .hero::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(90deg, #f7f9fc 18%, rgb(247 249 252 / .4) 40%, transparent 55%); }
@@ -109,7 +109,7 @@ html.intro-on { overflow: hidden; }
 .intro .ibg { position: absolute; inset: 0; background: #f7f9fc; }
 .intro video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .hd .logo { will-change: transform; }
-.intro .skip { position: absolute; right: 18px; bottom: 18px; height: 32px; padding: 0 14px; border-radius: 99px; font: 600 12px/1 Inter, system-ui, sans-serif; color: #273951; background: rgb(13 37 61 / .06); }
+.intro .skip { position: absolute; right: 18px; bottom: 18px; height: 32px; padding: 0 14px; border-radius: 99px; font: 600 12px/1 "Pretendard Variable", system-ui, sans-serif; color: #273951; background: rgb(13 37 61 / .06); }
 @media (hover: hover) and (pointer: fine) { .intro .skip:hover { background: rgb(13 37 61 / .1); } }
 
 </style>

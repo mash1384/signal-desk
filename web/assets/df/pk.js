@@ -51,7 +51,7 @@ export function cloud(m, k, { w = 16, h = 7, y = 3.5, d = 6 } = {}) {
 }
 
 // 글자 → 점(캔버스에 그려 픽셀을 뽑는다). 반환: [{x,y}] (가운데 기준, 높이 hgt 월드 단위)
-export function textPoints(text, { font = '300 220px Inter', hgt = 2, step = 3, align = 'center', spacing = '0px' } = {}) {
+export function textPoints(text, { font = '300 220px "Pretendard Variable"', hgt = 2, step = 3, align = 'center', spacing = '0px' } = {}) {
   // 글자 모양을 캔버스에 그려 점으로 뽑는다. 캔버스 높이는 글꼴의 실제 글자 윤곽(위·아래 끝)으로 잡아 아래가 잘리지 않게 하고,
   // 점은 섞어서 돌려준다(입자 수가 점 수보다 적어도 글자 전체에 고르게 퍼지게 — 앞에서부터 쓰면 아래쪽 줄이 비었다).
   const c = document.createElement('canvas'), g = c.getContext('2d'); g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing;   // 자간(헤더 로고처럼 넓게)
