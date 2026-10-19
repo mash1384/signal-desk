@@ -38,7 +38,7 @@ def polling(args):
 
             steps = []
 
-            def advance(minutes, target=page):
+            def advance(minutes, target=page, steps=steps):
                 for _ in range(minutes * 2):
                     target.clock.run_for(30000)
                     target.wait_for_timeout(100)
