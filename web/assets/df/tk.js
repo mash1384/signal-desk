@@ -1,3 +1,4 @@
+import { whenVisible } from './charts.js';
 // 테마 화면 공통: 크립토 · 나스닥 · 경제 · AI 한 테마를 깊게. 랜딩 지구 장면의 '상세판'.
 // 자료: themes.json(6시간마다 Mac 에서 — AI 요약 5문장, 1시간 단위 호재·악재, 섹터, 주요·최근 소식, 자산 언급, 문장별 근거 소식)
 //       시세 — 코인은 바이낸스, 주식·지수 선물·금리·달러·원자재는 우리 Worker /quotes(야후). 숫자는 모두 프로그램이 센 것, 문장만 AI.
@@ -118,7 +119,14 @@ export function changesHTML(doc, t, cur) {
     <p class="fn">${T(`Counted by the program from judged stories (no AI). "Normal" = the last ${nd} days; it widens to 7 days as history builds up.`, `판정한 소식으로 프로그램이 센 숫자예요(AI 문장 아님). '평소' = 최근 ${nd}일이고, 기록이 쌓이면 7일로 늘어나요.`)}</p></div>`;
 }
 // 24시간 흐름: 1시간 막대(위 호재 · 아래 악재) + 대표 가격선. Lightweight Charts
-export function flowChart(el, doc, t, price, { height = 240 } = {}) {
+export function flowChart(el, doc, t, price, options = {}) {
+  el.innerHTML = '<p class="lgd mono"></p><div class="lwbox"></div>';
+  el.querySelector('.lwbox').style.height = (options.height || 240) + 'px';
+  let chart;
+  const cancel = whenVisible(el, () => { chart = flowChartNow(el, doc, t, price, options); });
+  return {remove() { cancel(); chart?.remove(); }};
+}
+function flowChartNow(el, doc, t, price, { height = 240 } = {}) {
   el.innerHTML = '<p class="lgd mono"></p><div class="lwbox"></div>'; const box = el.querySelector('.lwbox'), lgd = el.querySelector('.lgd'); box.style.height = height + 'px';
   const LW = window.LightweightCharts, off = -new Date().getTimezoneOffset() * 60, t0 = doc.made - 86400;
   const chart = LW.createChart(box, { autoSize: true, height, layout: { background: { color: 'transparent' }, textColor: '#7b8799', fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11 },

@@ -1,3 +1,4 @@
+import { whenVisible } from './charts.js';
 import { watchThreads } from './thr.js';
 // 라이브 페이지 후보 공통: 실시간 속보 받기(30초마다), 테마 나누기, 카드·상세, 24시간 막대, 소식 이후 가격 변화
 export const L = () => DFI.lang() === 'ko';
@@ -202,7 +203,18 @@ export function crosshair(cv, m) {
 const LIVE = [];
 function sweep() { for (let i = LIVE.length - 1; i >= 0; i--) if (!LIVE[i].box.isConnected) { try { LIVE[i].chart.remove(); } catch (e) {} LIVE.splice(i, 1); } }
 const TZ = () => -new Date().getTimezoneOffset() * 60;   // 라이브러리는 UTC로 그리므로 현지 시각으로 옮겨 준다
-export function lwChart(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel = null, preLabel = null } = {}) {
+export function lwChart(el, pts, tStory, options = {}) {
+  if (!pts || pts.length < 2) return drawLW(el, pts, tStory, options);
+  const seen = new Set(), data = pts.filter(p => p[1] != null && !seen.has(Math.floor(p[0])) && seen.add(Math.floor(p[0])));
+  if (!data.length) return drawLW(el, null, tStory, options);
+  const first = data.find(p => Math.floor(p[0]) >= tStory), last = data[data.length - 1];
+  const result = {change: first ? (last[1] / first[1] - 1) * 100 : null, closed: pts[pts.length - 1][0] < Date.now() / 1000 - 1800};
+  el.innerHTML = '<div class="lgd"></div><div class="lwbox"></div>';
+  el.querySelector('.lwbox').style.height = (options.height || 200) + 'px';
+  whenVisible(el, () => Object.assign(result, drawLW(el, pts, tStory, options)), () => drawLW(el, null, tStory, options));
+  return result;
+}
+function drawLW(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel = null, preLabel = null } = {}) {
   if (!window.LightweightCharts || !pts || pts.length < 2) { el.innerHTML = `<p class="mute">${T('No price data for this time.', '이 시간의 가격 자료가 없어요.')}</p>`; return null; }
   const LC = window.LightweightCharts, off = TZ(), lc = DFI.lang() === 'ko' ? 'ko-KR' : 'en-GB';
   el.innerHTML = '<div class="lgd"></div><div class="lwbox"></div>'; const box = el.querySelector('.lwbox'), lgd = el.querySelector('.lgd'); box.style.height = height + 'px';

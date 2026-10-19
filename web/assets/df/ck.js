@@ -1,3 +1,4 @@
+import { whenVisible } from './charts.js';
 // 일정(경제지표) 화면 공통: 다가오는 발표, 지금 경제 한눈에(AI), 지표 카드, 지표 상세(긴 그래프 · 지난 발표 표 · 과거에 비슷했을 때).
 // 자료: econ.json(Mac 에서 1시간마다 — ALFRED 발표 당일 값, 야후 일봉, Forex Factory 예상치, FRED·연준 일정). 숫자는 모두 프로그램, 문장만 AI.
 import { T, L, esc } from './lk.js';
@@ -182,6 +183,11 @@ function statsHTML(doc, x, a) {
 // 긴 그래프(Lightweight Charts, 상자 높이 고정)
 let HC = null;
 export function drawHistory(el, x, range) {
+  if (!el) return;
+  el.style.height = (innerWidth < 640 ? 200 : 240) + 'px';
+  whenVisible(el, () => drawHistoryNow(el, x, range));
+}
+function drawHistoryNow(el, x, range) {
   if (HC) { try { HC.remove(); } catch (e) {} HC = null; }
   if (!el || !window.LightweightCharts) return;
   const yrs = RANGES.find((r) => r[0] === range)[1], t0 = Date.now() - yrs * 365.25 * 864e5;
