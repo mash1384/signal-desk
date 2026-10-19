@@ -19,6 +19,9 @@ def pytest_addoption(parser):
     parser.addoption("--flash", default=".qa/snapshot/flash")
     parser.addoption("--matrix", choices=("full", "smoke"), default="full")
     parser.addoption("--capture-baseline", action="store_true")
+    # strict: 접근성 기준선과 다르면 실패(고정 스냅샷 + 기준선을 만든 Mac Chrome 에서만 의미가 있다)
+    # report: 최신 뉴스로 빌드하는 CI 에서는 요소 위치 · 이야기 ID 가 바뀌어 기준선 비교가 매번 달라지므로 경고로 출력만
+    parser.addoption("--a11y", choices=("strict", "report"), default="strict")
     parser.addoption("--qa-report", default=".qa/e2e.json")
     parser.addoption("--browser-channel", default="chromium" if os.environ.get("CI") else "chrome")
 

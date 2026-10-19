@@ -36,7 +36,8 @@ def main():
     contracts = [sys.executable, '-m', 'tests.check_site', '--site', args.site, '--flash', args.flash]
     ready = [sys.executable, '-m', 'tests.browser_ready', '--channel', args.browser_channel]
     smoke = [sys.executable, '-m', 'pytest', 'tests/e2e/test_matrix.py', 'tests/e2e/test_release.py', '--matrix', 'smoke',
-             '--site', args.site, '--flash', args.flash, '--browser-channel', args.browser_channel, '-q', '--junitxml=.qa/gate.xml']
+             '--site', args.site, '--flash', args.flash, '--browser-channel', args.browser_channel, '-q', '--junitxml=.qa/gate.xml',
+             '--a11y', 'report', '-s']   # 배포 데이터는 매번 새 뉴스 — 접근성 기준선 비교는 경고로 로그에만(고정 스냅샷 검사는 로컬 strict)
     try:
         rc = run('contracts', contracts)
         if rc:

@@ -121,6 +121,7 @@ def test_page(case, session_page, qa, site_server, request):
         row["errors"].append({"kind": "fixture-missing", "urls": offline.unmapped})
     row["incomplete"] = False
     if not qa["capture"]:
+        a11y_errors_from = len(row["errors"])
         assert key in qa["baseline"]["axe"], "case missing from accessibility baseline"
         new = set(row["axe"]) - set(qa["baseline"]["axe"][key])
         if "contrast" in qa["baseline"]:
@@ -133,6 +134,12 @@ def test_page(case, session_page, qa, site_server, request):
                 row["errors"].append({"kind": "contrast-unmeasurable", "nodes": sorted(missing)})
         if new:
             row["errors"].append({"kind": "new-accessibility", "violations": sorted(new)})
+        if request.config.getoption("--a11y") == "report":
+            found = row["errors"][a11y_errors_from:]
+            del row["errors"][a11y_errors_from:]
+            row["warnings"].extend(found)
+            if found:
+                print("A11Y-REPORT", key, json.dumps(found, ensure_ascii=False))
         if row["bytes"] > qa["baseline"]["budget_bytes"][name]:
             row["errors"].append({"kind": "performance", "bytes": row["bytes"], "limit": qa["baseline"]["budget_bytes"][name]})
     assert row["requests"] > 0 and row["bytes"] > 0, "nothing measured"
