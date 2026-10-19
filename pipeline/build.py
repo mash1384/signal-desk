@@ -575,8 +575,8 @@ def page_about(health, now):
   <header><p class="stk">Delfona</p><h1>{t}</h1></header>
   <div data-l="en" style="display:grid;gap:22px">{en}</div>
   <div data-l="ko" style="display:grid;gap:22px">{ko}</div>
-  <section class="box2" id="sources"><h2>{st}</h2>
-    <div class="tw"><table><thead><tr><th scope="col">{c1}</th><th scope="col">{c2}</th><th scope="col">{c3}</th><th scope="col">{c4}</th></tr></thead><tbody>{rows}</tbody></table></div>
+  <section class="box2" id="sources"><h2 id="sources-h">{st}</h2>
+    <div class="tw" tabindex="0" role="region" aria-labelledby="sources-h"><table><thead><tr><th scope="col">{c1}</th><th scope="col">{c2}</th><th scope="col">{c3}</th><th scope="col">{c4}</th></tr></thead><tbody>{rows}</tbody></table></div>
     <ul style="margin-top:14px">
       <li>{s1}: Binance (<a href="https://data-api.binance.vision" rel="nofollow">data-api.binance.vision</a>), Upbit</li>
       <li>{s2}: Yahoo Finance</li>

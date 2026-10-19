@@ -154,15 +154,15 @@ table.stt td b { margin-inline-end: 8px; font-weight: 650; } table.stt td span {
 .db .dt .g50 { position: absolute; inset-inline-start: 50%; top: 4px; width: 1px; height: 12px; background: #d5dbe5; }
 .db .dt .seg { position: absolute; top: 8px; height: 4px; border-radius: 2px; background: var(--ink); opacity: .35; }
 .db .dt .p0, .db .dt .p1 { position: absolute; top: 4px; width: 12px; height: 12px; margin-inline-start: -6px; border-radius: 50%; }
-.db .dt .p0 { background: #fff; box-shadow: inset 0 0 0 2px #8a96aa; } .db .dt .p1 { background: var(--ink); box-shadow: 0 0 0 2px #fff; }
+.db .dt .p0 { background: #fff; box-shadow: inset 0 0 0 2px var(--faint); } .db .dt .p1 { background: var(--ink); box-shadow: 0 0 0 2px #fff; }
 .dbk { display: flex; gap: 14px; margin-top: 6px; font-size: 12px; } .dbk i { display: inline-block; width: 10px; height: 10px; margin-inline-end: 5px; border-radius: 50%; vertical-align: -1px; }
-.dbk .k0 { box-shadow: inset 0 0 0 2px #8a96aa; } .dbk .k1 { background: var(--ink); }
+.dbk .k0 { box-shadow: inset 0 0 0 2px var(--faint); } .dbk .k1 { background: var(--ink); }
 .upd { color: #b45309; font-weight: 650; } .dnd { color: #1d4ed8; font-weight: 650; }
 .rf { margin-top: 0; }
 .soon .rh { margin-top: 8px; font-size: clamp(20px, 2.2vw, 26px); } .soon .rh .mute2 { font-size: 15px; font-weight: 500; margin-inline-start: 6px; }
 
-/* 이 화면의 작은 글자 · 오르내림 색은 흰 바탕 명암비 4.5:1 이상으로(회색 #8a96aa 2.99 → #64748b 4.76, 초록 3.39 → 5.35, 빨강 4.06 → 5.26) */
-.cal { --faint: #64748b; --up: #087a55; --down: #c43a2c; }
+/* 작은 글자 · 오르내림 색은 사이트 공통 값(lk.css)과 같고, 흰 바탕 · 옅은 칸 바탕 모두 명암비 4.5:1 이상 */
+.cal { --faint: #5f6c83; --up: #087a55; --down: #c43a2c; }
 .mxc:focus-visible, .tlc:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 6px; }
 
 /* 지금 미국 경제 */

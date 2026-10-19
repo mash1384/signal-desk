@@ -116,7 +116,7 @@ jobs:
       - run: python -m pip install -r tests/requirements.txt
       - run: python -m playwright install --with-deps chromium
       - run: python -m tests.build_site --published site --flash flash --out dist
-      - run: python -m pytest tests/e2e --matrix full --site dist --flash flash --junitxml=.qa/browser.xml -q -s --a11y report
+      - run: python -m pytest tests/e2e --matrix full --site dist --flash flash --junitxml=.qa/browser.xml -q -s --a11y zero
       - if: always()
         uses: actions/upload-artifact@v4
         with:

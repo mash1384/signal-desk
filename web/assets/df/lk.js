@@ -198,7 +198,7 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2, mark = null, v
   if (!window.LightweightCharts || !pts || pts.length < 2) { el.innerHTML = `<p class="mute">${T('No price data for this time.', '이 시간의 가격 자료가 없어요.')}</p>`; return null; }
   const LC = window.LightweightCharts, off = TZ(), lc = DFI.lang() === 'ko' ? 'ko-KR' : 'en-GB';
   el.innerHTML = '<div class="lgd"></div><div class="lwbox"></div>'; const box = el.querySelector('.lwbox'), lgd = el.querySelector('.lgd'); box.style.height = height + 'px';
-  const chart = LC.createChart(box, { autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#8a96aa', fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11, attributionLogo: false },
+  const chart = LC.createChart(box, { autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#5f6c83', fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11, attributionLogo: false },
     grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(13,37,61,.06)' } }, rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.12, bottom: 0.08 } },
     timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true },
     crosshair: { mode: LC.CrosshairMode.Magnet, vertLine: { color: 'rgba(13,37,61,.45)', width: 1, style: 0, labelBackgroundColor: '#0d253d' }, horzLine: { color: 'rgba(13,37,61,.25)', width: 1, style: 2, labelBackgroundColor: '#0d253d' } },

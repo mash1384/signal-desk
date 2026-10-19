@@ -134,6 +134,10 @@ def test_page(case, session_page, qa, site_server, request):
                 row["errors"].append({"kind": "contrast-unmeasurable", "nodes": sorted(missing)})
         if new:
             row["errors"].append({"kind": "new-accessibility", "violations": sorted(new)})
+        if request.config.getoption("--a11y") == "zero":
+            del row["errors"][a11y_errors_from:]
+            if row["axe"]:
+                row["errors"].append({"kind": "accessibility", "violations": row["axe"]})
         if request.config.getoption("--a11y") == "report":
             found = row["errors"][a11y_errors_from:]
             del row["errors"][a11y_errors_from:]

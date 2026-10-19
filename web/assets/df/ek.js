@@ -146,7 +146,7 @@ export function insightHTML(doc) {
   const s = r.rare && r.rare.after, b = r.after_all;
   const row = (label, k, fmt, upWord) => { if (!s || !s[k] || !b || !b[k]) return ''; const f = (x) => `<b class="mono">${fmt(x.med)}</b><span class="mute2">${Math.round(x.up * x.n)}/${x.n} ${upWord}</span>`;
     return `<tr><th scope="row">${label}</th><td>${f(s[k])}</td><td>${f(b[k])}</td></tr>`; };
-  const tbl = s && b ? `<div class="tw"><table class="cmp"><thead><tr><th scope="col"><span class="sr">${T('Measure', '항목')}</span></th><th scope="col">${T('After this mix', '이 조합 뒤')}<span class="mute2">${s.n}${T(' months', '개월')}</span></th><th scope="col">${T('Typical', '평소')}<span class="mute2">${b.n}${T(' months', '개월')}</span></th></tr></thead><tbody>
+  const tbl = s && b ? `<div class="tw" tabindex="0" role="region" aria-label="${T('Comparison table', '비교 표')}"><table class="cmp"><thead><tr><th scope="col"><span class="sr">${T('Measure', '항목')}</span></th><th scope="col">${T('After this mix', '이 조합 뒤')}<span class="mute2">${s.n}${T(' months', '개월')}</span></th><th scope="col">${T('Typical', '평소')}<span class="mute2">${b.n}${T(' months', '개월')}</span></th></tr></thead><tbody>
     ${row('S&amp;P 500', 'spx', (v) => pctS(v), T('rose', '상승'))}${row(T('10-year yield', '10년물 금리'), 'y10', (v) => sgn(v, 'bp', 0), T('rose', '상승'))}
     ${row(T('Fed funds', '기준금리'), 'ff', (v) => sgn(v, 'bp', 0), T('higher', '인상'))}${row(T('CPI inflation', '물가 상승률'), 'cpi', (v) => sgn(v, '%p', 2), T('higher', '높아짐'))}
     <tr><th scope="row">${T('Recession within 12m', '12개월 안 경기침체')}</th><td><b class="mono">${Math.round(s.rec * s.n)}/${s.n}</b></td><td><b class="mono">${Math.round(b.rec * b.n)}/${b.n}</b></td></tr></tbody></table></div>
