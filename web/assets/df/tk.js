@@ -26,7 +26,7 @@ export const BENCH = { crypto: ['BTC', 'b', 'BTC'], nasdaq: ['NQ=F', 'y', T('Nas
 let THEMES_DOC = null;
 export async function loadThemes() {
   if (THEMES_DOC) return THEMES_DOC;
-  const r = await fetch((window.DF_THEMES || 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/themes.json') + '?t=' + Math.floor(Date.now() / 60000));
+  const r = await fetch((window.DF_THEMES || DFD.data('daily/themes.json')) + '?t=' + Math.floor(Date.now() / 60000));
   THEMES_DOC = await r.json();
   // 소식 상세 창(openSheet)이 같은 소식을 찾을 수 있게 store 에 넣어 둔다
   [...THEMES_DOC.themes, ...(THEMES_DOC.themes_x || [])].forEach((t) => [...(t.top || []), ...(t.latest || []), ...(t.more || [])].forEach((x) => { if (!store.byId.has(x.id)) store.byId.set(x.id, Object.assign({ th: [t.k] }, x)); }));

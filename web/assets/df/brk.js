@@ -2,12 +2,12 @@
 // 줄기 문장은 AI(근거 소식 번호가 붙은 문장만, 숫자는 근거 소식에 있는 것만), 개수·날짜·호재/악재는 프로그램이 센 것.
 import { T, L, esc, store, openSheet, pill, hm, ago } from './lk.js';
 
-const RAW = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/';
+const DATA = DFD.data('daily/');
 export const THEMES5 = [['all', 'All', '전체'], ['crypto', 'Crypto', '크립토'], ['nasdaq', 'Nasdaq', '나스닥'], ['econ', 'Economy', '경제'], ['ai', 'AI', 'AI'], ['world', 'World', '세계']];
 let TH = null;
 export async function loadThreads() {
   if (TH) return TH;
-  const r = await fetch((window.DF_THREADS || RAW + 'threads.json') + '?t=' + Math.floor(Date.now() / 300000));
+  const r = await fetch((window.DF_THREADS || DATA + 'threads.json') + '?t=' + Math.floor(Date.now() / 300000));
   if (!r.ok) throw new Error('threads ' + r.status);
   TH = await r.json();
   // 소식 상세 창(openSheet)이 같은 소식을 찾을 수 있게 store 에 넣는다
@@ -18,7 +18,7 @@ export async function loadThreads() {
 // 가장 최근 하루 정리(이야기 엔진이 날짜를 적어 둔다 — 날짜를 추측해 없는 파일을 부르지 않게)
 export async function loadDaily(D) {
   const d = D && D.daily_latest; if (!d) return null;
-  try { const r = await fetch(RAW + d + '.json?t=' + Math.floor(Date.now() / 600000)); return r.ok ? await r.json() : null; } catch (e) { return null; }
+  try { const r = await fetch(DATA + d + '.json?t=' + Math.floor(Date.now() / 600000)); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
 const lc = () => (L() ? 'ko-KR' : 'en-GB');
 export const tx = (x) => x.ai && x.ai[L() ? 'ko' : 'en'];

@@ -1,9 +1,9 @@
 // 이어지는 이야기 표시(라이브·테마·내 자산 공통): 소식 카드에 '이어지는 이야기 · N일째', 소식 상세 창에 '이 이야기 전체 보기' 링크.
 // 자료: thread_index.json(Mac 이 30분마다, 소식 → 이야기 · 13KB 안팎). 카드 안에는 링크를 넣지 않는다(카드가 버튼이라 버튼 안 버튼이 된다).
-const RAW = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/thread_index.json';
+const DATA = DFD.data('daily/thread_index.json');
 let IDX = null, P = null, raf = 0;
 export function loadIndex() {
-  return P || (P = fetch((window.DF_THINDEX || RAW) + '?t=' + Math.floor(Date.now() / 600000)).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => (IDX = d)));
+  return P || (P = fetch((window.DF_THINDEX || DATA) + '?t=' + Math.floor(Date.now() / 600000)).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => (IDX = d)));
 }
 const ko = () => DFI.lang() === 'ko';
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

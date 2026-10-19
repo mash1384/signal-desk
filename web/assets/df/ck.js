@@ -3,7 +3,7 @@ import { whenVisible } from './charts.js';
 // 자료: econ.json(Mac 에서 1시간마다 — ALFRED 발표 당일 값, 야후 일봉, Forex Factory 예상치, FRED·연준 일정). 숫자는 모두 프로그램, 문장만 AI.
 import { T, L, esc } from './lk.js';
 
-export const ECON_URL = 'https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/econ.json';
+export const ECON_URL = DFD.data('daily/econ.json');
 let DOC = null;
 export async function loadEcon() {
   if (DOC) return DOC;

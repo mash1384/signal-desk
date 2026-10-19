@@ -7,7 +7,7 @@ import os
 import re
 import shutil
 
-from . import config, judge, util, prerender
+from . import config, judge, util, prerender, public_data
 from .impact import assets_for, subjects
 
 OG_DEFAULT = False
@@ -650,6 +650,7 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None, prerend
     if prerendered is None:
         prerendered = prerender.render(B)
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
+    public_data.copy_daily(config.FLASH_DIR, out)
     util.write_text(os.path.join(out, ".nojekyll"), "")
     stamp_df_imports(out)
     util.write_text(os.path.join(out, "index.html"), page_landing_df())

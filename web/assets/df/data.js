@@ -1,5 +1,6 @@
 // 시안 1·2·3 공통: 실시간 속보, 시세, 하루 정리, 다음 큰 발표를 받아 온다(모두 실제 데이터).
 window.DFD = (() => {
+  const data = path => (window.DF_ROOT || (window.DF_BASE || '../').replace(/assets\/df\/$/, '')) + 'data/' + path;
   const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ago = (t) => { const s = Date.now() / 1000 - t; return s < 60 ? '방금' : s < 3600 ? `${Math.floor(s / 60)}분 전` : s < 86400 ? `${Math.floor(s / 3600)}시간 전` : `${Math.floor(s / 86400)}일 전`; };
@@ -14,18 +15,18 @@ window.DFD = (() => {
   }
   async function brief() {
     // 하루 정리 파일 이름은 세계 표준시 날짜(한국 09:00~09:00). 오늘 것(진행 중)이 없으면 어제 것
-    const get = async (t) => { const r = await fetch(`https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/${new Date(t).toISOString().slice(0, 10)}.json`); if (!r.ok) throw 0; return r.json(); };
+    const get = async (t) => { const r = await fetch(data(`daily/${new Date(t).toISOString().slice(0, 10)}.json`)); if (!r.ok) throw 0; return r.json(); };
     try { return await get(Date.now()); } catch (e) { return get(Date.now() - 86400e3); }
   }
   async function nextEvent() {
-    const d = await (await fetch('https://mash1384.github.io/signal-desk/data/events.json')).json(), now = Date.now() / 1000;
+    const d = await (await fetch(data('events.json'))).json(), now = Date.now() / 1000;
     return d.upcoming.filter((x) => x.ts > now).sort((a, b) => b.level - a.level || a.ts - b.ts)[0] || null;
   }
-  async function market() { return (await fetch('https://mash1384.github.io/signal-desk/data/market.json')).json(); }
+  async function market() { return (await fetch(data('market.json'))).json(); }
   const day24 = (items) => { const s = Date.now() / 1000 - 86400, xs = items.filter((x) => x.t >= s);
     return { all: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length, n: xs.filter((x) => x.v === '중립').length, big: xs.filter((x) => x.s >= 2).length }; };
   const left = (ts) => { const s = Math.max(0, ts - Date.now() / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60); return d ? `${d}일 ${h}시간` : h ? `${h}시간 ${m}분` : `${m}분`; };
-  return { esc, ago, hm, money, pct, vcls, flash, prices, brief, nextEvent, market, day24, left };
+  return { data, esc, ago, hm, money, pct, vcls, flash, prices, brief, nextEvent, market, day24, left };
 })();
 
 // 시안 F1~F3 공통: 영어 기본 + 한국어 전환. data-t 요소의 영어 원문을 기억해 두고 KO 사전으로 바꾼다.

@@ -155,7 +155,7 @@ export function emptyHTML() {
 export function initSort() { let so = 'new'; try { so = localStorage.getItem('df-sort') || 'new'; } catch (e) {} return SORTS[so] ? so : 'new'; }
 // ---------- 내 자산 하루 요약(숫자는 프로그램 · AI 문장 없음 · 사용자 브라우저에서 계산) ----------
 let TH = null;
-export async function loadThemes() { if (TH) return TH; try { TH = await (await fetch('https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/themes.json?t=' + Math.floor(Date.now() / 60000))).json(); } catch (e) { TH = { themes: [] }; } return TH; }
+export async function loadThemes() { if (TH) return TH; try { TH = await (await fetch(DFD.data('daily/themes.json') + '?t=' + Math.floor(Date.now() / 60000))).json(); } catch (e) { TH = { themes: [] }; } return TH; }
 export function daySummaryHTML(my, items, th) {
   const day = items.filter((x) => x.t >= Date.now() / 1000 - 86400), u = day.filter((x) => x.v === '호재').length, d = day.filter((x) => x.v === '악재').length;
   const per = my.map((s) => { const a = BY[s], xs = day.filter((x) => matches(x, a)), pu = xs.filter((x) => x.v === '호재').length, pd = xs.filter((x) => x.v === '악재').length;

@@ -98,7 +98,7 @@ export function makeBrief(kind, { scene, sec, lay, mob, sample }) {
   let primed = false;
   function prime() { const sm0 = sample(N); m.set(0, (i, o) => { o[0] = sm0.p[i * 3]; o[1] = sm0.p[i * 3 + 1]; o[2] = sm0.p[i * 3 + 2]; o[3] = sm0.c[i * 4]; o[4] = sm0.c[i * 4 + 1]; o[5] = sm0.c[i * 4 + 2]; o[6] = sm0.c[i * 4 + 3]; return o; }); primed = true; }
   // 가장 최근 하루 정리(최대 6일 전까지 거슬러 찾는다)
-  const latest = async () => { for (let k = 0; k < 6; k++) { const r = await fetch(`https://raw.githubusercontent.com/mash1384/signal-desk/flash/daily/${new Date(Date.now() - k * 864e5).toISOString().slice(0, 10)}.json`).catch(() => null); if (r && r.ok) return r.json(); } throw 0; };
+  const latest = async () => { for (let k = 0; k < 6; k++) { const r = await fetch(DFD.data(`daily/${new Date(Date.now() - k * 864e5).toISOString().slice(0, 10)}.json`)).catch(() => null); if (r && r.ok) return r.json(); } throw 0; };
   latest().then(async (d) => { D = d; const b = d.balance || {}; balU = (b['호재'] || 0) / Math.max(1, (b['호재'] || 0) + (b['악재'] || 0)); await fonts(d.headline); fill();
     if (kind === 2) buildHeadline(); if (kind === 5) buildCard(); }).catch(() => {});
   // ---------- 매 프레임 ----------
