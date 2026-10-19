@@ -1,6 +1,8 @@
 name: QA harness (never publishes)
 on:
   workflow_dispatch:
+  push:
+    branches: ["tests/**"]   # 테스트 브랜치는 main 에 합치기 전에 원격에서 전체 QA (배포 없음)
   schedule:
     - cron: "19 17 * * *"
 permissions:
