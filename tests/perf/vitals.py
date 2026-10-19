@@ -253,6 +253,9 @@ async def run(args):
                         row['attempt'] = attempt + 1
                         runs.append(row)
                         print(json.dumps({k: row[k] for k in ('page', 'device', 'attempt') + METRICS}, ensure_ascii=False), flush=True)
+                        if row['cls'] > 0.05:   # 어떤 요소가 밀렸는지 로그에 바로 남긴다(원인 추적용)
+                            big = sorted(row['observed']['shifts'], key=lambda e: -e['value'])[:5]
+                            print('SHIFT', name, device, json.dumps([[round(e['at']), round(e['value'], 4), e['sources']] for e in big], ensure_ascii=False), flush=True)
             await browser.close()
     return {'remeasured': remeasured, 'method': {'version': 5, 'cold_context': True, 'cache_disabled': True, 'reduced_motion': True, 'viewport_height': 1000,
                        'mobile_network': {'latency_ms': 150, 'download_bytes_per_second': 200000, 'upload_bytes_per_second': 93750},

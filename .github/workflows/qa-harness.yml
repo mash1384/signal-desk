@@ -46,6 +46,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true   # 결과물이 .qa/(숨김 폴더)에 있다 — 기본값이면 아무것도 안 올라간다
           name: unit-${{ matrix.python }}
           path: .qa/
   mutation:
@@ -63,6 +64,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true   # 결과물이 .qa/(숨김 폴더)에 있다 — 기본값이면 아무것도 안 올라간다
           name: mutation
           path: .qa/mutation.json
   public-contracts:
@@ -94,6 +96,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true   # 결과물이 .qa/(숨김 폴더)에 있다 — 기본값이면 아무것도 안 올라간다
           name: public-contracts
           path: .qa/contracts.json
   browser:
@@ -126,6 +129,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true   # 결과물이 .qa/(숨김 폴더)에 있다 — 기본값이면 아무것도 안 올라간다
           name: browser
           path: .qa/
 
@@ -171,6 +175,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true   # 결과물이 .qa/(숨김 폴더)에 있다 — 기본값이면 아무것도 안 올라간다
           name: performance
           path: |
             .qa/*perf*.json
