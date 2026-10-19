@@ -171,6 +171,8 @@ async def measure(browser, base, name, device, site=None, flash=None, lang='ko',
         if offline and offline.unmapped:
             errors.append({'kind': 'unmapped', 'urls': offline.unmapped})
         content = {selector: await page.locator(selector).count() for selector in CONTENT[name]}
+        # 맞춤 대체 글꼴(pf.js) 상태: 어떤 기기 글꼴을 찾았고 실제로 불러졌는지
+        observed['pf'] = await page.evaluate("[document.documentElement.dataset.pf||'', document.documentElement.dataset.pfs||'', ...[...document.fonts].filter(f=>f.family.includes('PF')).map(f=>f.status)]")
         result = {'page': name, 'path': path, 'device': device, 'width': DEVICES[device], 'lang': lang,
                   'lcp_ms': observed['lcp'], 'cls': cls_value(observed['shifts']), 'requests': len(rows),
                   'bytes': sum(r['bytes'] for r in rows), 'font_files': sum(r.get('type') == 'Font' for r in rows),
@@ -257,7 +259,7 @@ async def run(args):
                                                    remeasured, {'page': name, 'device': device, 'attempt': attempt + 1})
                         row['attempt'] = attempt + 1
                         runs.append(row)
-                        print(json.dumps({k: row[k] for k in ('page', 'device', 'attempt') + METRICS}, ensure_ascii=False), flush=True)
+                        print(json.dumps(dict({k: row[k] for k in ('page', 'device', 'attempt') + METRICS}, pf=row['observed'].get('pf')), ensure_ascii=False), flush=True)
                         if row['cls'] > 0.05:   # 어떤 요소가 밀렸는지 로그에 바로 남긴다(원인 추적용)
                             big = sorted(row['observed']['shifts'], key=lambda e: -e['value'])[:5]
                             print('SHIFT', name, device, json.dumps([[round(e['at']), round(e['value'], 4), e['sources']] for e in big], ensure_ascii=False), flush=True)

@@ -7,7 +7,11 @@ export function mount(layout) {
   let jump = null; try { jump = new URLSearchParams(location.search).get('t'); } catch (e) {} if (jump) S.sel = jump;
   let D = null, dy = null;
   if (!app.dataset.prerender) app.innerHTML = '<div class="wrap brf"><div class="skel"></div><div class="skel"></div></div>';
-  const render = () => { app.innerHTML = layout(D, dy, S); };
+  let hydrated = false;
+  // 미리 그린 화면(빌드 때)과 같은 자료 · 같은 언어 · 같은 폭이면 첫 렌더는 건너뛴다 — 같은 내용을 새로 그리면 그 시점이 LCP 로 다시 잡힌다
+  const same = () => { const m = app.querySelector('[data-brief-snapshot]'); return !!m && !S.sel && S.f === 'all' &&
+    m.dataset.briefSnapshot === `${D.made}|${(dy && dy.made) || ''}|${DFI.lang()}|${matchMedia('(min-width: 1040px)').matches ? 1 : 0}`; };
+  const render = () => { const keep = !hydrated && app.dataset.prerender && same(); hydrated = true; if (!keep) app.innerHTML = layout(D, dy, S); };
   B.wire(app, S, render);
   app.addEventListener('click', e => { if (!D) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
   B.loadThreads().then((d) => Promise.all([d, B.loadDaily(d)])).then(([d, y]) => { D = d; dy = y; render();

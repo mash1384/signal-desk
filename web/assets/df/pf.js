@@ -17,6 +17,7 @@ if(!N)return;
 const ko=document.documentElement.lang==='ko',r=ko?P.h/w('"'+N+'"',H):P.l/w('"'+N+'"',L);
 if(!(r>0.5&&r<2))return;
 const pc=v=>(v*100).toFixed(2)+'%';
-const f=new FontFace('PF Fallback',C[N].map(x=>'local("'+x+'")').join(','),{sizeAdjust:pc(r),ascentOverride:pc(P.a/r),descentOverride:pc(P.d/r),lineGapOverride:'0%'});
-F.add(f);f.load().catch(()=>{});
+const f=new FontFace('PF Fallback',C[N].map(x=>'local("'+x+'")').join(','),{display:'swap',sizeAdjust:pc(r),ascentOverride:pc(P.a/r),descentOverride:pc(P.d/r),lineGapOverride:'0%'});
+// swap: 이 글꼴을 불러오는 동안에도 글자를 숨기지 않는다(못 찾으면 그냥 기기 글꼴)
+F.add(f);document.documentElement.dataset.pf=N;f.load().then(()=>{document.documentElement.dataset.pfs='loaded'},()=>{document.documentElement.dataset.pfs='error';F.delete(f)});
 }catch(e){}})();
