@@ -683,7 +683,7 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
         prev = dailies[i + 1]["date"] if i + 1 < len(dailies) else None
         util.write_text(os.path.join(out, "daily", doc["date"], "index.html"), page_daily(doc, prev, nxt, now))
     # 정리: 새 정리(/brief/)가 목록을 대신한다. 날짜별 하루 정리(/daily/<날짜>/)는 그대로 둔다
-    util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(), prerendered.get("brief"), responsive=True))
+    util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(), prerendered.get("brief"), responsive=True, wait_fonts=True))
     util.write_text(os.path.join(out, "daily", "index.html"), redirect_page("brief/"))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
@@ -692,7 +692,7 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
         util.write_text(os.path.join(out, "themes", k, "index.html"), page_themes_df(k))
     util.write_text(os.path.join(out, "themes", "index.html"), page_themes_df("crypto"))
     # 일정: 옛 이벤트 리스크(/events/)는 새 일정(/calendar/)으로 옮겼다
-    util.write_text(os.path.join(out, "calendar", "index.html"), prerender.insert(page_calendar_df(), prerendered.get("calendar")))
+    util.write_text(os.path.join(out, "calendar", "index.html"), prerender.insert(page_calendar_df(), prerendered.get("calendar"), wait_fonts=True))
     util.write_text(os.path.join(out, "events", "index.html"), redirect_page("calendar/"))
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
     for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
