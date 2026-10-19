@@ -12,7 +12,6 @@ window.DFD = (() => {
       const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
       try {
         const response = await fetch(FLASH.replace('/flash', '/live'), {cache: 'no-store', signal: controller.signal});
-        // 404 = 이 경로를 모르는 옛 Worker → 이 페이지에서는 묶음 요청을 끈다. 그 밖의 실패(5xx · 끊김 · 시간 초과)는 일시적일 수 있어 5분 뒤 다시 시도
         if (response.status === 404) { liveDisabled = true; return null; }
         if (!response.ok) throw new Error('live unavailable');
         const value = await response.json();
@@ -21,7 +20,6 @@ window.DFD = (() => {
             !Array.isArray(value.indices?.nq?.c) || !Array.isArray(value.indices?.es?.c)) throw new Error('invalid live response');
         liveValue = value; return value;
       } catch (e) {
-        // 형식이 틀린 응답은 다시 물어도 같다 → 끈다. 끊김 · 시간 초과 · 5xx 는 그동안 기존 경로로 받고 5분 뒤 다시 묶음 요청
         if (e && e.message === 'invalid live response') liveDisabled = true; else liveRetryAt = Date.now() + 300000;
         liveValue = null; return null;
       } finally { clearTimeout(timer); livePending = null; }
