@@ -177,6 +177,11 @@ async def measure(browser, base, name, device, site=None, flash=None, lang='ko',
                   'font_bytes': sum(r['bytes'] for r in rows if r.get('type') == 'Font'),
                   'js_bytes': sum(r['bytes'] for r in rows if r.get('type') == 'Script'),
                   'content': content, 'errors': errors, 'resources': rows, 'observed': observed}
+        # 테스트용 로컬 서버와의 연결 자체가 끊긴 회차(net::ERR_*)는 제품이 아니라 측정 장비 문제 — 다시 잰다(기록 남김).
+        # 제품의 HTTP 오류(4xx/5xx, kind=http)는 여기에 해당하지 않는다
+        if errors and all(e.get('kind') == 'requestfailed' and str(e.get('error', '')).startswith('net::ERR_')
+                          and urlsplit(e.get('url', '')).hostname in ('127.0.0.1', 'localhost') for e in errors):
+            raise EmptyMeasurement('local test server connection failed: %s %s %s' % (name, device, errors[0]['error']))
         if not result['lcp_ms'] or not result['bytes']:
             empty = [k for k in ('lcp_ms', 'bytes') if not result[k]]
             # 화면 핵심 내용까지 비었으면 제품 문제 — 다시 재지 않는다
