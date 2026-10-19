@@ -661,7 +661,15 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
     if extra is None:
         extra = {n: util.read_json(os.path.join(out, "data", n), None) for n in ("map.json", "moves.json", "listings.json", "events.json")}
     if prerendered is None:
-        prerendered = prerender.render(B)
+        # 첫 화면 미리 그리기는 속도 개선일 뿐 — 실패해도(Node 없음, 데이터 이상) 뉴스 배포는 멈추지 않고 브라우저 렌더로 돌아간다.
+        # 실패는 로그에 남기고, main 에 합치기 전 검사(SIGNAL_PRERENDER_STRICT=1)에서는 실패로 다룬다.
+        try:
+            prerendered = prerender.render(B)
+        except Exception as e:
+            if os.environ.get("SIGNAL_PRERENDER_STRICT") == "1":
+                raise
+            util.log("prerender skipped", type(e).__name__, str(e)[:200])
+            prerendered = {}
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     public_data.copy_daily(config.FLASH_DIR, out)
     article_bundle.bundle(WEB, out)

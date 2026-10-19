@@ -89,7 +89,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: python -m tests.build_site --published site --flash flash --out dist
+      - run: SIGNAL_PRERENDER_STRICT=1 python -m tests.build_site --published site --flash flash --out dist
       - run: python -m tests.check_site --site dist --flash flash
       - if: always()
         uses: actions/upload-artifact@v4
@@ -121,7 +121,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: python -m tests.build_site --published site --flash flash --out dist
+      - run: SIGNAL_PRERENDER_STRICT=1 python -m tests.build_site --published site --flash flash --out dist
       - run: python -m pytest tests/e2e --matrix full --site dist --flash flash --junitxml=.qa/browser.xml -q -s --a11y zero
       - if: always()
         uses: actions/upload-artifact@v4
