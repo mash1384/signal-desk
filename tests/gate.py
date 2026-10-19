@@ -33,7 +33,7 @@ def main():
         print(result.stderr, end='', file=sys.stderr)
         return result.returncode
 
-    contracts = [sys.executable, '-m', 'tests.check_site', '--site', args.site, '--flash', args.flash]
+    contracts = [sys.executable, '-m', 'tests.check_site', '--site', args.site, '--flash', args.flash, '--style-warn']
     ready = [sys.executable, '-m', 'tests.browser_ready', '--channel', args.browser_channel]
     smoke = [sys.executable, '-m', 'pytest', 'tests/e2e/test_matrix.py', 'tests/e2e/test_release.py', '--matrix', 'smoke',
              '--site', args.site, '--flash', args.flash, '--browser-channel', args.browser_channel, '-q', '--junitxml=.qa/gate.xml',

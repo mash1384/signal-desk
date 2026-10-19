@@ -38,10 +38,19 @@ def main():
     p.add_argument("--site", type=Path, required=True)
     p.add_argument("--flash", type=Path, required=True)
     p.add_argument("--output", type=Path, default=Path(".qa/contracts.json"))
+    # 15분 배포 전 검사용(운영자 결정 2026-10-20): 말투 규칙(ai-korean-style: '~쪽' · 세미콜론)은 경고만 — 문장 하나로 뉴스 배포가 멈추지 않게.
+    # 비밀값 · 텔레그램 출처 · 발췌 길이 · 데이터 형식은 그대로 막는다. main 합치기 전 검사(qa-harness)는 이 옵션 없이 엄격.
+    p.add_argument("--style-warn", action="store_true")
     args = p.parse_args()
     start = time.monotonic()
     result = check(args.site, args.flash)
     result["seconds"] = round(time.monotonic() - start, 3)
+    soft = {"ai-korean-style"} if args.style_warn else set()
+    result["warnings"] = [dict(e, scope=k) for k, r in result["policy"].items() for e in r["errors"] if e.get("rule") in soft]
+    for r in result["policy"].values():
+        r["errors"] = [e for e in r["errors"] if e.get("rule") not in soft]
+    for w in result["warnings"]:
+        print("WARNING style", w["scope"], w.get("file"), w.get("path"))
     n = sum(len(r["errors"]) for r in result["policy"].values()) + len(result["schema"])
     result["violations"] = n
     args.output.parent.mkdir(parents=True, exist_ok=True)
