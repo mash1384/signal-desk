@@ -35,10 +35,13 @@ def polling(args):
             def worker_urls(bag=urls):
                 return [u for u in bag if urlsplit(u).hostname == 'signal-scheduler.mash1384.workers.dev']
 
+            steps = []
+
             def advance(minutes, target=page):
                 for _ in range(minutes * 2):
                     target.clock.run_for(30000)
                     target.wait_for_timeout(100)
+                    steps.append(len(worker_urls()))
 
             try:
                 page.goto(base + 'live/', wait_until='networkidle')
@@ -58,7 +61,8 @@ def polling(args):
                 visible = len(worker_urls()) - initial
                 assert visible > 0, 'the visible tab stopped refreshing'
                 if mode == 'modern':
-                    assert visible <= 2 * minutes, ('Worker budget exceeded', visible, minutes)
+                    from collections import Counter
+                    assert visible <= 2 * minutes, ('Worker budget exceeded', visible, minutes, dict(Counter(urlsplit(u).path for u in worker_urls()[initial:])), 'per-step totals', steps, 'initial', initial)
                     assert all(urlsplit(u).path == '/live' for u in worker_urls()), worker_urls()
                 else:
                     assert sum(urlsplit(u).path == '/live' for u in worker_urls()) == 1, 'failed feature probe must not repeat'
