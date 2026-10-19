@@ -9,6 +9,8 @@ from urllib.parse import urlsplit
 
 
 class Handler(SimpleHTTPRequestHandler):
+    protocol_version = 'HTTP/1.1'
+
     def log_message(self, *_args):
         pass
 
@@ -19,13 +21,20 @@ class Handler(SimpleHTTPRequestHandler):
         return super().translate_path("/" + path[len("/signal-desk/"):])
 
 
+class Server(ThreadingHTTPServer):
+    # Module preloads can arrive together. The default backlog of five
+    # intermittently reset valid requests; keep every failure assertion.
+    request_queue_size = 128
+    daemon_threads = True
+
+
 @contextmanager
 def serve(site):
     site = Path(site).resolve()
     if not (site / "index.html").is_file():
         raise FileNotFoundError("build index.html missing: " + str(site))
     handler = partial(Handler, directory=str(site))
-    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    server = Server(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     base = "http://127.0.0.1:%d/signal-desk/" % server.server_port

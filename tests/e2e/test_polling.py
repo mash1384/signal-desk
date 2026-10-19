@@ -1,6 +1,7 @@
 """숨겨진 탭에서는 주기 요청(Worker /flash · /market)을 멈추고, 다시 보이면 밀린 한 번만 바로 한다.
 가짜 시계(page.clock)로 몇 분을 몇 초 만에 돌린다. 브라우저 탭 숨김은 document.hidden · visibilitychange 로 흉내 낸다."""
 import datetime as dt
+import time
 
 import pytest
 
@@ -23,8 +24,16 @@ def test_hidden_tab_pauses_polling(browser, site_server, request, route):
     context.route("**/*", offline.handle)
     context.add_init_script("localStorage.setItem('df-lang','ko'); localStorage.setItem('df-my', JSON.stringify(['BTC','ETH','NVDA']));")
     page = context.new_page()
-    urls = []
-    page.on("request", lambda r: urls.append(r.url))
+    urls, pending = [], set()
+
+    def started(req):
+        urls.append(req.url)
+        if 'workers.dev/' in req.url:
+            pending.add(req)
+
+    page.on("request", started)
+    page.on("requestfinished", lambda req: pending.discard(req))
+    page.on("requestfailed", lambda req: pending.discard(req))
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.clock.install(time=dt.datetime.fromtimestamp(offline.now, dt.timezone.utc))
@@ -35,8 +44,16 @@ def test_hidden_tab_pauses_polling(browser, site_server, request, route):
             return sum(1 for u in urls if "workers.dev/" + kind in u)
 
         def advance(minutes):
-            page.clock.run_for(minutes * 60 * 1000)
-            page.wait_for_timeout(400)   # 요청 이벤트가 도착할 시간(실제 시간)
+            # Drain real network responses between fake polling intervals.
+            # Jumping five minutes while one response is still pending tests
+            # an artificial five-minute outage instead of normal polling.
+            for _ in range(minutes * 2):
+                page.clock.run_for(30000)
+                page.wait_for_timeout(50)
+                deadline = time.monotonic() + 10
+                while pending and time.monotonic() < deadline:
+                    page.wait_for_timeout(25)
+                assert not pending, 'polling fixture response did not finish'
 
         # 보이는 동안: 5분에 /flash 약 10번(30초), /market 약 5번(60초, 1h · 5m 두 개씩)
         f0, q0 = n("flash"), n("market")

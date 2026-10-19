@@ -1,0 +1,98 @@
+{
+  "source_commits": {
+    "gh-pages": "74eafc2c5f9e3ed638a60bd7300489e303076d6b",
+    "flash": "b172cc2299f4d94caeafbb00642e4c0798bc9710"
+  },
+  "scope": "Public JSON only. Excludes .git and 85MB of OG JPEGs, which are not requested in these browser cases. gh-pages history is amended on each deployment, so its old SHA is not a durable fixture reference.",
+  "archive_sha256": "2cf29a34dd31ae00ed21bee9aa424f882f777277dcb6b2db44d377884fa9314b",
+  "files": {
+    "gh-pages/data/articles.json": {
+      "bytes": 6732609,
+      "sha256": "0e080560a9c987a57118cabc28f3fc6d559053f954fa31de2cb62f85d06bc079"
+    },
+    "gh-pages/data/calendar.json": {
+      "bytes": 990,
+      "sha256": "77ee7d521ec95b4108e2c9cbd170cd68f927be61efb7a6069ad91834c80a75b2"
+    },
+    "gh-pages/data/events.json": {
+      "bytes": 11381,
+      "sha256": "be4ed4e17ff94b5694e300f83eda8594d00f3d7d2f16a8c8ab5ed5949310209f"
+    },
+    "gh-pages/data/feed.json": {
+      "bytes": 188477,
+      "sha256": "c904c67106190e6ac24232762f143c765a47e085bd611d55f6b4eb940b4dfb9b"
+    },
+    "gh-pages/data/impact.json": {
+      "bytes": 2760,
+      "sha256": "f462b6ab5a7a74c71791534d4d81caea4e50ee1d4f66e451b62bd5dccd656198"
+    },
+    "gh-pages/data/listings.json": {
+      "bytes": 795017,
+      "sha256": "49507a613563c5d93176d5b92a380147ae485687e63d2d04afeb214f440da312"
+    },
+    "gh-pages/data/map.json": {
+      "bytes": 295571,
+      "sha256": "2d1e657aa942392647ab440dcb1231139d8524c82b1b7c5977f4d82e8a1c614a"
+    },
+    "gh-pages/data/market.json": {
+      "bytes": 3546,
+      "sha256": "ac061620d2801b2f590027151801c8f7808e4473eca630d82841419cfb89a8a1"
+    },
+    "gh-pages/data/moves.json": {
+      "bytes": 95423,
+      "sha256": "c64defa21e22b1dad38c11b4e44f1c7efa033b2f3774d5136f3176546113bf45"
+    },
+    "gh-pages/data/related.json": {
+      "bytes": 68698,
+      "sha256": "e9a323645d67f9b26c475785163d70ed3c8c58d6968eb02c4b8d8a126121b4cb"
+    },
+    "gh-pages/data/signals.json": {
+      "bytes": 139780,
+      "sha256": "fe775fe64ef36a618770619a118d3668c6fda78d127a7e73585d486c518542c4"
+    },
+    "gh-pages/data/state.json": {
+      "bytes": 35764,
+      "sha256": "dbc2d542338537f8e429b317cbe4efbf9baa1073fd8b3f9771bedcc92cf78169"
+    },
+    "flash/flash.json": {
+      "bytes": 67092,
+      "sha256": "09dd3f534f39c2ce22232dcc15c4660cd924705dd596abc245ce48fac3c973a8"
+    },
+    "flash/daily/2026-10-13.json": {
+      "bytes": 8823,
+      "sha256": "e95f94655f7a60de733a2426a14bbe82137fc64727031b17de924a5eb6159a50"
+    },
+    "flash/daily/2026-10-14.json": {
+      "bytes": 9436,
+      "sha256": "60c1151b3440cf73d0db0d0ea2e00fb6cdd61de33d90a3d298f3ecf85e26d92e"
+    },
+    "flash/daily/2026-10-15.json": {
+      "bytes": 10532,
+      "sha256": "a701eb0a6bdde1cbece76b07e4b3df3a0be7c041d4c4ddbf019a9fb9d45aae28"
+    },
+    "flash/daily/2026-10-16.json": {
+      "bytes": 10364,
+      "sha256": "f2c63bc9a10c698ed01fc764acae045e9e7a8adbf9babe039ac151da3531c41a"
+    },
+    "flash/daily/2026-10-17.json": {
+      "bytes": 10178,
+      "sha256": "e378bbe0dfe585ac2a427b29ff47d72ac3207f749ceaa6cd4848fef44cb2285f"
+    },
+    "flash/daily/econ.json": {
+      "bytes": 414996,
+      "sha256": "087e481be24301e33b8cee75a3a3a2658e02cf557fce84983722003eb56564ba"
+    },
+    "flash/daily/themes.json": {
+      "bytes": 66188,
+      "sha256": "e3a3ef4d3654e1cb4a81296032d6549a38b381eaa328d848921e74e47654c424"
+    },
+    "flash/daily/thread_index.json": {
+      "bytes": 13626,
+      "sha256": "eac1730557da5cdb829db1016abdc09a3309cf6d0d6537f3991d710a32ff319d"
+    },
+    "flash/daily/threads.json": {
+      "bytes": 218128,
+      "sha256": "18b8eae74e959cd912fdc1679ebbf90a7cce417a30c0f21b7b94ff03f74c17ec"
+    }
+  }
+}

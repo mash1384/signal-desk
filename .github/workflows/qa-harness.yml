@@ -128,3 +128,55 @@ jobs:
         with:
           name: browser
           path: .qa/
+
+  performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 479cc03645a444e96207818066b0da9e483732a5
+          path: .qa/before-source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r tests/requirements.txt -r tests/perf/requirements.txt
+      # gh-pages uses commit --amend + force-push. Its old SHA may disappear.
+      - run: python -m tests.perf.snapshot --out .qa/snapshot-r
+      - run: python -m playwright install --with-deps chromium
+      - run: node --test tests/perf/candles.test.mjs
+      - name: Build the unchanged source with the same fixed snapshots
+        working-directory: .qa/before-source
+        run: python -m tests.build_site --published ../snapshot-r/gh-pages --flash ../snapshot-r/flash --out ../perf-before/signal-desk
+      - run: python -m tests.build_site --published .qa/snapshot-r/gh-pages --flash .qa/snapshot-r/flash --out .qa/perf-after/signal-desk
+      # Measure serially on the same runner. Never compare Linux CPU times
+      # with the operator's Mac; transfer caps remain the committed caps.
+      - run: python -m tests.perf.vitals --site .qa/perf-before/signal-desk --channel chromium --output .qa/ci-before.json
+      - run: python -m tests.perf.vitals --site .qa/perf-after/signal-desk --channel chromium --output .qa/ci-after.json
+      - run: python -m tests.perf.budgets --before .qa/ci-before.json --after .qa/ci-after.json
+      - run: python -m tests.perf.browser --site .qa/perf-after/signal-desk --channel chromium
+      - run: python -m tests.perf.visuals --site .qa/perf-after/signal-desk --channel chromium --forbid-raw --out .qa/perf-captures
+      - run: python -m tests.perf.fonts .qa/perf-captures/capture.json
+      - run: python -m tests.perf.incremental --work .qa/perf-incremental
+      - run: python -m tests.perf.components --site .qa/perf-after/signal-desk --old-site .qa/perf-before/signal-desk --old-site .qa/perf-incremental/before/signal-desk --channel chromium
+      - run: python -m tests.perf.candle_visuals --before .qa/perf-before/signal-desk --after .qa/perf-after/signal-desk --channel chromium --out .qa/perf-candles
+      - run: python -m tests.perf.negative --site .qa/perf-after/signal-desk --before .qa/ci-before.json --after .qa/ci-after.json --capture .qa/perf-captures/capture.json --channel chromium --work .qa/perf-negative
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance
+          path: |
+            .qa/*perf*.json
+            .qa/ci-*.json
+            .qa/perf-captures/
+            .qa/perf-candles/
+            .qa/perf-negative/result.json
+            .qa/perf-negative/*.log
+            .qa/perf-incremental/result.json

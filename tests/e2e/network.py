@@ -86,7 +86,9 @@ class Offline:
             elif url.path.endswith("/klines"):
                 n = int(q.get("limit", ["300"])[0])
                 step = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "1d": 86400}[q.get("interval", ["1m"])[0]]
-                start = int(q["startTime"][0]) // 1000 if "startTime" in q else None
+                # Binance returns UTC-aligned candle opens >= startTime, not
+                # a new time grid beginning at an arbitrary story second.
+                start = ((int(q["startTime"][0]) + step * 1000 - 1) // (step * 1000)) * step if "startTime" in q else None
                 # endTime selects a suffix of the same deterministic 1000-row
                 # series, so overlapping chart points never depend on limit.
                 points = self.series(1000, step)[-n:] if "endTime" in q else self.series(n, step, start)

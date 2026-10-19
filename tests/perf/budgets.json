@@ -1,0 +1,133 @@
+{
+  "rule": "measured after +15%, bounded by before +15% and any prior cap; never raise",
+  "caps": [
+    {
+      "page": "",
+      "device": "pc",
+      "bytes": 1021083,
+      "font_files": 18,
+      "font_bytes": 424276,
+      "js_bytes": 306310
+    },
+    {
+      "page": "",
+      "device": "mobile",
+      "bytes": 867228,
+      "font_files": 12,
+      "font_bytes": 270421,
+      "js_bytes": 306310
+    },
+    {
+      "page": "live/",
+      "device": "pc",
+      "bytes": 690558,
+      "font_files": 18,
+      "font_bytes": 436102,
+      "js_bytes": 94725
+    },
+    {
+      "page": "live/",
+      "device": "mobile",
+      "bytes": 690558,
+      "font_files": 18,
+      "font_bytes": 436102,
+      "js_bytes": 94725
+    },
+    {
+      "page": "my/",
+      "device": "pc",
+      "bytes": 543944,
+      "font_files": 17,
+      "font_bytes": 389501,
+      "js_bytes": 33126
+    },
+    {
+      "page": "my/",
+      "device": "mobile",
+      "bytes": 543944,
+      "font_files": 17,
+      "font_bytes": 389501,
+      "js_bytes": 33126
+    },
+    {
+      "page": "themes/crypto/",
+      "device": "pc",
+      "bytes": 789004,
+      "font_files": 23,
+      "font_bytes": 588591,
+      "js_bytes": 89051
+    },
+    {
+      "page": "themes/crypto/",
+      "device": "mobile",
+      "bytes": 711068,
+      "font_files": 23,
+      "font_bytes": 588591,
+      "js_bytes": 32494
+    },
+    {
+      "page": "brief/",
+      "device": "pc",
+      "bytes": 557274,
+      "font_files": 17,
+      "font_bytes": 394041,
+      "js_bytes": 28906
+    },
+    {
+      "page": "brief/",
+      "device": "mobile",
+      "bytes": 557274,
+      "font_files": 17,
+      "font_bytes": 394041,
+      "js_bytes": 28906
+    },
+    {
+      "page": "calendar/",
+      "device": "pc",
+      "bytes": 656945,
+      "font_files": 17,
+      "font_bytes": 394041,
+      "js_bytes": 47514
+    },
+    {
+      "page": "calendar/",
+      "device": "mobile",
+      "bytes": 656945,
+      "font_files": 17,
+      "font_bytes": 394041,
+      "js_bytes": 47514
+    },
+    {
+      "page": "daily/",
+      "device": "pc",
+      "bytes": 591038,
+      "font_files": 22,
+      "font_bytes": 547869,
+      "js_bytes": 4135
+    },
+    {
+      "page": "daily/",
+      "device": "mobile",
+      "bytes": 591038,
+      "font_files": 22,
+      "font_bytes": 547869,
+      "js_bytes": 4135
+    },
+    {
+      "page": "about/",
+      "device": "pc",
+      "bytes": 493809,
+      "font_files": 19,
+      "font_bytes": 450757,
+      "js_bytes": 4135
+    },
+    {
+      "page": "about/",
+      "device": "mobile",
+      "bytes": 493809,
+      "font_files": 19,
+      "font_bytes": 450757,
+      "js_bytes": 4135
+    }
+  ]
+}

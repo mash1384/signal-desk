@@ -50,7 +50,7 @@ def cls_value(shifts):
 
 def is_data(url):
     u = urlsplit(url)
-    return u.hostname in ('raw.githubusercontent.com', 'signal-scheduler.mash1384.workers.dev', 'data-api.binance.vision') or '/data/' in u.path and u.path.endswith('.json')
+    return u.hostname in ('raw.githubusercontent.com', 'signal-scheduler.mash1384.workers.dev', 'data-api.binance.vision') or u.path.endswith('.json')
 
 
 class Reply:
@@ -97,6 +97,14 @@ async def prepare(browser, base, site=None, flash=None, width=390, lang='ko', de
     if offline:
         await transport(context, offline, delay, block, wire)
         await page.clock.set_fixed_time(dt.datetime.fromtimestamp(offline.now, dt.timezone.utc))
+    else:
+        async def public_get_only(route):
+            host = urlsplit(route.request.url).hostname
+            if route.request.method != 'GET' or host in ('api.github.com', 'api.deepseek.com', 'api.telegram.org', 't.me'):
+                await route.abort('blockedbyclient')
+            else:
+                await route.continue_()
+        await context.route('**/*', public_get_only)
     return context, page, offline
 
 
@@ -226,8 +234,8 @@ async def run(args):
     return {'method': {'version': 5, 'cold_context': True, 'cache_disabled': True, 'reduced_motion': True, 'viewport_height': 1000,
                        'mobile_network': {'latency_ms': 150, 'download_bytes_per_second': 200000, 'upload_bytes_per_second': 93750},
                        'transfer': 'CDP Network.loadingFinished.encodedDataLength (body + response headers)',
-                       'local_transport': 'Offline fixtures over real local TLS sockets (not route.fulfill); no external network',
-                       'local_compression': args.compression + ' (text/JSON/JS/SVG only; gzip level 6, mtime 0)',
+                       'local_transport': 'Public GETs without fixtures' if args.live else 'Offline fixtures over real local TLS sockets (not route.fulfill); no external network',
+                       'local_compression': 'server-provided (no override)' if args.live else args.compression + ' (text/JSON/JS/SVG only; gzip level 6, mtime 0)',
                        'cls': 'maximum session window (gap <1s, duration <5s), excludes recent input', 'lang': args.lang,
                        'mode': 'live' if args.live else 'local', 'site': str(args.live or args.site), 'flash': str(args.flash),
                        'delay_data_seconds': args.delay_data, 'blocked_data': args.block_data},

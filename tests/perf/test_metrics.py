@@ -1,10 +1,26 @@
 """Meaningful unit checks for the measurement's aggregation rules (no browser)."""
 import unittest
+from types import SimpleNamespace
 
-from tests.perf.vitals import aggregate, cls_value, network_metrics
+from tests.e2e.network import Offline
+from tests.perf.vitals import aggregate, cls_value, network_metrics, Reply
 
 
 class Metrics(unittest.TestCase):
+    def test_detail_fixture_uses_real_utc_opens_and_no_future_candles(self):
+        offline = Offline.__new__(Offline)
+        offline.host, offline.now, offline.manifest, offline.unmapped = 'fixture', 1259, {}, []
+
+        def candles(limit, start=1001000):
+            reply = Reply(SimpleNamespace(method='GET', url='https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=%d&startTime=%d' % (limit, start)))
+            offline.handle(reply)
+            return reply.payload['json']
+
+        old = candles(1000)
+        self.assertEqual([row[0] for row in old], [1020000, 1080000, 1140000, 1200000])
+        self.assertEqual(old, candles(4))
+        self.assertEqual(candles(1000, 1020001)[0][0], 1080000)
+
     def test_cls_uses_largest_session_not_lifetime_total(self):
         shifts = [{'at': t, 'value': v} for t, v in [(0, .04), (500, .06), (1400, .1), (2400, .9), (2500, .01)]]
         self.assertAlmostEqual(cls_value(shifts), .91)

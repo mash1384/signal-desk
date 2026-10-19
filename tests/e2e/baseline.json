@@ -1,23 +1,23 @@
 {
   "measured_bytes": {
-    "": 1544093,
-    "live/": 1604893,
-    "my/": 1305726,
-    "themes/crypto/": 1215671,
-    "brief/": 1059160,
-    "calendar/": 1364614,
-    "daily/": 755387,
-    "about/": 599154
+    "": 1438735,
+    "live/": 1481304,
+    "my/": 1198684,
+    "themes/crypto/": 1115541,
+    "brief/": 906132,
+    "calendar/": 1153109,
+    "daily/": 649908,
+    "about/": 573957
   },
   "budget_bytes": {
-    "": 1775707,
-    "live/": 1845627,
-    "my/": 1501585,
-    "themes/crypto/": 1398022,
-    "brief/": 1218034,
-    "calendar/": 1569307,
-    "daily/": 868696,
-    "about/": 689028
+    "": 1654546,
+    "live/": 1703500,
+    "my/": 1378487,
+    "themes/crypto/": 1282873,
+    "brief/": 1042052,
+    "calendar/": 1326076,
+    "daily/": 747395,
+    "about/": 660051
   },
   "axe": {
     "|1440|ko": [],
