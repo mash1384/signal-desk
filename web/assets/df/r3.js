@@ -120,7 +120,7 @@ app.addEventListener('click', (e) => {
   if (e.target.closest('[data-pick]')) { Y.openPicker(() => { pqAt = 0; loadStrip(); render(true); }); return; } const so = e.target.closest('[data-sort]'); if (so) { SO = so.dataset.sort; try { localStorage.setItem('df-sort', SO); } catch (x) {} render(true); return; }
   const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }
   const t = e.target.closest('[data-th]'); if (t) { S.th = t.dataset.th; render(true); return; } const b = e.target.closest('[data-id]'); if (b) openSheet(store.byId.get(b.dataset.id)); });
-start(() => render(false)); loadStrip(); setInterval(loadStrip, 60000); DFI.onLang(() => { drawStrip(); render(true); });
+start(() => render(false)); loadStrip(); Y.every(loadStrip, 60000); DFI.onLang(() => { drawStrip(); render(true); });
 let rzT = 0, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)), 200); });   // 작은 그래프는 크기가 바뀌면 다시 그린다(큰 차트는 라이브러리가 맞춘다)
 
 // ---------- 많이 언급된 이슈·종목(최근 3시간) ----------

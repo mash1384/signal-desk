@@ -20,7 +20,7 @@ export function mount(render) {
   });
   // 고르는 중(빈 화면의 첫 고르기, 고르기 창)엔 다시 그리지 않는다 — 여러 개를 고른 뒤 '내 피드 보기'·'완료'로 넘어간다
 addEventListener('df-my', () => { if (!document.getElementById('pickdlg')?.open && !app.querySelector('.empty-my')) draw(true); });
-  Y.start(() => draw()); DFI.onLang(() => draw()); setInterval(() => { refreshQ().then(() => draw()); }, 60000);
+  Y.start(() => draw()); DFI.onLang(() => draw()); Y.every(() => { refreshQ().then(() => draw()); }, 60000);
   let rz, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rz); rz = setTimeout(() => Y.drawSparks(app, S.Q), 200); });
   return S;
 }

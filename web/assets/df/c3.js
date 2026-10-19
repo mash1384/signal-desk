@@ -1,7 +1,7 @@
 // C3 · Dashboard — Trading Economics·블룸버그식 '숫자 먼저'.
 // 순서: 발표 순간(방금 발표 · 곧 발표) → 지금 미국 경제(해설 · 국면 · 과거에 이런 때 · FOMC 확률) → 지표 카드 + 오른쪽 다가오는 발표(다음 큰 발표를 맨 위에) → 지표 상세.
 // 겹치던 것: '방금 나온 지표' 띠(지표 카드와 같음) · '다음 큰 발표' 따로 칸 · AI '다음에 확인할 것'(일정과 같음) · '지금 숫자' 4칸(지표 카드와 같음)은 없앴다.
-import { T } from './lk.js';
+import { T, every } from './lk.js';
 import * as C from './ck.js';
 import * as E from './ek.js';
 import { mount } from './cc.js';
@@ -20,6 +20,6 @@ mount((doc, S) => `<div class="wrap cal c3">
   live: (doc, rerender) => {
     const pull = () => E.loadRelease().then((items) => { const r = E.recent(items)[0] || null; if ((r && r.updated) !== (rel && rel.updated) || (r && r.id) !== (rel && rel.id)) { rel = r; rerender(); } });
     pull();
-    setInterval(() => { const now = Date.now() / 1000; if ((doc.upcoming || []).some((u) => u.ts - now < 2 * 3600 && now - u.ts < 3 * 3600)) pull(); }, 20000);
+    every(() => { const now = Date.now() / 1000; if ((doc.upcoming || []).some((u) => u.ts - now < 2 * 3600 && now - u.ts < 3 * 3600)) pull(); }, 20000);
   },
 });
