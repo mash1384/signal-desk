@@ -5,9 +5,9 @@ import * as C from './ck.js';
 export function mount(layout, hooks = {}) {
   const app = document.getElementById('app');
   const S = { k: null, asset: '^GSPC', range: '10y' };
-  let doc = null;
+  let doc = null, hydrated = false;
   try { const q = new URLSearchParams(location.search); if (q.get('i')) S.k = q.get('i'); } catch (e) {}
-  app.innerHTML = `<div class="wrap cal"><div class="skel"></div><div class="skel"></div></div>`;
+  if (!app.dataset.prerender) app.innerHTML = `<div class="wrap cal"><div class="skel"></div><div class="skel"></div></div>`;
   // 처음 고를 지표: 최근 7일 안에 나온 것 중 목록 앞쪽(중요한 것) → 없으면 가장 최근 발표
   const pick = () => { const now = Date.now() / 1000, rec = doc.indicators.filter((x) => now - x.latest.ts < 7 * 86400); return (rec[0] || [...doc.indicators].sort((a, b) => b.latest.ts - a.latest.ts)[0]).k; };
   function drawDetail() {
@@ -19,7 +19,10 @@ export function mount(layout, hooks = {}) {
   }
   function render() {
     if (!S.k || !doc.by[S.k]) S.k = pick();
-    app.innerHTML = layout(doc, S);
+    const seed = app.querySelector('[data-snapshot-made]');
+    const preserve = !hydrated && seed?.dataset.snapshotMade === String(doc.made) && seed.dataset.snapshotLang === DFI.lang() && app.querySelector('.ics .ic.on')?.dataset.ind === S.k;
+    hydrated = true;
+    if (!preserve) app.innerHTML = layout(doc, S);
     C.drawSparks(app, doc); drawDetail(); C.tickUntil(app);
     if (hooks.after) hooks.after(app, doc);
   }
@@ -31,6 +34,7 @@ export function mount(layout, hooks = {}) {
     if (scroll) { const d = app.querySelector('#detail'); if (d && d.getBoundingClientRect().top > innerHeight * 0.6) d.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
   }
   app.addEventListener('click', (e) => {
+    if (!doc) return;
     const ind = e.target.closest('[data-ind]'); if (ind) { select(ind.dataset.ind, true); return; }
     const a = e.target.closest('[data-asset]'); if (a) { S.asset = a.dataset.asset; drawDetail(); return; }
     const r = e.target.closest('[data-range]'); if (r) { S.range = r.dataset.range; app.querySelectorAll('[data-range]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.range === S.range))); C.drawHistory(app.querySelector('#hc'), doc.by[S.k], S.range); }
@@ -38,6 +42,6 @@ export function mount(layout, hooks = {}) {
   // 폭이 바뀔 때만 다시 그림(휴대폰 주소창 높이 변화는 무시)
   let rzT = 0, rzW = innerWidth;
   addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => { if (!doc) return; app.querySelectorAll('canvas[data-spark]').forEach((c) => { delete c.dataset.w; }); C.drawSparks(app, doc); const cv = app.querySelector('#fan'); if (cv) C.drawFan(cv, app.querySelector('#fl'), doc, doc.by[S.k], S.asset); if (hooks.resize) hooks.resize(app, doc); }, 200); });
-  C.loadEcon().then((d) => { doc = d; render(); if (hooks.live) hooks.live(doc, render); }).catch(() => { app.innerHTML = `<div class="wrap cal"><p class="err">${T('Unable to load the economic data. Check your connection and reload the page.', '경제지표 자료를 불러오지 못했어요. 연결을 확인하고 새로 고침해 주세요.')}</p></div>`; });
+  C.loadEcon().then((d) => { doc = d; render(); if (hooks.live) hooks.live(doc, render); }).catch(() => { if (!app.dataset.prerender) app.innerHTML = `<div class="wrap cal"><p class="err">${T('Unable to load the economic data. Check your connection and reload the page.', '경제지표 자료를 불러오지 못했어요. 연결을 확인하고 새로 고침해 주세요.')}</p></div>`; });
   DFI.onLang(() => { if (doc) render(); });
 }

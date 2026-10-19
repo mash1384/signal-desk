@@ -7,7 +7,7 @@ import os
 import re
 import shutil
 
-from . import config, judge, util
+from . import config, judge, util, prerender
 from .impact import assets_for, subjects
 
 OG_DEFAULT = False
@@ -642,23 +642,25 @@ def stamp_df_imports(out):
                 util.write_text(p, new)
 
 
-def build_site(out, articles, market, cal, imp, health, now, extra=None):
+def build_site(out, articles, market, cal, imp, health, now, extra=None, prerendered=None):
     """out 디렉터리에 사이트 전체를 쓴다. 기존 data/와 og/는 호출자가 미리 채워 둔다.
     extra = 새 화면 데이터 {파일 이름: 문서}. 없으면 out/data/ 에서 읽는다."""
     if extra is None:
         extra = {n: util.read_json(os.path.join(out, "data", n), None) for n in ("map.json", "moves.json", "listings.json", "events.json")}
+    if prerendered is None:
+        prerendered = prerender.render(B)
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
     util.write_text(os.path.join(out, ".nojekyll"), "")
     stamp_df_imports(out)
     util.write_text(os.path.join(out, "index.html"), page_landing_df())
     dailies = load_dailies()
-    util.write_text(os.path.join(out, "live", "index.html"), page_live_df())   # 옛 SIGNAL 라이브(page_feed)는 Delfona R3 로 바뀜
+    util.write_text(os.path.join(out, "live", "index.html"), prerender.insert(page_live_df(), prerendered.get("live")))
     for i, doc in enumerate(dailies):
         nxt = dailies[i - 1]["date"] if i > 0 else None
         prev = dailies[i + 1]["date"] if i + 1 < len(dailies) else None
         util.write_text(os.path.join(out, "daily", doc["date"], "index.html"), page_daily(doc, prev, nxt, now))
     # 정리: 새 정리(/brief/)가 목록을 대신한다. 날짜별 하루 정리(/daily/<날짜>/)는 그대로 둔다
-    util.write_text(os.path.join(out, "brief", "index.html"), page_brief_df())
+    util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(), prerendered.get("brief"), responsive=True))
     util.write_text(os.path.join(out, "daily", "index.html"), redirect_page("brief/"))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
@@ -667,7 +669,7 @@ def build_site(out, articles, market, cal, imp, health, now, extra=None):
         util.write_text(os.path.join(out, "themes", k, "index.html"), page_themes_df(k))
     util.write_text(os.path.join(out, "themes", "index.html"), page_themes_df("crypto"))
     # 일정: 옛 이벤트 리스크(/events/)는 새 일정(/calendar/)으로 옮겼다
-    util.write_text(os.path.join(out, "calendar", "index.html"), page_calendar_df())
+    util.write_text(os.path.join(out, "calendar", "index.html"), prerender.insert(page_calendar_df(), prerendered.get("calendar")))
     util.write_text(os.path.join(out, "events", "index.html"), redirect_page("calendar/"))
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
     for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):

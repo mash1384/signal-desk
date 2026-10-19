@@ -33,7 +33,8 @@ export const store = { items: [], byId: new Map(), feed: [], fresh: new Set(), s
 export const line = (it) => (L() ? it.ko : it.en || it.ko);
 export const altLine = (it) => (L() ? it.en || '' : it.ko);
 async function pull() {
-  const d = await DFD.flash(); const seen = store.byId.size > 0;
+  let d; try { d = await DFD.flash(); } catch (e) { return; }
+  const seen = store.byId.size > 0;
   d.items.forEach((it) => { if (!store.byId.has(it.id)) { it.th = themesOf(it); store.byId.set(it.id, it); if (seen) store.fresh.add(it.id); } else Object.assign(store.byId.get(it.id), it, { th: themesOf(it) }); });
   store.items = [...store.byId.values()].sort((a, b) => b.t - a.t);
   store.subs.forEach((f) => f());
@@ -127,7 +128,7 @@ export function openSheet(it) {
   const sh = document.getElementById('sheet'), det = document.getElementById('det'); det.innerHTML = detailHTML(it); sh.classList.add('on'); sh.setAttribute('aria-hidden', 'false'); fillRx(it, det);
   sh.querySelectorAll('[data-close]').forEach((b) => (b.onclick = () => { sh.classList.remove('on'); sh.setAttribute('aria-hidden', 'true'); }));
 }
-addEventListener('keydown', (e) => { if (e.key === 'Escape') { const sh = document.getElementById('sheet'); if (sh) { sh.classList.remove('on'); sh.setAttribute('aria-hidden', 'true'); } } });
+if (typeof document !== 'undefined') addEventListener('keydown', (e) => { if (e.key === 'Escape') { const sh = document.getElementById('sheet'); if (sh) { sh.classList.remove('on'); sh.setAttribute('aria-hidden', 'true'); } } });
 
 // ---------- 필터 막대 ----------
 export function segHTML(cur, xs) {
@@ -238,4 +239,4 @@ export function lwChart(el, pts, tStory, { height = 200, dec = 2, mark = null, v
   return { chart, change: hasAfter ? (last.value / base - 1) * 100 : null, closed: pts[pts.length - 1][0] < Date.now() / 1000 - 1800 };
 }
 // 이어지는 이야기 표시(소식 카드 · 상세 창)
-watchThreads();
+if (typeof document !== 'undefined') watchThreads();

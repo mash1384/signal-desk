@@ -67,6 +67,11 @@ jobs:
             fi
           done
 
+      # Shared browser markup is rendered locally with read-only Node permissions.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

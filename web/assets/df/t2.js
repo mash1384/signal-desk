@@ -3,9 +3,16 @@
 import * as K from './tk.js';
 const app = document.getElementById('app'), S = K.initState();
 let doc, assets = {}, bench = {}, chart = null;
+// Translation initialization can rerender while the first data requests are
+// still pending. Share those requests as well as the completed values below.
+const pending = new Map();
+function once(key, load) {
+  if (!pending.has(key)) pending.set(key, Promise.resolve().then(load).finally(() => pending.delete(key)));
+  return pending.get(key);
+}
 const ko = () => DFI.lang() === 'ko';
 async function render(soft) {
-  doc = doc || await K.loadThemes(); const t = K.themeOf(doc, S.k); document.title = `${K.tn(S.k)} · Delfona`;
+  doc = doc || await once('themes', () => K.loadThemes()); const t = K.themeOf(doc, S.k); document.title = `${K.tn(S.k)} · Delfona`;
   const xs = K.pickStories(t, S.so, S.sec, S.chg), shown = S.more ? xs : xs.slice(0, 12), secName = S.sec && (t.sectors.find((s) => s.k === S.sec) || {});
   const grid = `<section id="stories"><h2 class="bh"><span>${ko() ? '주요 소식' : 'Key stories'}${K.filterChip(t, S)}</span>${K.sortSeg(S.so)}</h2>
     <ul class="srows sgrid">${shown.map(K.storyRow).join('') || `<li class="mute">${ko() ? '이 조건의 소식이 없어요.' : 'No stories for this filter.'}</li>`}</ul>${!S.more && xs.length > 12 ? `<button type="button" class="more" data-more>${ko() ? `더 보기 · ${xs.length - 12}건` : `Show ${xs.length - 12} more`}</button>` : ''}</section>`;
@@ -18,9 +25,9 @@ async function render(soft) {
       <section class="box sbox">${K.changesHTML(doc, t, S.chg)}</section></div>${grid}</div>`;
   K.fillPx(app);
   const k = S.k;
-  if (!bench[k]) bench[k] = await K.benchSeries(k); if (k !== S.k) return;
+  if (!bench[k]) bench[k] = await once('bench:' + k, () => K.benchSeries(k)); if (k !== S.k) return;
   if (chart) { try { chart.remove(); } catch (e) {} } chart = K.flowChart(app.querySelector('#flow'), doc, t, bench[k], { height: innerWidth < 640 ? 210 : 280 });
-  if (!assets[k]) assets[k] = await K.loadAssets(k, t); if (k !== S.k) return;
+  if (!assets[k]) assets[k] = await once('assets:' + k, () => K.loadAssets(k, t)); if (k !== S.k) return;
   app.querySelector('#cards').innerHTML = assets[k].map((a) => `<div class="acard"><p class="nm"><b>${DFD.esc(ko() ? a.ko : a.en)}</b>${a.m ? `<span class="mono">${a.m.n}${ko() ? '건' : ''}</span>` : ''}</p><p class="pr mono">${K.fmtP(a)}</p><p class="ch mono">${K.fmtCh(a)}</p><canvas class="spk" data-sym="${DFD.esc(a.sym)}" aria-hidden="true"></canvas></div>`).join('');
   K.drawSparks(app, assets[k]);
   if (k === 'econ') app.querySelector('#evs').innerHTML = await K.eventsHTML();

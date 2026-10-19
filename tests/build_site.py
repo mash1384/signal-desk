@@ -21,6 +21,10 @@ def main():
         if not required.is_file():
             raise FileNotFoundError(str(required))
     os.environ["SIGNAL_FLASH_DIR"] = str(args.flash.resolve())
+    # The build renderer has read-only Node permissions and synthetic fetch;
+    # compute it before installing the unchanged Python subprocess prohibition.
+    from pipeline import config, prerender
+    rendered = prerender.render(config.SITE_BASE)
     from tests.support import safety
     safety()
     from pipeline import build, config
@@ -33,7 +37,7 @@ def main():
     now = json.loads((args.out / "data/feed.json").read_text())["at"]
     health = {s["id"]: {"ok": True} for s in config.SOURCES}
     build.OG_DEFAULT = True
-    build.build_site(str(args.out), articles, market, {}, {}, health, now)
+    build.build_site(str(args.out), articles, market, {}, {}, health, now, prerendered=rendered)
     print(json.dumps({"articles": len(articles), "seconds": round(time.monotonic() - start, 3), "now": now, "output": str(args.out)}))
 
 

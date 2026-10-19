@@ -16,7 +16,8 @@ export async function intro(name, { flyAt = 4.32, base = '../mo/' } = {}) {
   const rp = document.querySelector('.replay'); if (rp) rp.onclick = () => location.reload();
   // 사이트 안의 다른 화면에서 넘어왔으면(같은 출처 referrer) 인트로 없이 바로 — 처음 들어올 때만 본다
   let inner = false; try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !/[?&]intro\b/.test(location.search); } catch (e) {}
-  if (reduce || inner) { showCopy(); done(); return; }
+  if (reduce) { copy.forEach(e => { e.style.opacity = 1; }); done(); return; }
+  if (inner) { showCopy(); done(); return; }
   // 인트로 틀·영상은 HTML 맨 위에 이미 있고 autoplay 로 바로 재생된다(이 모듈은 늦게 와도 된다).
   if (window.DF_NOINTRO) { showCopy(); done(); return; }
   const metaP = fetch(`${base}${name}.json`).then((r) => r.json()).catch(() => null);
