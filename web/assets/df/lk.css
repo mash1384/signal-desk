@@ -1,7 +1,7 @@
 /* 라이브 페이지 후보 L1~L3 공통 */
 :root { --ink: #0d253d; --ink2: #273951; --mute: #5b6b82; --faint: #5f6c83; --line: #e3e8ee; --soft: #f6f9fc; --primary: #533afd; --navy: #0d1f36; --up: #087a55; --down: #c43a2c; --upS: #e7f7f0; --downS: #fdeeec;
-  --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
-:lang(ko) { --sans: "Pretendard Variable", Pretendard, system-ui, sans-serif; }
+  --sans: "Pretendard Variable", Pretendard, "PF Fallback", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; --ease: cubic-bezier(0.23, 1, 0.32, 1); }
+:lang(ko) { --sans: "Pretendard Variable", Pretendard, "PF Fallback", system-ui, sans-serif; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 html, body { overflow-x: clip; }
 body { background: #f7f9fc; color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }

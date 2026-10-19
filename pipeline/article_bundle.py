@@ -27,6 +27,8 @@ def bundle(web, out):
 def article_html(html):
     # Only article pages use this stable ABI. Other pages keep their normal
     # versioned module graph. No generation identifier leaks into article HTML.
+    # 대체 글꼴 맞추기(pf.js)는 기사 HTML 에 넣지 않는다 — 넣으면 그 스크립트를 고칠 때마다 기사 6,000쪽이 다시 바뀐다
+    html = re.sub(r'<script>// 대체 글꼴 맞추기[\s\S]*?</script>\n', '', html, count=1)
     html = re.sub(r'<link[^>]+href="[^\"]*assets/(?:df/(?:lk|st)\.css|fonts/(?:subsets|inter)\.css)\?v=[^\"]+"[^>]*>','',html)
     html = re.sub(r'<script src="([^\"]*)assets/df/data\.js\?v=[^\"]+"></script>\s*<script>DFI.init\([\s\S]*?</script>\s*<script src="[^\"]*assets/df/st\.js\?v=[^\"]+"></script>',
                   r'<script src="\1assets/article-v1.js"></script>',html)

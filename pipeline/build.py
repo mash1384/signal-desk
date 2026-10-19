@@ -165,6 +165,19 @@ def related(a, articles, n=5):
     return same
 
 
+
+PRETENDARD_LINK = re.compile(r'<link[^>]*pretendardvariable-dynamic-subset[^>]*>')
+
+
+def with_pf(html):
+    """Pretendard 를 부르는 첫 <link> 바로 앞에 대체 글꼴 맞추기(web/assets/df/pf.js)를 끼워 넣는다.
+    글꼴이 늦게 와도 줄바꿈 · 높이가 그대로라 화면이 밀리지 않게(기기마다 대체 글꼴이 달라 브라우저에서 잰다)."""
+    with open(os.path.join(WEB, "assets", "df", "pf.js"), encoding="utf-8") as f:
+        js = f.read()
+    m = PRETENDARD_LINK.search(html)
+    return html if not m else html[:m.start()] + "<script>" + js + "</script>\n" + html[m.start():]
+
+
 def page_landing_df():
     """첫 페이지(Delfona): 입자 로고 첫 화면 + '신호 하나의 속' 3D 섹션. 정적 틀(web/df_landing.html)에 주소·버전만 채운다.
     내용(속보·24시간 개수·카드)은 브라우저가 Worker /flash 에서 실시간으로 받아 그린다."""
@@ -174,7 +187,7 @@ def page_landing_df():
     if OG_DEFAULT:
         og = ('<meta property="og:image" content="%s/og/default.jpg">\n<meta property="og:image:width" content="1200">\n'
               '<meta property="og:image:height" content="630">\n<meta name="twitter:card" content="summary_large_image">') % config.SITE_URL
-    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og)
+    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og))
 
 
 def page_live_df():
@@ -182,7 +195,7 @@ def page_live_df():
     소식·가격은 브라우저가 Worker /flash · /index-candles 와 Binance 에서 실시간으로 받아 그린다."""
     with open(os.path.join(WEB, "df_live.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
 
 
 THEME_PAGES = {
@@ -200,8 +213,8 @@ def page_themes_df(k):
     with open(os.path.join(WEB, "df_themes.html"), encoding="utf-8") as f:
         tpl = f.read()
     title, desc = THEME_PAGES[k]
-    return (tpl.replace("{{TITLE}}", title).replace("{{DESC}}", h(desc)).replace("{{K}}", k)
-            .replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
+    return with_pf(tpl.replace("{{TITLE}}", title).replace("{{DESC}}", h(desc)).replace("{{K}}", k)
+                   .replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
 
 
 def page_my_df():
@@ -209,7 +222,7 @@ def page_my_df():
     고른 자산은 브라우저(localStorage)에만 있고, 계산도 브라우저에서 한다(사용자가 늘어도 Mac 부담 없음)."""
     with open(os.path.join(WEB, "df_my.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
 
 
 def page_calendar_df():
@@ -217,7 +230,7 @@ def page_calendar_df():
     자료는 브라우저가 econ.json(Mac 이 1시간마다, tools/econ_brief.py)을 flash 브랜치에서 읽는다."""
     with open(os.path.join(WEB, "df_calendar.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
 
 
 def page_brief_df():
@@ -225,7 +238,7 @@ def page_brief_df():
     자료는 브라우저가 threads.json(Mac 이 30분마다, tools/story_threads.py)과 어제 하루 정리(daily_brief.py)를 flash 브랜치에서 읽는다."""
     with open(os.path.join(WEB, "df_brief.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")
+    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
 
 
 # ---------------------------------------------------------------- Delfona 고정 페이지(소식 상세 · 하루 정리 · 소개 · 404)
@@ -279,7 +292,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
     og_meta = ('<meta property="og:image" content="%s">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n'
                '<meta name="twitter:card" content="summary_large_image">\n') % h(img) if img else ""
     full = title if title.endswith(config.SITE_NAME) else "%s · %s" % (title, config.SITE_NAME)
-    return """<!doctype html>
+    return with_pf("""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -325,7 +338,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 """.format(title=h(full), desc=h(desc), robots=robots, url=h(url), ogtype=ogtype, site=config.SITE_NAME, og=og_meta, B=B, V=df_ver(), logo=LOGO,
            nav=nav, tabs=tabs, body=body, f1=L("About &amp; method", "소개·방법론"), f2=L("Sources", "데이터 출처"), f3=L("Sitemap", "사이트맵"),
            note=L("Delfona shows headlines, short excerpts and links only — articles belong to their publishers. Prices and past records are for information, not investment advice; the past may not repeat.",
-                  "기사 저작권은 각 매체에 있으며 Delfona는 제목·짧은 발췌·원문 링크만 보여 줘요. 시세와 지난 기록은 정보일 뿐 투자 조언이 아니에요. 지난 흐름이 다시 온다는 뜻도 아니에요."))
+                  "기사 저작권은 각 매체에 있으며 Delfona는 제목·짧은 발췌·원문 링크만 보여 줘요. 시세와 지난 기록은 정보일 뿐 투자 조언이 아니에요. 지난 흐름이 다시 온다는 뜻도 아니에요.")))
 
 
 def verdict_en(ai):
@@ -683,7 +696,7 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
         prev = dailies[i + 1]["date"] if i + 1 < len(dailies) else None
         util.write_text(os.path.join(out, "daily", doc["date"], "index.html"), page_daily(doc, prev, nxt, now))
     # 정리: 새 정리(/brief/)가 목록을 대신한다. 날짜별 하루 정리(/daily/<날짜>/)는 그대로 둔다
-    util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(), prerendered.get("brief"), responsive=True, wait_fonts=True))
+    util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(), prerendered.get("brief"), responsive=True))
     util.write_text(os.path.join(out, "daily", "index.html"), redirect_page("brief/"))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
@@ -692,7 +705,7 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
         util.write_text(os.path.join(out, "themes", k, "index.html"), page_themes_df(k))
     util.write_text(os.path.join(out, "themes", "index.html"), page_themes_df("crypto"))
     # 일정: 옛 이벤트 리스크(/events/)는 새 일정(/calendar/)으로 옮겼다
-    util.write_text(os.path.join(out, "calendar", "index.html"), prerender.insert(page_calendar_df(), prerendered.get("calendar"), wait_fonts=True))
+    util.write_text(os.path.join(out, "calendar", "index.html"), prerender.insert(page_calendar_df(), prerendered.get("calendar")))
     util.write_text(os.path.join(out, "events", "index.html"), redirect_page("calendar/"))
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
     for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
