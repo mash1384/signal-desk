@@ -2,13 +2,36 @@
 window.DFD = (() => {
   const data = path => (window.DF_ROOT || (window.DF_BASE || '../').replace(/assets\/df\/$/, '')) + 'data/' + path;
   const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
+  let livePending = null, liveValue = null, liveAt = 0, liveDisabled = false;
+  async function live() {
+    if (!window.DF_LIVE || liveDisabled) return null;
+    if (liveValue && Date.now() - liveAt < 29000) return liveValue;
+    if (livePending) return livePending;
+    liveAt = Date.now();
+    livePending = (async () => {
+      const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
+      try {
+        const response = await fetch(FLASH.replace('/flash', '/live'), {cache: 'no-store', signal: controller.signal});
+        if (!response.ok) throw new Error('live unavailable');
+        const value = await response.json();
+        if (value.v !== 1 || !Array.isArray(value.flash?.items) ||
+            !value.market?.['1h']?.q || !value.market?.['5m']?.q ||
+            !Array.isArray(value.indices?.nq?.c) || !Array.isArray(value.indices?.es?.c)) throw new Error('invalid live response');
+        liveValue = value; return value;
+      } catch (e) {
+        // Old Worker, failure, invalid body, timeout: probe once per page load.
+        liveDisabled = true; liveValue = null; return null;
+      } finally { clearTimeout(timer); livePending = null; }
+    })();
+    return livePending;
+  }
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ago = (t) => { const s = Date.now() / 1000 - t; return s < 60 ? '방금' : s < 3600 ? `${Math.floor(s / 60)}분 전` : s < 86400 ? `${Math.floor(s / 3600)}시간 전` : `${Math.floor(s / 86400)}일 전`; };
   const hm = (t) => { const d = new Date(t * 1000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const money = (p) => p >= 1000 ? '$' + Math.round(p).toLocaleString('en-US') : p >= 1 ? '$' + p.toFixed(2) : '$' + p.toPrecision(4);
   const pct = (v, d = 2) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d) + '%';
   const vcls = (v) => v === '호재' ? 'up' : v === '악재' ? 'down' : 'flat';
-  async function flash() { return (await fetch(FLASH, { cache: 'no-store' })).json(); }
+  async function flash() { const bundle = await live(); return bundle ? bundle.flash : (await fetch(FLASH, { cache: 'no-store' })).json(); }
   async function prices(syms = ['BTC', 'ETH', 'SOL', 'XRP']) {
     const r = await fetch('https://data-api.binance.vision/api/v3/ticker/24hr?symbols=' + encodeURIComponent(JSON.stringify(syms.map((s) => s + 'USDT'))));
     return Object.fromEntries((await r.json()).map((x) => [x.symbol.replace('USDT', ''), { p: +x.lastPrice, c: +x.priceChangePercent }]));
@@ -26,7 +49,7 @@ window.DFD = (() => {
   const day24 = (items) => { const s = Date.now() / 1000 - 86400, xs = items.filter((x) => x.t >= s);
     return { all: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length, n: xs.filter((x) => x.v === '중립').length, big: xs.filter((x) => x.s >= 2).length }; };
   const left = (ts) => { const s = Math.max(0, ts - Date.now() / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60); return d ? `${d}일 ${h}시간` : h ? `${h}시간 ${m}분` : `${m}분`; };
-  return { data, esc, ago, hm, money, pct, vcls, flash, prices, brief, nextEvent, market, day24, left };
+  return { data, live, esc, ago, hm, money, pct, vcls, flash, prices, brief, nextEvent, market, day24, left };
 })();
 
 // 시안 F1~F3 공통: 영어 기본 + 한국어 전환. data-t 요소의 영어 원문을 기억해 두고 KO 사전으로 바꾼다.

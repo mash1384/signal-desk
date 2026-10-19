@@ -10,8 +10,9 @@ VENDOR = Path(__file__).parent / "vendor"
 
 
 class Offline:
-    def __init__(self, site, flash, base):
+    def __init__(self, site, flash, base, live_mode='modern'):
         self.site, self.flash, self.base = Path(site), Path(flash), base
+        self.live_mode = live_mode
         self.host = urlsplit(base).netloc
         self.now = json.loads((self.flash / "flash.json").read_text())["at"]
         self.manifest = json.loads((VENDOR / "manifest.json").read_text())
@@ -24,6 +25,10 @@ class Offline:
     def series(self, n, step=60, start=None):
         start = self.now - (n - 1) * step if start is None else start
         return [[start + i * step, round(100 + i * .01, 2)] for i in range(n)]
+
+    def market(self):
+        syms = "NQ=F ES=F NVDA AAPL MSFT AMZN GOOGL META TSLA AVGO AMD TSM PLTR ^TNX ^FVX DX-Y.NYB GC=F CL=F KRW=X".split()
+        return {"q": {s: {"p": 100.24, "chg": .24, "c": self.series(300, 300)} for s in syms}, "at": self.now}
 
     def handle(self, route):
         req = route.request
@@ -52,11 +57,21 @@ class Offline:
         elif url.hostname == "mash1384.github.io" and url.path.startswith("/signal-desk/"):
             file_response(self.site / url.path.split("/signal-desk/", 1)[1])
         elif url.hostname == "signal-scheduler.mash1384.workers.dev":
-            if url.path == "/flash":
+            if url.path == "/live":
+                if self.live_mode == 'disconnect':
+                    route.abort()
+                elif self.live_mode in ('legacy', 'error'):
+                    route.fulfill(status=404 if self.live_mode == 'legacy' else 502, body='fixture unavailable', headers=headers)
+                elif self.live_mode == 'malformed':
+                    respond({'v': 1, 'flash': {'items': []}})
+                else:
+                    respond({'v': 1, 'flash': json.loads((self.flash / 'flash.json').read_text()),
+                             'market': {'1h': self.market(), '5m': self.market()},
+                             'indices': {'nq': {'c': self.series(1000)}, 'es': {'c': self.series(1000)}}})
+            elif url.path == "/flash":
                 file_response(self.flash / "flash.json")
             elif url.path in ("/market", "/quotes"):
-                syms = "NQ=F ES=F NVDA AAPL MSFT AMZN GOOGL META TSLA AVGO AMD TSM PLTR ^TNX ^FVX DX-Y.NYB GC=F CL=F KRW=X".split()
-                respond({"q": {s: {"p": 100.24, "chg": .24, "c": self.series(300, 300)} for s in syms}, "at": self.now})
+                respond(self.market())
             elif url.path == "/index-candles":
                 respond({"c": self.series(1000)})
             else:

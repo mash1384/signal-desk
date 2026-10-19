@@ -33,7 +33,7 @@ function series(m, iv) {   // [[t, close]] 지난 며칠(5m) 또는 이틀(1m). 
   const earliest = Math.min(...times) - (iv === '1m' ? 1800 : 3600), limit = recentLimit(earliest, iv === '1m' ? 60 : 300);
   const key = m + (m === 'btc' ? iv + ':' + limit : '1m'), hit = sc.get(key); if (hit && Date.now() - hit.at < 60000) return hit.p;
   const p = (m === 'btc' ? fetch(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=${iv}&limit=${limit}&endTime=${Date.now()}`).then((r) => r.ok ? r.json() : null).then((k) => (k ? k.map((x) => [x[0] / 1000, +x[4]]) : null))
-    : fetch(`${WK}?s=${m}&i=1m`).then((r) => r.ok ? r.json() : null).then((d) => (d && d.c ? d.c : null))).catch(() => null);
+    : DFD.live().then(bundle => bundle ? bundle.indices[m] : fetch(`${WK}?s=${m}&i=1m`).then(r => r.ok ? r.json() : null)).then((d) => (d && d.c ? d.c : null))).catch(() => null);
   sc.set(key, { at: Date.now(), p }); return p;
 }
 const mName = (m = M) => V.mName(m);

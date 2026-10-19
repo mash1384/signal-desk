@@ -59,7 +59,7 @@ async function binance(syms, withSeries) {
 async function yahoo(syms) {
   if (!syms.length) return {};
   // 모든 사용자가 같은 '전체 시세' 파일을 받고 필요한 것만 골라 쓴다(사용자가 늘어도 야후 요청은 1분에 한 번)
-  const get = async (i) => { try { const r = await fetch(`${WK.replace('/quotes', '/market')}?i=${i}`); return r.ok ? (await r.json()).q || {} : {}; } catch (e) { return {}; } };
+  const get = async (i) => { try { const bundle = await DFD.live(); if (bundle) return bundle.market[i].q; const r = await fetch(`${WK.replace('/quotes', '/market')}?i=${i}`); return r.ok ? (await r.json()).q || {} : {}; } catch (e) { return {}; } };
   const [h, m] = await Promise.all([get('1h'), get('5m')]), now = Date.now() / 1000, out = {};
   syms.forEach((s) => { const c = (h[s] || {}).c || [], mm = (m[s] || {}).c || []; if (!c.length && !mm.length) return; const last = (mm.length ? mm : c)[(mm.length ? mm : c).length - 1][1];
     let ref = c[0] || mm[0]; for (const p of c) { if (p[0] <= now - 86400) ref = p; else break; }
