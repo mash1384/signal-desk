@@ -13,7 +13,7 @@ function once(key, load) {
 const ko = () => DFI.lang() === 'ko';
 async function render(soft) {
   doc = doc || await once('themes', () => K.loadThemes()); const t = K.themeOf(doc, S.k); document.title = `${K.tn(S.k)} · Delfona`;
-  const xs = K.pickStories(t, S.so, S.sec, S.chg), shown = S.more ? xs : xs.slice(0, 12), secName = S.sec && (t.sectors.find((s) => s.k === S.sec) || {});
+  const xs = K.pickStories(t, S.so, S.sec, S.chg), shown = S.more ? xs : xs.slice(0, 12);
   const grid = `<section id="stories"><h2 class="bh"><span>${ko() ? '주요 소식' : 'Key stories'}${K.filterChip(t, S)}</span>${K.sortSeg(S.so)}</h2>
     <ul class="srows sgrid">${shown.map(K.storyRow).join('') || `<li class="mute">${ko() ? '이 조건의 소식이 없어요.' : 'No stories for this filter.'}</li>`}</ul>${!S.more && xs.length > 12 ? `<button type="button" class="more" data-more>${ko() ? `더 보기 · ${xs.length - 12}건` : `Show ${xs.length - 12} more`}</button>` : ''}</section>`;
   if (soft) { app.querySelector('#stories').outerHTML = grid; app.querySelector('#secs').innerHTML = K.sectorsHTML(t, S.sec); app.querySelector('.sbox').innerHTML = K.changesHTML(doc, t, S.chg); K.fillPx(app); return; }

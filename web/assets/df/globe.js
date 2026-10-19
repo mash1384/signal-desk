@@ -166,12 +166,6 @@ export function makeGlobe({ scene, sec, lay, mob }) {
     const tmp = new THREE.Color(); const recolor = () => { if (!ready) return setTimeout(recolor, 100);
       for (let i = 0; i < N; i++) if (kindOf[i] >= 3) { const t = TH.themes[kindOf[i] - 3], bu = t.u / Math.max(1, t.u + t.d); tmp.copy(COL.ind).lerp(seed[i] * 1.3 < bu ? COL.up : COL.dn, 0.55 + 0.4 * seed[i]); col.set([tmp.r, tmp.g, tmp.b, 0.9 - seed[i] * 0.5], i * 4); } };
     build(); if (SH === 'globe') recolor(); }).catch((e) => console.error(e));
-  if (false) { const MN = { ripple: ['Ripple', '파문'], arcs: ['Converging news', '모여드는 소식'], lift: ['Rising land', '솟아오름'] };
-    const bar = document.createElement('div'); bar.className = 'fxbar'; const draw = () => { bar.innerHTML = `<span>${T('City motion', '도시 모션')}</span>` + Object.keys(MN).map((k, n) => `<a href="?br=4&sh=globe&mv=${k}&go=br&v=${Date.now() % 1e6}" class="${k === MV ? 'on' : ''}">${n + 1}<i> · ${MN[k][L()]}</i></a>`).join(''); };
-    draw(); DFI.onLang(draw); document.body.appendChild(bar); }
-  else if (false) { const SN = { globe: ['Globe', '지구'], radar: ['Radar dial', '레이더'], cube: ['Data cube', '데이터 큐브'], galaxy: ['News galaxy', '뉴스 은하'], bloom: ['Bloom', '꽃'] };
-    const bar = document.createElement('div'); bar.className = 'fxbar'; const draw = () => { bar.innerHTML = `<span>${T('Shape', '모양')}</span>` + Object.keys(SN).map((k) => `<a href="?br=4&sh=${k}&go=br&v=${Date.now() % 1e6}" class="${k === SH ? 'on' : ''}">${SN[k][L()]}</a>`).join(''); };
-    draw(); DFI.onLang(draw); document.body.appendChild(bar); }
   // ---- 매 프레임 ----
   const camP = mob ? new THREE.Vector3(0, 0.6, 21) : new THREE.Vector3(0, 0.2, 15.5), camL = mob ? new THREE.Vector3(0, 0.6, 0) : new THREE.Vector3(0, 0, 0), v = new THREE.Vector3(), lk = new THREE.Vector3();
   let rotY = 0, rotX = 0, spin = 0, tilt = 0, lastT = 0, dtS = 0.016;
@@ -188,7 +182,6 @@ export function makeGlobe({ scene, sec, lay, mob }) {
       const j0 = Math.max(0, k - (f < 1 ? 1 : 0)), ff = k === 0 && tp < 0.35 ? 1 : f, idle = BP < 0.3;
       const tY = idle ? ORI[0][0] + 0.9 - t * 0.05 : lerp(ORI[j0][0], ORI[k][0], ff), tX = idle ? ORI[0][1] : lerp(ORI[j0][1], ORI[k][1], ff);
       const a60 = Math.min(1, dtS * 3.2); spin += (tY - spin) * a60; tilt += (tX - tilt) * a60; rotY = spin + Math.sin(t * 0.15) * 0.02; rotX = tilt;
-      const beamOn = BP > 0.34 ? 1 : 0;
       const on = idle ? 0 : clamp((tp - k) * 3) * (1 - ss(0.77, 0.81, BP)), cU = CITY[k], cosR = Math.cos(22 * D2R);
       const glb = SH === 'globe';
       m.set(1, (i, o) => { const kd = kindOf[i]; let bx = base[i * 3], by = base[i * 3 + 1], bz = base[i * 3 + 2], a = col[i * 4 + 3], cr = col[i * 4], cg = col[i * 4 + 1], cb = col[i * 4 + 2];

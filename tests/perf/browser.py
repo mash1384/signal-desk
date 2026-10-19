@@ -34,12 +34,13 @@ def polling(args):
             page.clock.pause_at(fixed)
 
             def worker_urls(bag=urls):
-                return [u for u in bag if urlsplit(u).hostname == 'signal-scheduler.mash1384.workers.dev']
+                # 갱신 요청만 센다 — 익명 통계(/e, 페이지 조회 1번당 1건)는 따로
+                return [u for u in bag if urlsplit(u).hostname == 'signal-scheduler.mash1384.workers.dev' and urlsplit(u).path != '/e']
 
             steps = []
 
             pending = set()
-            page.on('request', lambda r, bag=pending: bag.add(r) if urlsplit(r.url).hostname == 'signal-scheduler.mash1384.workers.dev' else None)
+            page.on('request', lambda r, bag=pending: bag.add(r) if urlsplit(r.url).hostname == 'signal-scheduler.mash1384.workers.dev' and urlsplit(r.url).path != '/e' else None)
             page.on('requestfinished', lambda r, bag=pending: bag.discard(r))
             page.on('requestfailed', lambda r, bag=pending: bag.discard(r))
 

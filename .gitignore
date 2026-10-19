@@ -9,3 +9,4 @@ render/out/
 .pytest_cache/
 .ruff_cache/
 htmlcov/
+node_modules/

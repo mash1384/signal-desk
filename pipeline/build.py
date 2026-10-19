@@ -166,6 +166,18 @@ def related(a, articles, n=5):
 
 
 
+STATS_URL = "https://signal-scheduler.mash1384.workers.dev/e"
+
+
+def with_beacon(html, page):
+    """익명 방문 통계(합계만 · 쿠키 없음): 문서 언어를 정하는 첫 스크립트 바로 뒤에 페이지 조회 1회를 보낸다.
+    브라우저가 추적 거부(DNT · GPC)를 켰으면 보내지 않는다. 이벤트(기사 열기 · 원문 · 차트 · 언어)는 lk.js track()."""
+    js = ("<script>window.DF_PAGE='%s';try{if(navigator.doNotTrack!=='1'&&!navigator.globalPrivacyControl)navigator.sendBeacon('%s?e=view&k=%s&l='"
+          "+(document.documentElement.lang==='ko'?'ko':'en')+'&d='+(matchMedia('(max-width: 899px)').matches?'m':'d'))}catch(e){}</script>") % (page, STATS_URL, page)
+    i = html.find("</script>")
+    return html if i < 0 else html[:i + 9] + "\n" + js + html[i + 9:]
+
+
 PRETENDARD_LINK = re.compile(r'<link[^>]*pretendardvariable-dynamic-subset[^>]*>')
 
 
@@ -189,7 +201,7 @@ def page_landing_df():
               '<meta property="og:image:height" content="630">\n<meta name="twitter:card" content="summary_large_image">') % config.SITE_URL
     # 랜딩은 맞춤 대체 글꼴(pf.js)을 넣지 않는다: Linux CI 에서 첫 화면이 0.38s → 4.1s 로 늦어졌고(원인 조사 중),
     # 랜딩은 원래 화면 밀림이 0.02 이하라 얻을 것이 없다
-    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og)
+    return with_beacon(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og), "landing")
 
 
 def page_live_df():
@@ -197,15 +209,15 @@ def page_live_df():
     소식·가격은 브라우저가 Worker /flash · /index-candles 와 Binance 에서 실시간으로 받아 그린다."""
     with open(os.path.join(WEB, "df_live.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
+    return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "live")
 
 
 THEME_PAGES = {
-    "crypto": ("Crypto", "크립토 테마 — 지난 24시간 비트코인·이더리움·알트코인 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 관련 시세."),
-    "nasdaq": ("Nasdaq", "나스닥 테마 — 지난 24시간 미국 기술주·지수 선물 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 관련 시세."),
-    "econ": ("Economy", "경제 테마 — 지난 24시간 금리·물가·달러·원자재 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 다음 주요 일정."),
-    "ai": ("AI", "AI 테마 — 지난 24시간 AI 기업·반도체 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 관련 시세."),
-    "world": ("World", "세계 테마 — 지난 24시간 전쟁·외교·에너지·제재 소식의 호재·악재 흐름, 오늘 평소와 달라진 점, 유가·금·달러 시세."),
+    "crypto": ("Crypto", "Crypto theme: the last 24 hours of bitcoin, ether and altcoin news, which way it leaned, what changed today, and related prices."),
+    "nasdaq": ("Nasdaq", "Nasdaq theme: the last 24 hours of US tech and index-futures news, which way it leaned, what changed today, and related prices."),
+    "econ": ("Economy", "Economy theme: the last 24 hours of rates, inflation, dollar and commodities news, which way it leaned, what changed today, and what is next."),
+    "ai": ("AI", "AI theme: the last 24 hours of AI company and chip news, which way it leaned, what changed today, and related prices."),
+    "world": ("World", "World theme: the last 24 hours of war, diplomacy, energy and sanctions news, which way it leaned, what changed today, and oil, gold and dollar prices."),
 }
 
 
@@ -215,8 +227,8 @@ def page_themes_df(k):
     with open(os.path.join(WEB, "df_themes.html"), encoding="utf-8") as f:
         tpl = f.read()
     title, desc = THEME_PAGES[k]
-    return with_pf(tpl.replace("{{TITLE}}", title).replace("{{DESC}}", h(desc)).replace("{{K}}", k)
-                   .replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
+    return with_beacon(with_pf(tpl.replace("{{TITLE}}", title).replace("{{DESC}}", h(desc)).replace("{{K}}", k)
+                   .replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "themes")
 
 
 def page_my_df():
@@ -224,7 +236,7 @@ def page_my_df():
     고른 자산은 브라우저(localStorage)에만 있고, 계산도 브라우저에서 한다(사용자가 늘어도 Mac 부담 없음)."""
     with open(os.path.join(WEB, "df_my.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
+    return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "my")
 
 
 def page_calendar_df():
@@ -232,7 +244,7 @@ def page_calendar_df():
     자료는 브라우저가 econ.json(Mac 이 1시간마다, tools/econ_brief.py)을 flash 브랜치에서 읽는다."""
     with open(os.path.join(WEB, "df_calendar.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
+    return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "calendar")
 
 
 def page_brief_df():
@@ -240,7 +252,7 @@ def page_brief_df():
     자료는 브라우저가 threads.json(Mac 이 30분마다, tools/story_threads.py)과 어제 하루 정리(daily_brief.py)를 flash 브랜치에서 읽는다."""
     with open(os.path.join(WEB, "df_brief.html"), encoding="utf-8") as f:
         tpl = f.read()
-    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/"))
+    return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "brief")
 
 
 # ---------------------------------------------------------------- Delfona 고정 페이지(소식 상세 · 하루 정리 · 소개 · 404)
@@ -294,7 +306,8 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
     og_meta = ('<meta property="og:image" content="%s">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n'
                '<meta name="twitter:card" content="summary_large_image">\n') % h(img) if img else ""
     full = title if title.endswith(config.SITE_NAME) else "%s · %s" % (title, config.SITE_NAME)
-    return with_pf("""<!doctype html>
+    kind = "article" if path.startswith("a/") else "daily" if path.startswith("daily/") else "about" if path.startswith("about/") else None
+    return (lambda html: with_beacon(html, kind) if kind else html)(with_pf("""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -340,7 +353,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 """.format(title=h(full), desc=h(desc), robots=robots, url=h(url), ogtype=ogtype, site=config.SITE_NAME, og=og_meta, B=B, V=df_ver(), logo=LOGO,
            nav=nav, tabs=tabs, body=body, f1=L("About &amp; method", "소개·방법론"), f2=L("Sources", "데이터 출처"), f3=L("Sitemap", "사이트맵"),
            note=L("Delfona shows headlines, short excerpts and links only — articles belong to their publishers. Prices and past records are for information, not investment advice; the past may not repeat.",
-                  "기사 저작권은 각 매체에 있으며 Delfona는 제목·짧은 발췌·원문 링크만 보여 줘요. 시세와 지난 기록은 정보일 뿐 투자 조언이 아니에요. 지난 흐름이 다시 온다는 뜻도 아니에요.")))
+                  "기사 저작권은 각 매체에 있으며 Delfona는 제목·짧은 발췌·원문 링크만 보여 줘요. 시세와 지난 기록은 정보일 뿐 투자 조언이 아니에요. 지난 흐름이 다시 온다는 뜻도 아니에요."))))
 
 
 def verdict_en(ai):
@@ -568,6 +581,7 @@ def page_about(health, now):
       <li><b>Story threads</b> (Brief) — stories are grouped across days when they share specific people, companies or places and their wording is close.</li>
       <li><b>Similar past readings</b> (Calendar) — we compare a release's first-published value, its surprise and its recent trend with past releases (ALFRED vintage data), pick the nearest ones, and show what BTC and the Nasdaq did afterwards. Small samples are marked as such.</li>
       <li>We do not store article text. Pages show the headline, a short excerpt or summary, and a link to the original.</li>
+      <li>Visit statistics are totals only (date, page, language, phone or computer) with no cookies, IP addresses or personal data. If your browser sends Do Not Track or Global Privacy Control, nothing is counted.</li>
     </ol></section>"""
     ko = """<section class="box2"><h2>Delfona는</h2>
     <p>Delfona는 크립토·나스닥·경제·AI·세계정세 속보를 나오는 대로 읽고 호재·악재를 판정해, 소식이 나온 뒤 가격이 어떻게 움직였는지 함께 보여 주는 서비스예요. 모든 뉴스를 읽지 않고도 시장을 움직이는 부분만 볼 수 있게 만들었어요.</p>
@@ -587,6 +601,7 @@ def page_about(health, now):
       <li><b>이야기 줄기</b>(정리) — 같은 인물·기업·장소를 다루고 표현이 가까운 소식을 여러 날에 걸쳐 묶어요.</li>
       <li><b>과거에 비슷했을 때</b>(일정) — 발표의 처음 나온 값, 예상과의 차이, 최근 흐름을 과거 발표(ALFRED 당시 값)와 비교해 가장 가까운 때를 고르고, 그 뒤 BTC·나스닥 흐름을 보여 줘요. 표본이 적으면 적다고 표시해요.</li>
       <li>기사 본문은 저장하지 않아요. 제목, 짧은 발췌나 요약, 원문 링크만 보여 줘요.</li>
+      <li>방문 통계는 날짜 · 페이지 · 언어 · 휴대폰/컴퓨터별 합계만 세요. 쿠키 · IP 주소 · 개인 정보는 저장하지 않고, 브라우저의 추적 거부(Do Not Track · GPC)가 켜져 있으면 세지 않아요.</li>
     </ol></section>"""
     body = """<div class="wrap st ab">
   <header><p class="stk">Delfona</p><h1>{t}</h1></header>

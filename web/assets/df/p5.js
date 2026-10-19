@@ -1,7 +1,7 @@
 // P5 · 신호 파형 — 입자가 내려앉아 지난 24시간의 '소리 파형' 같은 지형이 된다.
 // 가로 = 시간(24시간 전 → 지금), 높이 = 그 시간에 나온 소식 수, 색 = 호재·악재 쪽으로 기운 정도. 스크롤하면 빛줄기가 시간을 훑으며 그 시간의 큰 소식을 띄운다.
 import * as THREE from 'three';
-import { renderer, loop, mobile, reduce, fonts, lerp, clamp, ss, EN, Morph, cloud, pin, stageOf, project, captions, T, line, COL, rnd, sm } from './pk.js';
+import { renderer, loop, mobile, reduce, fonts, lerp, clamp, ss, EN, Morph, cloud, pin, stageOf, project, captions, T, line, COL, sm } from './pk.js';
 import { makeBrief, BR_NAMES } from './brief.js';
 
 const sec = document.getElementById('nx'), canvas = document.getElementById('nxgl'), lay = sec.querySelector('.px-lay'), capEl = sec.querySelector('.px-cap'), endB = sec.querySelector('.px-end b');
@@ -13,7 +13,7 @@ const xOf = (u) => (u - 0.5) * WX;
 // 시간 칸(15분) → 개수·순감정. 부드럽게 이어 붙인 값으로 지형 높이를 만든다
 const B = [...Array(BINS)].map(() => ({ n: 0, u: 0, d: 0 }));
 const smooth = (arr, u) => { const x = clamp(u * BINS - 0.5, 0, BINS - 1), i = Math.floor(x), f = x - i, a = arr[i], b = arr[Math.min(BINS - 1, i + 1)]; return a + (b - a) * (f * f * (3 - 2 * f)); };
-let HN = [], NET = [], MX = 1, HOURS = [], ENT = {}, ALL = 0, ready = false;
+let HN = [], NET = [], MX = 1, HOURS = [], ENT = {}, ready = false;
 function build() {
   const raw = B.map((b) => b.n), g = (k) => [-2, -1, 0, 1, 2].reduce((s, o) => s + (raw[clamp(k + o, 0, BINS - 1)] || 0) * [1, 3, 5, 3, 1][o + 2], 0) / 13;
   HN = raw.map((_, k) => g(k)); MX = Math.max(1, ...HN);
@@ -86,7 +86,7 @@ const cap = captions(capEl, CAP);
 const hm = (ts) => { const d = new Date(ts * 1000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const setTicks = () => ticks.forEach((k) => { k.e.innerHTML = `<span>${k.u === 1 ? T('NOW', '지금') : hm(T0 + k.u * 86400)}</span>`; });
 Promise.all([DFD.flash(), EN, fonts()]).then(([d, en]) => {
-  ENT = en; const xs = d.items.filter((x) => x.t >= T0); ALL = xs.length;
+  ENT = en; const xs = d.items.filter((x) => x.t >= T0);
   xs.forEach((x) => { const b = B[Math.min(BINS - 1, Math.floor((x.t - T0) / 900))]; b.n++; if (x.v === '호재') b.u++; if (x.v === '악재') b.d++; });
   HOURS = [...Array(24)].map((_, h) => { const a = T0 + h * 3600, ys = xs.filter((x) => x.t >= a && x.t < a + 3600);
     const top = ys.filter((x) => x.v !== '중립').sort((p, q) => ((q.s || 1) * 3 + (q.n || 1)) - ((p.s || 1) * 3 + (p.n || 1)))[0];

@@ -2,7 +2,7 @@
 // 막대 높이 = 지난 24시간 실제 개수. 입자는 쉬는 동안 안 보이고(글이 그대로 보임), 스크롤을 시작하면 글 화소 자리에 나타나 글을 대신한다.
 // 글 자리는 화면의 글자 하나하나 위치(Range)를 같은 글꼴로 캔버스에 다시 그려 뽑는다 → 3D 평면(z=0) 좌표로 옮긴다.
 import * as THREE from 'three';
-import { renderer, loop, reduce, mobile, data } from './kit.js';
+import { renderer, loop, mobile, data } from './kit.js';
 const hero = document.getElementById('hero'), copyEl = hero.querySelector('.copy');
 const canvas = document.createElement('canvas'); canvas.className = 'hx'; canvas.setAttribute('aria-hidden', 'true'); hero.prepend(canvas);
 const r = renderer(canvas, { alpha: true }); r.setClearColor(0x000000, 0);

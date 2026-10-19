@@ -3,7 +3,7 @@ import * as V from './rv.js';
 import { SORTS, MK } from './rv.js';
 // R3 · Impact — Perplexity Discover·Kalshi 참고. 맨 위 '지금' 한 장: 최근 6시간 가장 큰 소식 + 그 뒤 가격 흐름(크게).
 // 아래 카드 격자: 세기 3은 두 칸, 카드마다 '소식 이후' 작은 그래프. 정렬·거르기(최신순·호재·악재·강도순); 최신순 밖에선 중립 소식은 '그 밖의 소식' 목록으로. 오른쪽: 많이 언급된 이슈·종목.
-import { lwChart, store, start, day, counts, T, esc, line, altLine, pill, bars, chips, outlets, hm, ago, openSheet, THEMES, thName, pxChip, fillPx, newGate, loadK5, sinceChange, PRICED_ALL } from './lk.js';
+import { lwChart, store, start, day, T, esc, line, hm, openSheet, fillPx, newGate } from './lk.js';
 
 import * as Y from './yk.js';
 import { loadIndex, threadOf, briefHref } from './thr.js';
@@ -65,7 +65,6 @@ async function chart(cv, t, big) {
 }
 const mSeg = () => V.mSeg(M);
 function drawCharts() { app.querySelectorAll('.bigc[data-t]:not([data-on])').forEach((el) => { el.dataset.on = '1'; bigChart(el, +el.dataset.t); }); app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)); app.querySelectorAll('[data-mname]').forEach((e) => (e.textContent = mName())); }
-const symOf = (it) => (it.coins || []).find((c) => PRICED_ALL.has(c)) || ((it.th || []).some((k) => k === 'crypto' || k === 'econ' || k === 'nasdaq') || it.mw ? 'BTC' : null);
 function render(force) {
   if (!store.items.length && app.dataset.prerender) return;
   const all = day(); if (!force && !gate.check()) return;
@@ -73,7 +72,6 @@ function render(force) {
   if (S.mine && !my.length) S.mine = false;
   const xs = all.filter((x) => gate.visible(x)), ys = xs.filter((x) => (S.th === 'all' || x.th.includes(S.th)) && (!S.mine || mineOf(x)));
   $('myonly').setAttribute('aria-pressed', String(S.mine)); $('myonly').lastChild.textContent = T('My assets only', '내 자산만'); $('myonly').hidden = !my.length;
-  LASTXS = xs;
   $('tt').innerHTML = V.tabsHTML(xs, S.th);
   const now = Date.now() / 1000, recent = ys.filter((x) => now - x.t < 6 * 3600 && x.v !== '중립').sort((a, b) => score(b) - score(a) || b.t - a.t);
   const lead = recent[0];
@@ -98,10 +96,10 @@ function render(force) {
 
 // ---------- 맨 위 가격 띠(업계 표준: 숫자 먼저) · 오른쪽 '내 자산' 칸 ----------
 const STRIP = ['BTC', 'ETH', 'NQ=F', 'ES=F', '^TNX', 'GC=F'];
-let PQ = {}, pqAt = 0, MQ = {}, LASTXS = [];
+let PQ = {}, pqAt = 0;
 async function loadStrip() {
   if (Date.now() - pqAt < 60000) return; pqAt = Date.now();
-  const want = [...new Set([...STRIP, ...Y.getMy()])]; const q = await Y.loadQuotes(want); PQ = q; MQ = q; drawStrip();
+  const want = [...new Set([...STRIP, ...Y.getMy()])]; const q = await Y.loadQuotes(want); PQ = q; drawStrip();
 }
 // 가격 띠: 내 자산(☆)을 앞에, 기본 시장(BTC · ETH · 지수 · 금리 · 금)은 그 뒤에 — 오른쪽의 '내 자산' 칸은 이 띠와 겹쳐서 없앴다
 function drawStrip() {

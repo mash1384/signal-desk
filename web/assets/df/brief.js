@@ -1,7 +1,7 @@
 // P5 다음 장면 후보(?br=1~5): 줌 아웃 끝의 파형 입자가 전부 흩어졌다가 모여, AI 하루 정리(실제 최신 정리)를 전하는 모양이 된다.
 // 1 목소리 파형 · 2 입자 헤드라인 · 3 네 갈래가 하나로 · 4 요약하는 구 · 5 입자로 짜인 한 장
 import * as THREE from 'three';
-import { Morph, COL, clamp, ss, sm, lerp, rnd, textPoints, drawPoints, rrEdge, project, fonts, T } from './pk.js';
+import { Morph, COL, clamp, ss, sm, rnd, textPoints, rrEdge, project, fonts, T } from './pk.js';
 import { wrap } from './nkit.js';
 import { makeGlobe } from './globe.js';
 
@@ -115,7 +115,7 @@ export function makeBrief(kind, { scene, sec, lay, mob, sample }) {
       // 카메라: 들판 위 → 정면
       v.copy(cam.position).lerp(camP, go); cam.position.copy(v); lk.copy(look).lerp(camL, go); cam.lookAt(lk); cam.updateMatrixWorld();
       // 글
-      const w = sec.clientWidth, h = sec.clientHeight, show = ss(0.26, 0.34, BP) * (1 - ss(0.93, 0.97, BP));
+      const w = sec.clientWidth, show = ss(0.26, 0.34, BP) * (1 - ss(0.93, 0.97, BP));
       box.querySelectorAll('.rv span').forEach((e, j) => e.classList.toggle('on', j < rv * sents.length + 0.05));
       let x, y, bw;
       if (kind === 1 || kind === 2) { bw = Math.min(mob ? w - 36 : 760, w - 36); box.className = 'brx brx-' + kind + ' center'; x = (w - bw) / 2; const hh = box.querySelector('h3'); if (hh) hh.style.display = kind === 2 ? 'none' : '';

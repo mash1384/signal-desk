@@ -1,6 +1,6 @@
 // 정리(Brief) 공통: 지금 이어지는 이야기(줄기) + 어제 하루 정리. 줄기는 Mac 이 30분마다(tools/story_threads.py), 하루 정리는 daily_brief.py.
 // 줄기 문장은 AI(근거 소식 번호가 붙은 문장만, 숫자는 근거 소식에 있는 것만), 개수·날짜·호재/악재는 프로그램이 센 것.
-import { T, L, esc, store, openSheet, pill, hm, ago } from './lk.js';
+import { T, L, esc, store, openSheet, pill, hm } from './lk.js';
 
 const DATA = DFD.data('daily/');
 export const THEMES5 = [['all', 'All', '전체'], ['crypto', 'Crypto', '크립토'], ['nasdaq', 'Nasdaq', '나스닥'], ['econ', 'Economy', '경제'], ['ai', 'AI', 'AI'], ['world', 'World', '세계']];

@@ -13,7 +13,7 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +24,12 @@ jobs:
       - run: python -m pip install ruff==0.17.1
       # Existing findings deliberately fail. No baseline suppression.
       - run: python -m ruff check pipeline tools tests
+      # 화면 JS: 정의 안 된 변수 · 안 쓰는 코드 · 실행 안 되는 분기(tests/js/eslint.config.mjs)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci --prefix tests/js --no-audit --no-fund
+      - run: tests/js/node_modules/.bin/eslint -c tests/js/eslint.config.mjs web/assets/df
   unit:
     runs-on: ubuntu-latest
     timeout-minutes: 10

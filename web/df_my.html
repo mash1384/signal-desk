@@ -4,9 +4,18 @@
 <meta charset="utf-8">
 <script>try{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>My assets · Delfona — 내 자산 소식과 급변 알림</title>
-<meta name="description" content="관심 자산을 고르면 그 자산의 소식만 모아 보고, 평소보다 크게 움직일 때 같은 시간의 소식과 함께 알려 줘요.">
+<title>My assets · Delfona — news and sudden moves for what you follow</title>
+<meta name="description" content="Pick the assets you follow to see only their news, and get flagged when one moves unusually, together with the stories from the same minutes.">
 <link rel="canonical" href="{{URL}}my/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Delfona">
+<meta property="og:title" content="My assets · Delfona — news and sudden moves for what you follow">
+<meta property="og:description" content="Pick the assets you follow to see only their news, and get flagged when one moves unusually, together with the stories from the same minutes.">
+<meta property="og:url" content="{{URL}}my/">
+<meta property="og:image" content="{{URL}}og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="{{B}}assets/icon.svg" type="image/svg+xml">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
@@ -67,6 +76,12 @@
 .dsum .lean li { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; background: #f3f5f8; font-size: 13px; }
 .dsum .lean b { font-family: var(--mono); font-size: 12.5px; } .dsum .lean .mono { font-size: 12px; color: var(--mute); } .dsum .lean .ls { font-weight: 600; } .dsum .lean .ud { color: var(--faint); }
 .dsum .lean li.up { background: #e8f7f0; } .dsum .lean li.up .ls { color: var(--up); } .dsum .lean li.down { background: #fdecea; } .dsum .lean li.down .ls { color: var(--down); } .dsum .lean li.mix .ls { color: #8a6100; } .dsum .lean li.flat .ls { color: var(--faint); font-weight: 500; }
+.dsum .news { display: grid; gap: 0; margin-top: 10px; } .dsum .news li { display: block; height: auto; padding: 0; background: none; border-radius: 0; border-top: 1px solid var(--line); }
+.dsum .news li:first-child { border-top: 0; }
+.dsum .news button { display: grid; grid-template-columns: 52px auto minmax(0, 1fr) auto; align-items: baseline; gap: 8px; width: 100%; padding: 10px 0; text-align: left; color: inherit; font: inherit; }
+.dsum .news .hl { font-size: 14.5px; font-weight: 500; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dsum .news .tm { font-size: 12px; color: var(--faint); white-space: nowrap; }
+@media (max-width: 560px) { .dsum .news button { grid-template-columns: 48px auto minmax(0, 1fr); } .dsum .news .tm { display: none; } }
 .dsum .sub2 { margin-top: 14px; font-size: 12px; font-weight: 600; color: var(--faint); } .dsum .sig { margin: 6px 0 0; padding-inline-start: 18px; display: grid; gap: 4px; font-size: 14.5px; }
 .dsum .qt { margin-top: 12px; font-size: 13px; color: var(--mute); } .dsum .lk { margin-top: 12px; font-size: 13.5px; font-weight: 600; } .dsum .lk a { color: var(--primary); }
 .y2 { padding-top: 22px; padding-bottom: 72px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); } @media (min-width: 1000px) { .y2 { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } .y2 .rail { position: sticky; top: 76px; } }

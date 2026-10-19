@@ -34,8 +34,29 @@ export const kindName = (k) => (KIND[k] || [k, k])[L() ? 1 : 0];
 export const store = { items: [], byId: new Map(), feed: [], fresh: new Set(), subs: [] };
 export const line = (it) => (L() ? it.ko : it.en || it.ko);
 export const altLine = (it) => (L() ? it.en || '' : it.ko);
+// 익명 이벤트 통계(합계만 · 쿠키 없음, 추적 거부면 안 보냄): 기사 열기 · 원문 이동 · 차트 조작 · 언어 전환
+const STATS = 'https://signal-scheduler.mash1384.workers.dev/e';
+export function track(ev, lang) {
+  try { if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl || !window.DF_PAGE) return;
+    navigator.sendBeacon(`${STATS}?e=${ev}&k=${window.DF_PAGE}&l=${lang || (L() ? 'ko' : 'en')}&d=${matchMedia('(max-width: 899px)').matches ? 'm' : 'd'}`); } catch (e) {}
+}
+if (typeof addEventListener === 'function') {   // 빌드 때 미리 그리기(Node)에서는 건너뛴다
+  // 원문 이동 · 언어 버튼(사용자가 누른 것만 — DFI.onLang 은 첫 로드에도 불려 세면 안 된다)
+  addEventListener('click', (e) => { const t = e.target.closest ? e.target : null; if (!t) return;
+    const a = t.closest('a[href^="http"]'); if (a && !a.href.startsWith(location.origin)) track('out');
+    const b = t.closest('[data-lang]'); if (b) track('lang', b.dataset.lang === 'ko' ? 'ko' : 'en'); }, true);
+}
+let charted = false;
+// 업데이트 지연 안내: 속보가 20분 넘게 안 바뀌면(정상이면 10분마다 생존 신호) 화면 아래에 떠 있는 작은 안내 — 자리를 밀지 않는다
+function stale(at) {
+  let el = document.getElementById('stale'); const old = at && Date.now() / 1000 - at > 1200;
+  if (!old) { if (el) el.hidden = true; return; }
+  if (!el) { el = document.createElement('p'); el.id = 'stale'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.textContent = T(`Updates delayed · last update ${hm(at)}`, `업데이트 지연 · 마지막 갱신 ${hm(at)}`); el.hidden = false;
+}
 async function pull() {
   let d; try { d = await DFD.flash(); } catch (e) { return; }
+  stale(d.at);
   const seen = store.byId.size > 0;
   d.items.forEach((it) => { if (!store.byId.has(it.id)) { it.th = themesOf(it); store.byId.set(it.id, it); if (seen) store.fresh.add(it.id); } else Object.assign(store.byId.get(it.id), it, { th: themesOf(it) }); });
   store.items = [...store.byId.values()].sort((a, b) => b.t - a.t);
@@ -84,15 +105,6 @@ async function since(sym, t) {
   const p = fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}USDT&interval=1m&startTime=${(t - 60) * 1000}&limit=${sinceLimit(t - 60)}`).then((r) => r.ok ? r.json() : null).then((k) => (k && k.length ? k.map((x) => [x[0] / 1000, +x[4]]) : null)).catch(() => null);
   pxCache.set(key, p); return p;
 }
-function spark(cv, pts) {
-  const dpr = Math.min(devicePixelRatio || 1, 2), w = cv.clientWidth, h = 56; cv.width = w * dpr; cv.height = h * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
-  const ys = pts.map((p) => p[1]), lo = Math.min(...ys), hi = Math.max(...ys), sp = hi - lo || 1, up = ys[ys.length - 1] >= ys[0];
-  const X = (i) => i / (pts.length - 1) * (w - 2) + 1, Y = (y) => h - 4 - (y - lo) / sp * (h - 8);
-  g.strokeStyle = 'rgba(13,37,61,.18)'; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(0, Y(ys[0])); g.lineTo(w, Y(ys[0])); g.stroke(); g.setLineDash([]);
-  const grd = g.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, up ? 'rgba(18,176,124,.22)' : 'rgba(229,83,63,.22)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
-  g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(X(i), Y(p[1])) : g.moveTo(X(i), Y(p[1])))); g.lineTo(X(pts.length - 1), h); g.lineTo(X(0), h); g.closePath(); g.fillStyle = grd; g.fill();
-  g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(X(i), Y(p[1])) : g.moveTo(X(i), Y(p[1])))); g.strokeStyle = up ? '#12b07c' : '#e5533f'; g.lineWidth = 1.6; g.stroke();
-}
 const PRICED = new Set(['BTC', 'ETH', 'SOL', 'XRP', 'BNB', 'DOGE', 'ADA', 'LINK', 'AVAX', 'SUI', 'TON', 'DOT', 'LTC', 'TRX', 'HBAR', 'TAO', 'AAVE', 'UNI', 'NEAR', 'APT', 'ONDO', 'ENA', 'PEPE', 'ZEC', 'FET', 'HYPE', 'WLD', 'ARB', 'OP', 'FIL']);
 
 // ---------- 관련 기사(사이트 기사 목록에서 같은 코인·비슷한 제목, ±12시간) ----------
@@ -127,6 +139,7 @@ export async function fillRx(it, root) {
 }
 // 시트(모바일·작은 화면) 열기
 export function openSheet(it) {
+  track('open');
   const sh = document.getElementById('sheet'), det = document.getElementById('det'); det.innerHTML = detailHTML(it); sh.classList.add('on'); sh.setAttribute('aria-hidden', 'false'); fillRx(it, det);
   sh.querySelectorAll('[data-close]').forEach((b) => (b.onclick = () => { sh.classList.remove('on'); sh.setAttribute('aria-hidden', 'true'); }));
 }
@@ -248,7 +261,7 @@ function drawLW(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel =
   const legend = (d) => { if (d.time === shownT) return; shownT = d.time; const after = hasAfter && d.time >= data[i0].time, ch = (d.value / base - 1) * 100;
     lgd.innerHTML = `<span class="mono">${fmt(d.time)}</span><b class="mono">${d.value.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}</b>${after ? `<span class="mono ${ch >= 0 ? 'up' : 'down'}">${DFD.pct(ch)} ${vsLabel || T('vs story', '소식 대비')}</span>` : `<span class="b4">${preLabel || T('before the story', '소식 전')}</span>`}`; };
   const last = data[data.length - 1]; legend(last);
-  chart.subscribeCrosshairMove((p) => { const v = p && p.time && p.seriesData ? p.seriesData.get(post) || p.seriesData.get(pre) : null; legend(v && v.value != null ? { time: p.time, value: v.value } : last); });
+  chart.subscribeCrosshairMove((p) => { if (!charted && p && p.time) { charted = true; track('chart'); } const v = p && p.time && p.seriesData ? p.seriesData.get(post) || p.seriesData.get(pre) : null; legend(v && v.value != null ? { time: p.time, value: v.value } : last); });
   return { chart, change: hasAfter ? (last.value / base - 1) * 100 : null, closed: pts[pts.length - 1][0] < Date.now() / 1000 - 1800 };
 }
 // 이어지는 이야기 표시(소식 카드 · 상세 창)

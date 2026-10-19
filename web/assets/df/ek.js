@@ -11,7 +11,6 @@ const when = (ts) => new Intl.DateTimeFormat(lc(), { month: 'short', day: 'numer
 const hm = (ts) => new Intl.DateTimeFormat(lc(), { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(ts * 1000));
 const pctS = (v, d = 1) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d) + '%';
 const sgn = (v, u, d = 1) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d) + u;
-const QC = { hot: '#d97706', stag: '#df4a3a', gold: '#0e9f6e', slow: '#5b7bb4' };
 const MKC = { 'NQ=F': '#0d253d', BTC: '#c2410c', 'GC=F': '#4a6aa3' };   // 나스닥 · 비트코인 · 금(이름표와 같은 색)
 const ANC = ['#0d253d', '#b45309', '#0f766e'];                         // 닮은 과거 1 · 2 · 3
 const VS = { above: ['▲', 'above forecast', '예상보다 높음'], below: ['▼', 'below forecast', '예상보다 낮음'], inline: ['■', 'in line with forecast', '예상과 같음'] };

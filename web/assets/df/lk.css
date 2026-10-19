@@ -113,3 +113,7 @@ button:focus:not(:focus-visible) { outline: none; }
 .thl { display: grid; gap: 3px; padding: 12px 14px; border-radius: 12px; background: #f6f5ff; box-shadow: inset 0 0 0 1px #e4e0ff; transition: background-color 120ms ease; }
 .thl .k { font-size: 11.5px; font-weight: 600; color: var(--primary); } .thl b { font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--ink); } .thl .go { font-size: 12.5px; font-weight: 600; color: var(--primary); }
 @media (hover: hover) { .thl:hover { background: #efedff; } }
+
+/* 업데이트 지연 안내(lk.js stale): 떠 있는 작은 안내 — 레이아웃을 밀지 않는다. 모바일은 아래 탭 위 */
+#stale { position: fixed; z-index: 45; left: 50%; bottom: calc(68px + env(safe-area-inset-bottom)); transform: translateX(-50%); margin: 0; padding: 7px 14px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 12.5px; font-weight: 600; box-shadow: 0 6px 20px rgb(13 37 61 / 0.18); white-space: nowrap; }
+@media (min-width: 900px) { #stale { bottom: 20px; } }

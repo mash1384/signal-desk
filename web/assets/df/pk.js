@@ -2,7 +2,7 @@
 // Morph: 입자 N개가 최대 5개의 '모양(stage)' 사이를 스크롤에 따라 오간다. 전환 중간에는 살짝 흩어졌다(burst) 다시 모인다.
 import * as THREE from 'three';
 export { renderer, loop, mobile, reduce, fonts, lerp, clamp, ss, EN, SECT } from './nkit.js';
-import { clamp, mobile } from './nkit.js';
+import { clamp } from './nkit.js';
 
 export const DPR = Math.min(devicePixelRatio || 1, 2);
 export const COL = { navy: new THREE.Color('#1d3557'), ink: new THREE.Color('#0d253d'), ind: new THREE.Color('#6d6cf7'), lt: new THREE.Color('#a9b7ff'), up: new THREE.Color('#12b07c'), dn: new THREE.Color('#e5533f'), gray: new THREE.Color('#9aa7b8') };

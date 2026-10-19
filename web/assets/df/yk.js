@@ -1,6 +1,6 @@
 // '내 자산' 공통: 고를 수 있는 자산(코인 · 주식 · 지수 · 금리·환율·원자재), 소식과 자산 잇기, 저장(로그인 없이 브라우저), 시세, 급변 감지.
 // 급변 감지: 최근 15분 등락을 그 자산의 평소 15분 흔들림(지난 몇 시간 표준편차)과 비교 — 3배 넘고 최소 폭도 넘을 때만. 같은 시간대 관련 소식을 함께(원인 단정 없이).
-import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, PRICED_ALL } from './lk.js';
+import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx } from './lk.js';
 export { every } from './lk.js';
 export { store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, esc, T, L };
 const WK = 'https://signal-scheduler.mash1384.workers.dev/quotes';
@@ -157,16 +157,15 @@ export function initSort() { let so = 'new'; try { so = localStorage.getItem('df
 let TH = null;
 export async function loadThemes() { if (TH) return TH; try { TH = await (await fetch(DFD.data('daily/themes.json') + '?t=' + Math.floor(Date.now() / 60000))).json(); } catch (e) { TH = { themes: [] }; } return TH; }
 export function daySummaryHTML(my, items, th) {
-  const day = items.filter((x) => x.t >= Date.now() / 1000 - 86400), u = day.filter((x) => x.v === '호재').length, d = day.filter((x) => x.v === '악재').length;
-  const per = my.map((s) => { const a = BY[s], xs = day.filter((x) => matches(x, a)), pu = xs.filter((x) => x.v === '호재').length, pd = xs.filter((x) => x.v === '악재').length;
-    return { s, a, n: xs.length, u: pu, d: pd, lean: pu + pd < 2 ? 'flat' : pu >= pd * 1.5 ? 'up' : pd >= pu * 1.5 ? 'down' : 'mix' }; }).filter((p) => p.n).sort((x, y) => y.n - x.n);
-  const leanTxt = { up: T('mostly bullish', '호재 우세'), down: T('mostly bearish', '악재 우세'), mix: T('mixed', '엇갈림'), flat: T('few verdicts', '판정 적음') };
+  // 숫자(소식 · 호재 · 악재 몇 건) 대신 자산마다 그날 가장 큰 소식 한 줄 — 누르면 상세가 열린다
+  const day = items.filter((x) => x.t >= Date.now() / 1000 - 86400);
+  const per = my.map((s) => { const a = BY[s], xs = day.filter((x) => matches(x, a));
+    return { s, top: xs.slice().sort((p, q) => score(q) - score(p) || q.t - p.t)[0] }; }).filter((p) => p.top);
   const mine = new Set(my), sig = [];
   ((th && th.themes) || []).forEach((t) => (t.changes_all || []).forEach((c) => { if (c.k === 'asset' && mine.has(c.sym) && !sig.some((x) => x.sym === c.sym)) sig.push(c); }));
   const quiet = my.filter((s) => !per.some((p) => p.s === s));
-  return `<div class="dsum"><p class="k">${T('My day in 30 seconds', '내 자산 하루 요약')} <span>· ${T('last 24 hours', '지난 24시간')}</span></p>
-    <p class="big1">${T(`<b>${day.length}</b> stories on your assets — <b class="up">${u}</b> bullish, <b class="down">${d}</b> bearish.`, `내 자산 소식 <b>${day.length}</b>건 · 호재 <b class="up">${u}</b> · 악재 <b class="down">${d}</b>`)}</p>
-    ${per.length ? `<ul class="lean">${per.slice(0, 8).map((p) => `<li class="${p.lean}"><b>${esc(short(p.s))}</b><span class="mono">${p.n}</span><span class="ls">${leanTxt[p.lean]}</span><span class="mono ud">${p.u}/${p.d}</span></li>`).join('')}</ul>` : ''}
+  return `<div class="dsum"><p class="k">${T('My day in 30 seconds', '내 자산 하루 요약')} <span>· ${T('the biggest story on each asset, last 24 hours', '자산마다 가장 큰 소식 · 지난 24시간')}</span></p>
+    ${per.length ? `<ul class="lean news">${per.slice(0, 6).map((p) => `<li><button type="button" class="btnp" data-id="${p.top.id}"><b>${esc(short(p.s))}</b>${pill(p.top.v)}<span class="hl">${esc(line(p.top))}</span><span class="mono tm">${ago(p.top.t)}</span></button></li>`).join('')}</ul>` : ''}
     ${sig.length ? `<p class="sub2">${T('Different from usual', '평소와 다른 점')}</p><ul class="sig">${sig.slice(0, 3).map((c) => `<li>${esc(L() ? c.ko : c.en)}</li>`).join('')}</ul>` : ''}
     ${quiet.length ? `<p class="qt">${T(`Quiet: ${quiet.map(short).join(', ')} — no stories in 24h.`, `조용함: ${quiet.map(short).join(', ')} — 24시간 소식 없음.`)}</p>` : ''}
     <p class="lk"><a href="${window.DF_ROOT || '../../'}daily/">${T('Full daily brief', '전체 하루 정리')} →</a></p></div>`;

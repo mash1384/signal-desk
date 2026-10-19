@@ -1,0 +1,9 @@
+{
+  "name": "delfona-js-lint",
+  "private": true,
+  "description": "web/assets/df 화면 JS 기본 검사(정의 안 된 변수 · 안 쓰는 코드 등). 배포에는 쓰이지 않는다.",
+  "devDependencies": {
+    "eslint": "9.37.0",
+    "globals": "16.4.0"
+  }
+}

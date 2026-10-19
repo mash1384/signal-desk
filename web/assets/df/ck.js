@@ -207,7 +207,7 @@ function drawHistoryNow(el, x, range) {
 
 // 과거에 비슷했을 때: 발표 뒤 한 달 경로(캔버스, 높이 고정, 폭이 바뀔 때만 다시 그림)
 export function drawFan(cv, lab, doc, x, sym) {
-  const P = x.paths[sym], a = doc.assets.find((q) => q.sym === sym), bp = a.kind === 'bp';
+  const P = x.paths[sym], a = doc.assets.find((q) => q.sym === sym);
   const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
   const dpr = Math.min(devicePixelRatio || 1, 2); cv.width = w * dpr; cv.height = h * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
   if (!P) { lab.textContent = T('Not enough history for this asset.', '이 자산은 기록이 부족해요.'); return; }

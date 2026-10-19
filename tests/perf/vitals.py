@@ -67,6 +67,10 @@ class Reply:
 
 async def transport(context, offline, delay=0, block=False, wire=False):
     async def handle(route):
+        u = urlsplit(route.request.url)
+        if u.hostname == 'signal-scheduler.mash1384.workers.dev' and u.path == '/e':   # 익명 통계 전송 — 측정에는 가짜 응답
+            await route.fulfill(status=204, body=b'', headers={'access-control-allow-origin': '*'})
+            return
         data = is_data(route.request.url)
         if data and block:
             await route.abort('blockedbyclient')

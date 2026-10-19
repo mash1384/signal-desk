@@ -4,7 +4,7 @@ No route ever continues to a remote host. External failures are reported separat
 import hashlib
 import json
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, parse_qsl, urlsplit
 
 VENDOR = Path(__file__).parent / "vendor"
 
@@ -17,6 +17,7 @@ class Offline:
         self.now = json.loads((self.flash / "flash.json").read_text())["at"]
         self.manifest = json.loads((VENDOR / "manifest.json").read_text())
         self.unmapped = []
+        self.beacons = []
         for row in self.manifest.values():
             data = (VENDOR / row["file"]).read_bytes()
             if hashlib.sha256(data).hexdigest() != row["sha256"]:
@@ -35,6 +36,11 @@ class Offline:
         url = urlsplit(req.url)
         if url.netloc == self.host:
             route.continue_()
+            return
+        # 익명 방문 통계(Worker /e, sendBeacon POST · 이미지 GET)만 허용: 응답은 가짜로, 보낸 이벤트는 self.beacons 에 남긴다
+        if url.hostname == "signal-scheduler.mash1384.workers.dev" and url.path == "/e":
+            self.beacons.append(dict(parse_qsl(url.query)))
+            route.fulfill(status=204 if req.method == "POST" else 200, body=b"", headers={"access-control-allow-origin": "*"})
             return
         if req.method != "GET":
             raise AssertionError("E2E forbids non-GET external request")
