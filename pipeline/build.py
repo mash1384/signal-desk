@@ -187,7 +187,9 @@ def page_landing_df():
     if OG_DEFAULT:
         og = ('<meta property="og:image" content="%s/og/default.jpg">\n<meta property="og:image:width" content="1200">\n'
               '<meta property="og:image:height" content="630">\n<meta name="twitter:card" content="summary_large_image">') % config.SITE_URL
-    return with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og))
+    # 랜딩은 맞춤 대체 글꼴(pf.js)을 넣지 않는다: Linux CI 에서 첫 화면이 0.38s → 4.1s 로 늦어졌고(원인 조사 중),
+    # 랜딩은 원래 화면 밀림이 0.02 이하라 얻을 것이 없다
+    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/").replace("{{OG}}", og)
 
 
 def page_live_df():
