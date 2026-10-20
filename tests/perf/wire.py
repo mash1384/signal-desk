@@ -35,6 +35,13 @@ class WireReply:
 
 class WireHandler(Handler):
     protocol_version = 'HTTP/1.1'
+
+    def setup(self):
+        # TLS 핸드셰이크는 연결마다 자기 스레드에서 한다. 받는 고리(accept)에서 하면 느린 연결 하나(모의 지연 150ms)가
+        # 뒤의 모든 연결을 줄 세워, CI 에서 브라우저가 ERR_TOO_MANY_RETRIES 로 포기하는 일이 있었다(2026-10-20 하루 4번)
+        self.request.do_handshake()
+        super().setup()
+
     def send_body(self, body, mime, status=200, headers=None):
         compressed = self.server.compression == 'gzip' and 'gzip' in self.headers.get('Accept-Encoding', '') and (
             mime.startswith('text/') or any(x in mime for x in ('json', 'javascript', 'svg')))
@@ -94,7 +101,7 @@ def serve_wire(site, flash, compression='gzip'):
         server = WireServer(('127.0.0.1', 0), partial(WireHandler, directory=str(site)))
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(cert, key)
-        server.socket = ctx.wrap_socket(server.socket, server_side=True)
+        server.socket = ctx.wrap_socket(server.socket, server_side=True, do_handshake_on_connect=False)
         base = 'https://127.0.0.1:%d/signal-desk/' % server.server_port
         server.offline = Offline(site, flash, base)
         server.compression = compression
