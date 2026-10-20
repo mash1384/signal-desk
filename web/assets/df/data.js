@@ -30,7 +30,13 @@ window.DFD = (() => {
   const hm = (t) => { const d = new Date(t * 1000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const pct = (v, d = 2) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d) + '%';
   const vcls = (v) => v === '호재' ? 'up' : v === '악재' ? 'down' : 'flat';
-  async function flash() { const bundle = await live(); return bundle ? bundle.flash : (await fetch(FLASH, { cache: 'no-store' })).json(); }
+  // 20초 안 다시 부르면 같은 요청을 나눠 쓴다(첫 페이지는 3D 장면 둘이 따로 부른다). Worker 도 20초 캐시라 새로움은 같다
+  let flashP = null, flashAt = 0;
+  function flash() {
+    if (flashP && Date.now() - flashAt < 20000) return flashP;
+    flashAt = Date.now();
+    return (flashP = (async () => { const bundle = await live(); return bundle ? bundle.flash : (await fetch(FLASH, { cache: 'no-store' })).json(); })().catch((e) => { flashP = null; throw e; }));
+  }
   const day24 = (items) => { const s = Date.now() / 1000 - 86400, xs = items.filter((x) => x.t >= s);
     return { all: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length, n: xs.filter((x) => x.v === '중립').length, big: xs.filter((x) => x.s >= 2).length }; };
   return { data, live, esc, hm, pct, vcls, flash, day24 };

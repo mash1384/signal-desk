@@ -43,3 +43,32 @@ def test_my_page_fetches_themes_once_while_pending(browser, site_server, request
         assert not errors, errors
     finally:
         context.close()
+
+
+def test_landing_fetches_flash_once(browser, site_server, request):
+    # 첫 페이지의 두 3D 장면(kit.js 위 장면 · p5.js 아래 장면)이 각자 속보를 불러 130KB 를 두 번 받았다(2026-10-20 CI).
+    # 인트로를 건너뛰는 방문(다크 모드 · 사이트 안에서 온 방문)은 아래 장면까지 바로 불러온다
+    site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
+    context = browser.new_context(viewport={"width": 1440, "height": 1000}, service_workers="block")
+    offline = Offline(site, flash, site_server)
+    context.route("**/*", offline.handle)
+    context.add_init_script("localStorage.setItem('df-lang','en'); localStorage.setItem('df-theme','dark');"   # 다크는 인트로를 건너뛴다
+                            "Object.defineProperty(navigator, 'doNotTrack', {get: () => '1'});")
+    page = context.new_page()
+    page.clock.set_fixed_time(dt.datetime.fromtimestamp(offline.now, dt.timezone.utc))
+    urls, errors = [], []
+    page.on("request", lambda r: urls.append(r.url))
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    try:
+        page.goto(site_server, wait_until="load")
+        for _ in range(150):                  # 아래 장면(p5.js)과 그 자료(themes.json)까지 불러올 때까지
+            if any("/data/daily/themes.json" in u for u in urls):
+                break
+            page.wait_for_timeout(100)
+        assert any("/assets/df/p5.js" in u for u in urls), "lower scene never loaded"
+        page.wait_for_timeout(1500)
+        flashes = [u for u in urls if u.split("?")[0].endswith("workers.dev/flash")]
+        assert len(flashes) == 1, flashes
+        assert not errors, errors
+    finally:
+        context.close()
