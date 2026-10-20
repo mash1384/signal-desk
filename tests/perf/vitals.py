@@ -19,7 +19,7 @@ import urllib.request
 
 from tests.e2e.network import Offline
 from tests.e2e.test_matrix import CONTENT, path_for
-from tests.perf.wire import serve_wire
+from tests.perf.wire import LAUNCH_ARGS, serve_wire
 
 PAGES = ['', 'live/', 'my/', 'themes/crypto/', 'brief/', 'calendar/', 'daily/', 'about/']
 DEVICES = {'pc': 1440, 'mobile': 390}
@@ -255,7 +255,7 @@ async def run(args):
                 raise ValueError('live sitemap has no dated daily page')
             daily_path = 'daily/' + max(dates) + '/'
         async with async_playwright() as pw:
-            browser = await pw.chromium.launch(**({} if args.channel == 'chromium' else {'channel': args.channel}))
+            browser = await pw.chromium.launch(args=LAUNCH_ARGS, **({} if args.channel == 'chromium' else {'channel': args.channel}))
             for name in args.pages:
                 for device in args.devices:
                     for attempt in range(args.runs):

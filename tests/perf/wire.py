@@ -21,6 +21,12 @@ from tests.e2e.network import Offline
 from tests.e2e.server import Handler
 
 
+# 성능 검사 브라우저용: 모든 외부 요청을 이 로컬 TLS 서버로 돌리므로 자체 서명 인증서를 브라우저 전체가 믿게 한다.
+# 문맥 옵션(ignore_https_errors)만으로는 미리 연결(preconnect · crossorigin) 소켓이 인증서를 거절해(로컬에서도 한 번에 38번)
+# 다시 시도하다가 CI 에서 ERR_TOO_MANY_RETRIES 로 끝났다(2026-10-20)
+LAUNCH_ARGS = ['--ignore-certificate-errors']
+
+
 class WireReply:
     def __init__(self, url):
         self.request = SimpleNamespace(url=url, method='GET')

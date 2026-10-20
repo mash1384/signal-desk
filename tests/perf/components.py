@@ -3,6 +3,7 @@ import argparse
 import datetime as dt
 import json
 from pathlib import Path
+from tests.perf.wire import LAUNCH_ARGS
 
 from tests.e2e.network import Offline, VENDOR
 from tests.e2e.server import serve
@@ -18,7 +19,7 @@ def check(args):
     from playwright.sync_api import sync_playwright
     rows = []
     with serve(args.site) as base, sync_playwright() as pw:
-        browser = pw.chromium.launch(**({} if args.channel == 'chromium' else {'channel': args.channel}))
+        browser = pw.chromium.launch(args=LAUNCH_ARGS, **({} if args.channel == 'chromium' else {'channel': args.channel}))
 
         def session():
             context = browser.new_context(viewport={'width': 390, 'height': 1000}, timezone_id='Asia/Seoul', reduced_motion='reduce')

@@ -9,6 +9,7 @@ import datetime as dt
 import json
 from pathlib import Path
 from urllib.parse import urlsplit
+from tests.perf.wire import LAUNCH_ARGS
 
 from tests.e2e.server import serve
 from tests.e2e.test_matrix import CONTENT, path_for
@@ -46,7 +47,7 @@ async def capture(args):
     rows = []
     with serve(args.site) as base:
         async with async_playwright() as pw:
-            browser = await pw.chromium.launch(**({} if args.channel == 'chromium' else {'channel': args.channel}))
+            browser = await pw.chromium.launch(args=LAUNCH_ARGS, **({} if args.channel == 'chromium' else {'channel': args.channel}))
             for name in args.pages:
                 for device, width in DEVICES.items():
                     for lang in ('ko', 'en'):

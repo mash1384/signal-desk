@@ -5,6 +5,7 @@ import datetime as dt
 import json
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
+from tests.perf.wire import LAUNCH_ARGS
 
 from tests.e2e.server import serve
 from tests.perf.vitals import DEVICES, prepare
@@ -15,7 +16,7 @@ async def capture(args):
     from playwright.async_api import async_playwright
     rows = []
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(**({} if args.channel == 'chromium' else {'channel': args.channel}))
+        browser = await pw.chromium.launch(args=LAUNCH_ARGS, **({} if args.channel == 'chromium' else {'channel': args.channel}))
         for stage, site in [('before', args.before), ('after', args.after)]:
             out = args.out / stage
             out.mkdir(parents=True, exist_ok=True)

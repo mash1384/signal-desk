@@ -12,14 +12,14 @@ from tests.e2e.network import Offline
 from tests.e2e.server import serve
 from tests.e2e.test_polling import HIDE
 from tests.perf.vitals import measure, is_data
-from tests.perf.wire import serve_wire
+from tests.perf.wire import LAUNCH_ARGS, serve_wire
 
 
 def polling(args):
     from playwright.sync_api import sync_playwright
     rows = []
     with serve(args.site) as base, sync_playwright() as pw:
-        browser = pw.chromium.launch(**({} if args.channel == 'chromium' else {'channel': args.channel}))
+        browser = pw.chromium.launch(args=LAUNCH_ARGS, **({} if args.channel == 'chromium' else {'channel': args.channel}))
         for mode in ('modern', 'legacy', 'error', 'malformed', 'disconnect'):
             context = browser.new_context(viewport={'width': 1440, 'height': 1000}, reduced_motion='reduce')
             offline = Offline(args.site, args.flash, base, live_mode=mode)
@@ -104,7 +104,7 @@ async def delayed_and_blocked(args):
     rows = []
     with serve_wire(args.site, args.flash) as base:
         async with async_playwright() as pw:
-            browser = await pw.chromium.launch(**({} if args.channel == 'chromium' else {'channel': args.channel}))
+            browser = await pw.chromium.launch(args=LAUNCH_ARGS, **({} if args.channel == 'chromium' else {'channel': args.channel}))
             if args.scenario in ('all', 'delay'):
                 for lang in ('ko', 'en'):
                     for delay in (1, 2, 3):
