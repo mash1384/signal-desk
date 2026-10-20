@@ -116,10 +116,6 @@ app.addEventListener('click', (e) => {
   if (e.target.closest('[data-pick]')) { Y.openPicker(() => { pqAt = 0; loadStrip(); render(true); }); return; } const so = e.target.closest('[data-sort]'); if (so) { SO = so.dataset.sort; try { localStorage.setItem('df-sort', SO); } catch (x) {} render(true); return; }
   const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }
   const t = e.target.closest('[data-th]'); if (t) { S.th = t.dataset.th; render(true); return; } const b = e.target.closest('[data-id]'); if (b && store.byId.has(b.dataset.id)) openSheet(store.byId.get(b.dataset.id)); });
-addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-theme-toggle]'); if (!b) return;
-  const t = dark() ? 'light' : 'dark'; document.documentElement.dataset.theme = t; try { localStorage.setItem('df-theme', t); } catch (x) {}
-  b.setAttribute('aria-pressed', String(t === 'dark')); drawStrip(); render(true); });
-document.querySelector('[data-theme-toggle]')?.setAttribute('aria-pressed', String(dark()));
 start(() => render(false)); loadStrip(); Y.every(loadStrip, 60000); DFI.onLang(() => { drawStrip(); render(true); });
 let rzT = 0, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)), 200); });   // 작은 그래프는 크기가 바뀌면 다시 그린다(큰 차트는 라이브러리가 맞춘다)
 

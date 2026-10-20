@@ -3,7 +3,7 @@
 // 숫자는 모두 프로그램이 계산, 문장만 AI(DeepSeek).
 // 차트 원칙(Datawrapper · EU 시각화 지침 · Stripe): 범례 대신 선 끝에 직접 이름표, 비교할 것은 같은 눈금(발표 대비 %), 전→후는 덤벨,
 // 맥락은 회색 · 강조만 색, 최신 값 쪽(오른쪽)에 이름표, 숫자는 고정폭. 색만으로 뜻을 전하지 않게 이름 · 화살표를 함께.
-import { T, L, esc } from './lk.js';
+import { T, L, esc, col, tone } from './lk.js';
 
 const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
 const lc = () => (L() ? 'ko-KR' : 'en-GB');
@@ -80,7 +80,7 @@ export function releaseHTML(doc, rel) {
 // 발표 전후 시장: 세 자산을 '발표 직전 가격 대비 %' 한 눈금에. 발표 전은 옅게, 선 끝에 이름표, 포인터를 올리면 그 분의 세 값
 export function drawRelease(root, rel) {
   const cv = root.querySelector('#mxc'); if (!cv || !rel || !rel.market) return;
-  const ser = Object.entries(rel.market).map(([sym, m]) => ({ sym, name: L() ? m.ko : m.en, col: MKC[sym] || '#64748b',
+  const ser = Object.entries(rel.market).map(([sym, m]) => ({ sym, name: L() ? m.ko : m.en, col: col(MKC[sym] || '#64748b'),
     pts: m.pts.map(([t, p]) => [(t - rel.ts) / 60, (p / m.base - 1) * 100]).filter(([x]) => x >= -30 && x <= 90) })).filter((s) => s.pts.length > 2);
   if (!ser.length) return;
   const H = 230, [g, w] = canvasOf(cv, H), padL = 4, padR = w < 420 ? 92 : 112, top = 18, bot = 24, W = w - padL - padR;
@@ -92,14 +92,14 @@ export function drawRelease(root, rel) {
     g.clearRect(0, 0, w, H);
     g.font = FONT; g.textBaseline = 'middle'; g.textAlign = 'start';
     for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) { const y = Math.round(Y(v)) + .5, zero = Math.abs(v) < 1e-9;
-      g.strokeStyle = zero ? 'rgba(13,37,61,.35)' : 'rgba(13,37,61,.07)'; g.lineWidth = 1; g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + W, y); g.stroke();
-      if (!zero) { g.fillStyle = '#64748b'; g.fillText(pctS(v, step < 1 ? 2 : 0), padL + 2, y - 7); } }
+      g.strokeStyle = zero ? col('rgba(13,37,61,.35)') : col('rgba(13,37,61,.07)'); g.lineWidth = 1; g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + W, y); g.stroke();
+      if (!zero) { g.fillStyle = col('#64748b'); g.fillText(pctS(v, step < 1 ? 2 : 0), padL + 2, y - 7); } }
     // 발표 시각 · 15분 · 60분 세로선
     const narrow = X(15) - X(0) < 70;   // 좁으면 +15분 이름표는 빼고 선만
     [[0, T('release', '발표') + ' ' + hm(rel.ts)], [15, narrow ? '' : '+15' + T('m', '분')], [60, '+60' + T('m', '분')]].forEach(([m, lab], i) => { const x = Math.round(X(m)) + .5;
-      g.strokeStyle = i ? 'rgba(13,37,61,.12)' : 'rgba(13,37,61,.55)'; g.setLineDash(i ? [2, 3] : [4, 3]); g.beginPath(); g.moveTo(x, top - 4); g.lineTo(x, H - bot); g.stroke(); g.setLineDash([]);
-      g.fillStyle = i ? '#64748b' : '#0d253d'; g.font = i ? FONT : FONT_B; g.textAlign = 'center'; g.fillText(lab, Math.min(Math.max(x, 34), padL + W - 30), H - 10); });
-    g.textAlign = 'start'; g.font = FONT; g.fillStyle = '#64748b'; if (X(0) - padL > 80) g.fillText('−30' + T('m', '분'), padL, H - 10);
+      g.strokeStyle = i ? col('rgba(13,37,61,.12)') : col('rgba(13,37,61,.55)'); g.setLineDash(i ? [2, 3] : [4, 3]); g.beginPath(); g.moveTo(x, top - 4); g.lineTo(x, H - bot); g.stroke(); g.setLineDash([]);
+      g.fillStyle = i ? col('#64748b') : col('#0d253d'); g.font = i ? FONT : FONT_B; g.textAlign = 'center'; g.fillText(lab, Math.min(Math.max(x, 34), padL + W - 30), H - 10); });
+    g.textAlign = 'start'; g.font = FONT; g.fillStyle = col('#64748b'); if (X(0) - padL > 80) g.fillText('−30' + T('m', '분'), padL, H - 10);
     // 선: 발표 전은 옅게
     ser.forEach((s) => { [[(p) => p[0] <= 0, 0.3], [(p) => p[0] >= 0, 1]].forEach(([f, al]) => { const pts = s.pts.filter(f); if (pts.length < 2) return;
       g.globalAlpha = al; g.strokeStyle = s.col; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath(); pts.forEach((p, j) => (j ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])))); g.stroke(); });
@@ -108,9 +108,9 @@ export function drawRelease(root, rel) {
     spread(ser.map((s) => { const last = s.pts[s.pts.length - 1]; return { s, v: last[1], x: X(last[0]), y: Y(last[1]) }; }), 28, top, H - bot - 10).forEach((l) => {
       g.fillStyle = l.s.col; g.beginPath(); g.arc(l.x, Y(l.v), 3, 0, 7); g.fill(); g.font = FONT_B; g.fillText(l.s.name, l.x + 8, l.y - 6); g.font = FONT; g.fillText(pctS(l.v, 2), l.x + 8, l.y + 8); });
     // 포인터: 세로선 + 위 줄에 그 분의 세 값
-    if (cx != null) { const m = Math.max(-30, Math.min(90, (cx - padL) / W * 120 - 30)), x = X(m); g.strokeStyle = 'rgba(13,37,61,.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + .5, top - 4); g.lineTo(x + .5, H - bot); g.stroke();
+    if (cx != null) { const m = Math.max(-30, Math.min(90, (cx - padL) / W * 120 - 30)), x = X(m); g.strokeStyle = col('rgba(13,37,61,.4)'); g.lineWidth = 1; g.beginPath(); g.moveTo(x + .5, top - 4); g.lineTo(x + .5, H - bot); g.stroke();
       const near = ser.map((s) => { let b = s.pts[0]; s.pts.forEach((p) => { if (Math.abs(p[0] - m) < Math.abs(b[0] - m)) b = p; }); return [s, b]; });
-      near.forEach(([s, b]) => { g.fillStyle = '#fff'; g.strokeStyle = s.col; g.lineWidth = 2; g.beginPath(); g.arc(X(b[0]), Y(b[1]), 3.5, 0, 7); g.fill(); g.stroke(); });
+      near.forEach(([s, b]) => { g.fillStyle = col('#fff'); g.strokeStyle = s.col; g.lineWidth = 2; g.beginPath(); g.arc(X(b[0]), Y(b[1]), 3.5, 0, 7); g.fill(); g.stroke(); });
       rx.innerHTML = `<span class="mono">${m < 0 ? '−' : '+'}${Math.abs(Math.round(m))}${T('m', '분')}</span>` + near.map(([s, b]) => `<span><i style="background:${s.col}"></i>${esc(s.name)} <b class="mono">${pctS(b[1], 2)}</b></span>`).join('');
     } else rx.innerHTML = `<span class="mute2">${T('Hover, drag or use the arrow keys to read each minute.', '그래프 위를 움직이거나(휴대폰은 누르고 끌기) 화살표 키로 분마다 값을 볼 수 있어요.')}</span>`;
   };
@@ -138,7 +138,7 @@ export function insightHTML(doc) {
     <figcaption class="mute2"><b class="rgn">${T('Now', '지금')}: ${T('CPI', '물가')} <span class="mono">${c.cpi.toFixed(1)}%</span> (${T('vs 3 releases ago', '3번 전보다')} <span class="mono">${sgn(c.dcpi, '%p', 2)}</span>) · ${T('payroll gains, 3-release avg', '고용 증가 3번 평균')} <span class="mono">${c.nfp3}k</span> (${T('the 3 before', '그 앞 3번')} <span class="mono">${c.nfp3p}k</span>)</b>
       ${T('Across: payroll momentum. Up: CPI momentum. Dots: last 12 months.', '가로 = 고용 흐름, 세로 = 물가 흐름, 점 = 최근 12개월.')}</figcaption></figure>`;
   const an = (r.analogs || []).map((a, i) => { const f = a.after || {};
-    return `<li class="an"><p class="anh"><i class="sw" style="background:${ANC[i]}" aria-hidden="true"></i><b>${esc(ym(a.ym))}</b><span class="mute2">${esc(qName(r, a.q))}</span></p>
+    return `<li class="an"><p class="anh"><i class="sw a${i}" aria-hidden="true"></i><b>${esc(ym(a.ym))}</b><span class="mute2">${esc(qName(r, a.q))}</span></p>
       ${a.after ? `<p class="anv"><b class="mono ${f.spx > 0 ? 'up' : 'down'}">${pctS(f.spx)}</b><span>${T('S&P 500, 12 months on', 'S&P 500 · 12개월 뒤')}</span></p>
       <p class="anp"><span class="pl"><i class="${f.rec ? 'on' : ''}" aria-hidden="true"></i>${f.rec ? T('Recession followed', '경기침체 있었음') : T('No recession', '경기침체 없었음')}</span><span class="pl">${T('Fed funds', '기준금리')} <b class="mono">${sgn(f.ff / 100, '%p', 2)}</b></span></p>` : ''}
       <p class="ant mono">${T('then', '그때')} · ${T('CPI', '물가')} ${a.cpi.toFixed(1)}% · ${T('jobs', '고용')} ${a.nfp3}k · ${T('unemp.', '실업률')} ${a.un.toFixed(1)}%</p></li>`; }).join('');
@@ -180,21 +180,21 @@ export function insightHTML(doc) {
 // 그 뒤 12개월 S&P 500: 닮은 달 3개(색 · 선 끝 이름표) + 비슷한 조합 가운데 절반(옅은 띠) + 평소 중앙값(회색 점선)
 export function drawPaths(root, doc) {
   const cv = root.querySelector('#pac'), r = doc.regime; if (!cv || !r || !r.paths) return;
-  const P = r.paths, an = (r.analogs || []).map((a, i) => ({ a, col: ANC[i], p: P.analogs[a.ym] })).filter((x) => x.p);
+  const P = r.paths, an = (r.analogs || []).map((a, i) => ({ a, col: col(ANC[i]), p: P.analogs[a.ym] })).filter((x) => x.p);
   const H = 230, [g, w] = canvasOf(cv, H), padL = 4, padR = w < 420 ? 104 : 136, top = 12, bot = 22, W = w - padL - padR;
   const all = [...an.flatMap((x) => x.p), ...(P.like ? [...P.like.p25, ...P.like.p75] : []), ...(P.typical ? P.typical.p50 : [])];
   let lo = Math.min(0, ...all), hi = Math.max(0, ...all); const pd = (hi - lo) * 0.06; lo -= pd; hi += pd;
   const X = (k) => padL + k / 12 * W, Y = (v) => top + (1 - (v - lo) / (hi - lo)) * (H - top - bot), step = (hi - lo) > 50 ? 20 : 10;
   g.font = FONT; g.textBaseline = 'middle'; g.textAlign = 'start';
-  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) { const y = Math.round(Y(v)) + .5; g.strokeStyle = v === 0 ? 'rgba(13,37,61,.35)' : 'rgba(13,37,61,.07)'; g.lineWidth = 1; g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + W, y); g.stroke();
-    g.fillStyle = '#64748b'; if (v !== 0) g.fillText(pctS(v, 0), padL + 2, y - 7); }
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) { const y = Math.round(Y(v)) + .5; g.strokeStyle = v === 0 ? col('rgba(13,37,61,.35)') : col('rgba(13,37,61,.07)'); g.lineWidth = 1; g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + W, y); g.stroke();
+    g.fillStyle = col('#64748b'); if (v !== 0) g.fillText(pctS(v, 0), padL + 2, y - 7); }
   g.textAlign = 'center'; (W < 360 ? [0, 6, 12] : [0, 3, 6, 9, 12]).forEach((k) => g.fillText(k === 0 ? T('then', '그때') : '+' + k + T('m', '개월'), Math.min(Math.max(X(k), 18), padL + W - 22), H - 8)); g.textAlign = 'start';
-  if (P.like) { g.fillStyle = 'rgba(83,58,253,.12)'; g.beginPath(); P.like.p75.forEach((v, k) => (k ? g.lineTo(X(k), Y(v)) : g.moveTo(X(k), Y(v)))); for (let k = 12; k >= 0; k--) g.lineTo(X(k), Y(P.like.p25[k])); g.closePath(); g.fill(); }
-  if (P.typical) { g.strokeStyle = '#64748b'; g.lineWidth = 1.5; g.setLineDash([4, 4]); g.beginPath(); P.typical.p50.forEach((v, k) => (k ? g.lineTo(X(k), Y(v)) : g.moveTo(X(k), Y(v)))); g.stroke(); g.setLineDash([]); }
+  if (P.like) { g.fillStyle = col('rgba(83,58,253,.12)'); g.beginPath(); P.like.p75.forEach((v, k) => (k ? g.lineTo(X(k), Y(v)) : g.moveTo(X(k), Y(v)))); for (let k = 12; k >= 0; k--) g.lineTo(X(k), Y(P.like.p25[k])); g.closePath(); g.fill(); }
+  if (P.typical) { g.strokeStyle = col('#64748b'); g.lineWidth = 1.5; g.setLineDash([4, 4]); g.beginPath(); P.typical.p50.forEach((v, k) => (k ? g.lineTo(X(k), Y(v)) : g.moveTo(X(k), Y(v)))); g.stroke(); g.setLineDash([]); }
   an.forEach((x) => { g.strokeStyle = x.col; g.lineWidth = 2.2; g.lineJoin = 'round'; g.beginPath(); x.p.forEach((v, k) => (k ? g.lineTo(X(k), Y(v)) : g.moveTo(X(k), Y(v)))); g.stroke(); });
   const labs = [...an.map((x) => ({ name: ymS(x.a.ym), v: x.p[12], col: x.col })),
-    ...(P.typical ? [{ name: T('typical', '평소 중앙값'), v: P.typical.p50[12], col: '#64748b' }] : []),
-    ...(P.like ? [{ name: T(`like now (${P.like.n})`, `비슷한 조합 ${P.like.n}개월`), v: P.like.p50[12], col: '#533afd' }] : [])].map((l) => Object.assign(l, { y: Y(l.v) }));
+    ...(P.typical ? [{ name: T('typical', '평소 중앙값'), v: P.typical.p50[12], col: col('#64748b') }] : []),
+    ...(P.like ? [{ name: T(`like now (${P.like.n})`, `비슷한 조합 ${P.like.n}개월`), v: P.like.p50[12], col: col('#533afd') }] : [])].map((l) => Object.assign(l, { y: Y(l.v) }));
   spread(labs, 26, top + 6, H - bot - 8).forEach((l) => { g.fillStyle = l.col; g.beginPath(); g.arc(X(12), Y(l.v), 2.6, 0, 7); g.fill();
     g.font = FONT_B; g.fillText(l.name, X(12) + 8, l.y - 6); g.font = FONT; g.fillText(pctS(l.v), X(12) + 8, l.y + 7); });
 }
@@ -208,18 +208,18 @@ export function drawTimeline(root, doc) {
   const top = 36, ch = 90, by0 = 160, bh = 28;   // 물가 칸(top~top+ch) · 고용 칸(0 기준선 by0, 위아래 bh)
   const cpis = ms.map((m) => m[3]), lo = Math.min(0, ...cpis), hi = Math.max(...cpis), Yc = (v) => top + (1 - (v - lo) / (hi - lo || 1)) * ch;
   const clip = (v) => Math.max(-400, Math.min(400, v)), Yn = (v) => by0 - clip(v) / 400 * bh;
-  ms.forEach((m, i) => { if (m[2]) { g.fillStyle = 'rgba(13,37,61,.08)'; g.fillRect(i * bw, top - 8, Math.ceil(bw), by0 + bh - top + 10); } if (like.has(m[0])) { g.fillStyle = 'rgba(83,58,253,.18)'; g.fillRect(i * bw, top - 8, Math.max(2, Math.ceil(bw)), by0 + bh - top + 10); } });
-  g.strokeStyle = 'rgba(13,37,61,.07)'; g.lineWidth = 1; [2, 4, 6].filter((v) => v <= hi).forEach((v) => { g.beginPath(); g.moveTo(0, Yc(v) + .5); g.lineTo(W, Yc(v) + .5); g.stroke(); });
-  g.strokeStyle = 'rgba(13,37,61,.25)'; g.beginPath(); g.moveTo(0, by0 + .5); g.lineTo(W, by0 + .5); g.stroke();
-  g.font = FONT; g.textBaseline = 'middle'; g.textAlign = 'start'; g.fillStyle = '#64748b'; [2, 4, 6].filter((v) => v <= hi).forEach((v) => g.fillText(v + '%', W + 6, Yc(v))); g.fillText('0', W + 6, by0);
-  ms.forEach((m, i) => { const v = m[4]; g.fillStyle = v >= 0 ? 'rgba(8,122,85,.62)' : 'rgba(196,58,44,.7)'; const y = Yn(v); g.fillRect(i * bw, Math.min(y, by0), Math.max(1, bw - (bw > 2 ? 0.5 : 0)), Math.abs(y - by0) || 1); });
-  g.strokeStyle = '#0d253d'; g.lineWidth = 1.6; g.lineJoin = 'round'; g.beginPath(); ms.forEach((m, i) => (i ? g.lineTo(i * bw + bw / 2, Yc(m[3])) : g.moveTo(bw / 2, Yc(m[3])))); g.stroke();
+  ms.forEach((m, i) => { if (m[2]) { g.fillStyle = col('rgba(13,37,61,.08)'); g.fillRect(i * bw, top - 8, Math.ceil(bw), by0 + bh - top + 10); } if (like.has(m[0])) { g.fillStyle = col('rgba(83,58,253,.18)'); g.fillRect(i * bw, top - 8, Math.max(2, Math.ceil(bw)), by0 + bh - top + 10); } });
+  g.strokeStyle = col('rgba(13,37,61,.07)'); g.lineWidth = 1; [2, 4, 6].filter((v) => v <= hi).forEach((v) => { g.beginPath(); g.moveTo(0, Yc(v) + .5); g.lineTo(W, Yc(v) + .5); g.stroke(); });
+  g.strokeStyle = col('rgba(13,37,61,.25)'); g.beginPath(); g.moveTo(0, by0 + .5); g.lineTo(W, by0 + .5); g.stroke();
+  g.font = FONT; g.textBaseline = 'middle'; g.textAlign = 'start'; g.fillStyle = col('#64748b'); [2, 4, 6].filter((v) => v <= hi).forEach((v) => g.fillText(v + '%', W + 6, Yc(v))); g.fillText('0', W + 6, by0);
+  ms.forEach((m, i) => { const v = m[4]; g.fillStyle = v >= 0 ? col('rgba(8,122,85,.62)') : col('rgba(196,58,44,.7)'); const y = Yn(v); g.fillRect(i * bw, Math.min(y, by0), Math.max(1, bw - (bw > 2 ? 0.5 : 0)), Math.abs(y - by0) || 1); });
+  g.strokeStyle = col('#0d253d'); g.lineWidth = 1.6; g.lineJoin = 'round'; g.beginPath(); ms.forEach((m, i) => (i ? g.lineTo(i * bw + bw / 2, Yc(m[3])) : g.moveTo(bw / 2, Yc(m[3])))); g.stroke();
   // 직접 이름표: 선 · 막대가 무엇인지, 닮은 달(맨 위 줄), 지금(점 옆)
   (r.analogs || []).forEach((a, k) => { const i = ms.findIndex((m) => m[0] === a.ym); if (i < 0) return; const x = i * bw + bw / 2;
-    g.fillStyle = ANC[k]; g.font = FONT_B; const t = ymS(a.ym), tw = g.measureText(t).width; g.fillText(t, Math.min(Math.max(0, x - tw / 2), W - tw), top - 18); g.fillRect(x - .5, top - 10, 1.5, 6); });
-  const cx = (n - 1) * bw + bw / 2, cy = Yc(ms[n - 1][3]); g.fillStyle = '#533afd'; g.beginPath(); g.arc(cx, cy, 4.5, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke();
-  g.fillStyle = '#533afd'; g.font = FONT_B; g.textAlign = 'end'; g.fillText(T('now ', '지금 ') + ms[n - 1][3].toFixed(1) + '%', cx - 8, cy - 12); g.textAlign = 'start';
-  g.fillStyle = '#64748b'; g.font = FONT; const step = w < 420 ? 10 : 5;
+    g.fillStyle = col(ANC[k]); g.font = FONT_B; const t = ymS(a.ym), tw = g.measureText(t).width; g.fillText(t, Math.min(Math.max(0, x - tw / 2), W - tw), top - 18); g.fillRect(x - .5, top - 10, 1.5, 6); });
+  const cx = (n - 1) * bw + bw / 2, cy = Yc(ms[n - 1][3]); g.fillStyle = col('#533afd'); g.beginPath(); g.arc(cx, cy, 4.5, 0, 7); g.fill(); g.strokeStyle = col('#fff'); g.lineWidth = 2; g.stroke();
+  g.fillStyle = col('#533afd'); g.font = FONT_B; g.textAlign = 'end'; g.fillText(T('now ', '지금 ') + ms[n - 1][3].toFixed(1) + '%', cx - 8, cy - 12); g.textAlign = 'start';
+  g.fillStyle = col('#64748b'); g.font = FONT; const step = w < 420 ? 10 : 5;
   ms.forEach((m, i) => { const y = +m[0].slice(0, 4); if (m[0].endsWith('-01') && y % step === 0) { const x = i * bw, tw = g.measureText(y).width; g.fillText(y, Math.min(Math.max(0, x - tw / 2), W - tw), H - 6); } });
   const tip = root.querySelector('#tlf'), say = (m, now) => `${ym(m[0])}${now ? ' (' + T('now', '지금') + ')' : ''} · ${T('CPI', '물가')} ${m[3].toFixed(1)}% · ${T('jobs', '고용')} ${m[4]}k · ${qName(r, m[1])}${m[2] ? ' · ' + T('recession', '경기침체') : ''}${like.has(m[0]) && !now ? ' · ' + T('like now', '지금과 비슷한 조합') : ''}`;
   tip.textContent = say(ms[n - 1], true);
@@ -234,21 +234,21 @@ export function drawTimeline(root, doc) {
 // 다음 FOMC 확률 30일(하루 종가): 칸마다 색 선 + 선 끝 이름표, 그 사이 큰 발표(CPI · 고용 · PCE · GDP)는 세로 점선
 export function drawFomc(root, doc) {
   const cv = root.querySelector('#foc'), f = doc.fomc; if (!cv || !f || !f.now) return;
-  const outs = f.now.outcomes.filter((o) => (o.p || 0) >= 0.03), cols = ['#0d253d', '#c43a2c', '#087a55', '#64748b'], H = 170, [g, w] = canvasOf(cv, H);
+  const outs = f.now.outcomes.filter((o) => (o.p || 0) >= 0.03), cols = [col('#0d253d'), col('#c43a2c'), col('#087a55'), col('#64748b')], H = 170, [g, w] = canvasOf(cv, H);
   const ser = outs.map((o, i) => ({ o, col: cols[i], pts: f.days[o.k] || [] })).filter((s) => s.pts.length), all = ser.flatMap((s) => s.pts); if (!all.length) return;
   const t0 = Math.min(...all.map((p) => p[0])), t1 = Math.max(...all.map((p) => p[0])), padR = w < 420 ? 88 : 104, top = 10, bot = 34, W = w - padR - 2;
   const X = (t) => 2 + (t - t0) / (t1 - t0 || 1) * W, Y = (p) => top + (1 - p) * (H - top - bot);
-  g.font = FONT; g.textBaseline = 'middle'; g.textAlign = 'start'; g.fillStyle = '#64748b';
-  [0, 0.5, 1].forEach((p) => { g.strokeStyle = 'rgba(13,37,61,.07)'; g.lineWidth = 1; g.beginPath(); g.moveTo(2, Y(p) + .5); g.lineTo(2 + W, Y(p) + .5); g.stroke(); g.fillText(Math.round(p * 100) + '%', 4, Y(p) + (p === 1 ? 8 : -7)); });
+  g.font = FONT; g.textBaseline = 'middle'; g.textAlign = 'start'; g.fillStyle = col('#64748b');
+  [0, 0.5, 1].forEach((p) => { g.strokeStyle = col('rgba(13,37,61,.07)'); g.lineWidth = 1; g.beginPath(); g.moveTo(2, Y(p) + .5); g.lineTo(2 + W, Y(p) + .5); g.stroke(); g.fillText(Math.round(p * 100) + '%', 4, Y(p) + (p === 1 ? 8 : -7)); });
   const KEY = { cpi: 'CPI', nfp: T('Jobs', '고용'), core_pce: 'PCE', gdp: 'GDP' };
   doc.indicators.filter((x) => KEY[x.k] && x.latest.ts >= t0 - 43200 && x.latest.ts <= t1 + 43200).forEach((x) => { const xx = Math.round(X(Math.min(t1, Math.max(t0, x.latest.ts)))) + .5;
-    g.strokeStyle = 'rgba(83,58,253,.45)'; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(xx, top); g.lineTo(xx, H - bot); g.stroke(); g.setLineDash([]);
-    g.fillStyle = '#533afd'; g.textAlign = 'center'; g.font = FONT_B; g.fillText(KEY[x.k], Math.min(Math.max(xx, 14), 2 + W - 14), H - bot + 10); g.textAlign = 'start'; g.font = FONT; });
+    g.strokeStyle = col('rgba(83,58,253,.45)'); g.setLineDash([3, 3]); g.beginPath(); g.moveTo(xx, top); g.lineTo(xx, H - bot); g.stroke(); g.setLineDash([]);
+    g.fillStyle = col('#533afd'); g.textAlign = 'center'; g.font = FONT_B; g.fillText(KEY[x.k], Math.min(Math.max(xx, 14), 2 + W - 14), H - bot + 10); g.textAlign = 'start'; g.font = FONT; });
   ser.forEach((s) => { g.strokeStyle = s.col; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath(); s.pts.forEach((p, j) => (j ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])))); g.stroke(); });
   spread(ser.map((s) => ({ s, v: s.pts[s.pts.length - 1][1], y: Y(s.pts[s.pts.length - 1][1]) })), 28, top + 6, H - bot - 8).forEach((l) => {
     g.fillStyle = l.s.col; g.beginPath(); g.arc(X(t1), Y(l.v), 3, 0, 7); g.fill(); g.font = FONT_B; g.fillText(L() ? l.s.o.ko : l.s.o.en, X(t1) + 8, l.y - 6); g.font = FONT; g.fillText(Math.round(l.v * 100) + '%', X(t1) + 8, l.y + 7); });
   const d = (t) => new Intl.DateTimeFormat(lc(), { month: 'short', day: 'numeric' }).format(new Date(t * 1000));
-  g.fillStyle = '#64748b'; g.font = FONT; g.fillText(d(t0), 2, H - 8); const tw = g.measureText(d(t1)).width; g.fillText(d(t1), 2 + W - tw, H - 8);
+  g.fillStyle = col('#64748b'); g.font = FONT; g.fillText(d(t0), 2, H - 8); const tw = g.measureText(d(t1)).width; g.fillText(d(t1), 2 + W - tw, H - 8);
 }
 
 // 국면 지도: 평면 네 칸(모서리 이름), 0 기준 십자선, 최근 12개월 궤적(옛것일수록 옅게), 지금 = 보라 점 + 이름표
@@ -261,15 +261,15 @@ export function drawRegime(root, doc) {
   const X = (v) => pad + (Math.max(-xr, Math.min(xr, v)) + xr) / (2 * xr) * (w - 2 * pad), Y = (v) => pad + (1 - (Math.max(-yr, Math.min(yr, v)) + yr) / (2 * yr)) * (H - 2 * pad);
   const cx = X(0), cy = Y(0), cur = ms[n - 1];
   // 지금 칸만 아주 옅게
-  const qx = cur[6] >= 0, qy = cur[5] >= 0; g.fillStyle = 'rgba(83,58,253,.05)'; g.fillRect(qx ? cx : pad, qy ? pad : cy, qx ? w - pad - cx : cx - pad, qy ? cy - pad : H - pad - cy);
-  g.strokeStyle = 'rgba(13,37,61,.14)'; g.lineWidth = 1; g.strokeRect(pad + .5, pad + .5, w - 2 * pad - 1, H - 2 * pad - 1);
-  g.strokeStyle = 'rgba(13,37,61,.28)'; g.beginPath(); g.moveTo(Math.round(cx) + .5, pad); g.lineTo(Math.round(cx) + .5, H - pad); g.moveTo(pad, Math.round(cy) + .5); g.lineTo(w - pad, Math.round(cy) + .5); g.stroke();
+  const qx = cur[6] >= 0, qy = cur[5] >= 0; g.fillStyle = col('rgba(83,58,253,.05)'); g.fillRect(qx ? cx : pad, qy ? pad : cy, qx ? w - pad - cx : cx - pad, qy ? cy - pad : H - pad - cy);
+  g.strokeStyle = col('rgba(13,37,61,.14)'); g.lineWidth = 1; g.strokeRect(pad + .5, pad + .5, w - 2 * pad - 1, H - 2 * pad - 1);
+  g.strokeStyle = col('rgba(13,37,61,.28)'); g.beginPath(); g.moveTo(Math.round(cx) + .5, pad); g.lineTo(Math.round(cx) + .5, H - pad); g.moveTo(pad, Math.round(cy) + .5); g.lineTo(w - pad, Math.round(cy) + .5); g.stroke();
   // 모서리 칸 이름(지금 칸은 진하게)
-  g.textBaseline = 'top'; const corner = (k, right, top) => { const on = k === cur[1]; g.font = on ? FONT_B : '500 11.5px "Pretendard Variable", Pretendard, system-ui, sans-serif'; g.fillStyle = on ? '#0d253d' : '#64748b';
+  g.textBaseline = 'top'; const corner = (k, right, top) => { const on = k === cur[1]; g.font = on ? FONT_B : '500 11.5px "Pretendard Variable", Pretendard, system-ui, sans-serif'; g.fillStyle = on ? col('#0d253d') : col('#64748b');
     const t = qName(r, k), tw = g.measureText(t).width; g.fillText(t, right ? w - pad - 8 - tw : pad + 8, top ? pad + 8 : H - pad - 22); };
   corner('stag', false, true); corner('hot', true, true); corner('slow', false, false); corner('gold', true, false);
   // 축 이름(가운데 선 끝)
-  g.font = FONT; g.fillStyle = '#64748b'; g.textBaseline = 'middle';
+  g.font = FONT; g.fillStyle = col('#64748b'); g.textBaseline = 'middle';
   const ax = T('jobs stronger →', '고용 강해짐 →'), axw = g.measureText(ax).width; g.fillText(ax, w - pad - 6 - axw, cy + 10);
   g.textBaseline = 'top'; g.fillText(T('↑ prices hotter', '↑ 물가 뜨거워짐'), cx + 6, pad + 8);
   // 궤적
@@ -278,8 +278,8 @@ export function drawRegime(root, doc) {
   const P = ms.map((m) => [X(m[6]), Y(m[5])]), at = (i) => P[Math.max(0, Math.min(n - 1, i))];
   for (let i = 1; i < n; i++) { const p0 = at(i - 2), p1 = at(i - 1), p2 = at(i), p3 = at(i + 1), a = (i / n) * 0.8 + 0.1;
     const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    g.strokeStyle = `rgba(13,37,61,${a * 0.55})`; g.lineWidth = 1.6; g.beginPath(); g.moveTo(p1[0], p1[1]); g.bezierCurveTo(c1[0], c1[1], c2[0], c2[1], p2[0], p2[1]); g.stroke(); }
-  ms.forEach((m, i) => { if (i === n - 1) return; const a = (i / n) * 0.7 + 0.12; g.fillStyle = `rgba(13,37,61,${a})`; g.beginPath(); g.arc(X(m[6]), Y(m[5]), 2.6, 0, 7); g.fill(); });
-  const px = X(cur[6]), py = Y(cur[5]); g.fillStyle = '#533afd'; g.beginPath(); g.arc(px, py, 6, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2.5; g.stroke();
-  g.font = FONT_B; g.fillStyle = '#533afd'; const lab = T('now', '지금'), lw = g.measureText(lab).width; g.textBaseline = 'middle'; g.fillText(lab, px + 10 + lw > w - pad ? px - 10 - lw : px + 10, py);
+    g.strokeStyle = tone(a * 0.55); g.lineWidth = 1.6; g.beginPath(); g.moveTo(p1[0], p1[1]); g.bezierCurveTo(c1[0], c1[1], c2[0], c2[1], p2[0], p2[1]); g.stroke(); }
+  ms.forEach((m, i) => { if (i === n - 1) return; const a = (i / n) * 0.7 + 0.12; g.fillStyle = tone(a); g.beginPath(); g.arc(X(m[6]), Y(m[5]), 2.6, 0, 7); g.fill(); });
+  const px = X(cur[6]), py = Y(cur[5]); g.fillStyle = col('#533afd'); g.beginPath(); g.arc(px, py, 6, 0, 7); g.fill(); g.strokeStyle = col('#fff'); g.lineWidth = 2.5; g.stroke();
+  g.font = FONT_B; g.fillStyle = col('#533afd'); const lab = T('now', '지금'), lw = g.measureText(lab).width; g.textBaseline = 'middle'; g.fillText(lab, px + 10 + lw > w - pad ? px - 10 - lw : px + 10, py);
 }

@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import re
 
+from . import darkcss
+
 
 def bundle(web, out):
     root = Path(web)
@@ -14,7 +16,7 @@ def bundle(web, out):
     # Keep Inter reversible; its pinned external font URLs are immutable.
     if inter.is_file() and '"Inter"' in (root / 'assets/df/lk.css').read_text():
         css += inter.read_text()
-    css += '\n' + (root / 'assets/df/lk.css').read_text() + '\n' + (root / 'assets/df/st.css').read_text()
+    css += '\n' + darkcss.inject((root / 'assets/df/lk.css').read_text()) + '\n' + darkcss.inject((root / 'assets/df/st.css').read_text())   # 다크 규칙 자동 생성
     js = "// Article ABI v1: this single response contains the matching CSS + JS.\n(()=>{\n"
     js += "const style=document.createElement('style');style.textContent=" + json.dumps(css, ensure_ascii=False) + ";document.head.appendChild(style);\n"
     js += (root / 'assets/df/data.js').read_text() + '\n'

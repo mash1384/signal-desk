@@ -64,7 +64,9 @@ def test_page(case, session_page, qa, site_server, request):
     name, width, lang = case
     page, context, offline = session_page
     page.set_viewport_size({"width": width, "height": 1000})
-    context.add_init_script("localStorage.setItem('df-lang', %s); localStorage.setItem('df-my', JSON.stringify(['BTC','ETH','NVDA']));" % json.dumps(lang))
+    theme = request.config.getoption("--theme")
+    context.add_init_script("localStorage.setItem('df-lang', %s); localStorage.setItem('df-my', JSON.stringify(['BTC','ETH','NVDA'])); localStorage.setItem('df-theme', %s);"
+                            % (json.dumps(lang), json.dumps(theme)))
     key = "%s|%s|%s" % case
     row = {"key": key, "page": name, "width": width, "lang": lang, "bytes": 0, "requests": 0, "errors": [], "warnings": [], "axe": [], "incomplete": True}
     qa["cases"].append(row)
@@ -108,6 +110,8 @@ def test_page(case, session_page, qa, site_server, request):
         row["errors"].append({"kind": "overflow", "scrollWidth": scroll, "viewport": width})
     if page.locator("html").get_attribute("lang") != lang:
         row["errors"].append({"kind": "language", "expected": lang})
+    if (page.locator("html").get_attribute("data-theme") or "light") != theme:
+        row["errors"].append({"kind": "theme", "expected": theme})
     # 등장 효과(.reveal 서서히 나타남)가 도는 중이면 반투명 글자로 대비가 낮게 잡힌다 — 끝날 때까지(최대 4초) 기다린 뒤 검사.
     # 무한 반복 애니메이션(라이브 점 등)은 끝나지 않으므로 기다리지 않는다
     page.evaluate("""() => Promise.race([Promise.all(document.getAnimations().filter((a) => { const t = a.effect && a.effect.getComputedTiming(); return t && isFinite(t.endTime); }).map((a) => a.finished.catch(() => null))), new Promise((r) => setTimeout(r, 4000))])""")

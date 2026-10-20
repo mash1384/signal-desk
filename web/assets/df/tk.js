@@ -2,7 +2,7 @@ import { whenVisible } from './charts.js';
 // 테마 화면 공통: 크립토 · 나스닥 · 경제 · AI 한 테마를 깊게. 랜딩 지구 장면의 '상세판'.
 // 자료: themes.json(6시간마다 Mac 에서 — AI 요약 5문장, 1시간 단위 호재·악재, 섹터, 주요·최근 소식, 자산 언급, 문장별 근거 소식)
 //       시세 — 코인은 바이낸스, 주식·지수 선물·금리·달러·원자재는 우리 Worker /quotes(야후). 숫자는 모두 프로그램이 센 것, 문장만 AI.
-import { T, L, esc, line, pill, bars, chips, outlets, ago, openSheet, store, pxChip, fillPx, PRICED_ALL } from './lk.js';
+import { T, L, esc, line, pill, bars, chips, outlets, ago, openSheet, store, pxChip, fillPx, PRICED_ALL, col } from './lk.js';
 export const THEME_KEYS = ['crypto', 'nasdaq', 'econ', 'ai', 'world'];
 export const TNAME = { crypto: ['Crypto', '크립토'], nasdaq: ['Nasdaq', '나스닥'], econ: ['Economy', '경제'], ai: ['AI', 'AI'], world: ['World', '세계'] };
 export const tn = (k) => TNAME[k][L() ? 1 : 0];
@@ -86,7 +86,7 @@ export function spark(cv, pts, { up = null } = {}) {
   const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); const v = (pts || []).map((x) => x[1]).filter((x) => x != null); if (v.length < 2) return;
   const lo = Math.min(...v), hi = Math.max(...v), y = (x) => H - 2 - ((x - lo) / (hi - lo || 1)) * (H - 4), good = up ?? v[v.length - 1] >= v[0];
   g.beginPath(); v.forEach((p, i) => { const X = (i / (v.length - 1)) * W; i ? g.lineTo(X, y(p)) : g.moveTo(X, y(p)); });
-  g.strokeStyle = good ? '#0e9f6e' : '#df4a3a'; g.lineWidth = 1.5; g.lineJoin = 'round'; g.stroke();
+  g.strokeStyle = good ? col('#0e9f6e') : col('#df4a3a'); g.lineWidth = 1.5; g.lineJoin = 'round'; g.stroke();
 }
 // ---------- 조각 ----------
 // 테마 주소: 사이트에선 /themes/<k>/, 미리보기에선 ?t=<k>
@@ -129,18 +129,18 @@ export function flowChart(el, doc, t, price, options = {}) {
 function flowChartNow(el, doc, t, price, { height = 240 } = {}) {
   el.innerHTML = '<p class="lgd mono"></p><div class="lwbox"></div>'; const box = el.querySelector('.lwbox'), lgd = el.querySelector('.lgd'); box.style.height = height + 'px';
   const LW = window.LightweightCharts, off = -new Date().getTimezoneOffset() * 60, t0 = doc.made - 86400;
-  const chart = LW.createChart(box, { autoSize: true, height, layout: { background: { color: 'transparent' }, textColor: '#7b8799', fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11 },
-    grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(13,37,61,.06)' } }, rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.1 } }, leftPriceScale: { visible: false },
+  const chart = LW.createChart(box, { autoSize: true, height, layout: { background: { color: 'transparent' }, textColor: col('#7b8799'), fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11 },
+    grid: { vertLines: { visible: false }, horzLines: { color: col('rgba(13,37,61,.06)') } }, rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.1 } }, leftPriceScale: { visible: false },
     timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true }, crosshair: { mode: 0 },
     handleScroll: { vertTouchDrag: true, mouseWheel: false, pressedMouseMove: false, horzTouchDrag: false }, handleScale: false });
-  const hu = chart.addHistogramSeries({ priceScaleId: 'cnt', color: 'rgba(14,159,110,.75)', priceLineVisible: false, lastValueVisible: false });
-  const hd = chart.addHistogramSeries({ priceScaleId: 'cnt', color: 'rgba(223,74,58,.7)', priceLineVisible: false, lastValueVisible: false });
+  const hu = chart.addHistogramSeries({ priceScaleId: 'cnt', color: col('rgba(14,159,110,.75)'), priceLineVisible: false, lastValueVisible: false });
+  const hd = chart.addHistogramSeries({ priceScaleId: 'cnt', color: col('rgba(223,74,58,.7)'), priceLineVisible: false, lastValueVisible: false });
   chart.priceScale('cnt').applyOptions({ scaleMargins: { top: 0.55, bottom: 0.02 }, visible: false });
   const H = t.hours || [], mx = Math.max(1, ...H.map((h) => Math.max(h[1], h[2])));
   hu.setData(H.map((h, i) => ({ time: t0 + i * 3600 + 1800 + off, value: h[1] }))); hd.setData(H.map((h, i) => ({ time: t0 + i * 3600 + 1800 + off, value: -h[2] })));
   chart.priceScale('cnt').applyOptions({ autoScale: false }); hu.applyOptions({ autoscaleInfoProvider: () => ({ priceRange: { minValue: -mx, maxValue: mx } }) }); hd.applyOptions({ autoscaleInfoProvider: () => ({ priceRange: { minValue: -mx, maxValue: mx } }) });
   let ln = null; const pts = (price || []).filter((p) => p[0] >= t0 - 3600);
-  if (pts.length > 1) { ln = chart.addLineSeries({ color: '#0d253d', lineWidth: 2, priceLineVisible: false, lastValueVisible: true, crosshairMarkerRadius: 3 }); ln.setData(pts.map((p) => ({ time: p[0] + off, value: p[1] })));
+  if (pts.length > 1) { ln = chart.addLineSeries({ color: col('#0d253d'), lineWidth: 2, priceLineVisible: false, lastValueVisible: true, crosshairMarkerRadius: 3 }); ln.setData(pts.map((p) => ({ time: p[0] + off, value: p[1] })));
     chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.06, bottom: 0.5 } }); }
   chart.timeScale().fitContent();
   const name = BENCH[t.k][2], tf = (s) => new Date((s - off) * 1000).toLocaleTimeString(L() ? 'ko-KR' : 'en-GB', { hour: '2-digit', minute: '2-digit' });

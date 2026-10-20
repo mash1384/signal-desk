@@ -4,9 +4,14 @@ import { watchThreads } from './thr.js';
 // 라이브 페이지 후보 공통: 실시간 속보 받기(30초마다), 테마 나누기, 카드·상세, 24시간 막대, 소식 이후 가격 변화
 export const L = () => DFI.lang() === 'ko';
 // 다크 모드: 캔버스 · 차트 색을 테마에 맞춘다(CSS 변수가 닿지 않는 곳)
-export const dark = () => document.documentElement.dataset.theme === 'dark';
+export const dark = () => typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark';
 export const tone = (a) => (dark() ? `rgba(232,238,246,${a})` : `rgba(13,37,61,${a})`);
 export const ink = () => (dark() ? '#e8eef6' : '#0d253d');
+// 그림 색(캔버스 · 차트): 밝은 색 그대로 쓰고 다크일 때만 바꾼다. 표에 없는 색은 그대로
+const DK = { '#0d253d': '#e8eef6', '#533afd': '#a99dff', '#64748b': '#a3b2c7', '#7b8799': '#a3b2c7', '#8a96aa': '#8d9bb2', '#fff': '#111b2b', '#0e9f6e': '#3fd29b',
+  '#df4a3a': '#ff8e80', '#087a55': '#3fd29b', '#c43a2c': '#ff8e80', '#c2410c': '#ff9a5c', '#4a6aa3': '#8fb0ea', '#b45309': '#f0a24a', '#0f766e': '#4fd1c5' };
+const DKR = { '13,37,61': '232,238,246', '83,58,253': '169,157,255', '14,159,110': '63,210,155', '223,74,58': '255,142,128', '8,122,85': '63,210,155', '196,58,44': '255,142,128' };
+export const col = (c) => (!dark() ? c : DK[c] || c.replace(/^rgba\((\d+,\d+,\d+),/, (m, k) => (DKR[k] ? `rgba(${DKR[k]},` : m)));
 export const T = (en, ko) => (L() ? ko : en);
 export const esc = (s) => DFD.esc(s);
 

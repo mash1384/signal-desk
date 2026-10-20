@@ -1,7 +1,7 @@
 import { whenVisible } from './charts.js';
 // 일정(경제지표) 화면 공통: 다가오는 발표, 지금 경제 한눈에(AI), 지표 카드, 지표 상세(긴 그래프 · 지난 발표 표 · 과거에 비슷했을 때).
 // 자료: econ.json(Mac 에서 1시간마다 — ALFRED 발표 당일 값, 야후 일봉, Forex Factory 예상치, FRED·연준 일정). 숫자는 모두 프로그램, 문장만 AI.
-import { T, L, esc } from './lk.js';
+import { T, L, esc, col } from './lk.js';
 
 export const ECON_URL = DFD.data('daily/econ.json');
 let DOC = null;
@@ -142,8 +142,8 @@ export function drawSparks(root, doc) {
     const t0 = Date.now() - 5 * 365 * 864e5, pts = x.long.filter((p) => Date.parse(p[0]) >= t0 && p[1] != null), v = pts.map((p) => p[1]);
     if (v.length < 2) return;
     const lo = Math.min(...v), hi = Math.max(...v), Y = (y) => h - 3 - ((y - lo) / (hi - lo || 1)) * (h - 6);
-    g.beginPath(); v.forEach((y, i) => { const X = (i / (v.length - 1)) * w; i ? g.lineTo(X, Y(y)) : g.moveTo(X, Y(y)); }); g.strokeStyle = '#0d253d'; g.lineWidth = 1.25; g.lineJoin = 'round'; g.stroke();
-    g.fillStyle = '#533afd'; g.beginPath(); g.arc(w - 2, Y(v[v.length - 1]), 2.5, 0, 7); g.fill();
+    g.beginPath(); v.forEach((y, i) => { const X = (i / (v.length - 1)) * w; i ? g.lineTo(X, Y(y)) : g.moveTo(X, Y(y)); }); g.strokeStyle = col('#0d253d'); g.lineWidth = 1.25; g.lineJoin = 'round'; g.stroke();
+    g.fillStyle = col('#533afd'); g.beginPath(); g.arc(w - 2, Y(v[v.length - 1]), 2.5, 0, 7); g.fill();
   });
 }
 
@@ -194,12 +194,12 @@ function drawHistoryNow(el, x, range) {
   const data = x.long.filter((p) => p[1] != null && Date.parse(p[0]) >= t0).map((p) => ({ time: p[0], value: p[1] }));
   const seen = new Set(), dd = data.filter((d) => !seen.has(d.time) && seen.add(d.time));
   el.style.height = (innerWidth < 640 ? 200 : 240) + 'px';
-  HC = LightweightCharts.createChart(el, { autoSize: true, layout: { background: { color: 'transparent' }, textColor: '#7b8799', fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11, attributionLogo: false },
-    grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(13,37,61,.06)' } }, rightPriceScale: { borderVisible: false }, timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
-    crosshair: { mode: 1, vertLine: { color: 'rgba(13,37,61,.4)', labelBackgroundColor: '#0d253d' }, horzLine: { color: 'rgba(13,37,61,.2)', labelBackgroundColor: '#0d253d' } },
+  HC = LightweightCharts.createChart(el, { autoSize: true, layout: { background: { color: 'transparent' }, textColor: col('#7b8799'), fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11, attributionLogo: false },
+    grid: { vertLines: { visible: false }, horzLines: { color: col('rgba(13,37,61,.06)') } }, rightPriceScale: { borderVisible: false }, timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
+    crosshair: { mode: 1, vertLine: { color: col('rgba(13,37,61,.4)'), labelBackgroundColor: col('#0d253d') }, horzLine: { color: col('rgba(13,37,61,.2)'), labelBackgroundColor: col('#0d253d') } },
     handleScroll: { vertTouchDrag: true, mouseWheel: false, pressedMouseMove: false, horzTouchDrag: false }, handleScale: false,
     localization: { locale: lc(), priceFormatter: (v) => fv(x, v) } });
-  const s = HC.addLineSeries({ color: '#0d253d', lineWidth: 2, priceLineVisible: false, crosshairMarkerRadius: 3 });
+  const s = HC.addLineSeries({ color: col('#0d253d'), lineWidth: 2, priceLineVisible: false, crosshairMarkerRadius: 3 });
   s.setData(dd);
   if (x.k === 'nfp') s.applyOptions({ autoscaleInfoProvider: (o) => { const r = o(); if (!r) return r; const lo = Math.max(r.priceRange.minValue, -1500), hi = Math.min(r.priceRange.maxValue, 1500); return { priceRange: { minValue: lo, maxValue: hi } }; } });
   HC.timeScale().fitContent();
@@ -214,16 +214,16 @@ export function drawFan(cv, lab, doc, x, sym) {
   const sims = P.sim.filter(Boolean), all = P.all_band, sb = P.sim_band;
   const vals = [...sims.flat(), ...all.lo, ...all.hi]; let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals); const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
   const N = 21, L0 = 40, R = 8, top = 8, bot = 22, X = (i) => L0 + (i / N) * (w - L0 - R), Y = (v) => top + (1 - (v - lo) / (hi - lo || 1)) * (h - top - bot);
-  g.font = '10.5px "JetBrains Mono", monospace'; g.fillStyle = '#8a96aa'; g.textBaseline = 'middle';
+  g.font = '10.5px "JetBrains Mono", monospace'; g.fillStyle = col('#8a96aa'); g.textBaseline = 'middle';
   const step = niceStep((hi - lo) / 4);
-  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) { g.strokeStyle = Math.abs(v) < step / 2 ? 'rgba(13,37,61,.28)' : 'rgba(13,37,61,.06)'; g.beginPath(); g.moveTo(L0, Y(v)); g.lineTo(w - R, Y(v)); g.stroke(); g.fillText(fpx(v, a.kind).replace('.0%', '%'), 2, Y(v)); }
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) { g.strokeStyle = Math.abs(v) < step / 2 ? col('rgba(13,37,61,.28)') : col('rgba(13,37,61,.06)'); g.beginPath(); g.moveTo(L0, Y(v)); g.lineTo(w - R, Y(v)); g.stroke(); g.fillText(fpx(v, a.kind).replace('.0%', '%'), 2, Y(v)); }
   g.textBaseline = 'alphabetic'; [[0, T('release', '발표')], [5, T('1w', '1주')], [21, T('1m', '1달')]].forEach(([i, t]) => { g.fillText(t, Math.min(X(i), w - R - g.measureText(t).width), h - 6); });
   // 평소 범위(모든 발표 10~90%)
-  if (all.lo.length > 1) { g.beginPath(); all.hi.forEach((v, i) => (i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)))); for (let i = all.lo.length - 1; i >= 0; i--) g.lineTo(X(i), Y(all.lo[i])); g.closePath(); g.fillStyle = 'rgba(138,150,170,.16)'; g.fill(); }
+  if (all.lo.length > 1) { g.beginPath(); all.hi.forEach((v, i) => (i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)))); for (let i = all.lo.length - 1; i >= 0; i--) g.lineTo(X(i), Y(all.lo[i])); g.closePath(); g.fillStyle = col('rgba(138,150,170,.16)'); g.fill(); }
   // 비슷했던 회차 하나하나
-  sims.forEach((p) => { g.beginPath(); p.forEach((v, i) => (i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)))); g.strokeStyle = 'rgba(83,58,253,.28)'; g.lineWidth = 1; g.stroke(); });
+  sims.forEach((p) => { g.beginPath(); p.forEach((v, i) => (i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)))); g.strokeStyle = col('rgba(83,58,253,.28)'); g.lineWidth = 1; g.stroke(); });
   // 중앙값
-  if (sb.med.length > 1) { g.beginPath(); sb.med.forEach((v, i) => (i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)))); g.strokeStyle = '#533afd'; g.lineWidth = 2.5; g.lineJoin = 'round'; g.stroke(); }
+  if (sb.med.length > 1) { g.beginPath(); sb.med.forEach((v, i) => (i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)))); g.strokeStyle = col('#533afd'); g.lineWidth = 2.5; g.lineJoin = 'round'; g.stroke(); }
   const m = sb.med[Math.min(sb.med.length - 1, 21)], am = all.med[Math.min(all.med.length - 1, 21)];
   lab.innerHTML = `${esc(L() ? a.ko : a.en)} · ${T('1 month later, median', '1달 뒤 중앙값')} <b class="mono">${fpx(m, a.kind)}</b> <span class="mute2">(${T('usual', '평소')} <span class="mono">${fpx(am, a.kind)}</span> · ${T('similar', '비슷한 회차')} ${sims.length}${T('', '번')})</span>`;
 }

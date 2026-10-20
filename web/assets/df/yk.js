@@ -1,6 +1,6 @@
 // '내 자산' 공통: 고를 수 있는 자산(코인 · 주식 · 지수 · 금리·환율·원자재), 소식과 자산 잇기, 저장(로그인 없이 브라우저), 시세, 급변 감지.
 // 급변 감지: 최근 15분 등락을 그 자산의 평소 15분 흔들림(지난 몇 시간 표준편차)과 비교 — 3배 넘고 최소 폭도 넘을 때만. 같은 시간대 관련 소식을 함께(원인 단정 없이).
-import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx } from './lk.js';
+import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, col } from './lk.js';
 export { every } from './lk.js';
 export { store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, esc, T, L };
 const WK = 'https://signal-scheduler.mash1384.workers.dev/quotes';
@@ -100,7 +100,7 @@ export function spark(cv, pts) {
   const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2), W = Math.max(1, r.width), H = Math.max(1, r.height); cv.width = W * dpr; cv.height = H * dpr;
   const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); const v = (pts || []).map((x) => x[1]).filter((x) => x != null); if (v.length < 2) return;
   const lo = Math.min(...v), hi = Math.max(...v), y = (x) => H - 2 - ((x - lo) / (hi - lo || 1)) * (H - 4);
-  g.beginPath(); v.forEach((p, i) => { const X = (i / (v.length - 1)) * W; i ? g.lineTo(X, y(p)) : g.moveTo(X, y(p)); }); g.strokeStyle = v[v.length - 1] >= v[0] ? '#0e9f6e' : '#df4a3a'; g.lineWidth = 1.5; g.lineJoin = 'round'; g.stroke();
+  g.beginPath(); v.forEach((p, i) => { const X = (i / (v.length - 1)) * W; i ? g.lineTo(X, y(p)) : g.moveTo(X, y(p)); }); g.strokeStyle = v[v.length - 1] >= v[0] ? col('#0e9f6e') : col('#df4a3a'); g.lineWidth = 1.5; g.lineJoin = 'round'; g.stroke();
 }
 export const drawSparks = (root, Q) => root.querySelectorAll('canvas.spk').forEach((cv) => { const q = Q[cv.dataset.sym]; if (q) spark(cv, q.c); });
 // ---------- 자산 고르기(시트) ----------

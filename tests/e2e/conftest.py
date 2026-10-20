@@ -23,6 +23,8 @@ def pytest_addoption(parser):
     # report: 최신 뉴스로 빌드하는 CI 에서는 요소 위치 · 이야기 ID 가 바뀌어 기준선 비교가 매번 달라지므로 경고로 출력만
     # zero: 기준선 없이 접근성 위반이 하나라도 있으면 실패(2026-10-19 위반 0 달성 후 — main 에 합치기 전 CI 와 매일 검사)
     parser.addoption("--a11y", choices=("strict", "report", "zero"), default="strict")
+    # dark: 다크 모드(localStorage df-theme)로 같은 검사. 기준선은 밝은 화면 것이라 --a11y zero 와만 쓴다
+    parser.addoption("--theme", choices=("light", "dark"), default="light")
     parser.addoption("--qa-report", default=".qa/e2e.json")
     parser.addoption("--browser-channel", default="chromium" if os.environ.get("CI") else "chrome")
 
@@ -42,6 +44,8 @@ def qa(request):
         pytest.fail("baseline exists; automatic replacement forbidden")
     if capture and request.config.getoption("--matrix") != "full":
         pytest.fail("initial baseline requires the complete 48-case matrix")
+    if request.config.getoption("--theme") == "dark" and (capture or request.config.getoption("--a11y") != "zero"):
+        pytest.fail("--theme dark needs --a11y zero (the baseline is the light theme)")
     baseline = {} if capture else json.loads(BASELINE.read_text())
     state = {"cases": [], "capture": capture, "baseline": baseline, "start": time.monotonic()}
     yield state

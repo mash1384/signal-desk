@@ -1,4 +1,6 @@
 """익명 방문 통계: 페이지 조회 1회, 기사 열기 이벤트, 추적 거부(DNT)면 아무것도 안 보냄 — 개인 식별값 없음."""
+import datetime as dt
+
 import pytest
 
 from tests.e2e.network import Offline
@@ -15,6 +17,8 @@ def visit(browser, site_server, request, route, dnt=False, action=None):
         script += "Object.defineProperty(navigator, 'doNotTrack', {get: () => '1'});"
     context.add_init_script(script)
     page = context.new_page()
+    # 시계를 스냅샷 시각에 고정한다(스냅샷이 하루 넘게 묵으면 '최근 24시간' 소식이 비어 기사를 열 수 없다)
+    page.clock.set_fixed_time(dt.datetime.fromtimestamp(offline.now, dt.timezone.utc))
     try:
         page.goto(site_server + path_for(route, site), wait_until="networkidle")
         if action:

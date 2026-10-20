@@ -137,10 +137,11 @@ html.intro-on { overflow: hidden; }
 </style>
 </head>
 <body>
-<div class="intro" id="intro" aria-hidden="true"><div class="ibg"></div><video muted playsinline autoplay preload="auto" src="{{B}}assets/df/c1.mp4?v={{V}}"></video><button type="button" class="skip">Skip</button></div>
+<div class="intro" id="intro" aria-hidden="true"><div class="ibg"></div><video muted playsinline autoplay preload="auto" data-src="{{B}}assets/df/c1.mp4?v={{V}}"></video><button type="button" class="skip">Skip</button></div>
 <script>(function () { var rm = matchMedia('(prefers-reduced-motion: reduce)').matches, inner = false;
   try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !/[?&]intro\b/.test(location.search); } catch (e) {}
-  if (rm || inner || document.documentElement.dataset.theme === 'dark') { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1; } else document.documentElement.classList.add('intro-on'); })();</script>
+  if (rm || inner || document.documentElement.dataset.theme === 'dark') { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1; } else { var v = document.querySelector('#intro video'); v.src = v.dataset.src; document.documentElement.classList.add('intro-on'); } })();</script>
+<!-- 영상 주소는 인트로를 실제로 틀 때만 넣는다(건너뛰는 방문 · 다크 모드에서 받다가 끊기지 않게) -->
 <header class="hd"><div class="wrap">
   <a class="logo" href="{{B}}"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
   <nav class="nav" aria-label="Menu"><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}my/" data-t="n5">My assets</a><a href="{{B}}themes/" data-t="n2">Themes</a><a href="{{B}}brief/" data-t="n3">Brief</a><a href="{{B}}calendar/" data-t="n4">Calendar</a></nav>
@@ -184,7 +185,7 @@ addEventListener('df-intro-done', () => {
 }, { once: true });
 intro('c1', { base: '{{B}}assets/df/' });
 </script>
-<script>document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var t=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('df-theme',t)}catch(x){}location.reload()});
-document.querySelectorAll('[data-theme-toggle]').forEach(function(b){b.setAttribute('aria-pressed',String(document.documentElement.dataset.theme==='dark'))});</script>
+<!-- 다크 모드 버튼: 바꾸기 · 저장은 data.js(DFI)가 한다. 첫 화면 3D 색은 처음 그릴 때 정해지므로 다시 불러온다 -->
+<script>document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-theme-toggle]'))setTimeout(function(){location.reload()},0)});</script>
 </body>
 </html>

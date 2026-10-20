@@ -132,6 +132,9 @@ jobs:
           node-version: "24"
       - run: SIGNAL_PRERENDER_STRICT=1 python -m tests.build_site --published site --flash flash --out dist
       - run: python -m pytest tests/e2e --matrix full --site dist --flash flash --junitxml=.qa/browser.xml -q -s --a11y zero
+      # 다크 모드 화면도 같은 48개 경우를 접근성 위반 0 으로 검사
+      - if: success() || failure()
+        run: python -m pytest tests/e2e/test_matrix.py --matrix full --site dist --flash flash --junitxml=.qa/browser-dark.xml --qa-report .qa/e2e-dark.json -q -s --a11y zero --theme dark
       - if: always()
         uses: actions/upload-artifact@v4
         with:

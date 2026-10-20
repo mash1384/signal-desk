@@ -8,7 +8,7 @@ import os
 import re
 import shutil
 
-from . import config, judge, util, prerender, public_data, article_bundle
+from . import config, darkcss, judge, util, prerender, public_data, article_bundle
 from .impact import assets_for, subjects
 
 OG_DEFAULT = False
@@ -190,11 +190,19 @@ def with_pf(html):
     return html if not m else html[:m.start()] + "<script>" + js + "</script>\n" + html[m.start():]
 
 
+STYLE_BLOCK = re.compile(r"(<style[^>]*>)(.*?)(</style>)", re.S)
+
+
+def read_tpl(name):
+    """정적 틀(web/df_*.html)을 읽고, 틀 안 CSS 에 다크 모드 규칙을 자동으로 더한다(pipeline/darkcss.py)."""
+    with open(os.path.join(WEB, name), encoding="utf-8") as f:
+        return STYLE_BLOCK.sub(lambda m: m.group(1) + darkcss.inject(m.group(2)) + m.group(3), f.read())
+
+
 def page_landing_df():
     """첫 페이지(Delfona): 입자 로고 첫 화면 + '신호 하나의 속' 3D 섹션. 정적 틀(web/df_landing.html)에 주소·버전만 채운다.
     내용(속보·24시간 개수·카드)은 브라우저가 Worker /flash 에서 실시간으로 받아 그린다."""
-    with open(os.path.join(WEB, "df_landing.html"), encoding="utf-8") as f:
-        tpl = f.read()
+    tpl = read_tpl("df_landing.html")
     og = ""
     if OG_DEFAULT:
         og = ('<meta property="og:image" content="%s/og/default.jpg">\n<meta property="og:image:width" content="1200">\n'
@@ -207,8 +215,7 @@ def page_landing_df():
 def page_live_df():
     """라이브(Delfona R3 · 임팩트): 큰 소식 + 소식 이후 가격 차트, 테마 탭, 카드. 정적 틀(web/df_live.html)에 주소·버전만 채운다.
     소식·가격은 브라우저가 Worker /flash · /index-candles 와 Binance 에서 실시간으로 받아 그린다."""
-    with open(os.path.join(WEB, "df_live.html"), encoding="utf-8") as f:
-        tpl = f.read()
+    tpl = read_tpl("df_live.html")
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "live")
 
 
@@ -224,8 +231,7 @@ THEME_PAGES = {
 def page_themes_df(k):
     """테마(Delfona T2 · 대시보드): 자산 띠, 24시간 흐름, 섹터, '오늘 무엇이 달라졌나', 주요 소식. 정적 틀(web/df_themes.html).
     자료는 브라우저가 themes.json(Mac 이 6시간마다) · Binance · Worker /market 에서 받는다."""
-    with open(os.path.join(WEB, "df_themes.html"), encoding="utf-8") as f:
-        tpl = f.read()
+    tpl = read_tpl("df_themes.html")
     title, desc = THEME_PAGES[k]
     return with_beacon(with_pf(tpl.replace("{{TITLE}}", title).replace("{{DESC}}", h(desc)).replace("{{K}}", k)
                    .replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "themes")
@@ -234,24 +240,21 @@ def page_themes_df(k):
 def page_my_df():
     """내 자산(Delfona Y2 · 피드 + 관심 목록): 고른 자산의 소식, 급변 알림('왜 움직여?'), 하루 요약. 정적 틀(web/df_my.html).
     고른 자산은 브라우저(localStorage)에만 있고, 계산도 브라우저에서 한다(사용자가 늘어도 Mac 부담 없음)."""
-    with open(os.path.join(WEB, "df_my.html"), encoding="utf-8") as f:
-        tpl = f.read()
+    tpl = read_tpl("df_my.html")
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "my")
 
 
 def page_calendar_df():
     """일정(Delfona C3 · 대시보드): 방금 나온 지표, 지금 경제 요약(AI), 다가오는 발표, 지표 카드, 지표 상세(지난 흐름 · 과거에 비슷했을 때).
     자료는 브라우저가 econ.json(Mac 이 1시간마다, tools/econ_brief.py)을 flash 브랜치에서 읽는다."""
-    with open(os.path.join(WEB, "df_calendar.html"), encoding="utf-8") as f:
-        tpl = f.read()
+    tpl = read_tpl("df_calendar.html")
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "calendar")
 
 
 def page_brief_df():
     """정리(Delfona B2 · 타임라인 열지도): 며칠째 이어지는 이야기(줄기)를 한 시간 축 위에, 고르면 지금까지 · 최근 24시간 · 소식 전체.
     자료는 브라우저가 threads.json(Mac 이 30분마다, tools/story_threads.py)과 어제 하루 정리(daily_brief.py)를 flash 브랜치에서 읽는다."""
-    with open(os.path.join(WEB, "df_brief.html"), encoding="utf-8") as f:
-        tpl = f.read()
+    tpl = read_tpl("df_brief.html")
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "brief")
 
 
@@ -312,6 +315,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 <head>
 <meta charset="utf-8">
 <script>try{{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}}catch(e){{}}</script>
+<script>try{{document.documentElement.dataset.theme=localStorage.getItem('df-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}}catch(e){{}}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{desc}">
@@ -334,7 +338,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 <header class="hd"><div class="wrap">
   <a class="logo" href="{B}">{logo}<span class="wm">Delfona</span></a>
   <nav class="nav" aria-label="Menu">{nav}</nav>
-  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div><button type="button" class="thm" data-theme-toggle aria-label="Dark mode" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 </div></header>
 <main id="main">
 {body}
@@ -660,6 +664,8 @@ def df_ver():
     for n in sorted(os.listdir(d)):
         with open(os.path.join(d, n), "rb") as f:
             h.update(n.encode() + f.read())
+    with open(darkcss.__file__, "rb") as f:   # 다크 규칙 생성기가 바뀌어도 CSS 가 바뀐다
+        h.update(f.read())
     return h.hexdigest()[:8]
 
 
@@ -701,6 +707,10 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
             util.log("prerender skipped", type(e).__name__, str(e)[:200])
             prerendered = {}
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
+    for css in ("lk.css", "st.css"):   # 공용 CSS 에도 다크 모드 규칙을 자동으로 더한다
+        path = os.path.join(out, "assets", "df", css)
+        with open(path, encoding="utf-8") as f:
+            util.write_text(path, darkcss.inject(f.read()))
     public_data.copy_daily(config.FLASH_DIR, out)
     article_bundle.bundle(WEB, out)
     util.write_text(os.path.join(out, ".nojekyll"), "")
