@@ -8,6 +8,8 @@ const THEMES = { crypto: { name: ['Crypto', '크립토'], city: ['Singapore', '�
   econ: { name: ['Economy', '경제'], city: ['London', '런던'], lat: 51.5, lon: -0.1 }, ai: { name: ['AI', 'AI'], city: ['San Francisco', '샌프란시스코'], lat: 37.8, lon: -122.4 } };
 const ORDER = ['crypto', 'nasdaq', 'econ', 'ai'];
 const D2R = Math.PI / 180;
+// 다크 모드: 첫 페이지는 테마를 바꾸면 다시 불러오므로 처음 한 번만 본다
+const DK = document.documentElement.dataset.theme === 'dark';
 
 export function makeGlobe({ scene, sec, lay, mob }) {
   const N = mob ? 22000 : 42000, m = new Morph(N); m.points.visible = false; m.U.uBurst.value = mob ? 5 : 8; m.U.uWob.value = 0.006; m.U.uSz.value = mob ? 0.85 : 0.9; scene.add(m.points);
@@ -52,12 +54,12 @@ export function makeGlobe({ scene, sec, lay, mob }) {
   const body = new THREE.Mesh(new THREE.SphereGeometry(R * 0.994, 96, 64), new THREE.ShaderMaterial({ transparent: true, uniforms: { uA: { value: 0 } },
     vertexShader: 'varying vec3 vN, vV; void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
     fragmentShader: `uniform float uA; varying vec3 vN, vV; void main(){ float l = clamp(dot(vN, normalize(vec3(-.5, .6, .7))), 0., 1.), fr = pow(1. - clamp(dot(vN, vV), 0., 1.), 2.5);
-      vec3 c = mix(vec3(.90,.92,.97), vec3(.995,.997,1.), l); c = mix(c, vec3(.62,.6,1.), fr * .5); gl_FragColor = vec4(c, uA); }` }));
+      vec3 c = mix(${DK ? 'vec3(.055,.08,.14), vec3(.11,.15,.25)' : 'vec3(.90,.92,.97), vec3(.995,.997,1.)'}, l); c = mix(c, ${DK ? 'vec3(.40,.36,.95), fr * .6' : 'vec3(.62,.6,1.), fr * .5'}); gl_FragColor = vec4(c, uA); }` }));   // 다크: 어두운 남색 몸체(빛 받는 쪽이 조금 밝게), 가장자리는 보라 빛
   body.renderOrder = -2; gG.add(body);
   { const g = []; for (let la = -75; la <= 75; la += 15) for (let lo = 0; lo < 360; lo += 3) { const a = U3(la, lo), b = U3(la, lo + 3); g.push(a.x, a.y, a.z, b.x, b.y, b.z); }
     for (let lo = 0; lo < 360; lo += 15) for (let la = -87; la < 87; la += 3) { const a = U3(la, lo), b = U3(la + 3, lo); g.push(a.x, a.y, a.z, b.x, b.y, b.z); }
     const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(g, 3)); lg.scale(R * 1.001, R * 1.001, R * 1.001);
-    var grat = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x533afd, transparent: true, opacity: 0 })); grat.renderOrder = -1; gG.add(grat); }
+    var grat = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: DK ? 0x8a7dff : 0x533afd, transparent: true, opacity: 0 })); grat.renderOrder = -1; gG.add(grat); }
   // 워드마크 'DELFONA'(stage 2): 글자 점 92% + 주변에 옅게 떠도는 점 8%
   let WM = false; document.fonts.load('400 200px Michroma').catch(() => {});   // 헤더 로고와 같은 글꼴
   function buildWord() { WM = true;
@@ -150,6 +152,7 @@ export function makeGlobe({ scene, sec, lay, mob }) {
   .glx .fn{margin-top:14px;font-size:11.5px;color:var(--mute)}
   .glpin{position:absolute;left:0;top:0;opacity:0;transform:translate(-50%,-100%);white-space:nowrap;padding:5px 10px 6px;border-radius:99px;background:#0d253d;color:#fff;font-size:12px;font-weight:600}
   .glpin span{font-family:var(--mono);font-weight:500;color:#a9b3ff;margin-left:6px}
+  :root[data-theme="dark"] .glpin{background:#e8eef6;color:#0b1320} :root[data-theme="dark"] .glpin span{color:#4b3fd1}
   @media(max-width:899px){.glx{width:auto}.glx h2{font-size:23px}.glx .hl{display:none}.glx ol{margin-top:12px}.glx li{display:none;border:0;padding:0}.glx li.on{display:block}.glx li.on p:not(.h){max-height:340px;font-size:14px;line-height:1.55}.glx li .h b{font-size:20px}.glx .fn{display:none}}`;
   document.head.appendChild(css);
   let TH = null, act = -1;
