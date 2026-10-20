@@ -5,7 +5,8 @@ export { renderer, loop, mobile, reduce, fonts, lerp, clamp, ss, EN, SECT } from
 import { clamp } from './nkit.js';
 
 export const DPR = Math.min(devicePixelRatio || 1, 2);
-export const COL = { navy: new THREE.Color('#1d3557'), ink: new THREE.Color('#0d253d'), ind: new THREE.Color('#6d6cf7'), lt: new THREE.Color('#a9b7ff'), up: new THREE.Color('#12b07c'), dn: new THREE.Color('#e5533f'), gray: new THREE.Color('#9aa7b8') };
+const DK = document.documentElement.dataset.theme === 'dark';   // 다크: 짙은 남색 입자는 어두운 배경에서 안 보인다 → 밝은 회청색
+export const COL = { navy: new THREE.Color(DK ? '#c9d4e3' : '#1d3557'), ink: new THREE.Color(DK ? '#e8eef6' : '#0d253d'), ind: new THREE.Color(DK ? '#a39dff' : '#6d6cf7'), lt: new THREE.Color('#a9b7ff'), up: new THREE.Color('#12b07c'), dn: new THREE.Color('#e5533f'), gray: new THREE.Color('#9aa7b8') };
 export const sm = (x) => { x = clamp(x); return x * x * x * (x * (x * 6 - 15) + 10); };
 export const rnd = (a = 1) => (Math.random() * 2 - 1) * a;
 

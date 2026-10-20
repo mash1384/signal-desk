@@ -69,7 +69,7 @@ const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrit
 const pts = new THREE.Points(g, mat); scene.add(pts);
 function colors(u, d) {
   const tot = Math.max(1, u + d), fu = u / tot, a = g.getAttribute('aCol');
-  const C = { navy: new THREE.Color('#1d3557'), ind: new THREE.Color('#6d6cf7'), lt: new THREE.Color('#a9b7ff'), up: new THREE.Color('#2cc68f'), dn: new THREE.Color('#f06a55') };
+  const C = { navy: new THREE.Color(document.documentElement.dataset.theme === 'dark' ? '#c9d4e3' : '#1d3557'), ind: new THREE.Color('#6d6cf7'), lt: new THREE.Color('#a9b7ff'), up: new THREE.Color('#2cc68f'), dn: new THREE.Color('#f06a55') };
   for (let i = 0; i < N; i++) { const r0 = aRnd[i]; const c = r0 < 0.12 ? (r0 / 0.12 < fu ? C.up : C.dn) : r0 < 0.4 ? C.ind : r0 < 0.62 ? C.lt : C.navy; a.setXYZ(i, c.r, c.g, c.b); }
   a.needsUpdate = true;
 }

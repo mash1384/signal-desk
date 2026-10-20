@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script>try{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}catch(e){}</script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('df-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Delfona — Market-moving news, judged in seconds</title>
 <meta name="description" content="Delfona reads crypto, macro and policy headlines from around the world, calls each one bullish or bearish, and summarizes crypto, Nasdaq, macro and AI themes.">
@@ -113,17 +114,37 @@ html.intro-on { overflow: hidden; }
 .intro .skip { position: absolute; right: 18px; bottom: 18px; height: 32px; padding: 0 14px; border-radius: 99px; font: 600 12px/1 "Pretendard Variable", system-ui, sans-serif; color: #273951; background: rgb(13 37 61 / .06); }
 @media (hover: hover) and (pointer: fine) { .intro .skip:hover { background: rgb(13 37 61 / .1); } }
 
+
+/* ---------- 다크 모드(미리보기) ---------- */
+:root[data-theme="dark"] { color-scheme: dark; --ink: #e8eef6; --ink2: #c9d4e3; --mute: #a3b2c7; --line: #23324a; --soft: #111b2b; --primary: #a99dff; --navy: #e8eef6; --up: #3fd29b; --down: #ff8e80; }
+:root[data-theme="dark"] body, :root[data-theme="dark"] .hero, :root[data-theme="dark"] .nx { background: #0b1320; }
+:root[data-theme="dark"] .logo { color: #fff; }
+:root[data-theme="dark"] .lang { background: rgb(17 27 43 / .7); box-shadow: inset 0 0 0 1px rgb(232 238 246 / .12); }
+:root[data-theme="dark"] .lang button[aria-pressed='true'] { background: #e8eef6; color: #0b1320; }
+:root[data-theme="dark"] .btn.p { background: #6c5cff; } :root[data-theme="dark"] .btn.p:hover { background: #7d6fff; }
+:root[data-theme="dark"] .btn.g { background: rgb(17 27 43 / .8); color: var(--ink); box-shadow: inset 0 0 0 1px rgb(232 238 246 / .14); }
+:root[data-theme="dark"] .kick { background: rgb(17 27 43 / .75); box-shadow: inset 0 0 0 1px rgb(232 238 246 / .1); }
+:root[data-theme="dark"] .kick b { background: #e8eef6; color: #0b1320; }
+:root[data-theme="dark"] .hero::after { background: linear-gradient(0deg, #0b1320 40%, rgb(11 19 32 / .6) 58%, transparent 75%); }
+@media (min-width: 900px) { :root[data-theme="dark"] .hero::after { background: linear-gradient(90deg, #0b1320 18%, rgb(11 19 32 / .4) 40%, transparent 55%); } }
+:root[data-theme="dark"] .px-card { background: rgb(17 27 43 / .92); box-shadow: 0 22px 50px -24px rgb(0 0 0 / .7), 0 0 0 1px rgb(232 238 246 / .08); }
+:root[data-theme="dark"] .px-end .box { background: rgb(17 27 43 / .9); box-shadow: 0 30px 80px -30px rgb(0 0 0 / .7), 0 0 0 1px rgb(232 238 246 / .08); }
+:root[data-theme="dark"] .px-cap::before { background: radial-gradient(closest-side, rgb(11 19 32 / .94), rgb(11 19 32 / .7) 55%, rgb(11 19 32 / 0)); }
+.lang button { white-space: nowrap; } @media (max-width: 899px) { .hd .wrap { gap: 14px; } }
+.thm { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 99px; border: 0; background: transparent; color: var(--ink2); cursor: pointer; }
+.thm:hover { background: rgb(13 37 61 / .06); } :root[data-theme="dark"] .thm:hover { background: rgb(232 238 246 / .08); }
+.thm svg { width: 18px; height: 18px; } .thm .sun { display: none; } :root[data-theme="dark"] .thm .sun { display: block; } :root[data-theme="dark"] .thm .moon { display: none; }
 </style>
 </head>
 <body>
 <div class="intro" id="intro" aria-hidden="true"><div class="ibg"></div><video muted playsinline autoplay preload="auto" src="{{B}}assets/df/c1.mp4?v={{V}}"></video><button type="button" class="skip">Skip</button></div>
 <script>(function () { var rm = matchMedia('(prefers-reduced-motion: reduce)').matches, inner = false;
   try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !/[?&]intro\b/.test(location.search); } catch (e) {}
-  if (rm || inner) { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1; } else document.documentElement.classList.add('intro-on'); })();</script>
+  if (rm || inner || document.documentElement.dataset.theme === 'dark') { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1; } else document.documentElement.classList.add('intro-on'); })();</script>
 <header class="hd"><div class="wrap">
   <a class="logo" href="{{B}}"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
   <nav class="nav" aria-label="Menu"><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}my/" data-t="n5">My assets</a><a href="{{B}}themes/" data-t="n2">Themes</a><a href="{{B}}brief/" data-t="n3">Brief</a><a href="{{B}}calendar/" data-t="n4">Calendar</a></nav>
-  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div><button type="button" class="thm" data-theme-toggle aria-label="Dark mode" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
   <a class="btn p" href="{{B}}live/" data-t="cta">Open live signals</a>
 </div></header>
 <section class="hero" id="hero">
@@ -163,5 +184,7 @@ addEventListener('df-intro-done', () => {
 }, { once: true });
 intro('c1', { base: '{{B}}assets/df/' });
 </script>
+<script>document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var t=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('df-theme',t)}catch(x){}location.reload()});
+document.querySelectorAll('[data-theme-toggle]').forEach(function(b){b.setAttribute('aria-pressed',String(document.documentElement.dataset.theme==='dark'))});</script>
 </body>
 </html>

@@ -21,7 +21,7 @@ function build() {
   // stage 1: 바닥에 평평하게 깔린 격자
   m.set(1, (i, o) => { const xi = i % XN, zi = (i / XN) | 0, u = xi / (XN - 1); o[0] = xOf(u); o[1] = -1.6; o[2] = (zi / (ZN - 1) - 0.5) * WZ; const c = COL.navy; o[3] = c.r; o[4] = c.g; o[5] = c.b; o[6] = 0.22; return o; });
   // stage 2: 파형 지형(가운데 줄이 가장 높고, 앞뒤로 낮아진다) + 작은 물결
-  const up = COL.up, dn = COL.dn, base = new THREE.Color('#2a3f73'), tmp = new THREE.Color();
+  const up = COL.up, dn = COL.dn, base = new THREE.Color(document.documentElement.dataset.theme === 'dark' ? '#cdd8e8' : '#2a3f73'), tmp = new THREE.Color();
   m.set(2, (i, o) => { const xi = i % XN, zi = (i / XN) | 0, u = xi / (XN - 1), zz = zi / (ZN - 1) - 0.5, hN = smooth(HN, u) / MX, net = smooth(NET, u);
     const env = Math.exp(-zz * zz * 9), h = 4.0 * hN * env + 0.08 * Math.sin(u * 60 + zz * 9) * env;
     o[0] = xOf(u); o[1] = -1.6 + h; o[2] = zz * WZ;
@@ -34,7 +34,8 @@ function build() {
 // 왼쪽으로 지난날들, 앞뒤로 다른 흐름이 끝없이 이어진다. 바깥 들판은 '규모'를 보여 주는 그림이고 숫자를 주장하지 않는다.
 const RS = WZ + 1.3, RIDGES = mob ? 9 : 15, FX0 = mob ? -120 : -170, FX1 = WX / 2, DX = mob ? 0.2 : 0.14, DZ = mob ? 0.2 : 0.15;
 const seedR = (k) => { let x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
-const fpos = [], fh = [], fc = [], frr = [], tmpC = new THREE.Color(), baseC = new THREE.Color('#2a3f73');
+const FA = document.documentElement.dataset.theme === 'dark' ? 1.45 : 1;   // 다크: 작은 점이 어두운 배경에 묻히지 않게 더 진하게
+const fpos = [], fh = [], fc = [], frr = [], tmpC = new THREE.Color(), baseC = new THREE.Color(document.documentElement.dataset.theme === 'dark' ? '#cdd8e8' : '#2a3f73');
 for (let ri = -(RIDGES >> 1); ri <= RIDGES >> 1; ri++) {
   const zc = ri * RS, sc = ri === 0 ? 1 : 0.55 + 0.6 * seedR(ri + 3), ph = seedR(ri) * 6.28, NXp = Math.ceil((FX1 - FX0) / DX) + 1;
   // 줄 하나의 높이·감정 곡선(1차원)
@@ -49,7 +50,7 @@ for (let ri = -(RIDGES >> 1); ri <= RIDGES >> 1; ri++) {
     for (let k = 0; k < NXp; k++) { const x = FX0 + k * DX; if (ri === 0 && x > -WX / 2 - 0.2) break;
       const hN = prof[k] / mx, h = 4.0 * sc * hN * env + 0.08 * Math.sin(x * 3.7 + zz * 9) * env, nt = Math.tanh(net[k] * 1.5);
       tmpC.copy(baseC).lerp(COL.ind, clamp(hN * 1.2) * 0.6).lerp(nt >= 0 ? COL.up : COL.dn, clamp(Math.abs(nt) * 1.4) * clamp(hN * 2.2) * 0.5);
-      fpos.push(x + (Math.random() - 0.5) * DX * 0.5, 0, zc + z + (Math.random() - 0.5) * DZ * 0.5); fh.push(h); fc.push(tmpC.r, tmpC.g, tmpC.b, 0.3 + 0.68 * clamp(env * (0.35 + hN))); frr.push(Math.random()); } } }
+      fpos.push(x + (Math.random() - 0.5) * DX * 0.5, 0, zc + z + (Math.random() - 0.5) * DZ * 0.5); fh.push(h); fc.push(tmpC.r, tmpC.g, tmpC.b, Math.min(1, (0.3 + 0.68 * clamp(env * (0.35 + hN))) * FA)); frr.push(Math.random()); } } }
 const fg = new THREE.BufferGeometry(); fg.setAttribute('position', new THREE.Float32BufferAttribute(fpos, 3)); fg.setAttribute('aH', new THREE.Float32BufferAttribute(fh, 1));
 fg.setAttribute('aC', new THREE.Float32BufferAttribute(fc, 4)); fg.setAttribute('aR', new THREE.Float32BufferAttribute(frr, 1));
 const FU = { uT: { value: 0 }, uRev: { value: 0 }, uA: { value: 0 }, uSz: { value: 1 } };

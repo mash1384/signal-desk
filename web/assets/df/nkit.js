@@ -3,7 +3,8 @@ import * as THREE from 'three';
 export const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const mobile = () => innerWidth < 900;
 export const DPR = Math.min(devicePixelRatio || 1, 2);
-export function renderer(canvas, clear = 0xf7f9fc) {
+const DK = document.documentElement.dataset.theme === 'dark';
+export function renderer(canvas, clear = DK ? 0x0b1320 : 0xf7f9fc) {
   const r = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   r.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); r.setClearColor(clear, 1); r.outputColorSpace = THREE.SRGBColorSpace;
   return r;
