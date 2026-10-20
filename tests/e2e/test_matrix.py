@@ -86,6 +86,8 @@ def test_page(case, session_page, qa, site_server, request):
             # Playwright reports actual received encoded body/header sizes.
             sizes = req.sizes()
             row["bytes"] += sizes["responseBodySize"] + sizes["responseHeadersSize"]
+            if sizes["responseBodySize"] >= 50000:   # 용량 초과 원인 추적용(판정에는 쓰지 않음)
+                row.setdefault("large", []).append([req.url, sizes["responseBodySize"]])
         except Exception as error:
             row["errors"].append({"kind": "measurement", "error": str(error)})
 

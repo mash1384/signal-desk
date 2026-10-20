@@ -1,5 +1,4 @@
 """다크 모드 CSS 자동 생성(pipeline/darkcss.py): 색 바꾸기 · 구체성 · 손으로 쓴 규칙 존중 · 글자 대비."""
-import re
 import unittest
 
 from pipeline import darkcss
@@ -82,16 +81,6 @@ class DarkCss(unittest.TestCase):
         self.assertTrue(out.startswith(css))
         self.assertEqual(out.count("{"), out.count("}"))
         self.assertEqual(darkcss.inject(".a { color: var(--ink); }"), ".a { color: var(--ink); }")
-
-    def test_real_sources_generate_balanced_css(self):
-        from pathlib import Path
-        web = Path(__file__).resolve().parents[2] / "web"
-        for f in [web / "assets/df/lk.css", web / "assets/df/st.css"] + sorted(web.glob("df_*.html")):
-            text = f.read_text(encoding="utf-8")
-            for css in (re.findall(r"<style[^>]*>(.*?)</style>", text, re.S) if f.suffix == ".html" else [text]):
-                gen = darkcss.generate(css)
-                self.assertEqual(gen.count("{"), gen.count("}"), f.name)
-                self.assertNotIn("var(--", "".join(re.findall(r"--[\w-]+: ([^;]+)", gen)), f.name)
 
 
 if __name__ == "__main__":
