@@ -92,7 +92,7 @@ export function spark(cv, pts, { up = null } = {}) {
 // 테마 주소: 사이트에선 /themes/<k>/, 미리보기에선 ?t=<k>
 const tHref = (k) => (window.DF_TBASE ? window.DF_TBASE + k + '/' : '?t=' + k);
 export function tabsHTML(k) {
-  return `<nav class="ttabs" role="tablist" aria-label="${T('Themes', '테마')}">${THEME_KEYS.map((x) => `<a role="tab" href="${tHref(x)}" data-theme="${x}" aria-selected="${x === k}">${tn(x)}</a>`).join('')}</nav>`;
+  return `<nav class="ttabs" role="tablist" aria-label="${T('Themes', '테마')}">${THEME_KEYS.map((x) => `<a role="tab" href="${tHref(x)}" data-tk="${x}" aria-selected="${x === k}">${tn(x)}</a>`).join('')}</nav>`;
 }
 export function statusHTML(doc, t) {
   const tot = Math.max(1, t.u + t.d), fu = t.u / tot;
@@ -185,7 +185,7 @@ export async function eventsHTML() {
 }
 export function wire(app, S, render) {
   app.addEventListener('click', (e) => {
-    const th = e.target.closest('[data-theme]'); if (th) { e.preventDefault(); S.k = th.dataset.theme; S.sec = null; S.chg = null; history.pushState({ k: S.k }, '', tHref(S.k)); render(); return; }
+    const th = e.target.closest('[data-tk]'); if (th) { e.preventDefault(); S.k = th.dataset.tk; S.sec = null; S.chg = null; history.pushState({ k: S.k }, '', tHref(S.k)); render(); return; }
     const so = e.target.closest('[data-sort]'); if (so) { S.so = so.dataset.sort; try { localStorage.setItem('df-sort', S.so); } catch (x) {} render(true); return; }
     const sc = e.target.closest('[data-sec]'); if (sc) { S.sec = S.sec === sc.dataset.sec ? null : sc.dataset.sec; S.chg = null; render(true); return; }
     const cg = e.target.closest('[data-chg]'); if (cg) { const i = +cg.dataset.chg; S.chg = S.chg === i ? null : i; S.sec = null; render(true); if (S.chg != null) document.getElementById('stories')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); return; }

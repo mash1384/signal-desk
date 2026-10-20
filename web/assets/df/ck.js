@@ -156,7 +156,7 @@ export function detailHTML(doc, x, S) {
     <header class="dth"><p class="k">${esc(nm(x))} · ${period(x, L0.period)}</p>
       <p class="big"><span class="mono">${fv(x, L0.v)}</span> <span class="c mono">${arrow(x.sit.dir)} ${fchg(x, x.sit.chg)}</span></p>
       <p class="meta">${T('Released', '발표')} ${ymd(L0.d)} · ${T('previous', '직전')} <span class="mono">${fv(x, L0.prev)}</span>${fc ? ` · ${T('forecast', '예상')} <span class="mono">${esc(fc)}</span>` : ''}${sub != null && x.sub ? ` · ${T('month on month', '전월 대비')} <span class="mono">${sub.toFixed(x.dec)}%</span>${L0.fc_sub ? ` (${T('fcst', '예상')} <span class="mono">${esc(L0.fc_sub)}</span>)` : ''}` : ''}</p></header>
-    ${ai ? `<div class="ai"><p class="k">${T('What it means', '무슨 뜻인가')} <span>· AI</span></p>${ai.map((s) => `<p>${esc(s)}</p>`).join('')}</div>` : ''}
+    ${ai ? `<div class="ai"><p class="k">${T('This release at a glance', '이번 발표 한눈에')} <span>· AI</span></p>${ai.map((s) => `<p>${esc(s)}</p>`).join('')}</div>` : ''}
     <section class="hist"><div class="sh"><h3>${T('History', '지난 흐름')}</h3><span class="mseg" role="group" aria-label="${T('Range', '기간')}">${RANGES.map(([k, , en, ko]) => `<button type="button" data-range="${k}" aria-pressed="${S.range === k}">${L() ? ko : en}</button>`).join('')}</span></div>
       <div class="hc" id="hc"></div><p class="fn">${T(`${x.n} releases since ${ymd(x.since)} · value as first published each time`, `${ymd(x.since)}부터 발표 ${x.n}번 · 매번 처음 발표된 값`)}</p></section>
     <section class="sim"><div class="sh"><h3>${T('When it looked like this before', '과거에 비슷했을 때')}</h3></div>

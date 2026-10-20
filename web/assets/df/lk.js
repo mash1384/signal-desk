@@ -42,7 +42,7 @@ export const kindName = (k) => (KIND[k] || [k, k])[L() ? 1 : 0];
 // ---------- 데이터 ----------
 export const store = { items: [], byId: new Map(), feed: [], fresh: new Set(), subs: [] };
 export const line = (it) => (L() ? it.ko : it.en || it.ko);
-export const altLine = (it) => (L() ? it.en || '' : it.ko);
+export const altLine = (it) => (L() ? it.en || '' : '');   // 영어 화면엔 한국어 원문을 덧붙이지 않는다
 // 익명 이벤트 통계(합계만 · 쿠키 없음, 추적 거부면 안 보냄): 기사 열기 · 원문 이동 · 차트 조작 · 언어 전환
 const STATS = 'https://signal-scheduler.mash1384.workers.dev/e';
 export function track(ev, lang) {
@@ -132,7 +132,7 @@ export function detailHTML(it) {
     <div class="tags">${chips(it, 4)}${it.mw ? `<span class="chip th">${T('Market-wide', '시장 전체')}</span>` : ''}</div>
     <div class="mystars" data-sid="${it.id}"></div><div class="thlink" data-sid="${it.id}"></div>
     <h4>${T('Price since this story', '이 소식 이후 가격')}</h4><div class="rx" id="rx"><p class="empty" style="padding:10px 0">${T('Loading…', '불러오는 중…')}</p></div>
-    ${rel.length ? `<h4>${T('Related articles', '관련 기사')}</h4><div class="rel">${rel.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}<small>${esc(f.src)} · ${hm(f.t0)}</small></a>`).join('')}</div>` : ''}
+    ${rel.length ? `<h4>${T('Related articles', '관련 기사')}</h4><div class="rel">${rel.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}<small>${esc(L() ? f.src : f.se || f.src)} · ${hm(f.t0)}</small></a>`).join('')}</div>` : ''}
     ${src ? `<a class="src" href="${esc(it.link)}" target="_blank" rel="noopener">${T('Original link', '원문 링크')} · ${esc(src)} ↗</a>` : ''}
     <p class="fn">${T('Verdict and strength are AI judgments, not investment advice. Price change shows what happened after the story, not that the story caused it.', '판정과 세기는 AI 판단이며 투자 조언이 아니에요. 가격 변화는 소식 이후 실제 움직임이고, 그 소식 때문이라는 뜻은 아니에요.')}</p>`;
 }
@@ -242,7 +242,7 @@ function drawLW(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel =
   const LC = window.LightweightCharts, off = TZ(), lc = DFI.lang() === 'ko' ? 'ko-KR' : 'en-GB';
   el.innerHTML = '<div class="lgd"></div><div class="lwbox"></div>'; const box = el.querySelector('.lwbox'), lgd = el.querySelector('.lgd'); box.style.height = height + 'px';
   const chart = LC.createChart(box, { autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: (dark() ? '#8d9bb2' : '#5f6c83'), fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11, attributionLogo: false },
-    grid: { vertLines: { visible: false }, horzLines: { color: tone(.06) } }, rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.12, bottom: 0.08 } },
+    grid: { vertLines: { visible: false }, horzLines: { color: tone(.06) } }, rightPriceScale: { borderVisible: false, scaleMargins: { top: Math.max(0.12, 20 / (height - 28)), bottom: Math.max(0.08, 13 / (height - 28)) } },   // 가격표(높이 약 19px)가 위 · 아래 끝에서 잘리지 않게 픽셀로 여백
     timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true },
     crosshair: { mode: LC.CrosshairMode.Magnet, vertLine: { color: tone(.45), width: 1, style: 0, labelBackgroundColor: ink() }, horzLine: { color: tone(.25), width: 1, style: 2, labelBackgroundColor: ink() } },
     handleScroll: { mouseWheel: false, pressedMouseMove: false, horzTouchDrag: false, vertTouchDrag: true }, handleScale: false,

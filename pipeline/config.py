@@ -28,23 +28,24 @@ CONCURRENT_EVENT_SECONDS = 900
 # 수집원. hint: 기본 카테고리, require: True면 키워드가 맞는 기사만 남긴다
 NOISE_TITLES = ["price prediction", "price analysis", "price forecast", "technical analysis", "could reach", "will hit", "가격 예측", "전망가"]
 
+# en: 영어 화면에서 보일 매체 이름(name 은 기사 자료의 열쇠라 바꾸지 않는다)
 SOURCES = [
     {"id": "coindesk", "name": "CoinDesk", "url": "https://www.coindesk.com/arc/outboundfeeds/rss", "lang": "en", "hint": "crypto", "require": False},
     {"id": "cointelegraph", "name": "Cointelegraph", "url": "https://cointelegraph.com/rss", "lang": "en", "hint": "crypto", "require": False},
     {"id": "decrypt", "name": "Decrypt", "url": "https://decrypt.co/feed", "lang": "en", "hint": "crypto", "require": False},
     {"id": "theblock", "name": "The Block", "url": "https://www.theblock.co/rss.xml", "lang": "en", "hint": "crypto", "require": False},
-    {"id": "blockmedia", "name": "블록미디어", "url": "https://www.blockmedia.co.kr/feed", "lang": "ko", "hint": "crypto", "require": False},
-    {"id": "tokenpost", "name": "토큰포스트", "url": "https://www.tokenpost.kr/rss", "lang": "ko", "hint": "crypto", "require": False},
+    {"id": "blockmedia", "name": "블록미디어", "en": "Blockmedia", "url": "https://www.blockmedia.co.kr/feed", "lang": "ko", "hint": "crypto", "require": False},
+    {"id": "tokenpost", "name": "토큰포스트", "en": "TokenPost", "url": "https://www.tokenpost.kr/rss", "lang": "ko", "hint": "crypto", "require": False},
     {"id": "techcrunch-ai", "name": "TechCrunch AI", "url": "https://techcrunch.com/category/artificial-intelligence/feed/", "lang": "en", "hint": "ai", "require": False},
     {"id": "verge-ai", "name": "The Verge AI", "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", "lang": "en", "hint": "ai", "require": False},
-    {"id": "aitimes", "name": "AI타임스", "url": "https://www.aitimes.com/rss/allArticle.xml", "lang": "ko", "hint": "ai", "require": False},
-    {"id": "digitaltoday", "name": "디지털투데이", "url": "https://www.digitaltoday.co.kr/rss/allArticle.xml", "lang": "ko", "hint": None, "require": True},
+    {"id": "aitimes", "name": "AI타임스", "en": "AI Times", "url": "https://www.aitimes.com/rss/allArticle.xml", "lang": "ko", "hint": "ai", "require": False},
+    {"id": "digitaltoday", "name": "디지털투데이", "en": "Digital Today", "url": "https://www.digitaltoday.co.kr/rss/allArticle.xml", "lang": "ko", "hint": None, "require": True},
     {"id": "cnbc-economy", "name": "CNBC Economy", "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html", "lang": "en", "hint": "macro", "require": False},
     {"id": "marketwatch", "name": "MarketWatch", "url": "https://feeds.marketwatch.com/marketwatch/topstories/", "lang": "en", "hint": "macro", "require": True},
-    {"id": "yna-economy", "name": "연합뉴스 경제", "url": "https://www.yna.co.kr/rss/economy.xml", "lang": "ko", "hint": "macro", "require": True},
-    {"id": "hankyung-economy", "name": "한국경제 경제", "url": "https://www.hankyung.com/feed/economy", "lang": "ko", "hint": "macro", "require": True},
-    {"id": "hankyung-finance", "name": "한국경제 증권", "url": "https://www.hankyung.com/feed/finance", "lang": "ko", "hint": "macro", "require": True},
-    {"id": "mk-economy", "name": "매일경제 경제", "url": "https://www.mk.co.kr/rss/30100041/", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "yna-economy", "name": "연합뉴스 경제", "en": "Yonhap News (Economy)", "url": "https://www.yna.co.kr/rss/economy.xml", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "hankyung-economy", "name": "한국경제 경제", "en": "Korea Economic Daily (Economy)", "url": "https://www.hankyung.com/feed/economy", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "hankyung-finance", "name": "한국경제 증권", "en": "Korea Economic Daily (Markets)", "url": "https://www.hankyung.com/feed/finance", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "mk-economy", "name": "매일경제 경제", "en": "Maeil Business (Economy)", "url": "https://www.mk.co.kr/rss/30100041/", "lang": "ko", "hint": "macro", "require": True},
     # 크립토 전문지
     {"id": "thedefiant", "name": "The Defiant", "url": "https://thedefiant.io/api/feed", "lang": "en", "hint": "crypto", "require": False},
     {"id": "bitcoinmag", "name": "Bitcoin Magazine", "url": "https://bitcoinmagazine.com/feed", "lang": "en", "hint": "crypto", "require": False},
@@ -62,16 +63,16 @@ SOURCES = [
     {"id": "bitcoinist", "name": "Bitcoinist", "url": "https://bitcoinist.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
     {"id": "coinpedia", "name": "Coinpedia", "url": "https://coinpedia.org/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
     {"id": "beincrypto", "name": "BeInCrypto", "url": "https://beincrypto.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
-    {"id": "beincrypto-kr", "name": "비인크립토", "url": "https://kr.beincrypto.com/feed/", "lang": "ko", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
+    {"id": "beincrypto-kr", "name": "비인크립토", "en": "BeInCrypto Korea", "url": "https://kr.beincrypto.com/feed/", "lang": "ko", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
     {"id": "ambcrypto", "name": "AMBCrypto", "url": "https://ambcrypto.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
     {"id": "dailyhodl", "name": "The Daily Hodl", "url": "https://dailyhodl.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
     {"id": "coincentral", "name": "CoinCentral", "url": "https://coincentral.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
     {"id": "bitcoin-com", "name": "Bitcoin.com News", "url": "https://news.bitcoin.com/feed/", "lang": "en", "hint": "crypto", "require": False, "skip": NOISE_TITLES},
     # 프로젝트 공식 채널(업그레이드·파트너십 발표)
-    {"id": "solana-news", "name": "Solana 공식", "url": "https://solana.com/news/rss.xml", "lang": "en", "hint": "crypto", "require": False},
-    {"id": "sui-blog", "name": "Sui 공식 블로그", "url": "https://blog.sui.io/rss/", "lang": "en", "hint": "crypto", "require": False},
-    {"id": "hedera-blog", "name": "Hedera 공식 블로그", "url": "https://hedera.com/blog/feed", "lang": "en", "hint": "crypto", "require": False},
-    {"id": "ethereum-blog", "name": "Ethereum 재단 블로그", "url": "https://blog.ethereum.org/feed.xml", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "solana-news", "name": "Solana 공식", "en": "Solana", "url": "https://solana.com/news/rss.xml", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "sui-blog", "name": "Sui 공식 블로그", "en": "Sui Blog", "url": "https://blog.sui.io/rss/", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "hedera-blog", "name": "Hedera 공식 블로그", "en": "Hedera Blog", "url": "https://hedera.com/blog/feed", "lang": "en", "hint": "crypto", "require": False},
+    {"id": "ethereum-blog", "name": "Ethereum 재단 블로그", "en": "Ethereum Foundation Blog", "url": "https://blog.ethereum.org/feed.xml", "lang": "en", "hint": "crypto", "require": False},
     # AI: 전문지와 회사 공식 발표
     {"id": "mittr-ai", "name": "MIT Technology Review", "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed", "lang": "en", "hint": "ai", "require": False},
     {"id": "ars-ai", "name": "Ars Technica AI", "url": "https://arstechnica.com/ai/feed/", "lang": "en", "hint": "ai", "require": False},
@@ -80,9 +81,9 @@ SOURCES = [
     {"id": "openai", "name": "OpenAI", "url": "https://openai.com/news/rss.xml", "lang": "en", "hint": "ai", "require": False},
     {"id": "google-ai", "name": "Google AI", "url": "https://blog.google/technology/ai/rss/", "lang": "en", "hint": "ai", "require": False},
     {"id": "huggingface", "name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml", "lang": "en", "hint": "ai", "require": False},
-    {"id": "zdnet-kr", "name": "지디넷코리아", "url": "https://feeds.feedburner.com/zdkorea", "lang": "ko", "hint": None, "require": True},
-    {"id": "etnews", "name": "전자신문", "url": "https://rss.etnews.com/Section901.xml", "lang": "ko", "hint": None, "require": True},
-    {"id": "bloter", "name": "블로터", "url": "https://www.bloter.net/rss/allArticle.xml", "lang": "ko", "hint": None, "require": True},
+    {"id": "zdnet-kr", "name": "지디넷코리아", "en": "ZDNet Korea", "url": "https://feeds.feedburner.com/zdkorea", "lang": "ko", "hint": None, "require": True},
+    {"id": "etnews", "name": "전자신문", "en": "Electronic Times", "url": "https://rss.etnews.com/Section901.xml", "lang": "ko", "hint": None, "require": True},
+    {"id": "bloter", "name": "블로터", "en": "Bloter", "url": "https://www.bloter.net/rss/allArticle.xml", "lang": "ko", "hint": None, "require": True},
     # 매크로: 통신·경제지와 중앙은행
     {"id": "bloomberg-econ", "name": "Bloomberg Economics", "url": "https://feeds.bloomberg.com/economics/news.rss", "lang": "en", "hint": "macro", "require": False},
     {"id": "bloomberg-markets", "name": "Bloomberg Markets", "url": "https://feeds.bloomberg.com/markets/news.rss", "lang": "en", "hint": "macro", "require": True},
@@ -91,18 +92,18 @@ SOURCES = [
     {"id": "fed", "name": "Federal Reserve", "url": "https://www.federalreserve.gov/feeds/press_all.xml", "lang": "en", "hint": "macro", "require": True,
      # 은행 합병 승인·제재 같은 행정 공지는 빼고 통화정책 발표만
      "only": ["federal open market committee", "fomc", "monetary policy", "minutes", "economic projections", "discount rate", "interest rate", "beige book", "balance sheet", "statement", "speech", "testimony"]},
-    {"id": "einfomax", "name": "연합인포맥스", "url": "https://news.einfomax.co.kr/rss/allArticle.xml", "lang": "ko", "hint": "macro", "require": True},
-    {"id": "edaily", "name": "이데일리", "url": "http://rss.edaily.co.kr/edaily_news.xml", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "einfomax", "name": "연합인포맥스", "en": "Yonhap Infomax", "url": "https://news.einfomax.co.kr/rss/allArticle.xml", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "edaily", "name": "이데일리", "en": "Edaily", "url": "http://rss.edaily.co.kr/edaily_news.xml", "lang": "ko", "hint": "macro", "require": True},
     # 나스닥·미국 증시(2026-10-16 추가)
     {"id": "bloomberg-tech", "name": "Bloomberg Technology", "url": "https://feeds.bloomberg.com/technology/news.rss", "lang": "en", "hint": "macro", "require": False},
     {"id": "cnbc-tech", "name": "CNBC Technology", "url": "https://www.cnbc.com/id/19854910/device/rss/rss.html", "lang": "en", "hint": "macro", "require": False},
     {"id": "cnbc-earnings", "name": "CNBC Earnings", "url": "https://www.cnbc.com/id/15839135/device/rss/rss.html", "lang": "en", "hint": "macro", "require": False},
     {"id": "seekingalpha-mc", "name": "Seeking Alpha", "url": "https://seekingalpha.com/market_currents.xml", "lang": "en", "hint": "macro", "require": False},
     {"id": "investing-stocks", "name": "Investing.com", "url": "https://www.investing.com/rss/news_25.rss", "lang": "en", "hint": "macro", "require": False},
-    {"id": "hankyung-intl", "name": "한국경제 국제", "url": "https://www.hankyung.com/feed/international", "lang": "ko", "hint": "macro", "require": True},
+    {"id": "hankyung-intl", "name": "한국경제 국제", "en": "Korea Economic Daily (World)", "url": "https://www.hankyung.com/feed/international", "lang": "ko", "hint": "macro", "require": True},
     # AI(2026-10-16 추가)
-    {"id": "aitimes-kr", "name": "인공지능신문", "url": "https://www.aitimes.kr/rss/allArticle.xml", "lang": "ko", "hint": "ai", "require": False},
-    {"id": "nvidia-blog", "name": "NVIDIA 블로그", "url": "https://blogs.nvidia.com/feed/", "lang": "en", "hint": "ai", "require": False},
+    {"id": "aitimes-kr", "name": "인공지능신문", "en": "AI Times Korea", "url": "https://www.aitimes.kr/rss/allArticle.xml", "lang": "ko", "hint": "ai", "require": False},
+    {"id": "nvidia-blog", "name": "NVIDIA 블로그", "en": "NVIDIA Blog", "url": "https://blogs.nvidia.com/feed/", "lang": "en", "hint": "ai", "require": False},
 ]
 
 # 소스별 가중치 (중요도 계산에 더함)

@@ -76,10 +76,23 @@ def article_path(a):
 # ---------------------------------------------------------------- 카드와 배지
 
 
+SRC_EN = {x["name"]: x["en"] for x in config.SOURCES if x.get("en")}
+
+
+def src_en(name):
+    """매체 이름의 영어(영어 화면용). 없으면 그대로."""
+    return SRC_EN.get(name, name)
+
+
+def src_l(name):
+    """매체 이름 HTML: 영어 이름이 따로 있으면 영 · 한 둘 다(보이는 쪽은 문서 언어)."""
+    return L(h(SRC_EN[name]), h(name)) if name in SRC_EN else h(name)
+
+
 def feed_item(a):
     """클라이언트용 축약 JSON."""
     return {
-        "id": a["id"], "t0": a["t0"], "title": a["title"], "src": a["source_name"], "lang": a.get("lang"),
+        "id": a["id"], "t0": a["t0"], "title": a["title"], "src": a["source_name"], **({"se": SRC_EN[a["source_name"]]} if a["source_name"] in SRC_EN else {}), "lang": a.get("lang"),
         "cat": a["category"], "assets": a.get("assets", []), "imp": a["importance"], "etype": a.get("etype"),
         "sum": a.get("summary") or [], "ex": a.get("excerpt") or "", "llm": a.get("summary_by") == "llm",
         "h": a.get("headline"), "st": a.get("impact_status") or "measuring", "url": a["url"],
@@ -376,7 +389,7 @@ def verdict_en(ai):
 def page_article(a, rel, now):
     lang = a.get("lang") or "ko"
     cat = a["category"]
-    src = h(a["source_name"])
+    src, se = h(a["source_name"]), h(src_en(a["source_name"]))
     if a.get("summary"):
         lead = '<section class="box2"><h2>%s</h2><ol class="sum2" lang="ko">%s</ol><p class="fn2">%s</p></section>' % (
             L("Summary", "요약"), "".join("<li>%s</li>" % h(s) for s in a["summary"]),
@@ -384,9 +397,9 @@ def page_article(a, rel, now):
     elif a.get("excerpt"):
         lead = '<section class="box2"><h2>%s</h2><p class="quote2" lang="%s">%s</p><p class="fn2" data-source-name="%s">%s</p></section>' % (
             L("From the source", "원문 발췌"), lang, h(a["excerpt"]), src,
-            L("A short excerpt only — the full story is at %s." % src, "짧은 발췌만 실었어요. 전체 기사는 %s에서 볼 수 있어요." % src))
+            L("A short excerpt only — the full story is at %s." % se, "짧은 발췌만 실었어요. 전체 기사는 %s에서 볼 수 있어요." % src))
     else:
-        lead = '<p class="fn2" data-source-name="%s">%s</p>' % (src, L("No excerpt yet — read the story at %s." % src, "아직 발췌가 없어요. %s에서 기사를 확인하세요." % src))
+        lead = '<p class="fn2" data-source-name="%s">%s</p>' % (src, L("No excerpt yet — read the story at %s." % se, "아직 발췌가 없어요. %s에서 기사를 확인하세요." % src))
     orig = '<p class="orig" lang="%s">%s</p>' % (lang, h(a["title_orig"])) if a.get("title_orig") and a["title_orig"] != a["title"] else ""
     ai = a.get("ai")
     verdict = ""
@@ -407,13 +420,13 @@ def page_article(a, rel, now):
               "%s %s 뒤: %s%s%s" % (h(hd["asset"]), WIN_KO.get(hd["win"], h(hd["win"])), "시장 대비 " if hd.get("adj") else "", val, g_ko)),
             L("Measured from the story's time. Other things may have happened at the same time — this doesn't mean the story moved the price.",
               "소식 시각부터 잰 값이에요. 같은 시간에 다른 일이 겹쳤을 수 있고, 소식이 가격을 움직였다는 뜻은 아니에요."))
-    rows = "".join('<li><a href="%s"><b lang="%s">%s</b><span data-source-name="%s">%s · %s</span></a></li>' % (article_path(r), r.get("lang") or "ko", h(r["title"]), h(r["source_name"]), h(r["source_name"]), ts_html(r["t0"]))
+    rows = "".join('<li><a href="%s"><b lang="%s">%s</b><span data-source-name="%s">%s · %s</span></a></li>' % (article_path(r), r.get("lang") or "ko", h(r["title"]), h(r["source_name"]), src_l(r["source_name"]), ts_html(r["t0"]))
                    for r in rel)
     related_html = ('<section class="box2"><h2>%s</h2><ul class="rl">%s</ul></section>' % (L("Related stories", "관련 소식"), rows)) if rows else ""
     body = """<div class="wrap st">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="{B}live/">{live}</a><span aria-hidden="true">/</span><span>{cat}</span></nav>
   <header>
-    <div class="meta"><span class="tag">{cat}</span><span data-source-name="{src}">{src}</span>{when}</div>
+    <div class="meta"><span class="tag">{cat}</span><span data-source-name="{src}">{srcl}</span>{when}</div>
     <h1 lang="{lang}">{title}</h1>
     {orig}
   </header>
@@ -427,7 +440,7 @@ def page_article(a, rel, now):
     <a href="{B}brief/"><b>{nl2}</b><span>{nl2d}</span></a>
   </nav>
 </div>""".format(B=B, live=L("Live", "라이브"), cat=L(CAT_EN.get(cat, h(cat)), h(config.CATEGORY_LABEL.get(cat, cat))), src=src, when=ts_html(a["t0"]), lang=lang,
-                 title=h(a["title"]), orig=orig, lead=lead, url=h(a["url"]), read=L("Read at %s" % src, "%s에서 원문 보기" % src),
+                 title=h(a["title"]), orig=orig, lead=lead, url=h(a["url"]), srcl=L(se, src) if se != src else src, read=L("Read at %s" % se, "%s에서 원문 보기" % src),
                  copy=L("Copy link", "링크 복사"), copied=L("Link copied", "복사했어요"), verdict=verdict, move=move, related=related_html,
                  nl1=L("Live", "라이브"), nl1d=L("Breaking news as it lands, with prices after", "지금 나오는 속보와 그 뒤 가격"),
                  nl2=L("Brief", "정리"), nl2d=L("Stories that have run for days, on one timeline", "며칠째 이어지는 이야기를 한 시간 축에"))
@@ -436,13 +449,21 @@ def page_article(a, rel, now):
     return article_bundle.article_html(df_page("live", a["title"], desc, article_path(a)[len(B):], body, og=og, ogtype="article"))
 
 
+def bi(en, ko, tag="span", cls=""):
+    """AI 문장 영 · 한 짝. 영어가 없으면 한국어 칸만(영어 화면에선 숨는다)."""
+    c = ' class="%s"' % cls if cls else ""
+    if en:
+        return '<%s data-l="en" lang="en"%s>%s</%s><%s data-l="ko" lang="ko"%s>%s</%s>' % (tag, c, h(en), tag, tag, c, h(ko), tag)
+    return '<%s data-l="ko" lang="ko"%s>%s</%s>' % (tag, c, h(ko), tag)
+
+
 def _dl_row(it, news=False):
     v = "기사" if news else it.get("v") or "중립"
     tag = '<span class="tag n">%s</span>' % L("Story", "기사") if news else '<span class="tag %s">%s</span>' % (V_CLS.get(v, "n"), L(V_EN.get(v, h(v)), h(v)))
     meta = [ts_html(it["t"], "hm")]
     n = it.get("n", 1)
     if news:
-        meta.append("<span>%s%s</span>" % (h(it.get("src", "")), L(" +%d more" % (n - 1), " 외 %d곳" % (n - 1)) if n > 1 else ""))
+        meta.append("<span>%s%s</span>" % (src_l(it.get("src", "")), L(" +%d more" % (n - 1), " 외 %d곳" % (n - 1)) if n > 1 else ""))
     elif n > 1:
         meta.append("<span>%s</span>" % L("%d outlets" % n, "%d곳 보도" % n))
     if not news:
@@ -453,8 +474,11 @@ def _dl_row(it, news=False):
     link = it.get("link") or ""
     if link.startswith(("http://", "https://")):
         meta.append('<a href="%s" target="_blank" rel="noopener nofollow">%s ↗</a>' % (h(link), L("Source", "원문")))
-    return '<li class="%s"><div class="it">%s<span class="ko" lang="ko">%s</span><span class="mt2">%s</span></div></li>' % (
-        "big" if it.get("s", 0) >= 2 else "", tag, h(it["ko"]), "".join(meta))
+    # 영어 화면: 영어 제목만. 영어가 없는 소식은 영어 화면에서 줄째 숨긴다(한국어를 섞지 않는다)
+    line = ('<span class="ko" data-l="en" lang="en">%s</span><span class="ko" data-l="ko" lang="ko">%s</span>' % (h(it["en"]), h(it["ko"]))) if it.get("en") \
+        else '<span class="ko" lang="ko">%s</span>' % h(it["ko"])
+    return '<li class="%s"%s><div class="it">%s%s<span class="mt2">%s</span></div></li>' % (
+        "big" if it.get("s", 0) >= 2 else "", "" if it.get("en") else ' data-l="ko"', tag, line, "".join(meta))
 
 
 def page_daily(doc, prev, nxt, now):
@@ -483,13 +507,14 @@ def page_daily(doc, prev, nxt, now):
             up=mv(m.get("up", []), "up"), down=mv(m.get("down", []), "down"),
             note=L("9:00 to 9:00 Korea time (00:00–00:00 UTC), %d major coins. Listed side by side — not a claim the news moved them." % m.get("n", 0),
                    "한국 시간 오전 9시부터 다음 날 9시까지, 주요 코인 %d개 기준. 소식 때문에 움직였다는 뜻은 아니에요." % m.get("n", 0)))
+    en = doc.get("en") or {}
     sections = ""
     for k, name in DAILY_CATS:
         sec = doc["sections"].get(k) or {}
         rows = "".join(_dl_row(a, news=True) for a in sec.get("news", [])) + "".join(_dl_row(it) for it in sec.get("items", []))
         if rows:
             sections += '<section class="box2"><h2>%s</h2>%s<ol class="il">%s</ol></section>' % (
-                L(DAILY_EN[k], name), ('<p class="say2" lang="ko">%s</p>' % h(sec["say"])) if sec.get("say") else "", rows)
+                L(DAILY_EN[k], name), bi((en.get("say") or {}).get(k), sec["say"], "p", "say2") if sec.get("say") else "", rows)
     sched = "".join('<li><div class="it"><span class="tag n">{t}</span><span class="ko">{n}{more}</span><span class="mt2">{vs}</span></div></li>'.format(
         t=ts_html(e["ts"], "hm"), n=h(e["title"]), more=L(" +%d more" % e["more"], " 외 %d건" % e["more"]) if e.get("more") else "",
         vs=L("Past releases moved BTC %.1f× more than usual" % e["vs"], "평소보다 %.1f배 크게 흔들렸던 발표" % e["vs"]) if e.get("vs")
@@ -504,13 +529,14 @@ def page_daily(doc, prev, nxt, now):
     if doc["made"] < doc["end"]:
         partial = '<p class="partial2">%s</p>' % L("Day still in progress — built from what arrived by %s. The final version comes at 9:00 Korea time." % ts_html(doc["made"], "hm"),
                                                   "진행 중인 하루예요. %s까지 모인 자료로 정리했고, 오전 9시에 최종본으로 바뀌어요." % ts_html(doc["made"], "hm"))
+    if not en.get("headline"):   # 영어판이 아직 없는 하루(번역 실패 등): 영어 화면엔 한국어 대신 안내만
+        partial += '<p class="partial2" data-l="en">The English version of this recap is not ready yet. Menus, counts and prices are shown; the written parts will follow.</p>'
     body = """<div class="wrap st wide dl2">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="{B}brief/">{brief}</a><span aria-hidden="true">/</span><span>{label}</span></nav>
   <header>
     <p class="stk">{k} <span>{range}</span></p>
-    <h1 lang="ko">{head}</h1>
+    <h1>{head}</h1>
   </header>
-  <p class="enonly" data-l="en">This daily recap is written in Korean by a local AI model. Menus and labels switch with the language button.</p>
   {partial}
   {insights}
   {review}
@@ -532,12 +558,13 @@ def page_daily(doc, prev, nxt, now):
 </div>""".format(B=B, brief=L("Brief", "정리"), label=L(label_en, label_ko), k=L("Daily recap", "하루 정리"),
                  range=L("%s – %s KST" % (util.kst(doc["start"]).strftime("%b %-d %H:%M"), util.kst(doc["end"]).strftime("%b %-d %H:%M")),
                          "한국 시간 %s ~ %s" % (util.kst(doc["start"]).strftime("%-m/%-d %H:%M"), util.kst(doc["end"]).strftime("%-m/%-d %H:%M"))),
-                 head=h(doc["headline"]), partial=partial,
+                 head=bi(en.get("headline") or "Daily recap · %s" % label_en, doc["headline"]), partial=partial,
                  # 핵심 3가지가 있으면 AI 리뷰는 같은 사건을 되풀이해서 싣지 않는다(옛 정리에만)
-                 review=('<section class="box2"><h2>%s</h2><p class="rv" lang="ko">%s</p></section>' % (L("AI review", "AI 리뷰"), h(doc["review"]))) if doc.get("review") and not doc.get("insights") else "",
-                 insights=('<section class="ins2" aria-label="%s"><h2>%s <span>%s</span></h2><ol>%s</ol></section>' % (
-                     h("Insights"), L("Three things that mattered", "그날의 핵심 3가지"), L("AI (DeepSeek) · checked against the source stories", "AI(DeepSeek) · 원문 소식과 대조 확인"),
-                     "".join('<li><span class="n mono">%d</span><b lang="ko">%s</b><p lang="ko">%s</p></li>' % (i + 1, h(x.get("t", "")), h(x.get("s", ""))) for i, x in enumerate(doc["insights"][:3]))))
+                 review=('<section class="box2"><h2>%s</h2>%s</section>' % (L("AI review", "AI 리뷰"), bi(en.get("review"), doc["review"], "p", "rv"))) if doc.get("review") and not doc.get("insights") else "",
+                 insights=('<section class="ins2"%s aria-label="%s"><h2>%s <span>%s</span></h2><ol>%s</ol></section>' % (
+                     "" if any((x or {}).get("s") for x in en.get("insights") or []) else ' data-l="ko"', h("Insights"), L("Three things that mattered", "그날의 핵심 3가지"), L("AI (DeepSeek) · checked against the source stories", "AI(DeepSeek) · 원문 소식과 대조 확인"),
+                     "".join('<li><span class="n mono">%d</span>%s%s</li>' % (i + 1, bi(ei.get("t"), x.get("t", ""), "b"), bi(ei.get("s"), x.get("s", ""), "p"))
+                             for i, (x, ei) in enumerate(zip(doc["insights"][:3], (en.get("insights") or []) + [{}] * 3)))))
                  if doc.get("insights") else "",
                  bt=L("Bullish vs bearish", "호재 vs 악재"), lu=L("Bullish", "호재"), ld=L("Bearish", "악재"), ln=L("Neutral", "중립"),
                  u=b["호재"], d=b["악재"], nn=b.get("중립", 0), wu=100 * b["호재"] / tot, wd=100 * b["악재"] / tot, cats=cats,
@@ -548,8 +575,11 @@ def page_daily(doc, prev, nxt, now):
                  note=L("The review and section notes were written by a local AI model from the material above only. Numbers are computed by the program. News and prices from the same day are shown side by side, not as cause and effect. Not investment advice.",
                         "AI 리뷰와 분야별 문장은 로컬 AI가 위 자료만 보고 썼어요. 숫자는 프로그램이 계산했고, 소식과 시세는 같은 날 있었던 일을 나란히 둔 것이에요. 투자 조언이 아니에요."),
                  pager=pager)
-    desc = (doc.get("review") or doc["headline"])[:150]
-    return df_page("brief", "%s 하루 정리 — %s" % (label_ko, doc["headline"]), desc, "daily/%s/" % doc["date"], body)
+    if en.get("headline"):   # 영어가 기본 언어: 검색 · 공유 제목도 영어
+        title, desc = "Daily recap %s — %s" % (label_en, en["headline"]), (en.get("review") or (en.get("insights") or [{}])[0].get("s") or en["headline"])[:150]
+    else:
+        title, desc = "%s 하루 정리 — %s" % (label_ko, doc["headline"]), (doc.get("review") or doc["headline"])[:150]
+    return df_page("brief", title, desc, "daily/%s/" % doc["date"], body)
 
 
 def page_about(health, now):
@@ -564,7 +594,7 @@ def page_about(health, now):
             status = '<span class="wait2">%s</span>' % L("Waiting", "대기")
         cat = s["hint"]
         rows.append('<tr><th scope="row">%s</th><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-            h(s["name"]), L(CAT_EN.get(cat, "Auto"), h(config.CATEGORY_LABEL.get(cat, "자동 분류"))),
+            src_l(s["name"]), L(CAT_EN.get(cat, "Auto"), h(config.CATEGORY_LABEL.get(cat, "자동 분류"))),
             L("Korean", "한국어") if s["lang"] == "ko" else L("English", "영어"), status))
     n = len(config.SOURCES)
     en = """<section class="box2"><h2>What Delfona is</h2>
@@ -746,5 +776,5 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
     util.write_text(os.path.join(out, "robots.txt"), "User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml\n" % config.SITE_URL)
     util.write_json(os.path.join(out, "data", "feed.json"), {"at": now, "items": [feed_item(a) for a in articles[: config.FEED_JSON_LIMIT]]})
     # 상세 창의 '관련 기사'용 가벼운 목록(제목 · 시각 · 매체 · 코인 · 주소만) — feed.json 의 1/3 안팎
-    util.write_json(os.path.join(out, "data", "related.json"), {"at": now, "items": [{"t0": a["t0"], "title": a["title"], "src": a["source_name"], "assets": a.get("assets", []), "url": a["url"]}
+    util.write_json(os.path.join(out, "data", "related.json"), {"at": now, "items": [{"t0": a["t0"], "title": a["title"], "src": a["source_name"], **({"se": SRC_EN[a["source_name"]]} if a["source_name"] in SRC_EN else {}), "assets": a.get("assets", []), "url": a["url"]}
                                                                                     for a in articles[: config.FEED_JSON_LIMIT]]})
