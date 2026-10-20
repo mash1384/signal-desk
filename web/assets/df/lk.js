@@ -3,6 +3,10 @@ import { whenVisible } from './charts.js';
 import { watchThreads } from './thr.js';
 // 라이브 페이지 후보 공통: 실시간 속보 받기(30초마다), 테마 나누기, 카드·상세, 24시간 막대, 소식 이후 가격 변화
 export const L = () => DFI.lang() === 'ko';
+// 다크 모드: 캔버스 · 차트 색을 테마에 맞춘다(CSS 변수가 닿지 않는 곳)
+export const dark = () => document.documentElement.dataset.theme === 'dark';
+export const tone = (a) => (dark() ? `rgba(232,238,246,${a})` : `rgba(13,37,61,${a})`);
+export const ink = () => (dark() ? '#e8eef6' : '#0d253d');
 export const T = (en, ko) => (L() ? ko : en);
 export const esc = (s) => DFD.esc(s);
 
@@ -94,7 +98,7 @@ export function drawHist(cv, xs, { sel = null, h = 64 } = {}) {
   const mx = Math.max(3, ...bu.map((u, i) => Math.max(u + bn[i] / 2, bd[i] + bn[i] / 2))), bw = w / B, mid = h / 2;
   for (let i = 0; i < B; i++) { const x = i * bw + 0.5, ww = Math.max(1, bw - 1.2), hu = (bu[i] + bn[i] / 2) / mx * (mid - 3), hd = (bd[i] + bn[i] / 2) / mx * (mid - 3), dim = sel != null && Math.floor(i / 4) !== sel ? 0.28 : 1;
     g.globalAlpha = dim; g.fillStyle = '#12b07c'; g.fillRect(x, mid - hu, ww, hu); g.fillStyle = '#e5533f'; g.fillRect(x, mid + 1, ww, hd); }
-  g.globalAlpha = 1; g.fillStyle = 'rgba(13,37,61,.15)'; g.fillRect(0, mid, w, 1);
+  g.globalAlpha = 1; g.fillStyle = tone(.15); g.fillRect(0, mid, w, 1);
   return { B, bw };
 }
 
@@ -196,8 +200,8 @@ export function crosshair(cv, m) {
     let best = 0, bd = 1e9; m.pts.forEach((p, i) => { const d = Math.abs(m.X(p[0]) - x); if (d < bd) { bd = d; best = i; } });
     const [t, v] = m.pts[best], px = m.X(t), py = m.Y(v);
     g.putImageData(snap, 0, 0); g.save(); g.scale(dpr, dpr);
-    g.strokeStyle = 'rgba(13,37,61,.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(px + .5, 0); g.lineTo(px + .5, rc.height); g.stroke();
-    g.fillStyle = '#fff'; g.strokeStyle = '#0d253d'; g.lineWidth = 2; g.beginPath(); g.arc(px, py, 4, 0, 7); g.fill(); g.stroke(); g.restore();
+    g.strokeStyle = tone(.45); g.lineWidth = 1; g.beginPath(); g.moveTo(px + .5, 0); g.lineTo(px + .5, rc.height); g.stroke();
+    g.fillStyle = (dark() ? '#111b2b' : '#fff'); g.strokeStyle = ink(); g.lineWidth = 2; g.beginPath(); g.arc(px, py, 4, 0, 7); g.fill(); g.stroke(); g.restore();
     const after = t >= m.tStory, ch = (v / m.base - 1) * 100;
     tip.innerHTML = `<b class="mono">${fmtT(t)}</b><span class="mono">${v.toLocaleString('en-US', { maximumFractionDigits: m.dec ?? 2, minimumFractionDigits: m.dec ?? 2 })}</span>${after ? `<span class="mono ${ch >= 0 ? 'up' : 'down'}">${DFD.pct(ch)} ${T('vs story', '소식 대비')}</span>` : `<span class="b4">${T('before the story', '소식 전')}</span>`}`;
     tip.classList.add('on'); const tw = tip.offsetWidth, hostR = host.getBoundingClientRect(), left = rc.left - hostR.left + px;
@@ -232,17 +236,17 @@ function drawLW(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel =
   if (!window.LightweightCharts || !pts || pts.length < 2) { el.innerHTML = `<p class="mute">${T('No price data for this time.', '이 시간의 가격 자료가 없어요.')}</p>`; return null; }
   const LC = window.LightweightCharts, off = TZ(), lc = DFI.lang() === 'ko' ? 'ko-KR' : 'en-GB';
   el.innerHTML = '<div class="lgd"></div><div class="lwbox"></div>'; const box = el.querySelector('.lwbox'), lgd = el.querySelector('.lgd'); box.style.height = height + 'px';
-  const chart = LC.createChart(box, { autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#5f6c83', fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11, attributionLogo: false },
-    grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(13,37,61,.06)' } }, rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.12, bottom: 0.08 } },
+  const chart = LC.createChart(box, { autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: (dark() ? '#8d9bb2' : '#5f6c83'), fontFamily: 'JetBrains Mono, ui-monospace, monospace', fontSize: 11, attributionLogo: false },
+    grid: { vertLines: { visible: false }, horzLines: { color: tone(.06) } }, rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.12, bottom: 0.08 } },
     timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true },
-    crosshair: { mode: LC.CrosshairMode.Magnet, vertLine: { color: 'rgba(13,37,61,.45)', width: 1, style: 0, labelBackgroundColor: '#0d253d' }, horzLine: { color: 'rgba(13,37,61,.25)', width: 1, style: 2, labelBackgroundColor: '#0d253d' } },
+    crosshair: { mode: LC.CrosshairMode.Magnet, vertLine: { color: tone(.45), width: 1, style: 0, labelBackgroundColor: ink() }, horzLine: { color: tone(.25), width: 1, style: 2, labelBackgroundColor: ink() } },
     handleScroll: { mouseWheel: false, pressedMouseMove: false, horzTouchDrag: false, vertTouchDrag: true }, handleScale: false,
     localization: { locale: lc, timeFormatter: (t) => new Intl.DateTimeFormat(lc, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(new Date(t * 1000)), priceFormatter: (v) => v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) } });
   sweep(); LIVE.push({ chart, box });
   const seen = new Set(), data = pts.filter((p) => p[1] != null && !seen.has(Math.floor(p[0])) && seen.add(Math.floor(p[0]))).map((p) => ({ time: Math.floor(p[0]) + off, value: p[1] }));
   let i0 = data.findIndex((d) => d.time >= tStory + off); const hasAfter = i0 >= 0; if (!hasAfter) i0 = data.length - 1;
   const base = data[i0].value;
-  const pre = chart.addLineSeries({ color: '#b8c1ce', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: true });
+  const pre = chart.addLineSeries({ color: (dark() ? '#4a5870' : '#b8c1ce'), lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: true });
   // '소식' 표시가 그래프 왼쪽 · 오른쪽 끝에 붙으면 글자가 잘린다 → 그쪽에 빈 칸(값 없는 시각)을 조금 둔다
   const step = data.length > 1 ? Math.max(1, data[1].time - data[0].time) : 60, padN = Math.ceil(data.length * 0.07) + 2;
   const padL = i0 < padN ? Array.from({ length: padN - i0 }, (_, k) => ({ time: data[0].time - (padN - i0 - k) * step })) : [];
@@ -250,8 +254,8 @@ function drawLW(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel =
   pre.setData([...padL, ...data.slice(0, i0 + 1)]);
   const post = chart.addBaselineSeries({ baseValue: { type: 'price', price: base }, topLineColor: '#12b07c', topFillColor1: 'rgba(18,176,124,.22)', topFillColor2: 'rgba(18,176,124,.02)',
     bottomLineColor: '#e5533f', bottomFillColor1: 'rgba(229,83,63,.02)', bottomFillColor2: 'rgba(229,83,63,.22)', lineWidth: 2, priceLineVisible: false });
-  if (hasAfter) { post.setData([...data.slice(i0), ...padR]); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: '#0d253d', shape: 'arrowDown', text: mark || T('story', '소식') }]);
-    post.createPriceLine({ price: base, color: 'rgba(13,37,61,.35)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); }
+  if (hasAfter) { post.setData([...data.slice(i0), ...padR]); post.setMarkers([{ time: data[i0].time, position: 'aboveBar', color: ink(), shape: 'arrowDown', text: mark || T('story', '소식') }]);
+    post.createPriceLine({ price: base, color: tone(.35), lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); }
   chart.timeScale().fitContent();
   // 범례 시각: 오늘이면 시:분만(좁은 화면에서 '소식 대비'가 잘리지 않게)
   const today = new Date(Date.now() + off * 1000).toISOString().slice(0, 10);

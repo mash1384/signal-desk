@@ -3,7 +3,7 @@ import * as V from './rv.js';
 import { SORTS, MK } from './rv.js';
 // R3 · Impact — Perplexity Discover·Kalshi 참고. 맨 위 '지금' 한 장: 최근 6시간 가장 큰 소식 + 그 뒤 가격 흐름(크게).
 // 아래 카드 격자: 세기 3은 두 칸, 카드마다 '소식 이후' 작은 그래프. 정렬·거르기(최신순·호재·악재·강도순); 최신순 밖에선 중립 소식은 '그 밖의 소식' 목록으로. 오른쪽: 많이 언급된 이슈·종목.
-import { lwChart, store, start, day, T, esc, line, hm, openSheet, fillPx, newGate } from './lk.js';
+import { lwChart, store, start, day, T, esc, line, hm, openSheet, fillPx, newGate, dark, tone } from './lk.js';
 
 import * as Y from './yk.js';
 import { loadIndex, threadOf, briefHref } from './thr.js';
@@ -53,12 +53,12 @@ async function chart(cv, t, big) {
   const X = (tt) => (tt - t0) / (t1 - t0 || 1) * (w - 2) + 1, Y = (y) => h - 6 - (y - lo) / sp * (h - 12);
   let i0 = pts.findIndex((p) => p[0] >= t); const after = i0 >= 0; if (!after) i0 = pts.length - 1;
   const base = pts[i0][1], last = ys[ys.length - 1], up = last >= base, col = up ? '#12b07c' : '#e5533f';
-  g.lineWidth = big ? 2 : 1.5; g.strokeStyle = '#c3cad6'; g.beginPath(); pts.slice(0, i0 + 1).forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])))); g.stroke();
+  g.lineWidth = big ? 2 : 1.5; g.strokeStyle = (dark() ? '#3a4860' : '#c3cad6'); g.beginPath(); pts.slice(0, i0 + 1).forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])))); g.stroke();
   if (after) { const grd = g.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, up ? 'rgba(18,176,124,.18)' : 'rgba(229,83,63,.18)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
     g.beginPath(); pts.slice(i0).forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])))); g.lineTo(X(pts[pts.length - 1][0]), h); g.lineTo(X(pts[i0][0]), h); g.closePath(); g.fillStyle = grd; g.fill();
     g.beginPath(); pts.slice(i0).forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])))); g.strokeStyle = col; g.stroke(); }
-  const xs = X(t); g.strokeStyle = 'rgba(13,37,61,.35)'; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(xs, 4); g.lineTo(xs, h); g.stroke(); g.setLineDash([]);
-  if (big) { g.fillStyle = '#5b6b82'; g.font = '500 11px "JetBrains Mono", monospace'; const lw = g.measureText(T('story', '소식')).width; g.fillText(T('story', '소식'), xs + 5 + lw > w ? xs - 5 - lw : xs + 5, 14); }
+  const xs = X(t); g.strokeStyle = tone(.35); g.setLineDash([3, 3]); g.beginPath(); g.moveTo(xs, 4); g.lineTo(xs, h); g.stroke(); g.setLineDash([]);
+  if (big) { g.fillStyle = (dark() ? '#a3b2c7' : '#5b6b82'); g.font = '500 11px "JetBrains Mono", monospace'; const lw = g.measureText(T('story', '소식')).width; g.fillText(T('story', '소식'), xs + 5 + lw > w ? xs - 5 - lw : xs + 5, 14); }
   const closed = pts[pts.length - 1][0] < Date.now() / 1000 - 1800 && M !== 'btc';
   if (lbl) { const ch = (last / base - 1) * 100; lbl.className = (after ? (ch >= 0 ? 'up' : 'down') : '') + ' chg mono'; lbl.dataset.chg = '1';
     lbl.textContent = after ? `${DFD.pct(ch)}${closed ? T(' · market closed', ' · 장 마감') : ''}` : T('no trading since', '이후 거래 없음'); }
@@ -116,6 +116,10 @@ app.addEventListener('click', (e) => {
   if (e.target.closest('[data-pick]')) { Y.openPicker(() => { pqAt = 0; loadStrip(); render(true); }); return; } const so = e.target.closest('[data-sort]'); if (so) { SO = so.dataset.sort; try { localStorage.setItem('df-sort', SO); } catch (x) {} render(true); return; }
   const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }
   const t = e.target.closest('[data-th]'); if (t) { S.th = t.dataset.th; render(true); return; } const b = e.target.closest('[data-id]'); if (b && store.byId.has(b.dataset.id)) openSheet(store.byId.get(b.dataset.id)); });
+addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-theme-toggle]'); if (!b) return;
+  const t = dark() ? 'light' : 'dark'; document.documentElement.dataset.theme = t; try { localStorage.setItem('df-theme', t); } catch (x) {}
+  b.setAttribute('aria-pressed', String(t === 'dark')); drawStrip(); render(true); });
+document.querySelector('[data-theme-toggle]')?.setAttribute('aria-pressed', String(dark()));
 start(() => render(false)); loadStrip(); Y.every(loadStrip, 60000); DFI.onLang(() => { drawStrip(); render(true); });
 let rzT = 0, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)), 200); });   // 작은 그래프는 크기가 바뀌면 다시 그린다(큰 차트는 라이브러리가 맞춘다)
 
