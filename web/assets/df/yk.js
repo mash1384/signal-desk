@@ -154,8 +154,8 @@ export function emptyHTML() {
 }
 export function initSort() { let so = 'new'; try { so = localStorage.getItem('df-sort') || 'new'; } catch (e) {} return SORTS[so] ? so : 'new'; }
 // ---------- 내 자산 하루 요약(숫자는 프로그램 · AI 문장 없음 · 사용자 브라우저에서 계산) ----------
-let TH = null;
-export async function loadThemes() { if (TH) return TH; try { TH = await (await fetch(DFD.data('daily/themes.json') + '?t=' + Math.floor(Date.now() / 60000))).json(); } catch (e) { TH = { themes: [] }; } return TH; }
+let TH = null;   // 한 번만 받는다: 동시에 여러 번 불려도(첫 그리기 · 언어 · 영어 사전 도착) 요청은 하나
+export function loadThemes() { return TH || (TH = fetch(DFD.data('daily/themes.json') + '?t=' + Math.floor(Date.now() / 60000)).then((r) => r.json()).catch(() => ({ themes: [] }))); }
 export function daySummaryHTML(my, items, th) {
   // 숫자(소식 · 호재 · 악재 몇 건) 대신 자산마다 그날 가장 큰 소식 한 줄 — 누르면 상세가 열린다
   const day = items.filter((x) => x.t >= Date.now() / 1000 - 86400);
