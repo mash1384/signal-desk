@@ -37,7 +37,9 @@ def main():
     loader = unittest.TestLoader()
     if args.focus:
         suite = unittest.TestSuite() if args.legacy else loader.discover(str(ROOT / "tests" / "unit"), top_level_dir=str(ROOT))
-        suite.addTests(loader.loadTestsFromNames(["tests.test_judge", "tests.test_classify", "tests.test_econ_brief", "tests.test_daily_brief", "tests.test_story_threads", "tests.test_newdata", "tests.test_tg_publish"]))
+        focus = ["tests.test_judge", "tests.test_classify", "tests.test_econ_brief", "tests.test_daily_brief", "tests.test_story_threads", "tests.test_newdata", "tests.test_tg_publish"]
+        # 공개 저장소에는 Mac 작업(tools) 검사가 없다 — 있는 것만
+        suite.addTests(loader.loadTestsFromNames([n for n in focus if (ROOT / (n.replace(".", "/") + ".py")).is_file()]))
     else:
         suite = loader.discover(str(ROOT / "tests"), top_level_dir=str(ROOT))
     start = time.monotonic()

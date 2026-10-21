@@ -25,6 +25,8 @@ def safety():
 
 
 def repository_modules():
+    if not (ROOT / "tools").is_dir():   # 공개 저장소: Mac 작업 코드가 없다(그 검사도 없다)
+        return
     sys.path.insert(0, str(ROOT / "tools"))
     for name in ("ds_client", "tg_publish", "daily_brief", "econ_brief", "theme_brief", "story_threads", "release_watch"):
         sys.path[:] = [p for p in sys.path if Path(p).resolve() != Path.home() / ".signal"]
