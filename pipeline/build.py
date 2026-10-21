@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shutil
+import time
 
 from . import config, darkcss, judge, util, prerender, public_data, article_bundle
 from .impact import assets_for, subjects
@@ -264,11 +265,69 @@ def page_calendar_df():
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "calendar")
 
 
-def page_brief_df():
-    """정리(Delfona B2 · 타임라인 열지도): 며칠째 이어지는 이야기(줄기)를 한 시간 축 위에, 고르면 지금까지 · 최근 24시간 · 소식 전체.
-    자료는 브라우저가 threads.json(Mac 이 30분마다, tools/story_threads.py)과 어제 하루 정리(daily_brief.py)를 flash 브랜치에서 읽는다."""
+DESK_NAMES = (("crypto", "Crypto", "크립토"), ("nasdaq", "Nasdaq", "나스닥"), ("econ", "Economy", "경제"), ("ai", "AI", "AI"), ("world", "World", "세계"))
+
+
+def briefing_html(doc, now):
+    """브리핑(맨 위): 지금 판 · 인사이트 3개 · 분야별 한 줄(테마로) · 판을 바꿀 변수 · 지켜볼 일정. 빌드 때 그려 둔다(자료는 하루 4번, 빌드는 15분마다).
+    영 · 한 둘 다 싣고 문서 언어로 하나만 보인다(lk.css [data-l]). 영어가 없는 칸은 영어 화면에서 숨는다. 이틀 넘게 묵었으면 싣지 않는다."""
+    if not doc or not doc.get("ko") or now - doc.get("made", 0) > 48 * 3600:
+        return ""
+    ko, en = doc["ko"], doc.get("en") or {}
+    hm = lambda t: '<time datetime="%s" data-ts="%d" data-f="hm">%s</time>' % (util.iso(t), t, util.kst(t).strftime("%H:%M"))
+
+    def two(e, k, tag="span", cls=""):
+        return bi(e, k or "", tag, cls) if k else ""
+
+    def at(name, i, key):   # 영어판의 같은 자리(없으면 None)
+        xs = en.get(name) or []
+        return (xs[i] or {}).get(key) if i < len(xs) and isinstance(xs[i], dict) else None
+
+    def chips(refs):
+        refs = [r for r in (refs or []) if r in (doc.get("stories") or {})][:3]
+        return "".join('<button type="button" class="bf-ref" data-bf="%s">%s</button>' % (h(r), L("Source %d ↗" % (i + 1), "근거 %d ↗" % (i + 1))) for i, r in enumerate(refs))
+    g, ge = ko.get("regime") or {}, en.get("regime") or {}
+    big = "".join('<article class="bf-c"><p class="n mono">%d</p>%s%s<div class="rf">%s</div></article>' % (
+        i + 1, two(at("big", i, "t"), x.get("t"), "h3"), two(at("big", i, "s"), x.get("s"), "p"), chips(x.get("refs")))
+        for i, x in enumerate((ko.get("big") or [])[:3]))
+    desks = "".join('<a class="bf-d" href="%sthemes/%s/"><b>%s</b>%s<span class="go" aria-hidden="true">→</span></a>' % (
+        B, k, L(ne, nk), two(((en.get("desks") or {}).get(k) or {}).get("s"), ((ko.get("desks") or {}).get(k) or {}).get("s"), "p"))
+        for k, ne, nk in DESK_NAMES if ((ko.get("desks") or {}).get(k) or {}).get("s"))
+    risks = "".join("<li>%s%s</li>" % (two(at("risks", i, "s"), x.get("s")), chips(x.get("refs")))
+                    for i, x in enumerate(ko.get("risks") or []))
+    watch = "".join("<li>%s %s</li>" % (two(at("watch", i, "when"), x.get("when"), "b"), two(at("watch", i, "s"), x.get("s")))
+                    for i, x in enumerate(ko.get("watch") or []))
+    old = now - doc["made"] > 18 * 3600
+    stories = json.dumps(doc.get("stories") or {}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    return """<section class="bf" id="bf" aria-labelledby="bf-h"><div class="wrap">
+  <p class="bf-k"><span class="tag">{lbl}</span> {made} · {nxt}{old}</p>
+  <h1 id="bf-h">{head}</h1>
+  <div class="bf-rg"><span class="lb">{label}</span>{rs}</div>
+  <div class="bf-big">{big}</div>
+  {desks}
+  <div class="bf-two">{risks}{watch}</div>
+  <p class="bf-fn">{fn}</p>
+</div></section>
+<script type="application/json" id="bf-stories">{stories}</script>
+""".format(lbl=L("Briefing", "브리핑"), made=L("updated %s" % hm(doc["made"]), "%s 기준" % hm(doc["made"])),
+           nxt=L("next %s" % hm(doc["next"]), "다음 %s" % hm(doc["next"])) if doc.get("next") else "",
+           old=(" · " + L("an earlier briefing — the next one is late", "지난 브리핑이에요. 다음 회차가 늦어지고 있어요")) if old else "",
+           head=two(en.get("headline"), ko.get("headline")), label=two(ge.get("label"), g.get("label")), rs=two(ge.get("s"), g.get("s"), "p"), big=big,
+           desks=('<h2 class="bf-h2">%s</h2><div class="bf-desks">%s</div>' % (L("By desk", "분야별"), desks)) if desks else "",
+           risks=('<section class="bf-box"><h2>%s</h2><ul>%s</ul></section>' % (L("What could change the picture", "판을 바꿀 수 있는 변수"), risks)) if risks else "",
+           watch=('<section class="bf-box"><h2>%s</h2><ul>%s</ul><a class="more" href="%scalendar/">%s</a></section>' % (L("What to watch", "지켜볼 일정"), watch, B, L("Open the calendar →", "일정 보기 →"))) if watch else "",
+           fn=L("Written by AI from market data and judged news — an interpretation, not investment advice. Figures are matched to the source data by the program.",
+                "시장 자료와 판정한 소식으로 AI가 쓴 해석이에요. 투자 조언이 아니에요. 숫자는 프로그램이 원자료와 맞춰 봤어요."),
+           stories=stories)
+
+
+def page_brief_df(now=None):
+    """브리핑(Delfona · 맨 앞 탭, 주소는 /brief/): 맨 위에 '지금 판'(tools/briefing.py, 하루 4번)을 빌드 때 그려 넣고,
+    그 아래는 며칠째 이어지는 이야기(줄기)를 한 시간 축 위에(threads.json, 브라우저가 읽는다) + 하루 정리."""
     tpl = read_tpl("df_brief.html")
-    return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "brief")
+    doc = util.read_json(os.path.join(config.FLASH_DIR, "daily", "briefing.json"), None)
+    html_ = tpl.replace('<main id="app"></main>', briefing_html(doc, now or time.time()) + '<main id="app"></main>', 1)
+    return with_beacon(with_pf(html_.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "brief")
 
 
 # ---------------------------------------------------------------- Delfona 고정 페이지(소식 상세 · 하루 정리 · 소개 · 404)
@@ -277,8 +336,8 @@ def page_brief_df():
 
 LOGO = ('<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 '
         'A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg>')
-DF_NAV = [("live", "live/", "n1", "Live", "Live", "live"), ("my", "my/", "n5", "My assets", "My", "my"), ("themes", "themes/", "n2", "Themes", "Themes", "th"),
-          ("brief", "brief/", "n3", "Brief", "Brief", "br"), ("calendar", "calendar/", "n4", "Calendar", "Calendar", "ca")]
+DF_NAV = [("brief", "brief/", "n3", "Briefing", "Briefing", "br"), ("live", "live/", "n1", "Live", "Live", "live"), ("my", "my/", "n5", "My assets", "My", "my"),
+          ("themes", "themes/", "n2", "Themes", "Themes", "th"), ("calendar", "calendar/", "n4", "Calendar", "Calendar", "ca")]   # 브리핑이 맨 앞(주소는 /brief/ 그대로)
 CAT_EN = {"crypto": "Crypto", "ai": "AI", "macro": "Macro"}
 DAILY_EN = {"crypto": "Crypto", "econ": "Economy", "world": "World", "ai": "AI industry"}
 SECTOR_EN = {"l1": "Layer 1", "l2": "Layer 2", "defi": "DeFi", "ai": "AI", "meme": "Meme", "rwa": "RWA", "stable": "Stablecoins", "exchange": "Exchanges",
@@ -363,7 +422,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 <nav class="tabs" aria-label="Menu">{tabs}</nav>
 <script>window.DF_BASE = '{B}assets/df/'; window.DF_ROOT = '{B}';</script>
 <script src="{B}assets/df/data.js?v={V}"></script>
-<script>DFI.init({{ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', n5: '내 자산' }});</script>
+<script>DFI.init({{ n1: '라이브', n2: '테마', n3: '브리핑', n4: '일정', n5: '내 자산' }});</script>
 <script src="{B}assets/df/st.js?v={V}"></script>
 </body>
 </html>
@@ -443,7 +502,7 @@ def page_article(a, rel, now):
                  title=h(a["title"]), orig=orig, lead=lead, url=h(a["url"]), srcl=L(se, src) if se != src else src, read=L("Read at %s" % se, "%s에서 원문 보기" % src),
                  copy=L("Copy link", "링크 복사"), copied=L("Link copied", "복사했어요"), verdict=verdict, move=move, related=related_html,
                  nl1=L("Live", "라이브"), nl1d=L("Breaking news as it lands, with prices after", "지금 나오는 속보와 그 뒤 가격"),
-                 nl2=L("Brief", "정리"), nl2d=L("Stories that have run for days, on one timeline", "며칠째 이어지는 이야기를 한 시간 축에"))
+                 nl2=L("Briefing", "브리핑"), nl2d=L("The big picture now, and stories that run for days", "지금 시장의 큰 그림과 며칠째 이어지는 이야기"))
     desc = (a["summary"][0] if a.get("summary") else a.get("excerpt") or a["title"])[:150]
     og = "%s/og/%s.jpg" % (config.SITE_URL, a["id"]) if a.get("og") else None
     return article_bundle.article_html(df_page("live", a["title"], desc, article_path(a)[len(B):], body, og=og, ogtype="article"))
@@ -522,7 +581,7 @@ def page_daily(doc, prev, nxt, now):
         for e in doc.get("schedule", []))
     label_ko, label_en = _day_label(doc["date"]), day_en(doc["date"])
     pager = '<nav class="pager2" aria-label="Other days">{p}<a href="{B}brief/">{all}</a>{n}</nav>'.format(
-        B=B, all=L("Brief", "정리"),
+        B=B, all=L("Briefing", "브리핑"),
         p=('<a href="%sdaily/%s/">← %s</a>' % (B, prev, L(day_en(prev), _day_label(prev)))) if prev else "<span></span>",
         n=('<a href="%sdaily/%s/">%s →</a>' % (B, nxt, L(day_en(nxt), _day_label(nxt)))) if nxt else "<span></span>")
     partial = ""
@@ -555,7 +614,7 @@ def page_daily(doc, prev, nxt, now):
   {sched}
   <p class="fn2">{note}</p>
   {pager}
-</div>""".format(B=B, brief=L("Brief", "정리"), label=L(label_en, label_ko), k=L("Daily recap", "하루 정리"),
+</div>""".format(B=B, brief=L("Briefing", "브리핑"), label=L(label_en, label_ko), k=L("Daily recap", "하루 정리"),
                  range=L("%s – %s KST" % (util.kst(doc["start"]).strftime("%b %-d %H:%M"), util.kst(doc["end"]).strftime("%b %-d %H:%M")),
                          "한국 시간 %s ~ %s" % (util.kst(doc["start"]).strftime("%-m/%-d %H:%M"), util.kst(doc["end"]).strftime("%-m/%-d %H:%M"))),
                  head=bi(en.get("headline") or "Daily recap · %s" % label_en, doc["headline"]), partial=partial,
@@ -600,10 +659,10 @@ def page_about(health, now):
     en = """<section class="box2"><h2>What Delfona is</h2>
     <p>Delfona reads breaking news on crypto, the Nasdaq, the economy, AI and world affairs as it lands, labels each story bullish or bearish, and shows what prices did afterwards. It is built for people who want the market-moving part of the news without reading everything.</p>
     <ul>
+      <li><b>Briefing</b> — the big picture across crypto, US stocks, rates and the dollar, AI and world affairs, written four times a day by AI from market data and judged news (an interpretation, not investment advice); below it, stories that run for days on one timeline.</li>
       <li><b>Live</b> — breaking news in one line, with a price chart starting at the moment the story arrived.</li>
       <li><b>My assets</b> — pick coins, stocks or indices; see only their news, sudden-move alerts and a daily summary. Your picks stay in your browser.</li>
       <li><b>Themes</b> — crypto, Nasdaq, economy, AI and world: the last 24 hours of bullish/bearish flow, what changed versus usual, and related prices.</li>
-      <li><b>Brief</b> — stories that run for days, laid on one timeline, with what happened so far and what today added.</li>
       <li><b>Calendar</b> — upcoming economic releases, the first-published value of past releases, and how prices moved after similar readings.</li>
     </ul></section>
   <section class="box2" id="method"><h2>How it works</h2>
@@ -620,10 +679,10 @@ def page_about(health, now):
     ko = """<section class="box2"><h2>Delfona는</h2>
     <p>Delfona는 크립토·나스닥·경제·AI·세계정세 속보를 나오는 대로 읽고 호재·악재를 판정해, 소식이 나온 뒤 가격이 어떻게 움직였는지 함께 보여 주는 서비스예요. 모든 뉴스를 읽지 않고도 시장을 움직이는 부분만 볼 수 있게 만들었어요.</p>
     <ul>
+      <li><b>브리핑</b> — 크립토 · 미국 주식 · 금리와 달러 · AI · 세계정세를 한데 묶은 지금 시장의 큰 그림. 시장 자료와 판정한 소식으로 AI가 하루 4번 써요(해석이며 투자 조언이 아니에요). 그 아래에는 며칠째 이어지는 이야기를 한 시간 축 위에 보여 줘요.</li>
       <li><b>라이브</b> — 속보를 한 줄로, 소식이 나온 순간부터의 가격 차트와 함께.</li>
       <li><b>내 자산</b> — 코인·주식·지수를 골라 그 소식, 급변 알림, 하루 요약만. 고른 목록은 이 브라우저에만 저장돼요.</li>
       <li><b>테마</b> — 크립토·나스닥·경제·AI·세계: 지난 24시간 호재·악재 흐름, 평소와 달라진 점, 관련 시세.</li>
-      <li><b>정리</b> — 며칠째 이어지는 이야기를 한 시간 축 위에, 지금까지와 오늘 더해진 것.</li>
       <li><b>일정</b> — 다가오는 경제 발표, 과거 발표의 처음 나온 값, 비슷한 값이 나왔을 때 가격 흐름.</li>
     </ul></section>
   <section class="box2" id="method"><h2>어떻게 동작하나요</h2>
@@ -753,7 +812,7 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
         prev = dailies[i + 1]["date"] if i + 1 < len(dailies) else None
         util.write_text(os.path.join(out, "daily", doc["date"], "index.html"), page_daily(doc, prev, nxt, now))
     # 정리: 새 정리(/brief/)가 목록을 대신한다. 날짜별 하루 정리(/daily/<날짜>/)는 그대로 둔다
-    util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(), prerendered.get("brief"), responsive=True))
+    util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(now), prerendered.get("brief"), responsive=True))
     util.write_text(os.path.join(out, "daily", "index.html"), redirect_page("brief/"))
     for a in articles:
         util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))

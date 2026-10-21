@@ -10,5 +10,9 @@
   "Inter-OFL.txt": {
     "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/OFL.txt",
     "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+  },
+  "Pretendard-OFL.txt": {
+    "source": "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/LICENSE",
+    "sha256": "d31ddd9f2bed32fd7e302a205cf2380ba0de6529152d239ef99cfb6f261bfc04"
   }
 }

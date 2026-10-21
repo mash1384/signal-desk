@@ -4,7 +4,7 @@
     "live/": 1481304,
     "my/": 1198684,
     "themes/crypto/": 1115541,
-    "brief/": 906132,
+    "brief/": 1052488,
     "calendar/": 1153109,
     "daily/": 649908,
     "about/": 573957
@@ -14,7 +14,7 @@
     "live/": 1703500,
     "my/": 1378487,
     "themes/crypto/": 1282873,
-    "brief/": 1042052,
+    "brief/": 1210362,
     "calendar/": 1326076,
     "daily/": 747395,
     "about/": 660051
@@ -5631,5 +5631,20 @@
     "max_two_run_drift": 0.0,
     "tolerance": 0.0,
     "method": "axe 4.10.3 check.data.contrastRatio; same snapshot/build, two full 48-case runs; original node keys unchanged"
-  }
+  },
+  "budget_changes": [
+    {
+      "date": "2026-10-21",
+      "page": "brief/",
+      "measured_bytes": [
+        906132,
+        1052488
+      ],
+      "budget_bytes": [
+        1042052,
+        1210362
+      ],
+      "reason": "Briefing (big picture) added at the top of /brief/: ~16 KB HTML plus three Pretendard chunks for its Korean text (~75 KB, cached after the first visit). Approved by the operator. Other pages unchanged."
+    }
+  ]
 }

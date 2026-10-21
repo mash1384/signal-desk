@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 import shutil
 
-NAMES = {'threads.json', 'thread_index.json', 'econ.json', 'themes.json'}
+NAMES = {'threads.json', 'thread_index.json', 'econ.json', 'themes.json', 'briefing.json'}
 
 
 def copy_daily(flash, out):

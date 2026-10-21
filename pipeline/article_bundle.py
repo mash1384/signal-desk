@@ -11,7 +11,7 @@ def bundle(web, out):
     root = Path(web)
     fonts = root / 'assets/fonts'
     css = (fonts / 'subsets.css').read_text()
-    css = re.sub(r'url\("([^\"]+)"\)', lambda m: 'url("data:font/woff2;base64,' + base64.b64encode((fonts / m[1]).read_bytes()).decode() + '")', css)
+    css = re.sub(r'url\("(?!data:)([^\"]+)"\)', lambda m: 'url("data:font/woff2;base64,' + base64.b64encode((fonts / m[1]).read_bytes()).decode() + '")', css)   # 이미 CSS 안에 든 글꼴(data:)은 그대로
     inter = fonts / 'inter.css'
     # Keep Inter reversible; its pinned external font URLs are immutable.
     if inter.is_file() and '"Inter"' in (root / 'assets/df/lk.css').read_text():
