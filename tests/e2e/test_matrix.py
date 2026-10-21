@@ -31,11 +31,25 @@ def my_fixture_counts(offline):
     return {"feed": len(mine), "top": sum(x["v"] != "중립" for x in mine)}
 
 
-def content_checks(page, name, row, offline):
+def built_html(site, path):
+    return (Path(site) / path / "index.html").read_text(encoding="utf-8")
+
+
+def ko_only_insights(site, path):
+    """영어판이 없는 하루 정리(예: 2026-10-17): 핵심 3가지는 한국어 칸만 있고 영어 화면에서는 숨는 게 맞다(영어 화면에 한글 금지)."""
+    return '<section class="ins2" data-l="ko"' in built_html(site, path)
+
+
+def content_checks(page, name, row, offline, path=None, lang="ko"):
     targets = dict(CONTENT[name])
-    # 브리핑(맨 위, 빌드 때 그린다): 자료가 있으면 제목 · 국면 · 인사이트 3개가 보여야 한다
-    if name == "brief/" and (Path(offline.site) / "data/daily/briefing.json").is_file():
+    # 브리핑(맨 위, 빌드 때 그린다): 빌드가 그렸으면 제목 · 국면 · 인사이트 3개가 보여야 한다.
+    # 자료 파일만으로 정하지 않는다 — 빌드는 Mac 자료가 없을 때 {"v": 0} 빈 판을 둔다(pipeline/public_data.py STUBS), 묵은 자료는 그리지 않는다.
+    if name == "brief/" and 'id="bf"' in built_html(offline.site, "brief"):
         targets.update({"#bf h1": 1, "#bf .bf-rg": 1, "#bf .bf-c": 3})
+    if name == "daily/" and lang == "en" and ko_only_insights(offline.site, path):
+        targets.pop(".ins2 ol > li", None)
+        if page.locator(".ins2").first.is_visible():
+            row["errors"].append({"kind": "korean-in-english", "selector": ".ins2"})
     # Even if fixture content disappears, these assertions remain enabled.
     if name == "my/":
         row["fixture_content"] = my_fixture_counts(offline)
@@ -48,7 +62,7 @@ def content_checks(page, name, row, offline):
     row["content"] = {s: page.locator(s).count() for s in targets}
     for selector, minimum in targets.items():
         count = row["content"][selector]
-        if count < minimum or (name == "daily/" and count != 3):
+        if count < minimum or (selector == ".ins2 ol > li" and count != 3):
             row["errors"].append({"kind": "missing-content", "selector": selector, "count": count, "expected": minimum})
         elif not page.locator(selector).first.inner_text().strip():
             row["errors"].append({"kind": "missing-content", "selector": selector, "reason": "empty text"})
@@ -98,17 +112,20 @@ def test_page(case, session_page, qa, site_server, request):
     page.on("requestfinished", finished)
     page.on("requestfailed", lambda r: (row["errors"] if ours(r.url) else row["warnings"]).append({"kind": "requestfailed", "url": r.url, "error": r.failure}))
     page.on("pageerror", lambda e: row["errors"].append({"kind": "pageerror", "error": str(e)}))
-    page.goto(site_server + path_for(name, request.config.getoption("--site")), wait_until="networkidle", timeout=20000)
+    path = path_for(name, request.config.getoption("--site"))
+    page.goto(site_server + path, wait_until="networkidle", timeout=20000)
     if name == "" and page.locator("#intro .skip").is_visible():
         page.locator("#intro .skip").click()
     page.evaluate("document.fonts.ready")
     # Wait for data-backed elements, collecting all failures for one case.
     for selector in SELECTORS[name]:
+        if selector == ".ins2" and lang == "en" and ko_only_insights(offline.site, path):
+            continue   # 위 content_checks 가 '영어 화면에서 숨었나'를 대신 본다
         try:
             page.locator(selector).first.wait_for(state="visible", timeout=7000)
         except Exception:
             row["errors"].append({"kind": "missing", "selector": selector})
-    content_checks(page, name, row, offline)
+    content_checks(page, name, row, offline, path, lang)
     page.wait_for_timeout(500)
     scroll = page.evaluate("document.documentElement.scrollWidth")
     if scroll > width:

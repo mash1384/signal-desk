@@ -1,7 +1,9 @@
 """정적 페이지 생성. 서버 없이 GitHub Pages에서 그대로 열리는 HTML을 만든다."""
 
 from contextvars import ContextVar
+from bisect import bisect_left
 import hashlib
+from heapq import merge
 import html
 import json
 import os
@@ -168,8 +170,59 @@ def sitemap(articles, now, dailies=()):
     return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">%s</urlset>' % body
 
 
-def related(a, articles, n=5):
+class RelatedIndex:
+    """한 빌드의 후보 위치를 재사용한다. 추천 순서는 원래 입력 순서를 따른다."""
+
+    def __init__(self, articles):
+        self.articles = articles
+        self.types, self.assets, self.categories = {}, {}, {}
+        self.times = [-a["t0"] for a in articles]
+        self.ordered = all(x <= y for x, y in zip(self.times, self.times[1:]))
+        for i, article in enumerate(articles):
+            kind = article.get("etype")
+            if kind != "other":
+                self.types.setdefault(kind, []).append(i)
+            for asset in set(article.get("assets", [])):
+                self.assets.setdefault(asset, []).append(i)
+            self.categories.setdefault(article["category"], []).append(i)
+
+    def _eligible(self, article, pools):
+        start = bisect_left(self.times, -article["t0"]) if self.ordered else 0
+
+        def positions(pool):
+            for i in range(bisect_left(pool, start), len(pool)):
+                yield pool[i]
+
+        previous = -1
+        for pos in merge(*(positions(pool) for pool in pools)):
+            if pos == previous:  # 같은 기사가 유형과 여러 자산에 동시에 걸릴 수 있다.
+                continue
+            previous = pos
+            candidate = self.articles[pos]
+            if candidate["t0"] <= article["t0"] and candidate["id"] != article["id"]:
+                yield candidate
+
+    def related(self, article, n):
+        pools = [self.types.get(article.get("etype"), [])]
+        pools.extend(self.assets.get(asset, []) for asset in set(article.get("assets", [])))
+        same = []
+        for candidate in self._eligible(article, pools):
+            same.append(candidate)
+            if len(same) == n:
+                return same
+        ids = {candidate["id"] for candidate in same}
+        for candidate in self._eligible(article, [self.categories.get(article["category"], [])]):
+            if candidate["id"] not in ids:
+                same.append(candidate)
+                if len(same) == n:
+                    break
+        return same
+
+
+def related(a, articles, n=5, *, index=None):
     """같은 유형·자산의 이전 기사. 이전 기사만 고르므로 새 기사가 들어와도 페이지가 바뀌지 않는다."""
+    if index is not None and n > 0:
+        return index.related(a, n)
     older = [b for b in articles if b["t0"] <= a["t0"] and b["id"] != a["id"]]
     mine = set(a.get("assets", []))
     same = [b for b in older if (b.get("etype") == a.get("etype") != "other") or (mine & set(b.get("assets", [])))][:n]
@@ -814,8 +867,9 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
     # 정리: 새 정리(/brief/)가 목록을 대신한다. 날짜별 하루 정리(/daily/<날짜>/)는 그대로 둔다
     util.write_text(os.path.join(out, "brief", "index.html"), prerender.insert(page_brief_df(now), prerendered.get("brief"), responsive=True))
     util.write_text(os.path.join(out, "daily", "index.html"), redirect_page("brief/"))
+    related_index = RelatedIndex(articles)
     for a in articles:
-        util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles), now))
+        util.write_text(os.path.join(out, "a", a["id"], "index.html"), page_article(a, related(a, articles, index=related_index), now))
     # 테마: /themes/<k>/ (첫 화면은 크립토). 옛 시그널 보드·상장 레이더는 테마로 합쳐졌다
     for k in THEME_PAGES:
         util.write_text(os.path.join(out, "themes", k, "index.html"), page_themes_df(k))
