@@ -40,6 +40,11 @@
 .sum li .n { padding-top: 3px; font-size: 12px; color: var(--faint); }
 .ref { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; margin-inline-start: 4px; border-radius: 99px; background: #eef0ff; color: var(--primary); font-size: 11.5px; font-weight: 600; vertical-align: 2px; }
 @media (hover: hover) { .ref:hover { background: #e2e5ff; } }
+.dk .dks { margin-top: 10px; font-size: 17px; line-height: 1.6; font-weight: 550; color: var(--ink); text-wrap: pretty; }
+.dk .dkg { display: grid; gap: 16px; margin-top: 16px; }
+.dk h3 { margin: 0 0 6px; font-size: 12.5px; font-weight: 650; color: var(--mute); }
+.dk ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 8px; list-style: disc; } .dk li { display: list-item; font-size: 15.5px; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
+.dk .go { color: var(--primary); font-weight: 600; white-space: nowrap; }
 .fn { margin-top: 12px; font-size: 12px; color: var(--faint); line-height: 1.5; }
 .flow .lgd { height: 24px; line-height: 24px; min-width: 0; overflow: hidden; contain: inline-size; white-space: nowrap; font-size: 12px; color: var(--mute); font-variant-numeric: tabular-nums; } .flow .lgd b { font-weight: 600; color: var(--ink); } .flow .lgd b.up { color: var(--up); } .flow .lgd b.down { color: var(--down); }
 @media (max-width: 480px) { .flow .lgd { height: 48px; white-space: normal; } }
@@ -87,6 +92,8 @@
 .t2 .acard .pr { margin-top: 6px; font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; } .t2 .acard .ch { font-size: 12.5px; } .t2 .acard canvas { display: block; width: 100%; height: 30px; margin-top: 6px; }
 .t2 .two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; } @media (min-width: 1000px) { .t2 .two { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: start; } }
 .t2 .col { display: grid; gap: 18px; } .t2 .sbox { padding: 22px 24px; } @media (min-width: 1000px) { .t2 .sbox { position: sticky; top: 76px; } }
+@media (max-width: 999px) { .t2 .sbox { order: -1; } }   /* 한 줄 화면: 분야 판독을 차트보다 먼저(예전 요약 자리) */
+.t2 .sbox:has(.dk) { position: static; }   /* 판독은 화면보다 길 수 있어 고정하지 않는다(아랫부분이 가려지지 않게) */
 .t2 .sgrid { display: grid; gap: 0 22px; } @media (min-width: 900px) { .t2 .sgrid { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>

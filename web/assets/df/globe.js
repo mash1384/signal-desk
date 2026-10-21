@@ -1,6 +1,7 @@
 // P5 다음 장면 · 지구(?br=4): 파형 입자가 흩어졌다 모여 거대한 입자 지구가 된다.
 // 대륙은 촘촘한 입자, 바다는 옅은 입자, 둘레엔 대기 빛과 궤도 고리. 스크롤하면 지구가 돌아 테마별 도시(크립토=싱가포르, 나스닥=뉴욕, 경제=런던, AI=샌프란시스코)를 정면에 두고,
-// 그 도시에서 빛기둥이 솟으며 그 테마의 AI 요약이 나온다. 요약은 지난 24시간 실시간 속보를 로컬 AI가 테마별로 쓴 것(themes.json).
+// 그 도시에서 빛기둥이 솟으며 그 분야 한 줄이 나온다. 제목 · 분야 한 줄은 브리핑(briefing.json, 하루 4번), 건수 · 호재악재는 themes.json.
+// 브리핑이 없거나 48시간 넘게 묵었으면 themes.json 의 예전 요약을 그대로 쓴다.
 import * as THREE from 'three';
 import { Morph, COL, clamp, ss, sm, lerp, rnd, project, T, textPoints } from './pk.js';
 
@@ -156,15 +157,22 @@ export function makeGlobe({ scene, sec, lay, mob }) {
   @media(max-width:899px){.glx{width:auto}.glx h2{font-size:23px}.glx .hl{display:none}.glx ol{margin-top:12px}.glx li{display:none;border:0;padding:0}.glx li.on{display:block}.glx li.on p:not(.h){max-height:340px;font-size:14px;line-height:1.55}.glx li .h b{font-size:20px}.glx .fn{display:none}}`;
   document.head.appendChild(css);
   let TH = null, act = -1;
+  const hm = (s) => new Date(s * 1000).toLocaleTimeString(L() ? 'ko-KR' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
   const fill = () => { if (!TH) return; const l = L(), hl = TH.headline[l ? 'ko' : 'en'];
-    box.innerHTML = `<p class="k">${T('AI world brief · last 24h', 'AI 세계 요약 · 지난 24시간')} · ${TH.total}${T(' stories', '건')}</p>
+    box.innerHTML = `<p class="k">${TH.bf ? T(`AI briefing · updated ${hm(TH.bf)}`, `AI 브리핑 · ${hm(TH.bf)} 기준`) : `${T('AI world brief · last 24h', 'AI 세계 요약 · 지난 24시간')} · ${TH.total}${T(' stories', '건')}`}</p>
       <h2>${T('Every issue on Earth,<br>summed up by AI.', '전 세계의 이슈를,<br>AI가 한 번에 요약해요.')}</h2>
       <p class="hl"><small>${T('Today, in one line', '오늘을 한 줄로')}</small>${DFD.esc(hl)}</p>
       <ol>${TH.themes.map((t) => `<li data-k="${t.k}"><p class="h"><b>${THEMES[t.k].name[l]}</b><span><span class="up">${t.u}↑</span> <span class="down">${t.d}↓</span></span><i>${SH === 'globe' ? THEMES[t.k].city[l] + ' · ' : ''}${t.n}${T(' stories', '건')}</i></p><p>${DFD.esc(t[l ? 'ko' : 'en'] || '')}</p></li>`).join('')}</ol>
-      <p class="fn">${T('Summaries written by AI from the last 24 hours of judged news. Not investment advice.', '지난 24시간 판정한 소식을 바탕으로 AI가 요약했어요. 투자 조언이 아니에요.')}</p>`;
+      <p class="fn">${TH.bf ? T('Written by AI from market data and judged news — an interpretation, not investment advice.', '시장 자료와 판정한 소식으로 AI가 쓴 해석이에요. 투자 조언이 아니에요.') : T('Summaries written by AI from the last 24 hours of judged news. Not investment advice.', '지난 24시간 판정한 소식을 바탕으로 AI가 요약했어요. 투자 조언이 아니에요.')}</p>`;
     pins.forEach((e, j) => { const t = TH.themes[j]; e.innerHTML = `${THEMES[t.k].name[l]}<span>${t.n}</span>`; }); act = -1; };
-  fetch((window.DF_THEMES || new URL('./themes.json', import.meta.url).href) + '?v=' + Math.floor(Date.now() / 6e5)).then((r) => r.json()).then((d) => {
-    TH = d; TH.themes.sort((a, b) => ORDER.indexOf(a.k) - ORDER.indexOf(b.k)); fill(); DFI.onLang(fill);
+  const TU = window.DF_THEMES || new URL('./themes.json', import.meta.url).href, VQ = '?v=' + Math.floor(Date.now() / 6e5);
+  // 브리핑으로 제목 · 분야 판독을 덮는다(언어별로, 그 칸이 비었으면 예전 글 그대로)
+  const mix = (d, bf) => { if (!bf || !bf.made || !bf.ko || Date.now() / 1000 - bf.made > 48 * 3600) return d;
+    ['ko', 'en'].forEach((g) => { const h = bf[g] && bf[g].headline; if (h) d.headline[g] = h; });
+    d.themes.forEach((t) => ['ko', 'en'].forEach((g) => { const x = bf[g] && bf[g].desks && bf[g].desks[t.k]; if (x && x.s) t[g] = x.s; }));   // 분야 한 줄(수석 전략가)
+    d.bf = bf.made; return d; };
+  Promise.all([fetch(TU + VQ).then((r) => r.json()), fetch(TU.replace(/themes\.json$/, 'briefing.json') + VQ).then((r) => (r.ok ? r.json() : null)).catch(() => null)]).then(([d, bf]) => {
+    TH = mix(d, bf); TH.themes.sort((a, b) => ORDER.indexOf(a.k) - ORDER.indexOf(b.k)); fill(); DFI.onLang(fill);
     // 빛기둥 색: 그 테마의 호재·악재 비율
     const tmp = new THREE.Color(); const recolor = () => { if (!ready) return setTimeout(recolor, 100);
       for (let i = 0; i < N; i++) if (kindOf[i] >= 3) { const t = TH.themes[kindOf[i] - 3], bu = t.u / Math.max(1, t.u + t.d); tmp.copy(COL.ind).lerp(seed[i] * 1.3 < bu ? COL.up : COL.dn, 0.55 + 0.4 * seed[i]); col.set([tmp.r, tmp.g, tmp.b, 0.9 - seed[i] * 0.5], i * 4); } };
