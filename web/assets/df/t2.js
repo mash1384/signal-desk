@@ -14,7 +14,7 @@ const ko = () => DFI.lang() === 'ko';
 // 오른쪽 칸: 분야 전문가 판독(브리핑). 없으면 예전 AI 요약, 그것도 없으면 '평소 대비 변화' 신호
 const side = (t) => K.deskHTML(bf, S.k) || ((t.s_ko || []).length ? K.summaryHTML(doc, t) : K.changesHTML(doc, t, S.chg));
 async function render(soft) {
-  if (!doc) [doc, bf] = await Promise.all([once('themes', () => K.loadThemes()), once('briefing', () => K.loadBriefing())]);
+  if (!doc) { [doc, bf] = await Promise.all([once('themes', () => K.loadThemes()), once('briefing', () => K.loadBriefing())]); K.useBriefingStories(bf); }
   const t = K.themeOf(doc, S.k); document.title = `${K.tn(S.k)} · Delfona`;
   const xs = K.pickStories(t, S.so, S.sec, S.chg), shown = S.more ? xs : xs.slice(0, 12);
   const grid = `<section id="stories"><h2 class="bh"><span>${ko() ? '주요 소식' : 'Key stories'}${K.filterChip(t, S)}</span>${K.sortSeg(S.so)}</h2>
@@ -22,7 +22,7 @@ async function render(soft) {
   if (soft) { app.querySelector('#stories').outerHTML = grid; app.querySelector('#secs').innerHTML = K.sectorsHTML(t, S.sec);  K.fillPx(app); return; }
   app.innerHTML = `<div class="wrap t2"><div class="head">${K.tabsHTML(S.k)}${K.statusHTML(doc, t)}</div>
     <section class="strip" aria-label="${ko() ? '관련 자산' : 'Related assets'}"><div class="cards" id="cards" tabindex="0">${'<div class="acard skel"></div>'.repeat(5)}</div></section>
-    <div class="two"><div class="col"><section class="box flow"><h2 class="bh"><span>${ko() ? '지난 24시간 흐름' : 'Last 24 hours'}</span><span class="mute2 mono" style="font-size:12px">${ko() ? '막대 = 시간당 호재·악재 · 선 = ' : 'bars = bullish/bearish per hour · line = '}${K.BENCH[S.k][2]}</span></h2><div id="flow"></div></section>
+    <div class="two"><div class="col"><section class="box flow"><h2 class="bh"><span>${ko() ? '지난 24시간 흐름' : 'Last 24 hours'}</span><span class="mute2 mono" style="font-size:12px">${ko() ? '막대 = 시간당 호재·악재 · 선 = ' : 'bars = bullish/bearish per hour · line = '}${K.benchName(S.k)}</span></h2><div id="flow"></div></section>
       <section class="box"><h2 class="bh">${ko() ? '섹터별 분포' : 'By sector'}</h2><div id="secs">${K.sectorsHTML(t, S.sec)}</div></section>${S.k === 'econ' ? `<section class="box"><h2 class="bh">${ko() ? '다음 주요 일정' : 'Coming up'}</h2><div id="evs"></div></section>` : ''}</div>
       <section class="box sbox tsum">${side(t)}</section></div>${grid}</div>`;
   K.fillPx(app);

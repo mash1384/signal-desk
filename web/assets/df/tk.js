@@ -21,24 +21,32 @@ export const ASSETS = {
 };
 const YAHOO_OK = new Set(['NQ=F', 'ES=F', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'TSLA', 'AVGO', 'AMD', 'TSM', 'PLTR', 'ORCL', 'NFLX', 'COIN', 'MSTR', 'HOOD', 'INTC', 'MU', 'ARM', 'SMCI', 'CRM', 'ADBE', 'QCOM', 'ASML']);
 // 흐름 그래프 위에 겹치는 대표 가격
-export const BENCH = { crypto: ['BTC', 'b', 'BTC'], nasdaq: ['NQ=F', 'y', T('Nasdaq 100 fut.', '나스닥 100 선물')], econ: ['^TNX', 'y', T('US 10Y', '미국 10년물')], ai: ['NVDA', 'y', 'NVDA'], world: ['CL=F', 'y', T('WTI crude', 'WTI 유가')] };
+// 이름은 [영어, 한국어] — 그릴 때마다 benchName 으로 고른다(모듈을 처음 불러올 때 고정하면 언어를 바꿔도 한국어가 남았다)
+export const BENCH = { crypto: ['BTC', 'b', ['BTC', 'BTC']], nasdaq: ['NQ=F', 'y', ['Nasdaq 100 fut.', '나스닥 100 선물']], econ: ['^TNX', 'y', ['US 10Y', '미국 10년물']], ai: ['NVDA', 'y', ['NVDA', 'NVDA']], world: ['CL=F', 'y', ['WTI crude', 'WTI 유가']] };
+export const benchName = (k) => T(...BENCH[k][2]);
 // ---------- 자료 ----------
 let THEMES_DOC = null, BF = null;
 // 브리핑(tools/briefing.py, 하루 4번): 테마마다 분야 전문가 판독. 근거 소식은 store 에 넣어 상세 창이 열리게
 export async function loadBriefing() {
   if (BF) return BF;
   try { const r = await fetch(DFD.data('daily/briefing.json') + '?t=' + Math.floor(Date.now() / 60000)); BF = r.ok ? await r.json() : {}; } catch (e) { BF = {}; }
-  Object.values(BF.stories || {}).forEach((x) => { if (!store.byId.has(x.id)) store.byId.set(x.id, x); });
+  if (!BF || typeof BF !== 'object' || Array.isArray(BF)) BF = {};
   return BF;
+}
+// 브리핑 근거 소식을 store 에 넣는다 — 테마 자료(loadThemes)를 넣은 **뒤에** 불러야 한다. 두 요청 중 먼저 온 쪽의 모양이
+// 소식 줄에 쓰여 같은 소식이 실행마다 달라 보였다(2026-10-21 릴레이 R2-4 캡처). 테마 자료가 있는 소식은 테마 자료 그대로.
+export function useBriefingStories(bf) {
+  Object.values((bf && bf.stories) || {}).forEach((x) => { if (x && typeof x.id === 'string' && !store.byId.has(x.id)) store.byId.set(x.id, x); });
 }
 const DESK_PARTS = [['drivers', 'What drives it', '판을 움직이는 힘'], ['shift', 'What changed', '달라진 점'], ['links', 'Links to other markets', '다른 분야와의 연결'], ['watch', 'What to watch', '지켜볼 것']];
 export function deskHTML(bf, k) {
   const d = bf && bf.desks && bf.desks[k];
   if (!d || !bf.made || Date.now() / 1000 - bf.made > 48 * 3600) return '';
-  const x = L() ? d.ko : d.en, ok = (i) => i && i.s;
+  const x = L() ? d.ko : d.en, ok = (i) => i && typeof i.s === 'string' && i.s;
+  if (!x || typeof x !== 'object') return '';
   const f = (t) => new Date(t * 1000).toLocaleTimeString(L() ? 'ko-KR' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
-  const refs = (ids) => (ids || []).filter((id) => store.byId.has(id)).slice(0, 1).map((id) => ` <button type="button" class="ref btnp" data-id="${id}" aria-label="${T('Open the source story', '근거 소식 열기')}">${T('Source', '근거')} ↗</button>`).join('');
-  const parts = DESK_PARTS.map(([key, en, ko]) => { const xs = (x[key] || []).filter(ok); return xs.length ? `<div><h3>${T(en, ko)}</h3><ul>${xs.map((i) => `<li>${esc(i.s)}${refs(i.refs)}</li>`).join('')}</ul></div>` : ''; }).join('');
+  const refs = (ids) => (Array.isArray(ids) ? ids : []).filter((id) => store.byId.has(id)).slice(0, 1).map((id) => ` <button type="button" class="ref btnp" data-id="${esc(id)}" aria-label="${T('Open the source story', '근거 소식 열기')}">${T('Source', '근거')} ↗</button>`).join('');
+  const parts = DESK_PARTS.map(([key, en, ko]) => { const xs = (Array.isArray(x[key]) ? x[key] : []).filter(ok); return xs.length ? `<div><h3>${T(en, ko)}</h3><ul>${xs.map((i) => `<li>${esc(i.s)}${refs(i.refs)}</li>`).join('')}</ul></div>` : ''; }).join('');
   if (!x.state && !parts) return '';
   return `<div class="sum dk"><p class="k">${T(`${tn(k)} desk`, `${tn(k)} 데스크`)} <span>· AI · ${T(`updated ${f(bf.made)}${bf.next ? ` · next ${f(bf.next)}` : ''}`, `${f(bf.made)} 기준${bf.next ? ` · 다음 ${f(bf.next)}` : ''}`)}</span></p>
     ${x.state ? `<p class="dks">${esc(x.state)}${refs(x.refs)}</p>` : ''}<div class="dkg">${parts}</div>
@@ -163,7 +171,7 @@ function flowChartNow(el, doc, t, price, { height = 240 } = {}) {
   if (pts.length > 1) { ln = chart.addLineSeries({ color: col('#0d253d'), lineWidth: 2, priceLineVisible: false, lastValueVisible: true, crosshairMarkerRadius: 3 }); ln.setData(pts.map((p) => ({ time: p[0] + off, value: p[1] })));
     chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.06, bottom: 0.5 } }); }
   chart.timeScale().fitContent();
-  const name = BENCH[t.k][2], tf = (s) => new Date((s - off) * 1000).toLocaleTimeString(L() ? 'ko-KR' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+  const name = benchName(t.k), tf = (s) => new Date((s - off) * 1000).toLocaleTimeString(L() ? 'ko-KR' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
   const idle = () => { const last = H[H.length - 1] || [0, 0, 0]; lgd.innerHTML = `<span>${T('Last hour', '최근 1시간')}</span> <b class="up">${T('bullish', '호재')} ${last[1]}</b> <b class="down">${T('bearish', '악재')} ${last[2]}</b>${pts.length ? ` · ${esc(name)} <b>${(+pts[pts.length - 1][1]).toLocaleString('en-US', { maximumFractionDigits: 2 })}</b>` : ''}`; };
   // 같은 칸·같은 값이면 범례를 다시 쓰지 않는다
   let key = null; const put = (k, html) => { if (k !== key) { key = k; lgd.innerHTML = html; } };
