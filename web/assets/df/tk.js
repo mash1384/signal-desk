@@ -23,7 +23,27 @@ const YAHOO_OK = new Set(['NQ=F', 'ES=F', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'GOOGL
 // 흐름 그래프 위에 겹치는 대표 가격
 export const BENCH = { crypto: ['BTC', 'b', 'BTC'], nasdaq: ['NQ=F', 'y', T('Nasdaq 100 fut.', '나스닥 100 선물')], econ: ['^TNX', 'y', T('US 10Y', '미국 10년물')], ai: ['NVDA', 'y', 'NVDA'], world: ['CL=F', 'y', T('WTI crude', 'WTI 유가')] };
 // ---------- 자료 ----------
-let THEMES_DOC = null;
+let THEMES_DOC = null, BF = null;
+// 브리핑(tools/briefing.py, 하루 4번): 테마마다 분야 전문가 판독. 근거 소식은 store 에 넣어 상세 창이 열리게
+export async function loadBriefing() {
+  if (BF) return BF;
+  try { const r = await fetch(DFD.data('daily/briefing.json') + '?t=' + Math.floor(Date.now() / 60000)); BF = r.ok ? await r.json() : {}; } catch (e) { BF = {}; }
+  Object.values(BF.stories || {}).forEach((x) => { if (!store.byId.has(x.id)) store.byId.set(x.id, x); });
+  return BF;
+}
+const DESK_PARTS = [['drivers', 'What drives it', '판을 움직이는 힘'], ['shift', 'What changed', '달라진 점'], ['links', 'Links to other markets', '다른 분야와의 연결'], ['watch', 'What to watch', '지켜볼 것']];
+export function deskHTML(bf, k) {
+  const d = bf && bf.desks && bf.desks[k];
+  if (!d || !bf.made || Date.now() / 1000 - bf.made > 48 * 3600) return '';
+  const x = L() ? d.ko : d.en, ok = (i) => i && i.s;
+  const f = (t) => new Date(t * 1000).toLocaleTimeString(L() ? 'ko-KR' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+  const refs = (ids) => (ids || []).filter((id) => store.byId.has(id)).slice(0, 1).map((id) => ` <button type="button" class="ref btnp" data-id="${id}" aria-label="${T('Open the source story', '근거 소식 열기')}">${T('Source', '근거')} ↗</button>`).join('');
+  const parts = DESK_PARTS.map(([key, en, ko]) => { const xs = (x[key] || []).filter(ok); return xs.length ? `<div><h3>${T(en, ko)}</h3><ul>${xs.map((i) => `<li>${esc(i.s)}${refs(i.refs)}</li>`).join('')}</ul></div>` : ''; }).join('');
+  if (!x.state && !parts) return '';
+  return `<div class="sum dk"><p class="k">${T(`${tn(k)} desk`, `${tn(k)} 데스크`)} <span>· AI · ${T(`updated ${f(bf.made)}${bf.next ? ` · next ${f(bf.next)}` : ''}`, `${f(bf.made)} 기준${bf.next ? ` · 다음 ${f(bf.next)}` : ''}`)}</span></p>
+    ${x.state ? `<p class="dks">${esc(x.state)}${refs(x.refs)}</p>` : ''}<div class="dkg">${parts}</div>
+    <p class="fn">${T('Written by AI from market data and judged news — an interpretation, not investment advice.', '시장 자료와 판정한 소식으로 AI가 쓴 해석이에요. 투자 조언이 아니에요.')} <a class="go" href="${window.DF_ROOT || '../'}brief/">${T('Full briefing →', '전체 브리핑 →')}</a></p></div>`;
+}
 export async function loadThemes() {
   if (THEMES_DOC) return THEMES_DOC;
   const r = await fetch((window.DF_THEMES || DFD.data('daily/themes.json')) + '?t=' + Math.floor(Date.now() / 60000));

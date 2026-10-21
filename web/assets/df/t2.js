@@ -2,7 +2,7 @@
 // 그 아래 2열: 왼쪽 24시간 흐름 그래프(크게) + 섹터 분포 / 오른쪽 AI 요약. 맨 아래 주요 소식(카드 격자).
 import * as K from './tk.js';
 const app = document.getElementById('app'), S = K.initState();
-let doc, assets = {}, bench = {}, chart = null;
+let doc, bf, assets = {}, bench = {}, chart = null;
 // Translation initialization can rerender while the first data requests are
 // still pending. Share those requests as well as the completed values below.
 const pending = new Map();
@@ -11,18 +11,20 @@ function once(key, load) {
   return pending.get(key);
 }
 const ko = () => DFI.lang() === 'ko';
+// 오른쪽 칸: 분야 전문가 판독(브리핑). 없으면 예전 AI 요약, 그것도 없으면 '평소 대비 변화' 신호
+const side = (t) => K.deskHTML(bf, S.k) || ((t.s_ko || []).length ? K.summaryHTML(doc, t) : K.changesHTML(doc, t, S.chg));
 async function render(soft) {
-  doc = doc || await once('themes', () => K.loadThemes()); const t = K.themeOf(doc, S.k); document.title = `${K.tn(S.k)} · Delfona`;
+  if (!doc) [doc, bf] = await Promise.all([once('themes', () => K.loadThemes()), once('briefing', () => K.loadBriefing())]);
+  const t = K.themeOf(doc, S.k); document.title = `${K.tn(S.k)} · Delfona`;
   const xs = K.pickStories(t, S.so, S.sec, S.chg), shown = S.more ? xs : xs.slice(0, 12);
   const grid = `<section id="stories"><h2 class="bh"><span>${ko() ? '주요 소식' : 'Key stories'}${K.filterChip(t, S)}</span>${K.sortSeg(S.so)}</h2>
     <ul class="srows sgrid">${shown.map(K.storyRow).join('') || `<li class="mute">${ko() ? '이 조건의 소식이 없어요.' : 'No stories for this filter.'}</li>`}</ul>${!S.more && xs.length > 12 ? `<button type="button" class="more" data-more>${ko() ? `더 보기 · ${xs.length - 12}건` : `Show ${xs.length - 12} more`}</button>` : ''}</section>`;
-  if (soft) { app.querySelector('#stories').outerHTML = grid; app.querySelector('#secs').innerHTML = K.sectorsHTML(t, S.sec); app.querySelector('.sbox').innerHTML = K.changesHTML(doc, t, S.chg); K.fillPx(app); return; }
+  if (soft) { app.querySelector('#stories').outerHTML = grid; app.querySelector('#secs').innerHTML = K.sectorsHTML(t, S.sec);  K.fillPx(app); return; }
   app.innerHTML = `<div class="wrap t2"><div class="head">${K.tabsHTML(S.k)}${K.statusHTML(doc, t)}</div>
     <section class="strip" aria-label="${ko() ? '관련 자산' : 'Related assets'}"><div class="cards" id="cards" tabindex="0">${'<div class="acard skel"></div>'.repeat(5)}</div></section>
-    ${(t.s_ko || []).length ? `<section class="box tsum">${K.summaryHTML(doc, t)}</section>` : ''}
     <div class="two"><div class="col"><section class="box flow"><h2 class="bh"><span>${ko() ? '지난 24시간 흐름' : 'Last 24 hours'}</span><span class="mute2 mono" style="font-size:12px">${ko() ? '막대 = 시간당 호재·악재 · 선 = ' : 'bars = bullish/bearish per hour · line = '}${K.BENCH[S.k][2]}</span></h2><div id="flow"></div></section>
       <section class="box"><h2 class="bh">${ko() ? '섹터별 분포' : 'By sector'}</h2><div id="secs">${K.sectorsHTML(t, S.sec)}</div></section>${S.k === 'econ' ? `<section class="box"><h2 class="bh">${ko() ? '다음 주요 일정' : 'Coming up'}</h2><div id="evs"></div></section>` : ''}</div>
-      <section class="box sbox">${K.changesHTML(doc, t, S.chg)}</section></div>${grid}</div>`;
+      <section class="box sbox tsum">${side(t)}</section></div>${grid}</div>`;
   K.fillPx(app);
   const k = S.k;
   if (!bench[k]) bench[k] = await once('bench:' + k, () => K.benchSeries(k)); if (k !== S.k) return;

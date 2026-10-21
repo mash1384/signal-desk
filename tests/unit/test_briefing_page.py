@@ -61,3 +61,19 @@ class BriefingPage(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BriefingStub(unittest.TestCase):
+    def test_stub_when_mac_has_none_and_real_file_wins(self):
+        import json
+        import os
+        import tempfile
+        from pipeline import public_data
+        d = tempfile.mkdtemp()
+        public_data.copy_daily(os.path.join(d, "none"), os.path.join(d, "a"))
+        self.assertEqual(json.load(open(os.path.join(d, "a/data/daily/briefing.json"))), {"v": 0})
+        os.makedirs(os.path.join(d, "f/daily"))
+        with open(os.path.join(d, "f/daily/briefing.json"), "w") as f:
+            f.write('{"v": 1}')
+        self.assertEqual(public_data.copy_daily(os.path.join(d, "f"), os.path.join(d, "b")), ["briefing.json"])
+        self.assertEqual(json.load(open(os.path.join(d, "b/data/daily/briefing.json"))), {"v": 1})
