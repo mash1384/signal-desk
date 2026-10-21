@@ -9,7 +9,7 @@ export function mount(layout, hooks = {}) {
   try { const q = new URLSearchParams(location.search); if (q.get('i')) S.k = q.get('i'); } catch (e) {}
   if (!app.dataset.prerender) app.innerHTML = `<div class="wrap cal"><div class="skel"></div><div class="skel"></div></div>`;
   // 처음 고를 지표: 최근 7일 안에 나온 것 중 목록 앞쪽(중요한 것) → 없으면 가장 최근 발표
-  const pick = () => { const now = Date.now() / 1000, rec = doc.indicators.filter((x) => now - x.latest.ts < 7 * 86400); return (rec[0] || [...doc.indicators].sort((a, b) => b.latest.ts - a.latest.ts)[0]).k; };
+  const pick = () => { const now = Date.now() / 1000, rec = doc.indicators.filter((x) => now - x.latest.ts < 7 * 86400); return ((rec[0] || [...doc.indicators].sort((a, b) => b.latest.ts - a.latest.ts)[0]) || {}).k || null; };
   function drawDetail() {
     const x = doc.by[S.k]; if (!x) return;
     const box = app.querySelector('#detail'); if (!box) return;
