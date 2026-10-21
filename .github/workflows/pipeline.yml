@@ -134,7 +134,8 @@ jobs:
 
       - name: Publish to gh-pages
         run: |
-          rsync -a --delete --exclude .git --exclude /preview/ dist/ site/
+          # 빌드에 없는 것은 모두 지운다(예전 디자인 시안 /preview/ 포함 — 비공개 저장소의 gh-pages 백업에 보관)
+          rsync -a --delete --exclude .git dist/ site/
           cd site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
