@@ -28,17 +28,19 @@ let THEMES_DOC = null, BF = null;
 export async function loadBriefing() {
   if (BF) return BF;
   try { const r = await fetch(DFD.data('daily/briefing.json') + '?t=' + Math.floor(Date.now() / 60000)); BF = r.ok ? await r.json() : {}; } catch (e) { BF = {}; }
-  Object.values(BF.stories || {}).forEach((x) => { if (!store.byId.has(x.id)) store.byId.set(x.id, x); });
+  if (!BF || typeof BF !== 'object' || Array.isArray(BF)) BF = {};
+  Object.values(BF.stories || {}).forEach((x) => { if (x && typeof x.id === 'string' && !store.byId.has(x.id)) store.byId.set(x.id, x); });
   return BF;
 }
 const DESK_PARTS = [['drivers', 'What drives it', '판을 움직이는 힘'], ['shift', 'What changed', '달라진 점'], ['links', 'Links to other markets', '다른 분야와의 연결'], ['watch', 'What to watch', '지켜볼 것']];
 export function deskHTML(bf, k) {
   const d = bf && bf.desks && bf.desks[k];
   if (!d || !bf.made || Date.now() / 1000 - bf.made > 48 * 3600) return '';
-  const x = L() ? d.ko : d.en, ok = (i) => i && i.s;
+  const x = L() ? d.ko : d.en, ok = (i) => i && typeof i.s === 'string' && i.s;
+  if (!x || typeof x !== 'object') return '';
   const f = (t) => new Date(t * 1000).toLocaleTimeString(L() ? 'ko-KR' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
-  const refs = (ids) => (ids || []).filter((id) => store.byId.has(id)).slice(0, 1).map((id) => ` <button type="button" class="ref btnp" data-id="${id}" aria-label="${T('Open the source story', '근거 소식 열기')}">${T('Source', '근거')} ↗</button>`).join('');
-  const parts = DESK_PARTS.map(([key, en, ko]) => { const xs = (x[key] || []).filter(ok); return xs.length ? `<div><h3>${T(en, ko)}</h3><ul>${xs.map((i) => `<li>${esc(i.s)}${refs(i.refs)}</li>`).join('')}</ul></div>` : ''; }).join('');
+  const refs = (ids) => (Array.isArray(ids) ? ids : []).filter((id) => store.byId.has(id)).slice(0, 1).map((id) => ` <button type="button" class="ref btnp" data-id="${esc(id)}" aria-label="${T('Open the source story', '근거 소식 열기')}">${T('Source', '근거')} ↗</button>`).join('');
+  const parts = DESK_PARTS.map(([key, en, ko]) => { const xs = (Array.isArray(x[key]) ? x[key] : []).filter(ok); return xs.length ? `<div><h3>${T(en, ko)}</h3><ul>${xs.map((i) => `<li>${esc(i.s)}${refs(i.refs)}</li>`).join('')}</ul></div>` : ''; }).join('');
   if (!x.state && !parts) return '';
   return `<div class="sum dk"><p class="k">${T(`${tn(k)} desk`, `${tn(k)} 데스크`)} <span>· AI · ${T(`updated ${f(bf.made)}${bf.next ? ` · next ${f(bf.next)}` : ''}`, `${f(bf.made)} 기준${bf.next ? ` · 다음 ${f(bf.next)}` : ''}`)}</span></p>
     ${x.state ? `<p class="dks">${esc(x.state)}${refs(x.refs)}</p>` : ''}<div class="dkg">${parts}</div>

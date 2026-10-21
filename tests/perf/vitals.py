@@ -94,7 +94,8 @@ async def transport(context, offline, delay=0, block=False, wire=False):
 
 async def prepare(browser, base, site=None, flash=None, width=390, lang='ko', delay=0, block=False, wire=False):
     context = await browser.new_context(viewport={'width': width, 'height': 1000}, device_scale_factor=1,
-                                        locale='en-US', timezone_id='Asia/Seoul', service_workers='block', reduced_motion='reduce', ignore_https_errors=bool(site))
+                                        locale='en-US', timezone_id='Asia/Seoul', service_workers='block', reduced_motion='reduce', ignore_https_errors=bool(site),
+                                        extra_http_headers=None if site else {'DNT': '1'})   # 실제 사이트 측정은 추적 거부(방문 통계에 섞이지 않게)
     await context.add_init_script("localStorage.setItem('df-lang', %s);localStorage.setItem('df-my',JSON.stringify(['BTC','ETH','NVDA']));" % json.dumps(lang))
     page = await context.new_page()
     offline = Offline(site, flash, base) if site else None
