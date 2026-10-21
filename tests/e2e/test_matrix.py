@@ -35,13 +35,31 @@ def built_html(site, path):
     return (Path(site) / path / "index.html").read_text(encoding="utf-8")
 
 
+def econ_empty(site):
+    """지표가 하나도 없는 econ.json(자료 출처 점검 · 수집 실패)으로 빌드한 사이트인가. 2026-10-22 사고: 이때 일정 화면이 깨져
+    배포 전 검사가 모든 배포를 4시간 막았다. 이제 일정은 '자료 없음' 안내 + 다가오는 발표를 보여야 한다(아래 계약)."""
+    try:
+        return not json.loads((Path(site) / "data/daily/econ.json").read_text()).get("indicators")
+    except (OSError, ValueError):
+        return False
+
+
+def empty_calendar_targets(site, now):
+    """지표 0개 일정 화면의 계약. 입력에 0~21일 안(화면 일정 칸과 같은 구간, 브라우저 시계 = offline.now) 발표가 있으면
+    날짜 묶음(li.dg)을, 없으면 '예정된 발표 없음' 한 줄(li.mute, 글자 있음)을 요구한다. 어느 쪽이든 '자료 없음' 안내(#ind-empty).
+    (Codex 교차 검수: 발표가 있는데 '없음'만 그려도 통과하던 빈틈을 막는다)"""
+    doc = json.loads((Path(site) / "data/daily/econ.json").read_text())
+    soon = any(now <= e.get("ts", 0) <= now + 21 * 86400 for e in doc.get("upcoming") or [])
+    return {"#ind-empty": 1, (".schw li.dg" if soon else ".schw ol.sch > li.mute"): 1}
+
+
 def ko_only_insights(site, path):
     """영어판이 없는 하루 정리(예: 2026-10-17): 핵심 3가지는 한국어 칸만 있고 영어 화면에서는 숨는 게 맞다(영어 화면에 한글 금지)."""
     return '<section class="ins2" data-l="ko"' in built_html(site, path)
 
 
 def content_checks(page, name, row, offline, path=None, lang="ko"):
-    targets = dict(CONTENT[name])
+    targets = dict(CONTENT[name]) if not (name == "calendar/" and econ_empty(offline.site)) else empty_calendar_targets(offline.site, offline.now)
     # 브리핑(맨 위, 빌드 때 그린다): 빌드가 그렸으면 제목 · 국면 · 인사이트 3개가 보여야 한다.
     # 자료 파일만으로 정하지 않는다 — 빌드는 Mac 자료가 없을 때 {"v": 0} 빈 판을 둔다(pipeline/public_data.py STUBS), 묵은 자료는 그리지 않는다.
     if name == "brief/" and 'id="bf"' in built_html(offline.site, "brief"):
@@ -118,7 +136,7 @@ def test_page(case, session_page, qa, site_server, request):
         page.locator("#intro .skip").click()
     page.evaluate("document.fonts.ready")
     # Wait for data-backed elements, collecting all failures for one case.
-    for selector in SELECTORS[name]:
+    for selector in (["#ind-empty", ".schw"] if name == "calendar/" and econ_empty(offline.site) else SELECTORS[name]):
         if selector == ".ins2" and lang == "en" and ko_only_insights(offline.site, path):
             continue   # 위 content_checks 가 '영어 화면에서 숨었나'를 대신 본다
         try:

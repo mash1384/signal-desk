@@ -40,6 +40,8 @@ for (const lang of ['en', 'ko']) {
   // 화면 JS 가 같은 자료를 받으면 다시 그리지 않도록(같은 내용을 새로 그리면 그 시점이 LCP 로 다시 잡힌다) 무엇으로 그렸는지 남긴다
   const snap = (wide) => `<i hidden data-brief-snapshot="${input.threads.made}|${(input.daily && input.daily.made) || ''}|${lang}|${wide ? 1 : 0}"></i>`;
   for (const wide of [false,true]) out.brief[lang+'-'+(wide?'wide':'narrow')] = snap(wide) + B.briefLayout(threads, input.daily, {f:'all',sel:null}, wide);
+  // 지표가 하나도 없으면(수집 실패 · 점검 중) 일정은 미리 그리지 않는다 — 화면 JS 가 '자료 없음'을 그린다(2026-10-22 사고)
+  if (!(input.econ.indicators || []).length) continue;
   const doc = {...input.econ, by:Object.fromEntries(input.econ.indicators.map(x=>[x.k,x]))};
   const recent = doc.indicators.filter(x=>input.now-x.latest.ts<7*86400);
   const k = (recent[0] || [...doc.indicators].sort((a,b)=>b.latest.ts-a.latest.ts)[0]).k;

@@ -115,6 +115,18 @@ jobs:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - theme: light
+            target: tests/e2e
+            junit: .qa/browser.xml
+            report: .qa/e2e.json
+          - theme: dark
+            target: tests/e2e/test_matrix.py
+            junit: .qa/browser-dark.xml
+            report: .qa/e2e-dark.json
     steps:
       - uses: actions/checkout@v4
         with:
@@ -138,15 +150,13 @@ jobs:
         with:
           node-version: "24"
       - run: SIGNAL_PRERENDER_STRICT=1 python -m tests.build_site --published site --flash flash --out dist
-      - run: python -m pytest tests/e2e --matrix full --site dist --flash flash --junitxml=.qa/browser.xml -q -s --a11y zero
-      # 다크 모드 화면도 같은 48개 경우를 접근성 위반 0 으로 검사
-      - if: success() || failure()
-        run: python -m pytest tests/e2e/test_matrix.py --matrix full --site dist --flash flash --junitxml=.qa/browser-dark.xml --qa-report .qa/e2e-dark.json -q -s --a11y zero --theme dark
+      # 두 모드가 각각 12분 안에 끝나도록 분리한다. 검사 범위·접근성 기준은 그대로다.
+      - run: python -m pytest ${{ matrix.target }} --matrix full --site dist --flash flash --junitxml=${{ matrix.junit }} --qa-report ${{ matrix.report }} -q -s --a11y zero --theme ${{ matrix.theme }}
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           include-hidden-files: true   # 결과물이 .qa/(숨김 폴더)에 있다 — 기본값이면 아무것도 안 올라간다
-          name: browser
+          name: browser-${{ matrix.theme }}
           path: .qa/
 
   performance:
