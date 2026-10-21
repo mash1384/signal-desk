@@ -25,6 +25,7 @@ html:not([lang="ko"]) [data-l="ko"], html[lang="ko"] [data-l="en"] { display: no
 .nextl { display: grid; gap: 8px; } @media (min-width: 640px) { .nextl { grid-template-columns: 1fr 1fr; } }
 .nextl a { display: grid; gap: 2px; padding: 14px 16px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); } .nextl a b { font-size: 14.5px; font-weight: 650; } .nextl a span { font-size: 13px; color: var(--mute); }
 @media (hover: hover) { .nextl a:hover { box-shadow: 0 0 0 1px #c9d1dc; } }
+.nextl a b { font-family: "DF Nav", var(--sans); }   /* 메뉴 이름(브리핑 등)은 사이트에 둔 작은 글꼴로 */
 /* 하루 정리 */
 .dl2 .rv { font-size: 15.5px; line-height: 1.7; color: var(--ink2); text-wrap: pretty; }
 .nums2 { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--mute); } .nums2 b { font-size: 20px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; } .nums2 .u b { color: var(--up); } .nums2 .dn b { color: var(--down); }

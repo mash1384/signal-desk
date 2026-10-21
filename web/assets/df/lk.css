@@ -8,12 +8,13 @@ body { background: #f7f9fc; color: var(--ink); font-family: var(--sans); font-si
 h1, h2, h3, p { word-break: keep-all; overflow-wrap: break-word; }
 a { color: inherit; text-decoration: none; } button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
 .up { color: var(--up); } .down { color: var(--down); } .tnum, .mono { font-variant-numeric: tabular-nums; } .mono { font-family: var(--mono); }
+html:not([lang="ko"]) [data-l="ko"], html[lang="ko"] [data-l="en"] { display: none !important; }   /* 빌드 때 그린 영 · 한 짝(브리핑 등) */
 .wrap { max-width: 1280px; margin: 0 auto; padding-inline: 16px; } @media (min-width: 900px) { .wrap { padding-inline: 32px; } }
 /* 머리말 */
 .hd { position: sticky; top: 0; z-index: 30; background: rgb(247 249 252 / .82); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid rgb(13 37 61 / .06); }
 .hd .wrap { display: flex; align-items: center; gap: 28px; height: 60px; }
 .logo { display: inline-flex; align-items: center; gap: 9px; font-size: 18px; font-weight: 650; letter-spacing: -0.03em;  color: #000; } .logo svg { width: 24px; height: 24px; } .logo .wm { font-family: Michroma, var(--sans); font-size: 14px; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; }
-.nav { display: none; gap: 4px; font-size: 14px; font-weight: 500; color: var(--ink2); } @media (min-width: 900px) { .nav { display: flex; } }
+.nav { display: none; gap: 4px; font-size: 14px; font-weight: 500; color: var(--ink2); } .nav, .tabs { font-family: "DF Nav", var(--sans); }   /* 메뉴의 한국어 이름은 사이트에 둔 작은 글꼴로(fonts/pretendard-nav.woff2 · 같은 Pretendard) */ @media (min-width: 900px) { .nav { display: flex; } }
 .nav a { padding: 7px 12px; border-radius: 99px; } .nav a[aria-current] { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgb(13 37 61 / .05); }
 .lang { margin-inline-start: auto; display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
 .lang button { height: 26px; padding: 0 10px; border-radius: 99px; font-size: 12px; font-weight: 600; color: var(--ink2); }

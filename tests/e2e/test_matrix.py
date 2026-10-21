@@ -32,7 +32,10 @@ def my_fixture_counts(offline):
 
 
 def content_checks(page, name, row, offline):
-    targets = CONTENT[name]
+    targets = dict(CONTENT[name])
+    # 브리핑(맨 위, 빌드 때 그린다): 자료가 있으면 제목 · 국면 · 인사이트 3개가 보여야 한다
+    if name == "brief/" and (Path(offline.site) / "data/daily/briefing.json").is_file():
+        targets.update({"#bf h1": 1, "#bf .bf-rg": 1, "#bf .bf-c": 3})
     # Even if fixture content disappears, these assertions remain enabled.
     if name == "my/":
         row["fixture_content"] = my_fixture_counts(offline)

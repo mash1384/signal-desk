@@ -5,13 +5,13 @@
 <script>try{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}catch(e){}</script>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('df-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Brief · Delfona — stories that keep developing</title>
-<meta name="description" content="Multi-day stories across crypto, Nasdaq, macro, AI and world news on one timeline: what happened so far and what was added today, each line linked to its sources.">
+<title>Briefing · Delfona — the market's big picture, four times a day</title>
+<meta name="description" content="The big picture across crypto, US stocks, rates and the dollar, AI and world affairs: what holds the market now, how the pieces connect, what could change it and what to watch. Plus stories that run for days on one timeline.">
 <link rel="canonical" href="{{URL}}brief/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Delfona">
-<meta property="og:title" content="Brief · Delfona — stories that keep developing">
-<meta property="og:description" content="Multi-day stories across crypto, Nasdaq, macro, AI and world news on one timeline: what happened so far and what was added today, each line linked to its sources.">
+<meta property="og:title" content="Briefing · Delfona — the market's big picture, four times a day">
+<meta property="og:description" content="The big picture across crypto, US stocks, rates and the dollar, AI and world affairs: what holds the market now, how the pieces connect, what could change it and what to watch. Plus stories that run for days on one timeline.">
 <meta property="og:url" content="{{URL}}brief/">
 <meta property="og:image" content="{{URL}}og/default.jpg">
 <meta property="og:image:width" content="1200">
@@ -28,7 +28,7 @@
 <style>/* Brief · B2 timeline (heat) */
 /* 정리(Brief) 공통: 줄기 카드, 점 줄, 근거 버튼, 거르기, 어제 하루 정리 */
 .brf { padding-top: 22px; padding-bottom: 72px; display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); } .brf > * { min-width: 0; }
-.ph h1 { font-size: clamp(26px, 3vw, 34px); font-weight: 650; letter-spacing: -0.025em; line-height: 1.15; } .ph p { margin-top: 6px; font-size: 14px; color: var(--mute); text-wrap: pretty; } .ph .fr { font-size: 12.5px; color: var(--faint); }
+.ph h2 { font-size: clamp(21px, 2.2vw, 26px); font-weight: 650; letter-spacing: -0.02em; line-height: 1.2; } .ph h1 { font-size: clamp(26px, 3vw, 34px); font-weight: 650; letter-spacing: -0.025em; line-height: 1.15; } .ph p { margin-top: 6px; font-size: 14px; color: var(--mute); text-wrap: pretty; } .ph .fr { font-size: 12.5px; color: var(--faint); }
 .box { padding: 22px 24px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); } @media (max-width: 560px) { .box { padding: 18px 16px; border-radius: 16px; } }
 .filt { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 4px; margin: -4px; } .filt::-webkit-scrollbar { display: none; }
 .filt button { flex: none; height: 34px; padding: 0 14px; border-radius: 99px; font-size: 14px; font-weight: 600; color: var(--ink2); background: #fff; box-shadow: 0 0 0 1px var(--line); }
@@ -121,20 +121,45 @@
 .mb2 .pl { font-size: 11.5px; } .mb2 .pl b { font-weight: 600; color: var(--mute); } .mb2 .pl b.u { color: var(--up); } .mb2 .pl b.dn { color: var(--down); }
 .mh { display: grid; grid-template-columns: minmax(0, 1fr) 108px; gap: 14px; margin-inline: 4px; font-size: 11px; color: var(--faint); }
 @media (max-width: 719px) { .lhead.g-mood .mh { display: grid; } .lhead.g-heat .lt { display: flex; } }
+
+/* ---------- 브리핑(맨 위, 빌드 때 그린다 — pipeline/build.py briefing_html) ---------- */
+.bf { padding-block: 28px 8px; } .bf .wrap { display: grid; gap: 16px; }
+.bf-k { font-size: 13px; color: var(--mute); } .bf-k .tag { display: inline-block; margin-inline-end: 6px; padding: 1px 9px; border-radius: 99px; background: #eceaff; color: #4b3fd1; font-weight: 650; font-size: 12px; }
+.bf h1 { font-size: clamp(26px, 3.4vw, 38px); font-weight: 680; letter-spacing: -0.03em; line-height: 1.18; text-wrap: balance; }
+.bf-rg { padding: 18px 22px; border-radius: 18px; background: #0d253d; color: #fff; } .bf-rg .lb { display: inline-block; padding: 2px 12px; border-radius: 99px; background: #533afd; font-size: 13px; font-weight: 650; }
+.bf-rg p { margin-top: 10px; font-size: 16.5px; line-height: 1.65; color: rgb(255 255 255 / .92); text-wrap: pretty; }
+.bf-big { display: grid; gap: 12px; } @media (min-width: 900px) { .bf-big { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.bf-c { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.bf-c .n { color: var(--primary); font-size: 13px; font-weight: 650; } .bf-c h3 { font-size: 18px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.3; } .bf-c p { font-size: 15px; line-height: 1.65; color: var(--ink2); text-wrap: pretty; }
+.bf-c .rf { margin-top: auto; padding-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+.bf-ref { height: 26px; padding: 0 10px; border-radius: 99px; background: #eceaff; color: #4b3fd1; font-size: 12px; font-weight: 600; cursor: pointer; }
+@media (hover: hover) { .bf-ref:hover { background: #ddd8ff; } }
+.bf-h2 { margin-top: 6px; font-size: 13px; font-weight: 650; letter-spacing: .04em; color: var(--mute); }
+.bf-desks { display: grid; gap: 10px; } @media (min-width: 720px) { .bf-desks { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (min-width: 1100px) { .bf-desks { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.bf-d { position: relative; display: block; padding: 14px 16px 16px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); color: inherit; text-decoration: none; }
+.bf-d b { font-size: 13px; color: var(--primary); } .bf-d p { margin-top: 6px; font-size: 14px; line-height: 1.6; color: var(--ink2); } .bf-d .go { position: absolute; top: 12px; right: 14px; color: var(--faint); }
+@media (hover: hover) { .bf-d:hover { box-shadow: 0 0 0 1px var(--primary); } }
+.bf-two { display: grid; gap: 12px; } @media (min-width: 900px) { .bf-two { grid-template-columns: 1fr 1fr; } }
+.bf-box { padding: 18px 20px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); } .bf-box h2 { font-size: 15px; font-weight: 650; }
+.bf-box ul { margin-top: 8px; padding-inline-start: 18px; display: grid; gap: 8px; font-size: 14.5px; line-height: 1.6; color: var(--ink2); } .bf-box li b { color: var(--ink); }
+.bf-box .bf-ref { margin-inline-start: 6px; height: 22px; font-size: 11px; vertical-align: 1px; } .bf-box .more { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--primary); }
+.bf-fn { font-size: 12px; color: var(--mute); } .bf-k .tag { font-family: "DF Nav", var(--sans); }
+:root[data-theme="dark"] .bf-rg { background: #18243a; box-shadow: 0 0 0 1px var(--line); } :root[data-theme="dark"] .bf-rg p { color: #e8eef6; }
+:root[data-theme="dark"] .bf-rg .lb { background: #6c5cff; color: #fff; } :root[data-theme="dark"] .bf-k .tag, :root[data-theme="dark"] .bf-ref { background: #2a2552; color: #c9c2ff; }
 </style>
 </head>
 <body class="pg-br2">
 <header class="hd"><div class="wrap">
   <a class="logo" href="{{B}}"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
-  <nav class="nav" aria-label="Menu"><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}my/" data-t="n5">My assets</a><a href="{{B}}themes/" data-t="n2">Themes</a><a href="{{B}}brief/" aria-current="page" data-t="n3">Brief</a><a href="{{B}}calendar/" data-t="n4">Calendar</a></nav>
+  <nav class="nav" aria-label="Menu"><a href="{{B}}brief/" aria-current="page" data-t="n3">Briefing</a><a href="{{B}}live/" data-t="n1">Live</a><a href="{{B}}my/" data-t="n5">My assets</a><a href="{{B}}themes/" data-t="n2">Themes</a><a href="{{B}}calendar/" data-t="n4">Calendar</a></nav>
   <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div><button type="button" class="thm" data-theme-toggle aria-label="Dark mode" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 </div></header>
 <main id="app"></main>
-<nav class="tabs" aria-label="Menu"><a href="{{B}}live/"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="{{B}}my/"><i class="ti my"></i><span data-t="n5">My</span></a><a href="{{B}}themes/"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="{{B}}brief/" aria-current="page"><i class="ti br"></i><span data-t="n3">Brief</span></a><a href="{{B}}calendar/"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<nav class="tabs" aria-label="Menu"><a href="{{B}}brief/" aria-current="page"><i class="ti br"></i><span data-t="n3">Briefing</span></a><a href="{{B}}live/"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="{{B}}my/"><i class="ti my"></i><span data-t="n5">My</span></a><a href="{{B}}themes/"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="{{B}}calendar/"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
 <div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
 <script>window.DF_BASE = '{{B}}assets/df/'; window.DF_ROOT = '{{B}}';</script>
 <script src="{{B}}assets/df/data.js?v={{V}}"></script>
-<script>DFI.init({ n1: '라이브', n2: '테마', n3: '정리', n4: '일정', n5: '내 자산', n5: '내 자산' });</script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '브리핑', n4: '일정', n5: '내 자산', n5: '내 자산' });</script>
 <script type="module">import '{{B}}assets/df/br2.js?v={{V}}';</script>
 </body>
 </html>

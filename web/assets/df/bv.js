@@ -10,7 +10,7 @@ export function briefLayout(D, dy, S, wide, graphMode = 'heat') {
   const lane = (x) => { const a = B.tx(x), on = x.id === S.sel;
     return `<li class="${on ? 'on' : ''}"><button type="button" class="lane g-${G}" data-pick="${x.id}" aria-expanded="${on}"><span class="hd2"><span class="nm">${esc(a.title)}</span>${meta(x)}</span>${graph(x)}</button>
       ${on && !wide ? `<div class="inl">${B.detailHTML2(x, D)}</div>` : ''}</li>`; };
-  return `<div class="wrap brf b2"><header class="ph"><h1>${T('Brief', '정리')}</h1><p>${T('Every ongoing story on one timeline. Pick one to read it.', '이어지는 이야기를 한 시간 축 위에. 하나를 고르면 읽을 수 있어요.')}</p><p class="fr">${B.fresh(D)}</p></header>
+  return `<div class="wrap brf b2"><header class="ph"><h2>${T('Ongoing stories', '이어지는 이야기')}</h2><p>${T('Every story that has run for days, on one timeline. Pick one to read it.', '며칠째 이어지는 이야기를 한 시간 축 위에. 하나를 고르면 읽을 수 있어요.')}</p><p class="fr">${B.fresh(D)}</p></header>
   ${B.filtHTML(D, S.f)}
   <div class="split"><section class="box lanes">${A ? `<div class="lhead g-${G}"><span class="lt">${T('Story', '이야기')}${G === 'heat' ? B.heatLegend() : ''}</span>${G === 'mood' ? `<span class="mh"><span>${T('Stories over time', '시간별 소식 양')}</span><span>${T('Mood', '분위기')}</span></span>` : B.axisHTML(A)}</div><ul>${xs.map(lane).join('')}</ul>` : `<p class="mute">${T('No ongoing stories in this theme right now.', '이 테마에는 지금 이어지는 이야기가 없어요.')}</p>`}</section>
     ${wide ? `<div class="pane">${cur ? `<section class="box">${B.detailHTML2(cur, D)}</section>` : ''}${dy ? `<section class="box dly">${B.dailyHTML(dy)}</section>` : ''}</div>` : (dy ? `<section class="box dly">${B.dailyHTML(dy)}</section>` : '')}</div></div>`; }
