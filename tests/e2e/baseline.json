@@ -14,7 +14,7 @@
     "live/": 1703500,
     "my/": 1378487,
     "themes/crypto/": 1282873,
-    "brief/": 1350000,
+    "brief/": 1210362,
     "calendar/": 1326076,
     "daily/": 747395,
     "about/": 660051
@@ -5671,6 +5671,19 @@
         1350000
       ],
       "reason": "Round 6 (operator-requested): desk switcher card + daily card pre-rendered at the top (~5 KB HTML), plus same-day live-data growth (CI: 1,267,021 B before the change, 1,288,820 B after, threads.json alone ~325 KB with both ko and en titles). Operator chose to raise the brief budget now and next split the story data by language (~70 KB expected), then lower this budget again."
+    },
+    {
+      "date": "2026-10-23",
+      "page": "brief/",
+      "measured_bytes": [
+        1272434,
+        1091776
+      ],
+      "budget_bytes": [
+        1350000,
+        1210362
+      ],
+      "reason": "Restored the original brief budget after the brief stopped loading story titles up front (threads-core.json first, threads-text.json on demand): -180 KB on first load. A language split was not used because the Korean sheet also shows the English original line."
     }
   ]
 }

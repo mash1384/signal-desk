@@ -42,6 +42,8 @@ def load(page, site_server, themes_body, brief_body, first):
     held[second].fulfill(body=body[second], content_type="application/json")
     page.wait_for_selector("#stories .srow")
     page.wait_for_selector(".sbox .dk")
+    # '이어지는 이야기' 표시는 thr.js 가 줄이 그려진 뒤 덧붙인다(처리한 줄에 data-thb). 다 붙은 뒤에 읽어야 두 순서를 같은 시점에서 비교한다
+    page.wait_for_function("[...document.querySelectorAll('#stories .srow')].every(e => e.dataset.thb)")
     page.unroute("**/daily/themes.json*")
     page.unroute("**/daily/briefing.json*")
     return page.evaluate("[...document.querySelectorAll('#stories .srow')].map(e => [e.dataset.id, e.innerText])")
