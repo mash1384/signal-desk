@@ -315,6 +315,10 @@ def page_calendar_df():
     """일정(Delfona C3 · 대시보드): 방금 나온 지표, 지금 경제 요약(AI), 다가오는 발표, 지표 카드, 지표 상세(지난 흐름 · 과거에 비슷했을 때).
     자료는 브라우저가 econ.json(Mac 이 1시간마다, tools/econ_brief.py)을 flash 브랜치에서 읽는다."""
     tpl = read_tpl("df_calendar.html")
+    # 본문·강조 숫자는 첫 그리기부터 최종 폭을 쓴다. 작은 조각을 HTML에 넣어 추가 요청 없이 읽는다.
+    with open(os.path.join(WEB, "assets", "fonts", "calendar-text.css"), encoding="utf-8") as f:
+        numeric_css = f.read()
+    tpl = tpl.replace("{{NUMERIC_FONT}}", numeric_css)
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "calendar")
 
 
@@ -709,7 +713,7 @@ def page_about(health, now):
             src_l(s["name"]), L(CAT_EN.get(cat, "Auto"), h(config.CATEGORY_LABEL.get(cat, "자동 분류"))),
             L("Korean", "한국어") if s["lang"] == "ko" else L("English", "영어"), status))
     n = len(config.SOURCES)
-    en = """<section class="box2"><h2>What Delfona is</h2>
+    en = """<section class="box2" data-l="en"><h2>What Delfona is</h2>
     <p>Delfona reads breaking news on crypto, the Nasdaq, the economy, AI and world affairs as it lands, labels each story bullish or bearish, and shows what prices did afterwards. It is built for people who want the market-moving part of the news without reading everything.</p>
     <ul>
       <li><b>Briefing</b> — the big picture across crypto, US stocks, rates and the dollar, AI and world affairs, written four times a day by AI from market data and judged news (an interpretation, not investment advice); below it, stories that run for days on one timeline.</li>
@@ -717,8 +721,8 @@ def page_about(health, now):
       <li><b>My assets</b> — pick coins, stocks or indices; see only their news, sudden-move alerts and a daily summary. Your picks stay in your browser.</li>
       <li><b>Themes</b> — crypto, Nasdaq, economy, AI and world: the last 24 hours of bullish/bearish flow, what changed versus usual, and related prices.</li>
       <li><b>Calendar</b> — upcoming economic releases, the first-published value of past releases, and how prices moved after similar readings.</li>
-    </ul></section>
-  <section class="box2" id="method"><h2>How it works</h2>
+    </ul></section>"""
+    en_method = """<h2>How it works</h2>
     <ol>
       <li>Every few minutes we collect public real-time news feeds and the RSS of {n} outlets, and merge reports of the same story.</li>
       <li>A local AI model (Gemma 4, on the operator's Mac) writes a one-line summary and labels it bullish, bearish or neutral, with a strength from 1 to 3. It reads only the headline and short excerpt, and it can be wrong.</li>
@@ -728,8 +732,8 @@ def page_about(health, now):
       <li><b>Similar past readings</b> (Calendar) — we compare a release's first-published value, its surprise and its recent trend with past releases (ALFRED vintage data), pick the nearest ones, and show what BTC and the Nasdaq did afterwards. Small samples are marked as such.</li>
       <li>We do not store article text. Pages show the headline, a short excerpt or summary, and a link to the original.</li>
       <li>Visit statistics are totals only (date, page, language, phone or computer) with no cookies, IP addresses or personal data. If your browser sends Do Not Track or Global Privacy Control, nothing is counted.</li>
-    </ol></section>"""
-    ko = """<section class="box2"><h2>Delfona는</h2>
+    </ol>"""
+    ko = """<section class="box2" data-l="ko"><h2>Delfona는</h2>
     <p>Delfona는 크립토·나스닥·경제·AI·세계정세 속보를 나오는 대로 읽고 호재·악재를 판정해, 소식이 나온 뒤 가격이 어떻게 움직였는지 함께 보여 주는 서비스예요. 모든 뉴스를 읽지 않고도 시장을 움직이는 부분만 볼 수 있게 만들었어요.</p>
     <ul>
       <li><b>브리핑</b> — 크립토 · 미국 주식 · 금리와 달러 · AI · 세계정세를 한데 묶은 지금 시장의 큰 그림. 시장 자료와 판정한 소식으로 AI가 하루 4번 써요(해석이며 투자 조언이 아니에요). 그 아래에는 며칠째 이어지는 이야기를 한 시간 축 위에 보여 줘요.</li>
@@ -737,8 +741,8 @@ def page_about(health, now):
       <li><b>내 자산</b> — 코인·주식·지수를 골라 그 소식, 급변 알림, 하루 요약만. 고른 목록은 이 브라우저에만 저장돼요.</li>
       <li><b>테마</b> — 크립토·나스닥·경제·AI·세계: 지난 24시간 호재·악재 흐름, 평소와 달라진 점, 관련 시세.</li>
       <li><b>일정</b> — 다가오는 경제 발표, 과거 발표의 처음 나온 값, 비슷한 값이 나왔을 때 가격 흐름.</li>
-    </ul></section>
-  <section class="box2" id="method"><h2>어떻게 동작하나요</h2>
+    </ul></section>"""
+    ko_method = """<h2>어떻게 동작하나요</h2>
     <ol>
       <li>몇 분마다 공개 실시간 뉴스 피드와 매체 {n}곳의 RSS를 모으고, 같은 소식은 하나로 묶어요.</li>
       <li>로컬 AI 모델(운영자 Mac의 Gemma 4)이 한 줄 요약을 쓰고 호재·악재·중립과 강도(1~3)를 붙여요. 제목과 짧은 발췌만 보고 판정하므로 틀릴 수 있어요.</li>
@@ -748,11 +752,11 @@ def page_about(health, now):
       <li><b>과거에 비슷했을 때</b>(일정) — 발표의 처음 나온 값, 예상과의 차이, 최근 흐름을 과거 발표(ALFRED 당시 값)와 비교해 가장 가까운 때를 고르고, 그 뒤 BTC·나스닥 흐름을 보여 줘요. 표본이 적으면 적다고 표시해요.</li>
       <li>기사 본문은 저장하지 않아요. 제목, 짧은 발췌나 요약, 원문 링크만 보여 줘요.</li>
       <li>방문 통계는 날짜 · 페이지 · 언어 · 휴대폰/컴퓨터별 합계만 세요. 쿠키 · IP 주소 · 개인 정보는 저장하지 않고, 브라우저의 추적 거부(Do Not Track · GPC)가 켜져 있으면 세지 않아요.</li>
-    </ol></section>"""
+    </ol>"""
     body = """<div class="wrap st ab">
   <header><p class="stk">Delfona</p><h1>{t}</h1></header>
-  <div data-l="en" style="display:grid;gap:22px">{en}</div>
-  <div data-l="ko" style="display:grid;gap:22px">{ko}</div>
+  {en}{ko}
+  <section class="box2" id="method"><div data-l="en">{en_method}</div><div data-l="ko">{ko_method}</div></section>
   <section class="box2" id="sources"><h2 id="sources-h">{st}</h2>
     <div class="tw" tabindex="0" role="region" aria-labelledby="sources-h"><table><thead><tr><th scope="col">{c1}</th><th scope="col">{c2}</th><th scope="col">{c3}</th><th scope="col">{c4}</th></tr></thead><tbody>{rows}</tbody></table></div>
     <ul style="margin-top:14px">
@@ -763,7 +767,8 @@ def page_about(health, now):
     </ul>
   </section>
   <section class="box2"><h2>{dt}</h2><p>{dx}</p></section>
-</div>""".format(t=L("About &amp; method", "소개·방법론"), en=en.replace("{n}", str(n)), ko=ko.replace("{n}", str(n)), st=L("Sources", "데이터 출처"),
+</div>""".format(t=L("About &amp; method", "소개·방법론"), en=en, ko=ko,
+                 en_method=en_method.replace("{n}", str(n)), ko_method=ko_method.replace("{n}", str(n)), st=L("Sources", "데이터 출처"),
                  c1=L("Outlet", "매체"), c2=L("Field", "분야"), c3=L("Language", "언어"), c4=L("Last fetch", "최근 수집"), rows="".join(rows),
                  s1=L("Crypto prices", "크립토 시세"), s2=L("Stocks, indices, commodities, FX", "주식·지수·원자재·환율"),
                  s3=L("Economic data and calendar", "경제 지표·일정"),

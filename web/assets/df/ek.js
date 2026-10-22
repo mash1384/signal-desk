@@ -265,13 +265,18 @@ export function drawRegime(root, doc) {
   g.strokeStyle = col('rgba(13,37,61,.14)'); g.lineWidth = 1; g.strokeRect(pad + .5, pad + .5, w - 2 * pad - 1, H - 2 * pad - 1);
   g.strokeStyle = col('rgba(13,37,61,.28)'); g.beginPath(); g.moveTo(Math.round(cx) + .5, pad); g.lineTo(Math.round(cx) + .5, H - pad); g.moveTo(pad, Math.round(cy) + .5); g.lineTo(w - pad, Math.round(cy) + .5); g.stroke();
   // 모서리 칸 이름(지금 칸은 진하게)
+  let hotLeft = w;
   g.textBaseline = 'top'; const corner = (k, right, top) => { const on = k === cur[1]; g.font = on ? FONT_B : '500 11.5px "Pretendard Variable", Pretendard, system-ui, sans-serif'; g.fillStyle = on ? col('#0d253d') : col('#64748b');
-    const t = qName(r, k), tw = g.measureText(t).width; g.fillText(t, right ? w - pad - 8 - tw : pad + 8, top ? pad + 8 : H - pad - 22); };
+    const t = qName(r, k), tw = g.measureText(t).width, left = right ? w - pad - 8 - tw : pad + 8;
+    if (k === 'hot') hotLeft = left;
+    g.fillText(t, left, top ? pad + 8 : H - pad - 22); };
   corner('stag', false, true); corner('hot', true, true); corner('slow', false, false); corner('gold', true, false);
   // 축 이름(가운데 선 끝)
   g.font = FONT; g.fillStyle = col('#64748b'); g.textBaseline = 'middle';
   const ax = T('jobs stronger →', '고용 강해짐 →'), axw = g.measureText(ax).width; g.fillText(ax, w - pad - 6 - axw, cy + 10);
-  g.textBaseline = 'top'; g.fillText(T('↑ prices hotter', '↑ 물가 뜨거워짐'), cx + 6, pad + 8);
+  // 좁은 화면에서 축 이름이 오른쪽 위 칸 이름과 겹치면 기존 위쪽 여백을 쓴다.
+  const ay = T('↑ prices hotter', '↑ 물가 뜨거워짐');
+  g.textBaseline = 'top'; g.fillText(ay, cx + 6, cx + 6 + g.measureText(ay).width + 4 > hotLeft ? 2 : pad + 8);
   // 궤적
   g.lineJoin = 'round';
   // 점을 그대로 지나는 부드러운 곡선(캣멀-롬), 옛것일수록 옅게

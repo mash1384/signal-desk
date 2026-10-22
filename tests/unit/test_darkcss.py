@@ -82,6 +82,33 @@ class DarkCss(unittest.TestCase):
         self.assertEqual(out.count("{"), out.count("}"))
         self.assertEqual(darkcss.inject(".a { color: var(--ink); }"), ".a { color: var(--ink); }")
 
+    def test_later_light_reset_wins_in_dark_too(self):
+        # 4회차: 내 자산 '하루 요약' 줄 — 밝은 화면은 .news li 에서 바탕을 지우는데, 다크에서는 .lean li 생성 바탕이 되살아났다
+        css = ".d .lean li { background: #f3f5f8; border-top: 1px solid #e3e8ee; } .d .news li { background: none; border-top: 0; color: var(--ink); }"
+        out = darkcss.generate(css).splitlines()
+        lean = next(i for i, x in enumerate(out) if x.startswith(GEN + " .d .lean li "))
+        news = next(i for i, x in enumerate(out) if x.startswith(GEN + " .d .news li "))
+        self.assertLess(lean, news)                                  # 밝은 화면과 같은 순서 → 같은 구체성에서 뒤가 이긴다
+        r = rules(css)[GEN + " .d .news li"]
+        self.assertEqual(r["background"], "none")
+        self.assertEqual(r["border-top"], "0")
+        self.assertNotIn("color", r)                                 # 앞에 같은 갈래(글자색) 생성 규칙이 없으면 따라 만들지 않는다
+
+    def test_reset_without_overlapping_earlier_rule_is_not_emitted(self):
+        self.assertNotIn(GEN + " .b", rules(".a { background: #fff; } .b { background: none; }"))
+        self.assertNotIn(GEN + " .x", rules(".x { background: none; } .x .y { background: #fff; }"))   # 앞선 생성 규칙이 없다
+
+    def test_shipped_css_drops_comments_but_not_strings(self):
+        # 4회차: 배포본 CSS 주석이 페이지 무게 예산을 먹었다 — 소스 주석은 두고 내려보내지 않는다
+        self.assertEqual(darkcss.strip_comments("a { b: c; } /* 설명 */ d { e: f; }"), "a { b: c; }  d { e: f; }")
+        self.assertEqual(darkcss.strip_comments('a { content: "/* 글자 */"; }'), 'a { content: "/* 글자 */"; }')
+        self.assertEqual(darkcss.strip_comments("a { content: '\\'/*'; } /*z*/"), "a { content: '\\'/*'; } ")
+        self.assertEqual(darkcss.strip_comments("a { background: url(data:font/woff2;base64,ab/cd+e*f==); }"), "a { background: url(data:font/woff2;base64,ab/cd+e*f==); }")
+        out = darkcss.inject("/* 머리 */ .card { background: #fff; } /* 꼬리 */")
+        self.assertNotIn("머리", out)
+        self.assertNotIn("꼬리", out)
+        self.assertIn(GEN + " .card", out)
+
 
 if __name__ == "__main__":
     unittest.main()

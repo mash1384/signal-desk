@@ -28,7 +28,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 html, body { overflow-x: clip; }
 body { background: #fff; color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-h1, h2, h3, p { word-break: keep-all; overflow-wrap: break-word; }
+body { word-break: keep-all; overflow-wrap: break-word; }   /* 한국어는 낱말 단위로 줄바꿈 — 예전엔 h1~h3 · p에만 걸려 목록 · 제목 span · 표에서 '방/향은'처럼 끊겼다(4회차) */
 a { color: inherit; text-decoration: none; } button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 .up { color: var(--up); } .down { color: var(--down); } .tnum { font-variant-numeric: tabular-nums; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; } @media (min-width: 900px) { .wrap { padding-inline: 36px; } }
@@ -131,6 +131,7 @@ html.intro-on { overflow: hidden; }
 :root[data-theme="dark"] .px-end .box { background: rgb(17 27 43 / .9); box-shadow: 0 30px 80px -30px rgb(0 0 0 / .7), 0 0 0 1px rgb(232 238 246 / .08); }
 :root[data-theme="dark"] .px-cap::before { background: radial-gradient(closest-side, rgb(11 19 32 / .94), rgb(11 19 32 / .7) 55%, rgb(11 19 32 / 0)); }
 .lang button { white-space: nowrap; } @media (max-width: 899px) { .hd .wrap { gap: 14px; } }
+@media (max-width: 359px) { .hd .wrap { gap: 6px; padding-inline: 16px; } .lang button { padding: 0 8px; } }   /* 320px 폰에서 다크 모드 버튼이 화면 밖(오른쪽 346px)으로 밀리던 것 */
 .thm { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 99px; border: 0; background: transparent; color: var(--ink2); cursor: pointer; }
 .thm:hover { background: rgb(13 37 61 / .06); } :root[data-theme="dark"] .thm:hover { background: rgb(232 238 246 / .08); }
 .thm svg { width: 18px; height: 18px; } .thm .sun { display: none; } :root[data-theme="dark"] .thm .sun { display: block; } :root[data-theme="dark"] .thm .moon { display: none; }
