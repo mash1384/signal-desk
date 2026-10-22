@@ -53,7 +53,7 @@
 .sts button { width: 100%; display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 4px 8px; align-items: baseline; padding: 7px 8px; border-radius: 8px; text-align: start; font-size: 13px; }
 .sts .t { font-size: 11.5px; color: var(--faint); white-space: nowrap; } .sts .l { color: var(--ink2); line-height: 1.45; } @media (hover: hover) { .sts button:hover { background: var(--soft); } }
 @media (max-width: 480px) { .sts button { grid-template-columns: auto minmax(0, 1fr); } .sts .t { grid-column: 1 / -1; } }
-.dly .k { font-size: 13px; font-weight: 650; color: var(--primary); } .dly .k span { font-weight: 500; color: var(--faint); }
+.dly .k { font-size: 13px; font-weight: 650; color: var(--primary); } .dly .k > b { font-weight: inherit; } .dly .k span { font-weight: 500; color: var(--faint); }
 .dly h3 { margin-top: 8px; font-size: 17px; font-weight: 650; line-height: 1.35; text-wrap: balance; } .dly .rv { margin-top: 8px; font-size: 14px; line-height: 1.6; color: var(--ink2); text-wrap: pretty; }
 .dly .nums { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--mute); } .dly .nums b { color: var(--ink); font-weight: 650; } .dly .u, .dly .u b { color: var(--up); } .dly .dn, .dly .dn b { color: var(--down); }
 .dly .dins { list-style: none; padding: 0; margin-top: 10px; display: grid; gap: 8px; } .dly .dins li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--soft); }

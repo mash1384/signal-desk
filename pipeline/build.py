@@ -347,7 +347,7 @@ def daily_card(dy):
         '<span>BTC <b class="mono %s">%s%.2f%%</b></span>' % ("u" if btc >= 0 else "dn", "+" if btc >= 0 else "", btc) if isinstance(btc, (int, float)) else ""))
     return ('<section class="box dly" id="bf-dly" data-d="%s|%d"><p class="k">%s <span>· %s</span></p><div data-l="ko">%s</div><div data-l="en">%s</div>%s'
             '<a class="more" href="%sdaily/%s/">%s</a></section>') % (
-        h(dy["date"]), int(round(dy.get("made") or 0)), L("Latest daily brief", "최근 하루 정리"), h(dy["date"]), body(dy), en_body, nums, B, h(dy["date"]), L("Read the full daily brief →", "하루 정리 전체 보기 →"))
+        h(dy["date"]), int(round(dy.get("made") or 0)), L("Latest daily brief", "최근 하루 정리", "b"), h(dy["date"]), body(dy), en_body, nums, B, h(dy["date"]), L("Read the full daily brief →", "하루 정리 전체 보기 →"))
 
 
 def briefing_html(doc, now, dy=None):
