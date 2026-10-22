@@ -158,3 +158,5 @@ button:focus:not(:focus-visible) { outline: none; }
 @media (max-width: 1039px) { .lanes ul:not(.all) > li:nth-child(n+6) { display: none; } }
 @media (min-width: 1040px) { .fold.lm { display: none; } }
 .all + .fold.lm { display: none; }
+
+.ar { display: inline-block; vertical-align: -1px; }   /* 화살표는 SVG — 기호 글자가 글꼴 조각을 더 받게 하지 않게 */
