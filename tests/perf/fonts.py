@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 import re
 
+from tests.perf.font_names import rename_pretendard, reserved_names
+
 ROOT = Path(__file__).resolve().parents[2]
 VENDOR = ROOT / 'tests/e2e/vendor'
 DEST = ROOT / 'web/assets/fonts'
@@ -41,6 +43,8 @@ def build(path):
     vendor = json.loads((VENDOR / 'manifest.json').read_text())
     DEST.mkdir(exist_ok=True)
     for kind, name in SOURCES.items():
+        if kind == 'nav':
+            continue  # 메뉴 조각은 아래의 전용 경로로 만든다(로고 파일을 덮지 않음).
         source = VENDOR / name
         font = TTFont(source)
         cmap = font.getBestCmap()
@@ -69,6 +73,7 @@ def build(path):
     blocks = re.findall(r'@font-face\s*\{[^}]+\}', original)
     (DEST / 'inter.css').write_text('\n'.join(b for b in blocks if "font-family: 'Inter'" in b) + '\n')
     (DEST / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+    manifest['nav'] = build_nav()
     return manifest
 
 
@@ -77,7 +82,7 @@ def build_nav():
     from fontTools import subset
     from fontTools.ttLib import TTFont
     source = VENDOR / SOURCES['nav']
-    font = TTFont(source)
+    font = TTFont(source, recalcTimestamp=False)
     cmap = font.getBestCmap()
     codepoints = sorted({ord(c) for c in NAV_TEXT})
     assert all(cp in cmap for cp in codepoints), 'Pretendard lacks a menu glyph'
@@ -87,6 +92,8 @@ def build_nav():
     sub = subset.Subsetter(options=options)
     sub.populate(unicodes=codepoints)
     sub.subset(font)
+    rename_pretendard(font, 'DF Nav')
+    assert not reserved_names(font)
     filename = 'pretendard-nav.woff2'
     font.flavor = 'woff2'
     font.save(DEST / filename)
@@ -109,9 +116,12 @@ def build_nav():
 def check(path, dest=DEST):
     from fontTools.ttLib import TTFont
     manifest = json.loads((dest / 'manifest.json').read_text())
-    chars, failures, fallbacks, hashes = corpus(path), {}, {}, []
+    chars, failures, fallbacks, hashes, names = corpus(path), {}, {}, [], []
     for kind, row in manifest.items():
-        present = TTFont(dest / row['file']).getBestCmap()
+        font = TTFont(dest / row['file'])
+        present = font.getBestCmap()
+        if kind == 'nav':
+            names.extend(reserved_names(font))
         if hashlib.sha256((dest / row['file']).read_bytes()).hexdigest() != row['sha256']:
             hashes.append(row['file'])
         original = TTFont(VENDOR / SOURCES[kind]).getBestCmap()
@@ -122,7 +132,8 @@ def check(path, dest=DEST):
                          (ord(c) in original or c not in allowed_fallback))
         failures[kind] = sorted(set(missing) | {chr(cp) for cp in row['codepoints'] if cp not in present})
         fallbacks[kind] = sorted(c for c in chars[kind] if not c.isspace() and ord(c) not in original)
-    return {'missing': failures, 'preserved_fallback': fallbacks, 'hash_mismatch': hashes, 'ok': not hashes and not any(failures.values())}
+    return {'missing': failures, 'preserved_fallback': fallbacks, 'hash_mismatch': hashes,
+            'reserved_names': names, 'ok': not hashes and not names and not any(failures.values())}
 
 
 def main():

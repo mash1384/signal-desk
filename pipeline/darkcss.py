@@ -126,18 +126,38 @@ def line(rgb, a, blur):
     return text(rgb, a)
 
 
+def kind_of(prop):
+    """색을 다루는 속성의 갈래: text · bg · line. 색과 상관없는 속성 · 색 변수는 None."""
+    prop = prop.strip().lower()
+    if prop.startswith("--"):
+        return None
+    if prop in ("color", "fill", "stroke", "caret-color", "-webkit-text-fill-color", "text-decoration-color"):
+        return "text"
+    if prop.startswith("background"):
+        return "bg" if prop in ("background", "background-color", "background-image") else None   # 크기 · 위치 · 반복은 색이 아니다
+    if prop in ("box-shadow", "outline", "outline-color", "text-shadow") or (prop.startswith("border") and not re.search(r"radius|collapse|spacing|image|style|width", prop)):
+        return "line"
+    return None
+
+
+def subject(sel):
+    """선택자가 가리키는 요소(마지막 조각)의 태그 · 클래스 · id 모음 — 두 규칙이 같은 요소에 걸칠 수 있는지 어림한다."""
+    comp = re.split(r"\s*[>+~]\s*|\s+", sel.strip())[-1]
+    comp = re.sub(r"::?[\w-]+(\([^)]*\))?", "", re.sub(r"\[[^\]]*\]", "", comp))
+    toks = set(re.findall(r"[.#][\w-]+", comp))
+    m = re.match(r"[a-zA-Z][\w-]*", comp)
+    if m:
+        toks.add(m.group(0).lower())
+    return toks
+
+
 def convert(prop, value):
     prop = prop.strip()
     prop = prop if prop.startswith("--") else prop.lower()
     if prop.startswith("--"):                       # 색 변수: 공용 다크 값(lk.css 와 같게). 부분에서 다시 정한 것(.cal { --up })도 따라온다
         return TOKENS.get(prop) if COLOR.search(value) else None
-    if prop in ("color", "fill", "stroke", "caret-color", "-webkit-text-fill-color", "text-decoration-color"):
-        kind = "text"
-    elif prop.startswith("background"):
-        kind = "bg"
-    elif prop in ("box-shadow", "outline", "outline-color", "text-shadow") or prop.startswith("border"):
-        kind = "line"
-    else:
+    kind = kind_of(prop)
+    if kind is None:
         return None
     changed = False
 
@@ -204,6 +224,7 @@ def generate(css):
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
     out = []
     hand = handmade(css)
+    emitted = {"text": [], "bg": [], "line": [], "var": []}   # 지금까지 만든 생성 규칙의 대상(subject) — 갈래별
 
     def rules(block, wrap=None):
         i = 0
@@ -224,7 +245,7 @@ def generate(css):
                 continue
             if head.startswith("@") or DARK in head or "data-theme" in head:
                 continue
-            decls = []
+            decls, same = [], []
             for d in body.split(";"):
                 if ":" not in d:
                     continue
@@ -232,20 +253,30 @@ def generate(css):
                 new = convert(prop, val)
                 if new is not None:
                     decls.append((prop.strip(), new.strip()))
+                elif kind_of(prop) and val.strip():
+                    same.append((prop.strip(), val.strip()))   # 바꿀 색이 없는 선언(none · 0 · var() · 그대로 두는 강조색)
             # 진한 글자색 바탕 + 흰 글자(눌린 단추 · 알림 알약): 다크에선 바탕이 밝은 글자색이 되므로 글자를 어둡게
             if re.search(r"background(-color)?\s*:\s*var\(--(ink|navy)\)", body) and re.search(r"(^|;)\s*color\s*:\s*#fff(fff)?\b", body):
                 decls.append(("color", "#0b1320"))
             bg = next((v for p, v in decls if p in ("background", "background-color") and COLOR.fullmatch(v)), None)
             if bg:
                 decls = [(p, fit(v, bg) if p == "color" and COLOR.fullmatch(v) else v) for p, v in decls]
-            if not decls:
+            if not decls and not same:
                 continue
             groups = {}   # 손으로 쓴 다크 규칙이 이미 정한 (선택자, 속성)은 빼고, 남은 선언이 같은 선택자끼리 묶는다
             for s in split_top(head):
                 s = s.strip()
-                keep = tuple(d for d in decls if d[0] not in hand.get(norm(s), ()))
+                mine, toks = hand.get(norm(s), ()), subject(s)
+                keep = [d for d in decls if d[0] not in mine]
+                # 밝은 화면에서 뒤 규칙이 앞 규칙의 색을 지우거나(background: none) 바꾸면, 생성 규칙은 모두 소스 끝에 붙어
+                # 앞 규칙의 생성본이 이긴다(예: .dsum .lean li 바탕이 .dsum .news li 에서 none 인데 다크에서 되살아남).
+                # 같은 요소에 걸칠 수 있는 앞선 생성 규칙이 있으면 그 선언을 그대로 따라 만들어 밝은 화면과 같은 순서로 이기게 한다
+                keep += [d for d in same if d[0] not in mine and any(t & toks for t in emitted[kind_of(d[0])])]
+                for d in keep:
+                    if d in decls:
+                        emitted[kind_of(d[0]) or "var"].append(toks)
                 if keep:
-                    groups.setdefault(keep, []).append(s)
+                    groups.setdefault(tuple(keep), []).append(s)
             for keep, heads in groups.items():
                 emit(heads, keep, wrap)
 
@@ -269,7 +300,34 @@ def generate(css):
     return "\n".join(out)
 
 
+def strip_comments(css):
+    """배포본 CSS 의 /* 주석 */ 을 뺀다(소스 주석은 그대로). 따옴표 문자열 안의 /* 는 건드리지 않는다.
+    4회차: 주석이 페이지 무게 예산을 먹었다(브리핑 +1.6KB 초과) — 설명은 소스에 두고 내려보내지 않는다."""
+    out, i, n, q = [], 0, len(css), None
+    while i < n:
+        c = css[i]
+        if q:
+            out.append(c)
+            if c == "\\" and i + 1 < n:
+                out.append(css[i + 1])
+                i += 1
+            elif c == q:
+                q = None
+        elif c in "'\"":
+            q = c
+            out.append(c)
+        elif css.startswith("/*", i):
+            j = css.find("*/", i + 2)
+            i = n if j < 0 else j + 2
+            continue
+        else:
+            out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def inject(css):
-    """소스 CSS 끝에 생성 규칙을 붙인다. 손으로 쓴 다크 규칙(:root[data-theme="dark"] …)은 구체성이 더 높아 그대로 이긴다."""
+    """소스 CSS(주석 뺌) 끝에 생성 규칙을 붙인다. 손으로 쓴 다크 규칙(:root[data-theme="dark"] …)은 구체성이 더 높아 그대로 이긴다."""
+    css = strip_comments(css)
     gen = generate(css)
-    return css + "\n/* ---------- 다크 모드 자동 생성(pipeline/darkcss.py) ---------- */\n" + gen + "\n" if gen else css
+    return css + "\n/* 다크 자동 생성(pipeline/darkcss.py) */\n" + gen + "\n" if gen else css

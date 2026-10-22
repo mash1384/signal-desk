@@ -47,10 +47,27 @@ export function axisOf(xs, D) {
   return { a0, a1, days, X: (t) => Math.max(0, Math.min(100, ((t - a0) / Math.max(1, a1 - a0)) * 100)) };
 }
 const dshort = (t) => new Intl.DateTimeFormat(L() ? 'ko-KR' : 'en-GB', { month: 'numeric', day: 'numeric', weekday: 'short' }).format(new Date(t * 1000));
-// 축 날짜는 짧게(한국어 '14일', 영어 '14 Oct'): 하루 칸이 좁아 긴 날짜는 겹친다
-const dtiny = (t) => { const d = new Date(t * 1000); return L() ? `${d.getDate()}일` : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(d); };
+// 축 날짜: '14일' · '14 Oct'(영어는 첫 칸 · 달 바뀌는 칸만 달)
+const dtiny = (t, prev) => { const d = new Date(t * 1000); if (L()) return `${d.getDate()}일`;
+  const p = prev == null ? null : new Date(prev * 1000);
+  return !p || p.getMonth() !== d.getMonth() ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(d) : String(d.getDate()); };
 export function axisHTML(A) {
-  return `<div class="axis" aria-hidden="true">${A.days.map((t) => `<span style="left:${A.X(t).toFixed(2)}%">${dtiny(t)}</span>`).join('')}</div>`;
+  return `<div class="axis" aria-hidden="true">${A.days.map((t, i) => { const s = dtiny(t, i ? A.days[i - 1] : null);
+    return `<span style="left:${A.X(t).toFixed(2)}%"${/\D/.test(s) && !L() ? ' data-m="1"' : ''}>${s}</span>`; }).join('')}</div>`;
+}
+// 그린 뒤 실제 폭으로 겹칠 이름표를 숨김(달 · 오늘 먼저, 끝을 넘는 오늘은 당김)
+export function fitAxis(root) {
+  (root || document).querySelectorAll('.axis').forEach((ax) => {
+    const sp = [...ax.children]; sp.forEach((s) => { s.style.visibility = ''; s.style.transform = ''; });
+    const box = ax.getBoundingClientRect(), placed = [];
+    const last = sp[sp.length - 1], order = sp.filter((s) => s.dataset.m).concat(last && !last.dataset.m ? [last] : [], sp.filter((s) => !s.dataset.m && s !== last));
+    for (const s of order) {
+      const r = s.getBoundingClientRect(), shift = Math.min(0, box.right - r.right);
+      const l = r.left + parseFloat(getComputedStyle(s).paddingLeft || 0) + shift, rr = r.right + shift;
+      if (placed.every((q) => l >= q.right + 3 || rr + 3 <= q.left)) { placed.push({ left: l, right: rr }); if (shift) s.style.transform = `translateX(${shift.toFixed(1)}px)`; }
+      else s.style.visibility = 'hidden';
+    }
+  });
 }
 // 줄 하나: 시작~마지막 소식까지 회색 막대, 소식마다 눈금, 최근 24시간만 강조색
 export function trackHTML(x, D, A) {
@@ -138,12 +155,13 @@ export function filtHTML(D, cur) {
   return `<div class="filt" role="group" aria-label="${T('Theme', '테마')}">${THEMES5.filter(([k]) => k === 'all' || n(k)).map(([k, en, ko]) => `<button type="button" data-f="${k}" aria-pressed="${cur === k}">${L() ? ko : en}<span class="c mono">${n(k)}</span></button>`).join('')}</div>`;
 }
 export const pickList = (D, f) => (f === 'all' ? D.list : D.list.filter((x) => x.th.includes(f)));
-// 어제 하루 정리(한국어만 있는 자료라 영어 화면에서는 숫자 요약만)
+// 하루 정리 카드: 영어 화면은 dy.en이 있으면 영어로
 export function dailyHTML(dy) {
   if (!dy) return '';
-  const b = dy.balance || {}, m = dy.market || {};
+  const b = dy.balance || {}, m = dy.market || {}, en = dy.en && (dy.en.headline || (dy.en.insights || []).length || dy.en.review) ? dy.en : null;
+  const body = (d) => `<h3>${esc(d.headline || '')}</h3>${(d.insights || []).length ? `<ol class="dins">${d.insights.slice(0, 3).map((x) => `<li><b>${esc(x.t)}</b><span>${esc(x.s)}</span></li>`).join('')}</ol>` : `<p class="rv">${esc(d.review || '')}</p>`}`;
   return `<p class="k">${T('Latest daily brief', '최근 하루 정리')} <span>· ${esc(dy.date)}</span></p>
-    ${L() ? `<h3>${esc(dy.headline || '')}</h3>${(dy.insights || []).length ? `<ol class="dins">${dy.insights.slice(0, 3).map((x) => `<li><b>${esc(x.t)}</b><span>${esc(x.s)}</span></li>`).join('')}</ol>` : `<p class="rv">${esc(dy.review || '')}</p>`}` : `<h3>${T('Daily brief', '하루 정리')} · ${esc(dy.date)}</h3><p class="rv">${T('The written summary is in Korean for now.', '')}</p>`}
+    ${L() ? body(dy) : en ? body(en) : `<h3>${T('Daily brief', '하루 정리')} · ${esc(dy.date)}</h3><p class="rv">${T('The written summary is in Korean for now.', '')}</p>`}
     <p class="nums"><span><b class="mono">${(dy.counts || {}).stories || 0}</b> ${T('stories', '건')}</span><span class="u"><b class="mono">${b['호재'] || 0}</b> ${T('bullish', '호재')}</span><span class="dn"><b class="mono">${b['악재'] || 0}</b> ${T('bearish', '악재')}</span>${m.btc ? `<span>BTC <b class="mono ${m.btc.chg >= 0 ? 'u' : 'dn'}">${m.btc.chg >= 0 ? '+' : ''}${m.btc.chg.toFixed(2)}%</b></span>` : ''}</p>
     <a class="more" href="${window.DF_ROOT || '../../'}daily/${esc(dy.date)}/">${T('Read the full daily brief', '하루 정리 전체 보기')} →</a>`;
 }

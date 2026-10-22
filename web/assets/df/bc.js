@@ -11,7 +11,11 @@ export function mount(layout) {
   // 미리 그린 화면(빌드 때)과 같은 자료 · 같은 언어 · 같은 폭이면 첫 렌더는 건너뛴다 — 같은 내용을 새로 그리면 그 시점이 LCP 로 다시 잡힌다
   const same = () => { const m = app.querySelector('[data-brief-snapshot]'); return !!m && !S.sel && S.f === 'all' &&
     m.dataset.briefSnapshot === `${D.made}|${(dy && dy.made) || ''}|${DFI.lang()}|${matchMedia('(min-width: 1040px)').matches ? 1 : 0}`; };
-  const render = () => { const keep = !hydrated && app.dataset.prerender && same(); hydrated = true; if (!keep) app.innerHTML = layout(D, dy, S); };
+  const render = () => { const keep = !hydrated && app.dataset.prerender && same(); hydrated = true; if (!keep) app.innerHTML = layout(D, dy, S); B.fitAxis(app); };
+  // 날짜 축 다시 맞추기(폭 · 글꼴)
+  let fitT = 0; const refit = () => { clearTimeout(fitT); fitT = setTimeout(() => B.fitAxis(app), 80); };
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(refit).observe(app); else addEventListener('resize', refit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
   B.wire(app, S, render);
   app.addEventListener('click', e => { if (!D) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
   B.loadThreads().then((d) => Promise.all([d, B.loadDaily(d)])).then(([d, y]) => { D = d; dy = y; render();
