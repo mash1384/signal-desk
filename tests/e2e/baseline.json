@@ -14,7 +14,7 @@
     "live/": 1703500,
     "my/": 1378487,
     "themes/crypto/": 1282873,
-    "brief/": 1210362,
+    "brief/": 1280000,
     "calendar/": 1326076,
     "daily/": 747395,
     "about/": 660051
@@ -5645,6 +5645,19 @@
         1210362
       ],
       "reason": "Briefing (big picture) added at the top of /brief/: ~16 KB HTML plus three Pretendard chunks for its Korean text (~75 KB, cached after the first visit). Approved by the operator. Other pages unchanged."
+    },
+    {
+      "date": "2026-10-22",
+      "page": "brief/",
+      "measured_bytes": [
+        1242726,
+        1237538
+      ],
+      "budget_bytes": [
+        1210362,
+        1280000
+      ],
+      "reason": "Live-data growth, not code: CI measures with the live flash/gh-pages and the ongoing-stories data grew. With the 2026-10-22 live data the deployed main measured 1,242,726 B (already over) and round 5 measured 1,237,538 B (5 KB lighter). Operator chose to raise the brief budget (~6%) and slim the story data in a later round. Other pages unchanged."
     }
   ]
 }

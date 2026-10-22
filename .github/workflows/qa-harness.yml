@@ -33,6 +33,8 @@ jobs:
           node-version: "24"
       - run: npm ci --prefix tests/js --no-audit --no-fund
       - run: tests/js/node_modules/.bin/eslint -c tests/js/eslint.config.mjs web/assets/df
+      # 배포본 JS 주석 줄 빼기(pipeline/jsstrip.py)가 코드 토큰을 하나도 바꾸지 않는지(JS 파서로 비교)
+      - run: node tests/js/strip_check.mjs
   unit:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
     runs-on: ubuntu-latest

@@ -35,6 +35,12 @@ async def capture(args):
                             await page.evaluate('document.fonts.ready')
                             await page.clock.run_for(5000)
                             await page.wait_for_timeout(300)
+                            # 5회차 D4: 모바일은 큰 소식이 처음에 접혀 있어 차트가 펼칠 때 그려진다 — 펼친 뒤 같은 차트를 비교한다
+                            fold = page.locator('#lead .lead-preview[aria-expanded="false"]')
+                            if await fold.count() and await fold.first.is_visible():
+                                await fold.first.click()
+                                await page.clock.run_for(1000)
+                                await page.wait_for_timeout(300)
                             await page.wait_for_selector('#lead .bigc canvas')
                             await page.locator('#lead').screenshot(path=str(out / ('lead-' + device + '-' + lang + '.png')))
                             await page.locator('#lead [data-id]').first.click()

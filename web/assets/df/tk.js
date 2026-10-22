@@ -2,7 +2,7 @@ import { whenVisible } from './charts.js';
 // 테마 화면 공통: 크립토 · 나스닥 · 경제 · AI 한 테마를 깊게. 랜딩 지구 장면의 '상세판'.
 // 자료: themes.json(6시간마다 Mac 에서 — AI 요약 5문장, 1시간 단위 호재·악재, 섹터, 주요·최근 소식, 자산 언급, 문장별 근거 소식)
 //       시세 — 코인은 바이낸스, 주식·지수 선물·금리·달러·원자재는 우리 Worker /quotes(야후). 숫자는 모두 프로그램이 센 것, 문장만 AI.
-import { T, L, esc, line, pill, bars, chips, outlets, ago, openSheet, store, pxChip, fillPx, PRICED_ALL, col } from './lk.js';
+import { T, L, esc, line, pill, bars, chips, outlets, ago, openSheet, store, pxChip, fillPx, PRICED_ALL, col, FOLD } from './lk.js';
 export const THEME_KEYS = ['crypto', 'nasdaq', 'econ', 'ai', 'world'];
 export const TNAME = { crypto: ['Crypto', '크립토'], nasdaq: ['Nasdaq', '나스닥'], econ: ['Economy', '경제'], ai: ['AI', 'AI'], world: ['World', '세계'] };
 export const tn = (k) => TNAME[k][L() ? 1 : 0];
@@ -48,8 +48,10 @@ export function deskHTML(bf, k) {
   const refs = (ids) => (Array.isArray(ids) ? ids : []).filter((id) => store.byId.has(id)).slice(0, 1).map((id) => ` <button type="button" class="ref btnp" data-id="${esc(id)}" aria-label="${T('Open the source story', '근거 소식 열기')}">${T('Source', '근거')} ↗</button>`).join('');
   const parts = DESK_PARTS.map(([key, en, ko]) => { const xs = (Array.isArray(x[key]) ? x[key] : []).filter(ok); return xs.length ? `<div><h3>${T(en, ko)}</h3><ul>${xs.map((i) => `<li>${esc(i.s)}${refs(i.refs)}</li>`).join('')}</ul></div>` : ''; }).join('');
   if (!x.state && !parts) return '';
-  return `<div class="sum dk"><p class="k">${T(`${tn(k)} desk`, `${tn(k)} 데스크`)} <span>· AI · ${T(`updated ${f(bf.made)}${bf.next ? ` · next ${f(bf.next)}` : ''}`, `${f(bf.made)} 기준${bf.next ? ` · 다음 ${f(bf.next)}` : ''}`)}</span></p>
-    ${x.state ? `<p class="dks">${esc(x.state)}${refs(x.refs)}</p>` : ''}<div class="dkg">${parts}</div>
+  const np = (parts.match(/<h3>/g) || []).length, op = FOLD.has(k), rc = `${T(`Read more · ${np} sections`, `자세히 읽기 · ${np}개 구간`)} ▾`, ro = `${T('Show less', '접기')} ▴`;
+  const fold = x.state && np ? `<button type="button" class="fold" data-fold data-k="${esc(k)}" aria-expanded="${op}" data-c="${rc}" data-o="${ro}">${op ? ro : rc}</button>` : '';
+  return `<div class="sum dk${op ? ' open' : ''}"><p class="k">${T(`${tn(k)} desk`, `${tn(k)} 데스크`)} <span>· AI · ${T(`updated ${f(bf.made)}${bf.next ? ` · next ${f(bf.next)}` : ''}`, `${f(bf.made)} 기준${bf.next ? ` · 다음 ${f(bf.next)}` : ''}`)}</span></p>
+    ${x.state ? `<p class="dks">${esc(x.state)}${refs(x.refs)}</p>` : ''}${fold}<div class="dkg">${parts}</div>
     <p class="fn">${T('Written by AI from market data and judged news — an interpretation, not investment advice.', '시장 자료와 판정한 소식으로 AI가 쓴 해석이에요. 투자 조언이 아니에요.')} <a class="go" href="${window.DF_ROOT || '../'}brief/">${T('Full briefing →', '전체 브리핑 →')}</a></p></div>`;
 }
 export async function loadThemes() {

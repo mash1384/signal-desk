@@ -31,6 +31,7 @@
 /* 일정(경제지표) 공통. 숫자는 폭 고정(tabular), 색만으로 뜻을 전하지 않게 화살표·말을 함께, 차트 상자 높이 고정 */
 .cal { padding-top: 22px; padding-bottom: 72px; display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
 .cal > *, .cal .col > * { min-width: 0; }
+.jumpnav { display: flex; flex-wrap: wrap; gap: 8px; } .jumpnav a { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 99px; background: var(--surf, #fff); color: var(--ink2); font-size: 13.5px; font-weight: 600; } .jumpnav a span { color: var(--primary); } .jumpnav a:hover { background: var(--soft); } @media (min-width: 900px) { .jumpnav { display: none; } }
 .box { padding: 22px 24px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
 @media (max-width: 560px) { .box { padding: 18px 16px; border-radius: 16px; } }
 .sh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; }

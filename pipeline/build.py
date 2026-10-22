@@ -11,7 +11,7 @@ import re
 import shutil
 import time
 
-from . import config, darkcss, judge, util, prerender, public_data, article_bundle
+from . import config, darkcss, jsstrip, judge, util, prerender, public_data, article_bundle
 from .impact import assets_for, subjects
 
 OG_DEFAULT = False
@@ -641,6 +641,10 @@ def page_daily(doc, prev, nxt, now):
         B=B, all=L("Briefing", "브리핑"),
         p=('<a href="%sdaily/%s/">← %s</a>' % (B, prev, L(day_en(prev), _day_label(prev)))) if prev else "<span></span>",
         n=('<a href="%sdaily/%s/">%s →</a>' % (B, nxt, L(day_en(nxt), _day_label(nxt)))) if nxt else "<span></span>")
+    def day_link(date, direction, label):
+        return ('<a rel="%s" href="%sdaily/%s/">%s</a>' % (direction, B, date, label)) if date else '<button type="button" disabled>%s</button>' % label
+    date_nav = '<nav class="date-nav" aria-label="Other days">%s<time datetime="%s">%s</time>%s</nav>' % (
+        day_link(prev, "prev", L("← Previous", "← 이전 날")), doc["date"], L(label_en, label_ko), day_link(nxt, "next", L("Next →", "다음 날 →")))
     partial = ""
     if doc["made"] < doc["end"]:
         partial = '<p class="partial2">%s</p>' % L("Day still in progress — built from what arrived by %s. The final version comes at 9:00 Korea time." % ts_html(doc["made"], "hm"),
@@ -652,6 +656,7 @@ def page_daily(doc, prev, nxt, now):
   <header>
     <p class="stk">{k} <span>{range}</span></p>
     <h1>{head}</h1>
+    {date_nav}
   </header>
   {partial}
   {insights}
@@ -674,7 +679,7 @@ def page_daily(doc, prev, nxt, now):
 </div>""".format(B=B, brief=L("Briefing", "브리핑"), label=L(label_en, label_ko), k=L("Daily recap", "하루 정리"),
                  range=L("%s – %s KST" % (util.kst(doc["start"]).strftime("%b %-d %H:%M"), util.kst(doc["end"]).strftime("%b %-d %H:%M")),
                          "한국 시간 %s ~ %s" % (util.kst(doc["start"]).strftime("%-m/%-d %H:%M"), util.kst(doc["end"]).strftime("%-m/%-d %H:%M"))),
-                 head=bi(en.get("headline") or "Daily recap · %s" % label_en, doc["headline"]), partial=partial,
+                 head=bi(en.get("headline") or "Daily recap · %s" % label_en, doc["headline"]), date_nav=date_nav, partial=partial,
                  # 핵심 3가지가 있으면 AI 리뷰는 같은 사건을 되풀이해서 싣지 않는다(옛 정리에만)
                  review=('<section class="box2"><h2>%s</h2>%s</section>' % (L("AI review", "AI 리뷰"), bi(en.get("review"), doc["review"], "p", "rv"))) if doc.get("review") and not doc.get("insights") else "",
                  insights=('<section class="ins2"%s aria-label="%s"><h2>%s <span>%s</span></h2><ol>%s</ol></section>' % (
@@ -755,7 +760,8 @@ def page_about(health, now):
     </ol>"""
     body = """<div class="wrap st ab">
   <header><p class="stk">Delfona</p><h1>{t}</h1></header>
-  {en}{ko}
+  <nav class="jumpnav" aria-label="Page sections">{jumps}</nav>
+  <div id="about-intro">{en}{ko}</div>
   <section class="box2" id="method"><div data-l="en">{en_method}</div><div data-l="ko">{ko_method}</div></section>
   <section class="box2" id="sources"><h2 id="sources-h">{st}</h2>
     <div class="tw" tabindex="0" role="region" aria-labelledby="sources-h"><table><thead><tr><th scope="col">{c1}</th><th scope="col">{c2}</th><th scope="col">{c3}</th><th scope="col">{c4}</th></tr></thead><tbody>{rows}</tbody></table></div>
@@ -768,6 +774,8 @@ def page_about(health, now):
   </section>
   <section class="box2"><h2>{dt}</h2><p>{dx}</p></section>
 </div>""".format(t=L("About &amp; method", "소개·방법론"), en=en, ko=ko,
+                 jumps="".join('<a href="#%s">%s <span aria-hidden="true">↓</span></a>' % (key, L(en, ko)) for key, en, ko in
+                               (("about-intro", "About", "서비스 소개"), ("method", "Method", "방법론"), ("sources", "Sources", "데이터 출처"))),
                  en_method=en_method.replace("{n}", str(n)), ko_method=ko_method.replace("{n}", str(n)), st=L("Sources", "데이터 출처"),
                  c1=L("Outlet", "매체"), c2=L("Field", "분야"), c3=L("Language", "언어"), c4=L("Last fetch", "최근 수집"), rows="".join(rows),
                  s1=L("Crypto prices", "크립토 시세"), s2=L("Stocks, indices, commodities, FX", "주식·지수·원자재·환율"),
@@ -811,8 +819,9 @@ def df_ver():
     for n in sorted(os.listdir(d)):
         with open(os.path.join(d, n), "rb") as f:
             h.update(n.encode() + f.read())
-    with open(darkcss.__file__, "rb") as f:   # 다크 규칙 생성기가 바뀌어도 CSS 가 바뀐다
-        h.update(f.read())
+    for mod in (darkcss, jsstrip):   # 다크 규칙 생성기 · JS 주석 빼기가 바뀌어도 산출물이 바뀐다
+        with open(mod.__file__, "rb") as f:
+            h.update(f.read())
     return h.hexdigest()[:8]
 
 
@@ -854,6 +863,11 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
             util.log("prerender skipped", type(e).__name__, str(e)[:200])
             prerendered = {}
     shutil.copytree(os.path.join(WEB, "assets"), os.path.join(out, "assets"), dirs_exist_ok=True)
+    for name in os.listdir(os.path.join(out, "assets", "df")):   # 배포본 JS 는 줄 전체 주석을 뺀다(소스는 그대로, tests/js/strip_check.mjs 가 토큰 동일 확인)
+        if name.endswith(".js"):
+            path = os.path.join(out, "assets", "df", name)
+            with open(path, encoding="utf-8") as f:
+                util.write_text(path, jsstrip.strip_line_comments(f.read()))
     for css in ("lk.css", "st.css"):   # 공용 CSS 에도 다크 모드 규칙을 자동으로 더한다
         path = os.path.join(out, "assets", "df", css)
         with open(path, encoding="utf-8") as f:

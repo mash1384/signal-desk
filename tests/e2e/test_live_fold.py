@@ -1,0 +1,45 @@
+"""D4: 처음 접힌 큰 소식은 키보드로 열리고 언어·테마·목록 갱신 후 상태를 유지한다."""
+from playwright.sync_api import expect
+
+
+def test_live_lead_fold(session_page, site_server):
+    page, context, _ = session_page
+    context.add_init_script("localStorage.setItem('df-lang','ko');localStorage.setItem('df-theme','light')")
+    page.goto(site_server + 'live/', wait_until='networkidle')
+    toggle, body = page.locator('.lead-preview'), page.locator('#lead-body')
+    expect(toggle).to_have_attribute('aria-expanded', 'false')
+    expect(toggle).to_have_attribute('aria-controls', 'lead-body')
+    expect(body).to_be_hidden()
+    expect(page.locator('#grid > :first-child')).to_be_in_viewport()
+    toggle.focus()
+    page.keyboard.press('Enter')
+    expect(toggle).to_have_attribute('aria-expanded', 'true')
+    expect(body).to_be_visible()
+    expect(body.locator('.bigc canvas').first).to_be_visible()
+    for lang, label in (('en', 'Collapse'), ('ko', '접기')):
+        page.locator('[data-lang="%s"]' % lang).first.click()
+        page.locator('[data-theme-toggle]').first.click()
+        page.locator('[data-sort=up]').click()
+        expect(toggle).to_have_attribute('aria-expanded', 'true')
+        expect(toggle).to_contain_text(label)
+        body.locator('.bigc').scroll_into_view_if_needed()
+        expect(body.locator('.bigc canvas').first).to_be_visible()
+    # 이미 선택한 언어 버튼도 큰 차트를 비우지 않는다.
+    page.locator('[data-lang=ko]').first.click()
+    body.locator('.bigc').scroll_into_view_if_needed()
+    expect(body.locator('.bigc canvas').first).to_be_visible()
+    toggle.focus()
+    page.keyboard.press('Space')
+    expect(toggle).to_have_attribute('aria-expanded', 'false')
+    expect(body).to_be_hidden()
+    page.locator('[data-lang=en]').first.click()
+    expect(toggle).to_have_attribute('aria-expanded', 'false')
+    expect(toggle).to_contain_text('Expand')
+    page.set_viewport_size({"width": 1440, "height": 1000})
+    expect(toggle).to_be_hidden()
+    expect(body).to_be_visible()
+    body.locator('.bigc').scroll_into_view_if_needed()
+    expect(body.locator('.bigc canvas').first).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 1000})
+    expect(toggle).to_be_visible()
+    expect(body).to_be_hidden()

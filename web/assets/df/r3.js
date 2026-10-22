@@ -10,6 +10,7 @@ import { loadIndex, threadOf, briefHref } from './thr.js';
 const app = document.getElementById('app');
 if (!app.dataset.prerender) app.innerHTML = V.shell();
 const $ = (id) => document.getElementById(id), S = { th: 'all', mine: false };
+let leadOpen = false;
 // 신호 정렬·거르기: 최신순(중립 포함 모든 소식) · 호재 · 악재 · 강도순(세기 → 보도 수 → 최신). 선택은 저장
 
 let SO = (() => { try { return localStorage.getItem('df-sort') || 'new'; } catch (e) { return 'new'; } })(); if (!SORTS[SO]) SO = 'new';
@@ -64,7 +65,7 @@ async function chart(cv, t, big) {
     lbl.textContent = after ? `${DFD.pct(ch)}${closed ? T(' · market closed', ' · 장 마감') : ''}` : T('no trading since', '이후 거래 없음'); }
 }
 const mSeg = () => V.mSeg(M);
-function drawCharts() { app.querySelectorAll('.bigc[data-t]:not([data-on])').forEach((el) => { el.dataset.on = '1'; bigChart(el, +el.dataset.t); }); app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)); app.querySelectorAll('[data-mname]').forEach((e) => (e.textContent = mName())); }
+function drawCharts() { app.querySelectorAll('.bigc[data-t]').forEach((el) => { if (!el.clientWidth || el.dataset.on === 'loading' || (el.dataset.on && el.childElementCount)) return; el.dataset.on = 'loading'; bigChart(el, +el.dataset.t).then(() => { el.dataset.on = '1'; }); }); app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)); app.querySelectorAll('[data-mname]').forEach((e) => (e.textContent = mName())); }
 function render(force) {
   if (!store.items.length && app.dataset.prerender) return;
   const all = day(); if (!force && !gate.check()) return;
@@ -76,11 +77,11 @@ function render(force) {
   const now = Date.now() / 1000, recent = ys.filter((x) => now - x.t < 6 * 3600 && x.v !== '중립').sort((a, b) => score(b) - score(a) || b.t - a.t);
   const lead = recent[0];
   if (lead) {
-    const html = V.leadHTML(lead, M);
-    // 같은 소식·같은 시장·같은 언어면 차트는 두고 글만 바꾼다(매번 새로 만들면 깜빡이고 십자선이 끊긴다). 5분이 지나면 가격을 새로 그린다.
-    const lk = lead.id + '|' + M + '|' + DFI.lang(), L0 = $('lead'), old = L0.querySelector('.ld > .tx');
+    const html = V.leadHTML(lead, M, leadOpen);
+    // 같은 소식·시장·언어·테마면 차트는 두고 글만 바꾼다. 5분이 지나면 가격을 새로 그린다.
+    const lk = lead.id + '|' + M + '|' + DFI.lang() + '|' + dark(), L0 = $('lead'), old = L0.querySelector('.ld > .tx');
     if (!L0.dataset.k && app.dataset.prerender && L0.querySelector('[data-id]')?.dataset.id === lead.id && M === 'btc') { L0.dataset.k = lk; L0.dataset.at = Date.now(); }
-    if (L0.dataset.k === lk && old && Date.now() - +L0.dataset.at < 300000) { const tmp = document.createElement('div'); tmp.innerHTML = html; const tx = tmp.querySelector('.ld > .tx'); const clean = old.cloneNode(true); clean.removeAttribute('data-thb'); clean.querySelectorAll('.thb').forEach(el => el.remove()); if (!clean.isEqualNode(tx)) old.replaceWith(tx); }
+    if (L0.dataset.k === lk && old && Date.now() - +L0.dataset.at < 300000) { const tmp = document.createElement('div'); tmp.innerHTML = html; const tx = tmp.querySelector('.ld > .tx'); const clean = old.cloneNode(true); clean.removeAttribute('data-thb'); clean.querySelectorAll('.thb').forEach(el => el.remove()); if (!clean.isEqualNode(tx)) { old.replaceWith(tx); L0.querySelector('.lead-preview').replaceWith(tmp.querySelector('.lead-preview')); } }
     else { L0.innerHTML = html; L0.dataset.k = lk; L0.dataset.at = Date.now(); } }
   else { $('lead').innerHTML = ''; $('lead').dataset.k = ''; }
   $('gh').innerHTML = `<span class="ghl"><span>${T('Signals', '신호')}</span>${sSeg()}</span>${mSeg()}`;
@@ -112,12 +113,13 @@ function drawStrip() {
 addEventListener('df-my', () => { pqAt = 0; if (!document.getElementById('pickdlg')?.open) { loadStrip(); render(true); } });
 
 app.addEventListener('click', (e) => {
+  const fold = e.target.closest('.lead-preview'); if (fold) { leadOpen = !leadOpen; fold.setAttribute('aria-expanded', String(leadOpen)); drawCharts(); return; }
   if (e.target.closest('#myonly')) { S.mine = !S.mine; render(true); return; }
   if (e.target.closest('[data-pick]')) { Y.openPicker(() => { pqAt = 0; loadStrip(); render(true); }); return; } const so = e.target.closest('[data-sort]'); if (so) { SO = so.dataset.sort; try { localStorage.setItem('df-sort', SO); } catch (x) {} render(true); return; }
   const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }
   const t = e.target.closest('[data-th]'); if (t) { S.th = t.dataset.th; render(true); return; } const b = e.target.closest('[data-id]'); if (b && store.byId.has(b.dataset.id)) openSheet(store.byId.get(b.dataset.id)); });
 start(() => render(false)); loadStrip(); Y.every(loadStrip, 60000); DFI.onLang(() => { drawStrip(); render(true); });
-let rzT = 0, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(() => app.querySelectorAll('canvas[data-t]').forEach((cv) => chart(cv, +cv.dataset.t, false)), 200); });   // 작은 그래프는 크기가 바뀌면 다시 그린다(큰 차트는 라이브러리가 맞춘다)
+let rzT = 0, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth === rzW) return; rzW = innerWidth; clearTimeout(rzT); rzT = setTimeout(drawCharts, 200); });
 
 // ---------- 많이 언급된 이슈·종목(최근 3시간) ----------
 // 종목: '내 자산' 목록(코인 · 주식 · 지수 · 금리·환율·원자재)에 있는 것만 센다(AI 판정의 coins 칸엔 회사 · NFT · 엉뚱한 글자가 섞여 들어오기도 해서).

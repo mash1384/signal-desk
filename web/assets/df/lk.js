@@ -275,3 +275,12 @@ function drawLW(el, pts, tStory, { height = 200, dec = 2, mark = null, vsLabel =
 }
 // 이어지는 이야기 표시(소식 카드 · 상세 창)
 if (typeof document !== 'undefined') watchThreads();
+// 접기 · 더 보기(D6), 가로 넘김 표시(D3 — 넘치는 줄이 있을 때만 sh.js)
+export const FOLD = new Set();   // 펼친 것(테마 키 · 'lanes') — 언어 · 테마 전환으로 다시 그려도 유지
+if (typeof document !== 'undefined') {
+  addEventListener('click', (e) => { const f = e.target.closest('[data-fold]'); if (f) { const o = f.parentElement.classList.toggle('open'); FOLD[o ? 'add' : 'delete'](f.dataset.k); f.setAttribute('aria-expanded', o); f.textContent = o ? f.dataset.o : f.dataset.c; return; }
+    const m = e.target.closest('[data-more]'); if (m) { FOLD.add('lanes'); m.previousElementSibling.classList.add('all'); m.remove(); } });
+  const HS = '#cards,.box.wl ul,.pstrip .wrap.pin,#tt,.filt,nav.ttabs'; let hsT = 0, hsL = 0;
+  const hs = () => { clearTimeout(hsT); hsT = setTimeout(() => { if (hsL || ![...document.querySelectorAll(HS)].some((e) => e.scrollWidth > e.clientWidth + 4)) return; hsL = 1; import('./sh.js' + new URL(import.meta.url).search).then((m) => m.init(HS)); }, 300); };
+  addEventListener('load', hs); addEventListener('resize', hs); new MutationObserver(hs).observe(document.documentElement, { childList: true, subtree: true });
+}

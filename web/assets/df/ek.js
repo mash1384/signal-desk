@@ -153,7 +153,7 @@ export function insightHTML(doc) {
   const f = doc.fomc && doc.fomc.now, fo = f ? `<div class="fo"><h3>${T('Next FOMC odds', '다음 FOMC 확률')} <span class="mute2">Kalshi · ${T('last 30 days', '최근 30일')}${c.ff != null ? ` · ${T('Fed funds now', '지금 기준금리')} <span class="mono">${c.ff.toFixed(2)}%</span>` : ''}</span></h3>
     <canvas class="foc" id="foc" role="img" aria-label="${esc(f.outcomes.filter((o) => (o.p || 0) >= 0.03).map((o) => `${L() ? o.ko : o.en} ${Math.round(o.p * 100)}%`).join(', '))}"></canvas></div>` : '';
   const P = r.paths;
-  return `<section class="box ins" aria-labelledby="insh">
+  return `<section class="box ins" id="cal-summary" aria-labelledby="insh">
     <header class="ih"><p class="ovk">${T('The US economy now', '지금 미국 경제')} <span>· ${T('AI analysis (DeepSeek), fact-checked', 'AI 해설(DeepSeek) · 숫자 대조 확인')} · ${esc(at)}</span></p>
       <h2 class="insh" id="insh">${esc(ins.head)}</h2></header>
     <div class="ig">

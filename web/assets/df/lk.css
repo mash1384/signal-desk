@@ -149,3 +149,12 @@ button:focus:not(:focus-visible) { outline: none; }
 .thm { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; margin-inline-start: 8px; border-radius: 99px; border: 0; background: transparent; color: var(--ink2); cursor: pointer; }
 .thm:hover { background: rgb(13 37 61 / .06); } :root[data-theme="dark"] .thm:hover { background: rgb(232 238 246 / .08); }
 .thm svg { width: 18px; height: 18px; } .thm .sun { display: none; } :root[data-theme="dark"] .thm .sun { display: block; } :root[data-theme="dark"] .thm .moon { display: none; }
+
+/* 접기 · 더 보기(D6): 모바일에서 테마 데스크 세부 · 브리핑 이야기 6번째부터 */
+.fold { display: flex; align-items: center; justify-content: center; width: 100%; height: 44px; margin-top: 14px; border-radius: 12px; background: #f1f0ff; color: var(--primary); font-size: 14.5px; font-weight: 600; }
+:root[data-theme="dark"] .fold { background: #1f1d42; }
+@media (max-width: 899px) { .sum.dk:not(.open) > .dkg { display: none; } }
+@media (min-width: 900px) { .fold[data-fold] { display: none; } }
+@media (max-width: 1039px) { .lanes ul:not(.all) > li:nth-child(n+6) { display: none; } }
+@media (min-width: 1040px) { .fold.lm { display: none; } }
+.all + .fold.lm { display: none; }

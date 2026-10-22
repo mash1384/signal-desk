@@ -33,6 +33,19 @@
 .r3 .tt button { flex: none; height: 34px; padding: 0 14px; border-radius: 99px; font-size: 14px; font-weight: 600; color: var(--ink2); } .r3 .tt .c { margin-inline-start: 6px; font-size: 11.5px; font-weight: 500; color: var(--faint); }
 .r3 .tt button[aria-selected='true'] { background: var(--ink); color: #fff; } .r3 .tt button[aria-selected='true'] .c { color: rgb(255 255 255 / .6); }
 .r3 .lead { margin-top: 18px; }
+.lead-preview { display: none; }
+@media (max-width: 640px) {
+  .r3 .lead:not(:empty) { border: 1px solid var(--line); border-radius: 20px; background: var(--surf, #fff); overflow: hidden; }
+  .r3 .lead-preview { display: block; width: 100%; padding: 17px 18px; text-align: start; }
+  .lead-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .lead-label { font-size: 12.5px; font-weight: 600; color: var(--primary); }
+  .lead-action { padding: 5px 9px; border-radius: 99px; background: var(--soft); color: var(--primary); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .lead-title { display: block; margin-top: 10px; font-size: 26px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.25; }   /* 펼친 제목(h1)과 같은 크기 — 접어도 첫 화면의 가장 큰 요소로 남아 LCP가 늦은 목록으로 밀리지 않게 */
+  .lead-preview .when-open, .lead-preview[aria-expanded=true] .when-closed, .lead-preview[aria-expanded=true] .lead-title, .lead-preview[aria-expanded=false] + .ld { display: none; }
+  .lead-preview[aria-expanded=true] .when-open { display: inline; } .lead-preview[aria-expanded=true] { border-bottom: 1px solid var(--line); }
+  .r3 .lead .ld { padding: 18px; border-radius: 0; box-shadow: none; }
+  .r3 #lead ~ .main { margin-top: 22px; }
+}
 .r3 .ld { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; width: 100%; padding: 26px 28px; border-radius: 22px; text-align: start; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 24px 60px -36px rgb(13 37 61 / .35); }
 @media (min-width: 1000px) { .r3 .ld { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; gap: 32px; } }
 .r3 .ld .k { font-size: 13px; font-weight: 600; color: var(--primary); }
