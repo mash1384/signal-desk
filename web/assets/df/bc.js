@@ -7,11 +7,14 @@ export function mount(layout) {
   let jump = null; try { jump = new URLSearchParams(location.search).get('t'); } catch (e) {} if (jump) S.sel = jump;
   let D = null, dy = null;
   if (!app.dataset.prerender) app.innerHTML = '<div class="wrap brf"><div class="skel"></div><div class="skel"></div></div>';
-  let hydrated = false;
+  let hydrated = false, noTxt = false;
   // 미리 그린 화면(빌드 때)과 같은 자료 · 같은 언어 · 같은 폭이면 첫 렌더는 건너뛴다 — 같은 내용을 새로 그리면 그 시점이 LCP 로 다시 잡힌다
   const same = () => { const m = app.querySelector('[data-brief-snapshot]'); return !!m && !S.sel && S.f === 'all' &&
     m.dataset.briefSnapshot === `${D.made}|${(dy && dy.made) || ''}|${DFI.lang()}|${matchMedia('(min-width: 1040px)').matches ? 1 : 0}`; };
-  const render = () => { const keep = !hydrated && app.dataset.prerender && same(); hydrated = true; if (!keep) app.innerHTML = layout(D, dy, S); B.fitAxis(app); const ds = document.getElementById('bf-dly');
+  // 제목이 필요한 화면(고른 이야기의 소식 목록 — PC는 첫 이야기를 늘 고른다)을 새로 그릴 때만 제목을 먼저 받는다
+  const render = () => { const keep = !hydrated && app.dataset.prerender && same(); hydrated = true;
+    if (!keep && !B.hasText() && !noTxt && (S.sel || matchMedia('(min-width: 1040px)').matches)) { B.loadText().then(render, () => { noTxt = true; render(); }); return; }   // 제목을 못 받으면 제목 없이라도 그린다(다시 돌지 않게)
+    if (!keep) app.innerHTML = layout(D, dy, S); B.fitAxis(app); const ds = document.getElementById('bf-dly');
     // 빌드 때 그린 칸(영 · 한 둘 다)과 같은 자료면 손대지 않는다 — 다시 그리면 그 시점이 LCP로 잡힌다. 다른 자료면 그 뒤로는 브라우저가 그린다
     if (ds && dy && (ds.dataset.live || ds.dataset.d !== `${dy.date}|${Math.round(dy.made || 0)}`)) { ds.innerHTML = B.dailyHTML(dy); ds.dataset.live = 1; } };
   // 날짜 축 다시 맞추기(폭 · 글꼴)
@@ -19,6 +22,7 @@ export function mount(layout) {
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(refit).observe(app); else addEventListener('resize', refit);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
   B.wire(app, S, render);
+  ['pointerover', 'pointerdown', 'focusin'].forEach((ev) => app.addEventListener(ev, () => { if (D) B.loadText().catch(() => {}); }, { once: true, passive: true }));   // 누를 낌새가 보이면 미리
   app.addEventListener('click', e => { if (!D) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
   B.loadThreads().then((d) => Promise.all([d, B.loadDaily(d)])).then(([d, y]) => { D = d; dy = y; render();
     if (jump) { const el = app.querySelector(`[data-pick="${CSS.escape(jump)}"]`); if (el) el.scrollIntoView({ block: 'start', behavior: 'auto' }); } })

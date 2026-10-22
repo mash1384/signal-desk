@@ -4,16 +4,28 @@ import { T, L, esc, store, openSheet, pill, hm } from './lk.js';
 
 const DATA = DFD.data('daily/');
 export const THEMES5 = [['all', 'All', '전체'], ['crypto', 'Crypto', '크립토'], ['nasdaq', 'Nasdaq', '나스닥'], ['econ', 'Economy', '경제'], ['ai', 'AI', 'AI'], ['world', 'World', '세계']];
-let TH = null;
+let TH = null, TXT = null, HAS_TXT = false;
+// 제목 뺀 자료(threads-core.json) 먼저 — 제목(threads-text.json)은 이야기를 열거나 언어를 바꿀 때(loadText). 없으면 원본 그대로
 export async function loadThreads() {
   if (TH) return TH;
-  const r = await fetch((window.DF_THREADS || DATA + 'threads.json') + '?t=' + Math.floor(Date.now() / 300000));
+  const q = '?t=' + Math.floor(Date.now() / 300000);
+  let r = window.DF_THREADS ? await fetch(window.DF_THREADS + q) : await fetch(DATA + 'threads-core.json' + q);
+  if (!window.DF_THREADS && !r.ok) r = await fetch(DATA + 'threads.json' + q);
   if (!r.ok) throw new Error('threads ' + r.status);
   TH = await r.json();
+  HAS_TXT = Object.values(TH.stories).some((x) => x.ko);
   // 소식 상세 창(openSheet)이 같은 소식을 찾을 수 있게 store 에 넣는다
   Object.entries(TH.stories).forEach(([id, x]) => { if (!store.byId.has(id)) store.byId.set(id, Object.assign({ id, th: x.th || [] }, x)); });
   TH.list = TH.threads.filter((x) => x.ai);
   return TH;
+}
+export const hasText = () => HAS_TXT;
+export function loadText() {
+  if (HAS_TXT || !TH) return Promise.resolve(TH);
+  return TXT || (TXT = fetch(DATA + 'threads-text.json?t=' + TH.made).then((r) => { if (!r.ok) throw new Error('text ' + r.status); return r.json(); })
+    .then((m) => { Object.entries(m.text || {}).forEach(([id, [ko, en]]) => { const s = TH.stories[id], it = store.byId.get(id);
+      if (s) { s.ko = ko; s.en = en; } if (it && !it.ko) { it.ko = ko; it.en = en; } }); HAS_TXT = true; return TH; })
+    .catch((e) => { TXT = null; throw e; }));
 }
 // 가장 최근 하루 정리(이야기 엔진이 날짜를 적어 둔다 — 날짜를 추측해 없는 파일을 부르지 않게)
 export async function loadDaily(D) {
@@ -168,7 +180,7 @@ export function dailyHTML(dy) {
 export function wire(app, S, render) {
   app.addEventListener('click', (e) => {
     const f = e.target.closest('[data-f]'); if (f) { S.f = f.dataset.f; render(); return; }
-    const s = e.target.closest('[data-sid]'); if (s) { const it = store.byId.get(s.dataset.sid); if (it) openSheet(it); return; }
+    const s = e.target.closest('[data-sid]'); if (s) { loadText().catch(() => {}).then(() => { const it = store.byId.get(s.dataset.sid); if (it) openSheet(it); }); return; }
     const t = e.target.closest('[data-pick]'); if (t) { S.sel = t.dataset.pick; render(); return; }
   });
 }
