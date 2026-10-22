@@ -774,7 +774,7 @@ def page_about(health, now):
   </section>
   <section class="box2"><h2>{dt}</h2><p>{dx}</p></section>
 </div>""".format(t=L("About &amp; method", "소개·방법론"), en=en, ko=ko,
-                 jumps="".join('<a href="#%s">%s <span aria-hidden="true">↓</span></a>' % (key, L(en, ko)) for key, en, ko in
+                 jumps="".join('<a href="#%s">%s <svg class="ar" viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M6 1.5v8.5M2.5 6.5 6 10l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>' % (key, L(en, ko)) for key, en, ko in
                                (("about-intro", "About", "서비스 소개"), ("method", "Method", "방법론"), ("sources", "Sources", "데이터 출처"))),
                  en_method=en_method.replace("{n}", str(n)), ko_method=ko_method.replace("{n}", str(n)), st=L("Sources", "데이터 출처"),
                  c1=L("Outlet", "매체"), c2=L("Field", "분야"), c3=L("Language", "언어"), c4=L("Last fetch", "최근 수집"), rows="".join(rows),
