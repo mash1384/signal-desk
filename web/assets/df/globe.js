@@ -169,7 +169,9 @@ export function makeGlobe({ scene, sec, lay, mob }) {
   // 브리핑으로 제목 · 분야 판독을 덮는다(언어별로, 그 칸이 비었으면 예전 글 그대로)
   const mix = (d, bf) => { if (!bf || !bf.made || !bf.ko || Date.now() / 1000 - bf.made > 48 * 3600) return d;
     ['ko', 'en'].forEach((g) => { const h = bf[g] && bf[g].headline; if (h) d.headline[g] = h; });
-    d.themes.forEach((t) => ['ko', 'en'].forEach((g) => { const x = bf[g] && bf[g].desks && bf[g].desks[t.k]; if (x && x.s) t[g] = x.s; }));   // 분야 한 줄(수석 전략가)
+    // 테마 데스크 첫 문단(state, 테마 화면과 같은 글) → 없으면 분야 한 줄(s). 한 줄은 검증에 걸리면 빠져 경제 · AI가 빈칸이 되곤 했다
+    d.themes.forEach((t) => ['ko', 'en'].forEach((g) => { const st = bf.desks && bf.desks[t.k] && bf.desks[t.k][g] && bf.desks[t.k][g].state, x = bf[g] && bf[g].desks && bf[g].desks[t.k];
+      if (st) t[g] = st; else if (x && x.s) t[g] = x.s; }));
     d.bf = bf.made; return d; };
   Promise.all([fetch(TU + VQ).then((r) => r.json()), fetch(TU.replace(/themes\.json$/, 'briefing.json') + VQ).then((r) => (r.ok ? r.json() : null)).catch(() => null)]).then(([d, bf]) => {
     TH = mix(d, bf); TH.themes.sort((a, b) => ORDER.indexOf(a.k) - ORDER.indexOf(b.k)); fill(); DFI.onLang(fill);

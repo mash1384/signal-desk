@@ -325,7 +325,32 @@ def page_calendar_df():
 DESK_NAMES = (("crypto", "Crypto", "크립토"), ("nasdaq", "Nasdaq", "나스닥"), ("econ", "Economy", "경제"), ("ai", "AI", "AI"), ("world", "World", "세계"))
 
 
-def briefing_html(doc, now):
+def daily_card(dy):
+    """브리핑의 '최근 하루 정리' 칸(빌드 때 그려 둔다 — 브라우저 brk.js dailyHTML 과 같은 모양, 자료가 오면 그대로 다시 채운다).
+    예전엔 이야기 목록 아래 맨 끝에 있어 거의 보이지 않았다(6회차, 운영자)."""
+    if not dy:
+        return ""
+    b, m, en = dy.get("balance") or {}, dy.get("market") or {}, dy.get("en") or {}
+
+    def body(d):
+        ins = (d.get("insights") or [])[:3]
+        if ins:
+            rest = '<ol class="dins">%s</ol>' % "".join("<li><b>%s</b><span>%s</span></li>" % (h(x.get("t", "")), h(x.get("s", ""))) for x in ins)
+        else:
+            rest = '<p class="rv">%s</p>' % h(d.get("review") or "")
+        return "<h3>%s</h3>%s" % (h(d.get("headline") or ""), rest)
+    has_en = en.get("headline") or en.get("insights") or en.get("review")
+    en_body = body(en) if has_en else '<h3>Daily brief · %s</h3><p class="rv">The written summary is in Korean for now.</p>' % h(dy["date"])
+    btc = (m.get("btc") or {}).get("chg")
+    nums = ('<p class="nums"><span><b class="mono">%d</b> %s</span><span class="u"><b class="mono">%d</b> %s</span><span class="dn"><b class="mono">%d</b> %s</span>%s</p>' % (
+        (dy.get("counts") or {}).get("stories") or 0, L("stories", "건"), b.get("호재") or 0, L("bullish", "호재"), b.get("악재") or 0, L("bearish", "악재"),
+        '<span>BTC <b class="mono %s">%s%.2f%%</b></span>' % ("u" if btc >= 0 else "dn", "+" if btc >= 0 else "", btc) if isinstance(btc, (int, float)) else ""))
+    return ('<section class="box dly" id="bf-dly" data-d="%s|%d"><p class="k">%s <span>· %s</span></p><div data-l="ko">%s</div><div data-l="en">%s</div>%s'
+            '<a class="more" href="%sdaily/%s/">%s</a></section>') % (
+        h(dy["date"]), int(round(dy.get("made") or 0)), L("Latest daily brief", "최근 하루 정리"), h(dy["date"]), body(dy), en_body, nums, B, h(dy["date"]), L("Read the full daily brief →", "하루 정리 전체 보기 →"))
+
+
+def briefing_html(doc, now, dy=None):
     """브리핑(맨 위): 지금 판 · 인사이트 3개 · 분야별 한 줄(테마로) · 판을 바꿀 변수 · 지켜볼 일정. 빌드 때 그려 둔다(자료는 하루 4번, 빌드는 15분마다).
     영 · 한 둘 다 싣고 문서 언어로 하나만 보인다(lk.css [data-l]). 영어가 없는 칸은 영어 화면에서 숨는다. 이틀 넘게 묵었으면 싣지 않는다."""
     if not doc or not doc.get("ko") or now - doc.get("made", 0) > 48 * 3600:
@@ -347,9 +372,21 @@ def briefing_html(doc, now):
     big = "".join('<article class="bf-c"><p class="n mono">%d</p>%s%s<div class="rf">%s</div></article>' % (
         i + 1, two(at("big", i, "t"), x.get("t"), "h3"), two(at("big", i, "s"), x.get("s"), "p"), chips(x.get("refs")))
         for i, x in enumerate((ko.get("big") or [])[:3]))
-    desks = "".join('<a class="bf-d" href="%sthemes/%s/"><b>%s</b>%s<span class="go" aria-hidden="true">→</span></a>' % (
-        B, k, L(ne, nk), two(((en.get("desks") or {}).get(k) or {}).get("s"), ((ko.get("desks") or {}).get(k) or {}).get("s"), "p"))
-        for k, ne, nk in DESK_NAMES if ((ko.get("desks") or {}).get(k) or {}).get("s"))
+    def desk_text(k, g):   # 테마 데스크 첫 문단(검증을 통과한 글) → 없으면 분야 한 줄
+        st = (((doc.get("desks") or {}).get(k) or {}).get(g) or {}).get("state")
+        return st or (((doc.get(g) or {}).get("desks") or {}).get(k) or {}).get("s")
+    dk = [(k, ne, nk) for k, ne, nk in DESK_NAMES if desk_text(k, "ko")]
+    desks = ""
+    if dk:
+        chev = lambda d: '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="%s" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' % d
+        tabs = "".join('<button type="button" role="tab" id="bf-tab-%s" aria-controls="bf-dp-%s" aria-selected="%s" data-dk="%d">%s</button>' % (
+            k, k, "true" if i == 0 else "false", i, L(ne, nk)) for i, (k, ne, nk) in enumerate(dk))
+        panels = "".join('<article class="bf-dp%s" id="bf-dp-%s" role="tabpanel" aria-labelledby="bf-tab-%s">%s<a class="go" href="%sthemes/%s/">%s</a></article>' % (
+            " on" if k == dk[0][0] else "", k, k, two(desk_text(k, "en"), desk_text(k, "ko"), "p"), B, k, L("Open the %s desk →" % ne, "%s 테마 자세히 보기 →" % nk)) for k, ne, nk in dk)
+        desks = ('<section class="box bf-dk" aria-labelledby="bf-dk-h"><div class="bf-dkh"><h2 class="bf-h2" id="bf-dk-h">%s</h2>'
+                 '<div class="bf-nav"><button type="button" class="bf-pv" data-step="-1" aria-label="%s">%s</button><button type="button" class="bf-pv" data-step="1" aria-label="%s">%s</button></div></div>'
+                 '<div class="bf-tabs" role="tablist">%s</div><div class="bf-dkt" id="bf-dkt">%s</div></section>') % (
+            L("By desk", "분야별"), "Previous desk", chev("M7.5 2.5 4 6l3.5 3.5"), "Next desk", chev("M4.5 2.5 8 6 4.5 9.5"), tabs, panels)
     risks = "".join("<li>%s%s</li>" % (two(at("risks", i, "s"), x.get("s")), chips(x.get("refs")))
                     for i, x in enumerate(ko.get("risks") or []))
     watch = "".join("<li>%s %s</li>" % (two(at("watch", i, "when"), x.get("when"), "b"), two(at("watch", i, "s"), x.get("s")))
@@ -361,7 +398,7 @@ def briefing_html(doc, now):
   <h1 id="bf-h">{head}</h1>
   <div class="bf-rg"><span class="lb">{label}</span>{rs}</div>
   <div class="bf-big">{big}</div>
-  {desks}
+  <div class="bf-mid">{desks}{daily}</div>
   <div class="bf-two">{risks}{watch}</div>
   <p class="bf-fn">{fn}</p>
 </div></section>
@@ -370,7 +407,7 @@ def briefing_html(doc, now):
            nxt=L("next %s" % hm(doc["next"]), "다음 %s" % hm(doc["next"])) if doc.get("next") else "",
            old=(" · " + L("an earlier briefing — the next one is late", "지난 브리핑이에요. 다음 회차가 늦어지고 있어요")) if old else "",
            head=two(en.get("headline"), ko.get("headline")), label=two(ge.get("label"), g.get("label")), rs=two(ge.get("s"), g.get("s"), "p"), big=big,
-           desks=('<h2 class="bf-h2">%s</h2><div class="bf-desks">%s</div>' % (L("By desk", "분야별"), desks)) if desks else "",
+           desks=desks, daily=daily_card(dy),
            risks=('<section class="bf-box"><h2>%s</h2><ul>%s</ul></section>' % (L("What could change the picture", "판을 바꿀 수 있는 변수"), risks)) if risks else "",
            watch=('<section class="bf-box"><h2>%s</h2><ul>%s</ul><a class="more" href="%scalendar/">%s</a></section>' % (L("What to watch", "지켜볼 일정"), watch, B, L("Open the calendar →", "일정 보기 →"))) if watch else "",
            fn=L("Written by AI from market data and judged news — an interpretation, not investment advice. Figures are matched to the source data by the program.",
@@ -383,7 +420,10 @@ def page_brief_df(now=None):
     그 아래는 며칠째 이어지는 이야기(줄기)를 한 시간 축 위에(threads.json, 브라우저가 읽는다) + 하루 정리."""
     tpl = read_tpl("df_brief.html")
     doc = util.read_json(os.path.join(config.FLASH_DIR, "daily", "briefing.json"), None)
-    html_ = tpl.replace('<main id="app"></main>', briefing_html(doc, now or time.time()) + '<main id="app"></main>', 1)
+    dailies = load_dailies()
+    dy = dailies[0] if dailies else None
+    top = briefing_html(doc, now or time.time(), dy) or ('<div class="wrap bf-solo">%s</div>' % daily_card(dy) if dy else "")   # 브리핑이 묵어도 하루 정리 칸은 위에
+    html_ = tpl.replace('<main id="app"></main>', top + '<main id="app"></main>', 1)
     return with_beacon(with_pf(html_.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "brief")
 
 

@@ -14,7 +14,7 @@
     "live/": 1703500,
     "my/": 1378487,
     "themes/crypto/": 1282873,
-    "brief/": 1280000,
+    "brief/": 1350000,
     "calendar/": 1326076,
     "daily/": 747395,
     "about/": 660051
@@ -5658,6 +5658,19 @@
         1280000
       ],
       "reason": "Live-data growth, not code: CI measures with the live flash/gh-pages and the ongoing-stories data grew. With the 2026-10-22 live data the deployed main measured 1,242,726 B (already over) and round 5 measured 1,237,538 B (5 KB lighter). Operator chose to raise the brief budget (~6%) and slim the story data in a later round. Other pages unchanged."
+    },
+    {
+      "date": "2026-10-23",
+      "page": "brief/",
+      "measured_bytes": [
+        1267021,
+        1288820
+      ],
+      "budget_bytes": [
+        1280000,
+        1350000
+      ],
+      "reason": "Round 6 (operator-requested): desk switcher card + daily card pre-rendered at the top (~5 KB HTML), plus same-day live-data growth (CI: 1,267,021 B before the change, 1,288,820 B after, threads.json alone ~325 KB with both ko and en titles). Operator chose to raise the brief budget now and next split the story data by language (~70 KB expected), then lower this budget again."
     }
   ]
 }
