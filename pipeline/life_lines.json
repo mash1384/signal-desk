@@ -1,0 +1,14 @@
+{
+ "_": "브리핑 '내 생활에서는' 고정 문장(2026-10-23 운영자 확정 목록, △ 항목 2 · 13은 확인 전이라 뺌). AI는 열쇠만 고른다(tools/easy.py). en은 어느 나라에나 맞는 일반 문장 — 나라마다 반대인 열쇠는 비워 둔다(영어 화면에서 상자 없음).",
+ "keys": {
+  "oil": {"when": "국제 유가 · 원유 가격이 카드의 중심일 때", "ko": ["국제 기름값은 보통 2~3주 뒤 국내 주유소 휘발유 · 경유 값에 반영돼요.", "기름값이 오르면 택배 · 배달비, 버스 · 택시 요금을 올리자는 압력이 커져요."], "en": ["Fuel and transport costs usually follow crude oil prices with a lag of a few weeks."]},
+  "gas": {"when": "천연가스 · LNG 가격이 카드의 중심일 때", "ko": ["국제 가스값이 오르면 몇 달 뒤 도시가스 · 난방비가 오를 수 있어요(정부가 인상을 미루기도 해요)."], "en": ["Higher global gas prices often reach household heating and utility bills months later."]},
+  "fx_up": {"when": "달러가 강해지거나 원화가 약해진 게 카드의 중심일 때", "ko": ["달러 값이 오르면(원화 약세) 수입 원자재 · 물건값이 올라 국내 물가가 전반적으로 오를 수 있어요."], "en": []},
+  "us_rates": {"when": "미국 금리 · 국채 금리 · 연준 결정이 카드의 중심일 때", "ko": ["미국 금리가 움직여도 한국 대출 금리가 바로 따라가지는 않아요. 한국은행 결정과 은행 금리를 함께 봐야 해요.", "미국 금리가 높게 유지되면 원화 값이 약해지기 쉬워, 환율을 거쳐 국내 물가에 영향을 줄 수 있어요."], "en": ["US rate moves often spill over into borrowing costs and currencies around the world."]},
+  "us_inflation": {"when": "미국 물가 지표(CPI · PCE 등)가 카드의 중심일 때", "ko": ["미국 물가가 높게 나오면 미국이 금리를 늦게 내려, 한국 대출 금리가 내려오는 속도도 느려질 수 있어요."], "en": ["Hot US inflation can delay rate cuts, keeping borrowing costs high in many countries."]},
+  "kr_rates": {"when": "한국은행 · 한국 기준금리가 카드의 중심일 때", "ko": ["한국은행이 기준금리를 내리면 예금 · 적금 금리도 보통 따라 내려가요. 대출 이자는 그보다 천천히 내려가는 경우가 많아요."], "en": []},
+  "chips": {"when": "반도체 · 반도체 장비 주식이 카드의 중심일 때", "ko": ["반도체는 한국 수출에서 가장 큰 품목이라, 반도체 경기는 수출 · 일자리 · 세금에 두루 영향을 줘요.", "국민연금은 삼성전자 · SK하이닉스의 큰 주주라, 반도체 주가는 내 노후 자금과도 이어져 있어요.", "퇴직연금 · 연금저축에서 많이 사는 미국 지수 펀드(S&P500 · 나스닥100)는 반도체 · 빅테크 비중이 커요."], "en": ["Chip stocks are a large part of many global stock index funds, so moves like this can show up in retirement and index funds."]},
+  "memory": {"when": "메모리 반도체 가격 · AI 데이터센터 수요가 카드의 중심일 때", "ko": ["AI 데이터센터 때문에 메모리 값이 오르면 스마트폰 · 노트북 가격이 오를 수 있어요."], "en": ["When memory chip prices rise, smartphones and laptops can get more expensive."]},
+  "tariffs": {"when": "미국 관세 · 무역 조치가 카드의 중심일 때", "ko": ["미국이 관세를 올리면 한국 수출 기업(자동차 · 가전 · 배터리)의 실적과 일자리에 부담이 될 수 있어요."], "en": ["Higher US tariffs can raise prices of imported goods and weigh on exporters' jobs."]}
+ }
+}

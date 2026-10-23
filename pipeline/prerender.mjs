@@ -36,7 +36,7 @@ for (const lang of ['en', 'ko']) {
   out.live[lang] = V.shell({lead: lead ? V.leadHTML(lead) : '',tabs:V.tabsHTML(xs),
     cards:xs.filter(x=>x!==lead).slice(0,24).map(x=>V.card(x,x.s>=3)).join(''),
     head:`<span class="ghl"><span>${L.T('Signals','신호')}</span>${V.sSeg()}</span>${V.mSeg()}`});
-  const threads = {...input.threads, list:input.threads.threads.filter(x=>x.ai)};
+  const seen = new Set(), threads = {...input.threads, list:input.threads.threads.filter(x=>x.ai && !seen.has(x.id) && seen.add(x.id))};   // brk.js loadThreads 와 같게(같은 번호는 앞의 것만)
   // 화면 JS 가 같은 자료를 받으면 다시 그리지 않도록(같은 내용을 새로 그리면 그 시점이 LCP 로 다시 잡힌다) 무엇으로 그렸는지 남긴다
   const snap = (wide) => `<i hidden data-brief-snapshot="${input.threads.made}|${(input.daily && input.daily.made) || ''}|${lang}|${wide ? 1 : 0}"></i>`;
   for (const wide of [false,true]) out.brief[lang+'-'+(wide?'wide':'narrow')] = snap(wide) + B.briefLayout(threads, input.daily, {f:'all',sel:null}, wide);

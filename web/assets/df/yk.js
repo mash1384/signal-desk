@@ -25,7 +25,7 @@ export const UNIVERSE = [
 export const BY = Object.fromEntries(UNIVERSE.map((a) => [a.sym, a]));
 export const nm = (a) => (L() ? a.ko : a.en);
 export const short = (sym) => sym.replace('=F', '').replace('^', '').replace('-Y.NYB', 'Y').replace('=X', '');
-export const KINDS = [['crypto', 'Crypto', '코인'], ['stock', 'Stocks', '주식'], ['index', 'Indices', '지수'], ['macro', 'Rates · FX · Commodities', '금리·환율·원자재']];
+export const KINDS = [['crypto', 'Crypto', '크립토'], ['stock', 'Stocks', '주식'], ['index', 'Indices', '지수'], ['macro', 'Rates · FX · Commodities', '금리·환율·원자재']];
 export const POPULAR = ['BTC', 'ETH', 'SOL', 'NVDA', 'TSLA', 'AAPL', 'NQ=F', 'GC=F', '^TNX', 'KRW=X'];
 // ---------- 저장 ----------
 const KEY = 'df-my';

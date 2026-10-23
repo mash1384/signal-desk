@@ -11,8 +11,24 @@ def open_page(session_page, site_server, path, width, lang="ko"):
     return page
 
 
+THEMES = ("crypto", "nasdaq", "econ", "ai", "world")
+
+
+def desk_with_details(session_page, site_server, width):
+    """세부 문장(.dkg)이 있는 테마를 고른다 — 그 회차 검사에서 세부가 모두 빠진 데스크는 접기 단추가 없는 게 맞다(실제 자료로 도는 원격 검사)."""
+    for k in THEMES:
+        page = open_page(session_page, site_server, "themes/%s/" % k, width)
+        n = page.evaluate("(() => { const g = document.querySelector('.sum.dk > .dkg'); return g ? g.children.length : 0; })()")
+        if n:
+            return page
+        assert page.locator(".sum.dk [data-fold]").count() == 0      # 세부가 없으면 단추도 없다
+    return None
+
+
 def test_desk_folds_on_mobile_and_opens(session_page, site_server):
-    page = open_page(session_page, site_server, "themes/crypto/", 390)
+    page = desk_with_details(session_page, site_server, 390)
+    if page is None:
+        return                                                     # 모든 테마에 세부가 없는 회차 — 위에서 '단추 없음'을 확인했다
     btn = page.locator(".sum.dk [data-fold]")
     assert btn.is_visible() and btn.get_attribute("aria-expanded") == "false"
     assert not page.locator(".sum.dk > .dkg").is_visible()
@@ -23,7 +39,9 @@ def test_desk_folds_on_mobile_and_opens(session_page, site_server):
 
 
 def test_desk_not_folded_on_desktop(session_page, site_server):
-    page = open_page(session_page, site_server, "themes/crypto/", 1440)
+    page = desk_with_details(session_page, site_server, 1440)
+    if page is None:
+        return
     assert page.locator(".sum.dk > .dkg").is_visible()
     assert not page.locator(".sum.dk [data-fold]").is_visible()
 
@@ -79,7 +97,9 @@ def test_scroll_hint_really_disappears_at_end_and_on_desktop(session_page, site_
 
 
 def test_fold_state_survives_language_and_theme_switch(session_page, site_server):
-    page = open_page(session_page, site_server, "themes/crypto/", 390)
+    page = desk_with_details(session_page, site_server, 390)
+    if page is None:
+        return
     page.locator(".sum.dk [data-fold]").click()
     assert page.locator(".sum.dk > .dkg").is_visible()
     page.locator(".lang button[data-lang='en']").click(); page.wait_for_timeout(500)

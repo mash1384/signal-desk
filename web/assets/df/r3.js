@@ -125,7 +125,7 @@ let rzT = 0, rzW = innerWidth; addEventListener('resize', () => { if (innerWidth
 // 종목: '내 자산' 목록(코인 · 주식 · 지수 · 금리·환율·원자재)에 있는 것만 센다(AI 판정의 coins 칸엔 회사 · NFT · 엉뚱한 글자가 섞여 들어오기도 해서).
 // 기업: 상장 안 된 주요 AI 회사는 이름으로. 이슈: 며칠째 이어지는 이야기(정리 화면의 줄기)에 붙은 소식 수.
 const ENT = [['Anthropic', '앤트로픽', /앤트로픽|anthropic/i], ['OpenAI', '오픈AI', /오픈\s?AI|openai/i], ['xAI', 'xAI', /\bxAI\b/], ['SpaceX', '스페이스X', /스페이스\s?X|spacex/i]];
-const KIND = { crypto: ['Coin', '코인'], stock: ['Stock', '주식'], index: ['Index', '지수'], macro: ['Market', '시장 지표'], co: ['Company', '기업'], issue: ['Ongoing story', '이어지는 이야기'] };
+const KIND = { crypto: ['Crypto', '크립토'], stock: ['Stock', '주식'], index: ['Index', '지수'], macro: ['Market', '시장 지표'], co: ['Company', '기업'], issue: ['Ongoing story', '이어지는 이야기'] };
 let lastTr = null;
 function trending(xs, now) {
   lastTr = [xs, now];
