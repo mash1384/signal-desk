@@ -322,6 +322,7 @@ def page_calendar_df():
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "calendar")
 
 
+LIFE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "life_lines.json")))["keys"]   # 브리핑 '내 생활에서는' 고정 문장
 DESK_NAMES = (("crypto", "Crypto", "크립토"), ("nasdaq", "Nasdaq", "나스닥"), ("econ", "Economy", "경제"), ("ai", "AI", "AI"), ("world", "World", "세계"))
 
 
@@ -369,9 +370,39 @@ def briefing_html(doc, now, dy=None):
         refs = [r for r in (refs or []) if r in (doc.get("stories") or {})][:3]
         return "".join('<button type="button" class="bf-ref" data-bf="%s">%s</button>' % (h(r), L("Source %d ↗" % (i + 1), "근거 %d ↗" % (i + 1))) for i, r in enumerate(refs))
     g, ge = ko.get("regime") or {}, en.get("regime") or {}
-    big = "".join('<article class="bf-c"><p class="n mono">%d</p>%s%s<div class="rf">%s</div></article>' % (
-        i + 1, two(at("big", i, "t"), x.get("t"), "h3"), two(at("big", i, "s"), x.get("s"), "p"), chips(x.get("refs")))
+    home = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg>'
+
+    def life(x):   # 내 생활에서는: 쉬운 말 단계가 고른 열쇠 → 고정 문장(pipeline/life_lines.json, 회차마다 돌아가며). 영어 일반 문장이 없으면 영어 화면에선 상자째 숨는다
+        k = LIFE.get(x.get("life") or "")
+        pick = lambda xs: xs[(int(doc.get("made", 0)) // 3600) % len(xs)] if xs else None
+        ko_t, en_t = pick((k or {}).get("ko")), pick((k or {}).get("en"))
+        if not ko_t:
+            return ""
+        body = (L("In your daily life", "내 생활에서는", "b") + bi(en_t, ko_t, "p")) if en_t else ('<b>내 생활에서는</b>' + bi(None, ko_t, "p"))
+        return '<div class="bf-life"%s>%s<div>%s</div></div>' % ("" if en_t else ' data-l="ko"', home, body)
+
+    def who(i, x):   # 영향을 받는 곳(쉬운 말 단계) — 영어 칩은 영어판 같은 자리
+        ws = [w.get("s") for w in (x.get("who") or []) if isinstance(w, dict) and w.get("s")][:3]
+        if not ws:
+            return ""
+        ew = at("big", i, "who") or []
+        en_w = lambda j: (ew[j] or {}).get("s") if j < len(ew) and isinstance(ew[j], dict) else None
+        if all(en_w(j) for j in range(len(ws))):
+            return '<p class="bf-who">%s%s</p>' % (L("Affects", "영향을 받는 곳"), "".join(bi(en_w(j), w, "b") for j, w in enumerate(ws)))
+        return '<p class="bf-who" data-l="ko"><span>영향을 받는 곳</span>%s</p>' % "".join("<b>%s</b>" % h(w) for w in ws)   # 영어 칩이 다 없으면 영어 화면에서 줄째 숨김
+    big = "".join('<article class="bf-c"><p class="n mono">%d</p>%s%s%s%s<div class="rf">%s</div></article>' % (
+        i + 1, two(at("big", i, "t"), x.get("t"), "h3"), two(at("big", i, "s"), x.get("s"), "p"), life(x), who(i, x), chips(x.get("refs")))
         for i, x in enumerate((ko.get("big") or [])[:3]))
+    three = [t.get("s") for t in (ko.get("three") or []) if isinstance(t, dict) and t.get("s")]
+    en3 = [at("three", j, "s") for j in range(3)]
+    if len(three) != 3:
+        ez = ""
+    elif all(en3):
+        ez = '<div class="bf-3"><p class="lb">%s</p><ol>%s</ol></div>' % (L("At a glance", "한눈에 보기 · 쉬운 3줄"), "".join(
+            '<li><i class="mono">%d</i>%s</li>' % (j + 1, bi(en3[j], t)) for j, t in enumerate(three)))
+    else:   # 영어 3줄이 하나라도 없으면 영어 화면에서 상자째 숨김
+        ez = '<div class="bf-3" data-l="ko"><p class="lb">한눈에 보기 · 쉬운 3줄</p><ol>%s</ol></div>' % "".join(
+            '<li><i class="mono">%d</i><span>%s</span></li>' % (j + 1, h(t)) for j, t in enumerate(three))
     def desk_text(k, g):   # 테마 데스크 첫 문단(검증을 통과한 글) → 없으면 분야 한 줄
         st = (((doc.get("desks") or {}).get(k) or {}).get(g) or {}).get("state")
         return st or (((doc.get(g) or {}).get("desks") or {}).get(k) or {}).get("s")
@@ -395,7 +426,7 @@ def briefing_html(doc, now, dy=None):
     stories = json.dumps(doc.get("stories") or {}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     return """<section class="bf" id="bf" aria-labelledby="bf-h"><div class="wrap">
   <p class="bf-k"><span class="tag">{lbl}</span> {made} · {nxt}{old}</p>
-  <h1 id="bf-h">{head}</h1>
+  <h1 id="bf-h">{head}</h1>{ez}
   <div class="bf-rg"><span class="lb">{label}</span>{rs}</div>
   <div class="bf-big">{big}</div>
   <div class="bf-mid">{desks}{daily}</div>
@@ -406,7 +437,7 @@ def briefing_html(doc, now, dy=None):
 """.format(lbl=L("Briefing", "브리핑"), made=L("updated %s" % hm(doc["made"]), "%s 기준" % hm(doc["made"])),
            nxt=L("next %s" % hm(doc["next"]), "다음 %s" % hm(doc["next"])) if doc.get("next") else "",
            old=(" · " + L("an earlier briefing — the next one is late", "지난 브리핑이에요. 다음 회차가 늦어지고 있어요")) if old else "",
-           head=two(en.get("headline"), ko.get("headline")), label=two(ge.get("label"), g.get("label")), rs=two(ge.get("s"), g.get("s"), "p"), big=big,
+           head=two(en.get("headline"), ko.get("headline")), ez=ez, label=two(ge.get("label"), g.get("label")), rs=two(ge.get("s"), g.get("s"), "p"), big=big,
            desks=desks, daily=daily_card(dy),
            risks=('<section class="bf-box"><h2>%s</h2><ul>%s</ul></section>' % (L("What could change the picture", "판을 바꿀 수 있는 변수"), risks)) if risks else "",
            watch=('<section class="bf-box"><h2>%s</h2><ul>%s</ul><a class="more" href="%scalendar/">%s</a></section>' % (L("What to watch", "지켜볼 일정"), watch, B, L("Open the calendar →", "일정 보기 →"))) if watch else "",
@@ -662,7 +693,7 @@ def page_daily(doc, prev, nxt, now):
             t=L("Prices that day", "같은 날 시세"), big=big, lu=L("Top gainers", "많이 오른"), ld=L("Top losers", "많이 내린"),
             up=mv(m.get("up", []), "up"), down=mv(m.get("down", []), "down"),
             note=L("9:00 to 9:00 Korea time (00:00–00:00 UTC), %d major coins. Listed side by side — not a claim the news moved them." % m.get("n", 0),
-                   "한국 시간 오전 9시부터 다음 날 9시까지, 주요 코인 %d개 기준. 소식 때문에 움직였다는 뜻은 아니에요." % m.get("n", 0)))
+                   "한국 시간 오전 9시부터 다음 날 9시까지, 주요 크립토 %d종 기준. 소식 때문에 움직였다는 뜻은 아니에요." % m.get("n", 0)))
     en = doc.get("en") or {}
     sections = ""
     for k, name in DAILY_CATS:
@@ -783,7 +814,7 @@ def page_about(health, now):
     <ul>
       <li><b>브리핑</b> — 크립토 · 미국 주식 · 금리와 달러 · AI · 세계정세를 한데 묶은 지금 시장의 큰 그림. 시장 자료와 판정한 소식으로 AI가 하루 4번 써요(해석이며 투자 조언이 아니에요). 그 아래에는 며칠째 이어지는 이야기를 한 시간 축 위에 보여 줘요.</li>
       <li><b>라이브</b> — 속보를 한 줄로, 소식이 나온 순간부터의 가격 차트와 함께.</li>
-      <li><b>내 자산</b> — 코인·주식·지수를 골라 그 소식, 급변 알림, 하루 요약만. 고른 목록은 이 브라우저에만 저장돼요.</li>
+      <li><b>내 자산</b> — 크립토·주식·지수를 골라 그 소식, 급변 알림, 하루 요약만. 고른 목록은 이 브라우저에만 저장돼요.</li>
       <li><b>테마</b> — 크립토·나스닥·경제·AI·세계: 지난 24시간 호재·악재 흐름, 평소와 달라진 점, 관련 시세.</li>
       <li><b>일정</b> — 다가오는 경제 발표, 과거 발표의 처음 나온 값, 비슷한 값이 나왔을 때 가격 흐름.</li>
     </ul></section>"""

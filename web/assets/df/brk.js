@@ -16,7 +16,7 @@ export async function loadThreads() {
   HAS_TXT = Object.values(TH.stories).some((x) => x.ko);
   // 소식 상세 창(openSheet)이 같은 소식을 찾을 수 있게 store 에 넣는다
   Object.entries(TH.stories).forEach(([id, x]) => { if (!store.byId.has(id)) store.byId.set(id, Object.assign({ id, th: x.th || [] }, x)); });
-  TH.list = TH.threads.filter((x) => x.ai);
+  const seen = new Set(); TH.list = TH.threads.filter((x) => x.ai && !seen.has(x.id) && seen.add(x.id));   // 같은 번호가 두 번 오면 앞의 것만(두 카드가 함께 펼쳐지지 않게)
   return TH;
 }
 export const hasText = () => HAS_TXT;
@@ -181,7 +181,8 @@ export function wire(app, S, render) {
   app.addEventListener('click', (e) => {
     const f = e.target.closest('[data-f]'); if (f) { S.f = f.dataset.f; render(); return; }
     const s = e.target.closest('[data-sid]'); if (s) { loadText().catch(() => {}).then(() => { const it = store.byId.get(s.dataset.sid); if (it) openSheet(it); }); return; }
-    const t = e.target.closest('[data-pick]'); if (t) { S.sel = t.dataset.pick; render(); return; }
+    // 좁은 화면은 카드 안에서 펼친다 — 펼친 카드를 다시 누르면 접는다. PC(1040px~)는 오른쪽 칸에 고른 이야기를 늘 보여 준다
+    const t = e.target.closest('[data-pick]'); if (t) { const id = t.dataset.pick; S.sel = S.sel === id && !matchMedia('(min-width: 1040px)').matches ? null : id; render(); return; }
   });
 }
 export function fresh(D) { const m = Math.round((Date.now() / 1000 - D.made) / 60); return T(`Updated ${m < 60 ? m + ' min' : Math.round(m / 60) + ' h'} ago · every 30 min`, `${m < 60 ? m + '분' : Math.round(m / 60) + '시간'} 전 갱신 · 30분마다`); }

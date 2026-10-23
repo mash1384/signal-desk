@@ -134,6 +134,16 @@
 .bf-c .rf { margin-top: auto; padding-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
 .bf-ref { height: 26px; padding: 0 10px; border-radius: 99px; background: #eceaff; color: #4b3fd1; font-size: 12px; font-weight: 600; cursor: pointer; }
 @media (hover: hover) { .bf-ref:hover { background: #ddd8ff; } }
+/* 쉬운 말 단계(tools/easy.py, 2026-10-23): 한눈에 3줄 · 내 생활에서는 · 영향을 받는 곳 */
+.bf-3 { padding: 16px 18px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); } .bf-3 .lb { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+.bf-3 ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; } .bf-3 li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; font-size: 15.5px; line-height: 1.55; }
+.bf-3 i { font-style: normal; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #eceaff; color: #4b3fd1; margin-top: 2px; }
+.bf-life { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; margin-top: 4px; padding: 10px 12px; border-radius: 12px; background: #fff8e8; box-shadow: inset 0 0 0 1px #f2dfae; }
+.bf-life svg { width: 18px; height: 18px; color: #8a5a12; margin-top: 1px; } .bf-life b { display: block; font-size: 12px; font-weight: 700; color: #7a4f0f; } .bf-c .bf-life p { font-size: 13.5px; line-height: 1.55; color: var(--ink2); }
+.bf-who { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; color: var(--mute); } .bf-who b { font-weight: 600; padding: 2px 9px; border-radius: 99px; background: var(--soft); color: var(--ink2); box-shadow: inset 0 0 0 1px var(--line); }
+:root[data-theme="dark"] .bf-3 { background: var(--surf); } :root[data-theme="dark"] .bf-3 i { background: #2a2552; color: #c9c2ff; }
+:root[data-theme="dark"] .bf-life { background: #2a2414; box-shadow: inset 0 0 0 1px #4a3d1c; } :root[data-theme="dark"] .bf-life b, :root[data-theme="dark"] .bf-life svg { color: #f0c36a; }
+:root[data-theme="dark"] .bf-who b { background: var(--surf2); }
 .bf-ref, .bf-box .more, .dly .more { position: relative; } .bf-ref::after, .bf-box .more::after, .dly .more::after { content: ''; position: absolute; inset: -4px -2px; }   /* 누름 영역만 넓힘 */
 .bf-h2 { margin-top: 6px; font-size: 13px; font-weight: 650; letter-spacing: .04em; color: var(--mute); }
 .bf-mid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); } .bf-mid > * { min-width: 0; } @media (min-width: 900px) { .bf-mid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; } }   /* 분야별(한 칸) | 최근 하루 정리 */
