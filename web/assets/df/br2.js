@@ -28,3 +28,5 @@ if (bf) {
     go(0);
   }
 }
+// 용어 풀이(gl.js): 첫 화면을 다 그린 뒤 한가할 때 불러와 어려운 말에 점선 밑줄
+if (bf) (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(() => import('./gl.js' + new URL(import.meta.url).search).then((m) => m.glossarize(bf)));
