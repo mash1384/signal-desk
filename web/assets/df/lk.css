@@ -164,9 +164,10 @@ button:focus:not(:focus-visible) { outline: none; }
 /* 용어 풀이(gl.js): 점선 밑줄 단추 → 모바일은 누르면, PC는 올리면 풀이 창 */
 .gl { display: inline; padding: 0 0 1px; margin: 0; border: 0; border-bottom: 1.5px dotted currentColor; border-radius: 0; background: none; font: inherit; line-height: 1.25; vertical-align: baseline; color: inherit; letter-spacing: inherit; cursor: help; }
 .bf-rg .gl { border-bottom-color: rgb(255 255 255 / .7); }
-.glpop { position: fixed; z-index: 90; padding: 14px 16px; border-radius: 14px; background: #0d1f36; color: #fff; font-size: 14px; line-height: 1.55; box-shadow: 0 18px 40px -12px rgb(13 37 61 / .45); word-break: keep-all; overflow-wrap: break-word; }
-.glpop b { display: block; font-size: 15px; margin-bottom: 4px; }
-.glpop::before { content: ""; position: absolute; top: -6px; left: var(--ax, 30px); width: 12px; height: 12px; margin-left: -6px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
-.glpop.up::before { top: auto; bottom: -6px; }
-:root[data-theme="dark"] .glpop, .glpop.dk { background: #e8eef6; color: #0b1320; }   /* 남색 요약 카드 위에서는 밝은 창(묻히지 않게) */
-.glpop.dk { box-shadow: 0 18px 40px -12px rgb(0 0 0 / .55); }
+.glpop { position: fixed; z-index: 90; width: max-content; max-width: min(248px, calc(100vw - 32px)); padding: 8px 12px; border-radius: 10px; background: #0d253d; color: rgb(255 255 255 / .86); font-size: 13px; line-height: 1.5; box-shadow: 0 8px 24px -10px rgb(13 37 61 / .5); word-break: keep-all; overflow-wrap: break-word; animation: glin .16s var(--ease); }
+.glpop b { font-weight: 700; color: #fff; margin-right: 6px; }
+.glpop::before { content: ""; position: absolute; top: -4px; left: var(--ax, 20px); width: 9px; height: 9px; margin-left: -4.5px; background: inherit; transform: rotate(45deg); border-radius: 1.5px; }
+.glpop.up { animation-name: glup; } .glpop.up::before { top: auto; bottom: -4px; }
+@keyframes glin { from { opacity: 0; transform: translateY(-4px) scale(.98); } } @keyframes glup { from { opacity: 0; transform: translateY(4px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .glpop { animation: none; } }
+:root[data-theme="dark"] .glpop, .glpop.dk { background: #f1f4f8; color: #33465f; } :root[data-theme="dark"] .glpop b, .glpop.dk b { color: #0b1320; }   /* 어두운 화면 · 남색 요약 카드 위에서는 밝은 창 */
