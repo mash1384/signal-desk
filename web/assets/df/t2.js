@@ -26,6 +26,7 @@ async function render(soft) {
       <section class="box"><h2 class="bh">${ko() ? '섹터별 분포' : 'By sector'}</h2><div id="secs">${K.sectorsHTML(t, S.sec)}</div></section>${S.k === 'econ' ? `<section class="box"><h2 class="bh">${ko() ? '다음 주요 일정' : 'Coming up'}</h2><div id="evs"></div></section>` : ''}</div>
       <section class="box sbox tsum">${side(t)}</section></div>${grid}</div>`;
   K.fillPx(app);
+  (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(() => import('./gl.js' + new URL(import.meta.url).search).then((m) => m.glossarize(app.querySelector('.tsum'))));   // 데스크 글의 어려운 말에 풀이
   const k = S.k;
   if (!bench[k]) bench[k] = await once('bench:' + k, () => K.benchSeries(k)); if (k !== S.k) return;
   if (chart) { try { chart.remove(); } catch (e) {} } chart = K.flowChart(app.querySelector('#flow'), doc, t, bench[k], { height: innerWidth < 640 ? 210 : 280 });
