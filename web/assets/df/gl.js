@@ -103,12 +103,15 @@ function place(b, g, d) {
   const en = b.dataset.gll === 'en', title = en ? g[1][0] : g[0][0];
   pop.innerHTML = '<b></b><span></span>'; pop.firstChild.textContent = title; pop.lastChild.textContent = en ? d[1] : d[0];
   pop.hidden = false;
-  const r = b.getBoundingClientRect(), w = Math.min(300, innerWidth - 24);
+  // 시안(docs/relay/mockups/easy) 그대로: 말 바로 아래, 말 시작점보다 조금 왼쪽에서 시작, 화살표는 말 가운데. 아래 탭 막대에 가리면 위로
+  const r = b.getBoundingClientRect(), w = Math.min(300, innerWidth - 32), t = document.querySelector('.tabs');
+  const floor = t && t.offsetHeight ? Math.min(innerHeight, t.getBoundingClientRect().top) : innerHeight;
   pop.style.width = w + 'px';
-  const left = Math.max(12, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 12));
-  const below = r.bottom + 10 + pop.offsetHeight < innerHeight;
-  pop.style.left = left + 'px'; pop.style.top = (below ? r.bottom + 8 : Math.max(8, r.top - pop.offsetHeight - 8)) + 'px';
+  const left = Math.max(16, Math.min(r.left - 20, innerWidth - w - 16));
+  const below = r.bottom + 10 + pop.offsetHeight + 8 < floor;
+  pop.style.left = left + 'px'; pop.style.top = (below ? r.bottom + 10 : Math.max(8, r.top - pop.offsetHeight - 10)) + 'px';
   pop.style.setProperty('--ax', Math.max(14, Math.min(w - 14, r.left + r.width / 2 - left)) + 'px');
+  pop.classList.toggle('dk', !!b.closest('.bf-rg'));
   pop.classList.toggle('up', !below);
 }
 function hide() { if (pop) pop.hidden = true; if (cur) { cur.setAttribute('aria-expanded', 'false'); cur.removeAttribute('aria-describedby'); } cur = null; }

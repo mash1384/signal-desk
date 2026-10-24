@@ -162,11 +162,11 @@ button:focus:not(:focus-visible) { outline: none; }
 .ar { display: inline-block; vertical-align: -1px; }   /* 화살표는 SVG — 기호 글자가 글꼴 조각을 더 받게 하지 않게 */
 
 /* 용어 풀이(gl.js): 점선 밑줄 단추 → 모바일은 누르면, PC는 올리면 풀이 창 */
-.gl { display: inline; padding: 0; margin: 0; border: 0; background: none; font: inherit; color: inherit; letter-spacing: inherit; cursor: help; text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
-.gl[aria-expanded='true'] { background: rgb(83 58 253 / .1); border-radius: 3px; }
-.glpop { position: fixed; z-index: 90; padding: 12px 14px; border-radius: 12px; background: #0d1f36; color: #fff; font-size: 14px; line-height: 1.55; box-shadow: 0 16px 40px -12px rgb(13 37 61 / .45); word-break: keep-all; overflow-wrap: break-word; }
-.glpop b { display: block; font-size: 14.5px; margin-bottom: 3px; } .glpop span { color: rgb(255 255 255 / .9); }
-.glpop::before { content: ""; position: absolute; top: -6px; left: var(--ax, 20px); width: 12px; height: 12px; margin-left: -6px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
+.gl { display: inline; padding: 0 0 1px; margin: 0; border: 0; border-bottom: 1.5px dotted currentColor; border-radius: 0; background: none; font: inherit; line-height: 1.25; vertical-align: baseline; color: inherit; letter-spacing: inherit; cursor: help; }
+.bf-rg .gl { border-bottom-color: rgb(255 255 255 / .7); }
+.glpop { position: fixed; z-index: 90; padding: 14px 16px; border-radius: 14px; background: #0d1f36; color: #fff; font-size: 14px; line-height: 1.55; box-shadow: 0 18px 40px -12px rgb(13 37 61 / .45); word-break: keep-all; overflow-wrap: break-word; }
+.glpop b { display: block; font-size: 15px; margin-bottom: 4px; }
+.glpop::before { content: ""; position: absolute; top: -6px; left: var(--ax, 30px); width: 12px; height: 12px; margin-left: -6px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
 .glpop.up::before { top: auto; bottom: -6px; }
-:root[data-theme="dark"] .glpop { background: #e8eef6; color: #0b1320; } :root[data-theme="dark"] .glpop span { color: #26364d; }
-:root[data-theme="dark"] .gl[aria-expanded='true'] { background: rgb(169 157 255 / .18); }
+:root[data-theme="dark"] .glpop, .glpop.dk { background: #e8eef6; color: #0b1320; }   /* 남색 요약 카드 위에서는 밝은 창(묻히지 않게) */
+.glpop.dk { box-shadow: 0 18px 40px -12px rgb(0 0 0 / .55); }
