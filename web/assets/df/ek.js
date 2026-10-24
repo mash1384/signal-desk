@@ -1,6 +1,6 @@
 // 일정 화면 · 발표 순간 해설과 '지금 미국 경제'(국면 · 과거에 이런 때 · FOMC 확률).
 // 자료: 발표 순간 = Worker /flash 의 release(Mac release_watch.py, 발표 1분 안팎), 국면 · 해설 = econ.json(regime · insight · fomc).
-// 숫자는 모두 프로그램이 계산, 문장만 AI(DeepSeek).
+// 숫자는 모두 프로그램이 계산, 문장만 AI.
 // 차트 원칙(Datawrapper · EU 시각화 지침 · Stripe): 범례 대신 선 끝에 직접 이름표, 비교할 것은 같은 눈금(발표 대비 %), 전→후는 덤벨,
 // 맥락은 회색 · 강조만 색, 최신 값 쪽(오른쪽)에 이름표, 숫자는 고정폭. 색만으로 뜻을 전하지 않게 이름 · 화살표를 함께.
 import { T, L, esc, col, tone } from './lk.js';
@@ -73,7 +73,7 @@ export function releaseHTML(doc, rel) {
       ${a.next ? `<p class="rn"><b>${T('Next', '다음')}</b> ${esc(a.next)}</p>` : ''}
     </div>
     ${mk || od ? `<div class="rr">${mk}${od}</div>` : ''}
-    <p class="fn rf">${a.by === 'ai' ? T('Explainer written by AI (DeepSeek) from the numbers shown here, then fact-checked against them. ', 'AI(DeepSeek)가 여기 보이는 숫자만 보고 쓰고, 다시 숫자와 대조해 확인한 해설이에요. ') : ''}${T('Market moves happened at the same time as the release — that does not prove the release caused them. Not investment advice.', '시장 움직임은 발표와 같은 시간에 있었던 일이에요. 발표 때문이라는 뜻은 아니에요. 투자 조언이 아니에요.')}</p>
+    <p class="fn rf">${a.by === 'ai' ? T('Explainer written by AI from the numbers shown here, then fact-checked against them. ', 'AI가 여기 보이는 숫자만 보고 쓰고, 다시 숫자와 대조해 확인한 해설이에요. ') : ''}${T('Market moves happened at the same time as the release — that does not prove the release caused them. Not investment advice.', '시장 움직임은 발표와 같은 시간에 있었던 일이에요. 발표 때문이라는 뜻은 아니에요. 투자 조언이 아니에요.')}</p>
   </section>`;
 }
 
@@ -154,7 +154,7 @@ export function insightHTML(doc) {
     <canvas class="foc" id="foc" role="img" aria-label="${esc(f.outcomes.filter((o) => (o.p || 0) >= 0.03).map((o) => `${L() ? o.ko : o.en} ${Math.round(o.p * 100)}%`).join(', '))}"></canvas></div>` : '';
   const P = r.paths;
   return `<section class="box ins" id="cal-summary" aria-labelledby="insh">
-    <header class="ih"><p class="ovk">${T('The US economy now', '지금 미국 경제')} <span>· ${T('AI analysis (DeepSeek), fact-checked', 'AI 해설(DeepSeek) · 숫자 대조 확인')} · ${esc(at)}</span></p>
+    <header class="ih"><p class="ovk">${T('The US economy now', '지금 미국 경제')} <span>· ${T('AI analysis, fact-checked', 'AI 해설 · 숫자 대조 확인')} · ${esc(at)}</span></p>
       <h2 class="insh" id="insh">${esc(ins.head)}</h2></header>
     <div class="ig">
       <div class="it">${ins.s.map((x) => `<p>${numHi(x)}</p>`).join('')}
@@ -172,8 +172,8 @@ export function insightHTML(doc) {
         <p class="lgnd"><span><i class="lc"></i>${T('CPI inflation', '소비자물가 상승률')}</span><span><i class="lb"></i>${T('Payroll gains, 3-release avg', '고용 증가(3번 평균)')}</span><span><i class="rc"></i>${T('Recession', '경기침체')}</span><span><i class="rr"></i>${T('Same mix as now', '지금과 비슷한 조합')}</span></p></div>
       <div><h3>${T('After this mix vs a typical month', '이 조합 뒤 12개월 vs 평소')}</h3>${tbl}${fo}</div>
     </div>
-    <p class="fn">${T('Regime: CPI inflation vs 3 releases earlier, and the payroll 3-release average vs the 3 before, using values as first published. Market and rate moves are what happened in the following 12 months — samples are small and this is not a forecast or investment advice. Text by AI (DeepSeek) from these numbers only.',
-      '국면: 소비자물가 상승률이 3번 전 발표보다 높아졌는지, 고용 증가 3번 평균이 그 앞 3번보다 커졌는지(그때 처음 발표된 값). 시장 · 금리는 그 뒤 12개월에 실제로 있었던 일이에요. 표본이 적고 예측이 아니에요. 투자 조언이 아니에요. 문장은 AI(DeepSeek)가 이 숫자만 보고 썼어요.')}</p>
+    <p class="fn">${T('Regime: CPI inflation vs 3 releases earlier, and the payroll 3-release average vs the 3 before, using values as first published. Market and rate moves are what happened in the following 12 months — samples are small and this is not a forecast or investment advice. Text by AI from these numbers only.',
+      '국면: 소비자물가 상승률이 3번 전 발표보다 높아졌는지, 고용 증가 3번 평균이 그 앞 3번보다 커졌는지(그때 처음 발표된 값). 시장 · 금리는 그 뒤 12개월에 실제로 있었던 일이에요. 표본이 적고 예측이 아니에요. 투자 조언이 아니에요. 문장은 AI가 이 숫자만 보고 썼어요.')}</p>
   </section>`;
 }
 

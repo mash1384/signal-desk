@@ -213,7 +213,7 @@ def scan(root):
                     if len(value) > EXCERPT_LIMIT:
                         errors.append({"file": name, "rule": "excerpt-length", "path": loc, "length": len(value), "limit": EXCERPT_LIMIT})
                 if AI_KEYS.intersection(path) and "en" not in path and "s_en" not in path and re.search("[가-힣]", value):
-                    if re.search(r"\s쪽|;", value):
+                    if len(re.findall(r"\s쪽", value)) >= 2 or ";" in value:   # '~쪽'은 한 칸에 한 번까지(남발 금지, 운영자 2026-10-24), 세미콜론은 금지
                         errors.append({"file": name, "rule": "ai-korean-style", "path": loc})
         elif file.suffix == ".html":
             html = PublicHTML()

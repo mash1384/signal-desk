@@ -754,7 +754,7 @@ def page_daily(doc, prev, nxt, now):
                  # 핵심 3가지가 있으면 AI 리뷰는 같은 사건을 되풀이해서 싣지 않는다(옛 정리에만)
                  review=('<section class="box2"><h2>%s</h2>%s</section>' % (L("AI review", "AI 리뷰"), bi(en.get("review"), doc["review"], "p", "rv"))) if doc.get("review") and not doc.get("insights") else "",
                  insights=('<section class="ins2"%s aria-label="%s"><h2>%s <span>%s</span></h2><ol>%s</ol></section>' % (
-                     "" if any((x or {}).get("s") for x in en.get("insights") or []) else ' data-l="ko"', h("Insights"), L("Three things that mattered", "그날의 핵심 3가지"), L("AI (DeepSeek) · checked against the source stories", "AI(DeepSeek) · 원문 소식과 대조 확인"),
+                     "" if any((x or {}).get("s") for x in en.get("insights") or []) else ' data-l="ko"', h("Insights"), L("Three things that mattered", "그날의 핵심 3가지"), L("AI · checked against the source stories", "AI · 원문 소식과 대조 확인"),
                      "".join('<li><span class="n mono">%d</span>%s%s</li>' % (i + 1, bi(ei.get("t"), x.get("t", ""), "b"), bi(ei.get("s"), x.get("s", ""), "p"))
                              for i, (x, ei) in enumerate(zip(doc["insights"][:3], (en.get("insights") or []) + [{}] * 3)))))
                  if doc.get("insights") else "",
@@ -801,7 +801,7 @@ def page_about(health, now):
     en_method = """<h2>How it works</h2>
     <ol>
       <li>Every few minutes we collect public real-time news feeds and the RSS of {n} outlets, and merge reports of the same story.</li>
-      <li>A local AI model (Gemma 4, on the operator's Mac) writes a one-line summary and labels it bullish, bearish or neutral, with a strength from 1 to 3. It reads only the headline and short excerpt, and it can be wrong.</li>
+      <li>An AI model writes a one-line summary and labels it bullish, bearish or neutral, with a strength from 1 to 3. It reads only the headline and short excerpt, and it can be wrong.</li>
       <li><b>Numbers come from programs, sentences from AI.</b> Prices, counts, changes and comparisons are computed by code. The AI writes only the wording, and sentences that contain numbers or causal claims are checked against the data; ones that fail are dropped.</li>
       <li><b>Price after a story</b> — measured from the story's timestamp using Binance one-minute prices (crypto) and Yahoo Finance (stocks, indices, commodities). Other events may overlap, so this is not proof of cause.</li>
       <li><b>Story threads</b> (Brief) — stories are grouped across days when they share specific people, companies or places and their wording is close.</li>
@@ -821,7 +821,7 @@ def page_about(health, now):
     ko_method = """<h2>어떻게 동작하나요</h2>
     <ol>
       <li>몇 분마다 공개 실시간 뉴스 피드와 매체 {n}곳의 RSS를 모으고, 같은 소식은 하나로 묶어요.</li>
-      <li>로컬 AI 모델(운영자 Mac의 Gemma 4)이 한 줄 요약을 쓰고 호재·악재·중립과 강도(1~3)를 붙여요. 제목과 짧은 발췌만 보고 판정하므로 틀릴 수 있어요.</li>
+      <li>AI 모델이 한 줄 요약을 쓰고 호재·악재·중립과 강도(1~3)를 붙여요. 제목과 짧은 발췌만 보고 판정하므로 틀릴 수 있어요.</li>
       <li><b>숫자는 프로그램이, 문장은 AI가.</b> 가격·개수·변화율·비교는 코드가 계산해요. AI는 문장만 쓰고, 숫자나 원인을 말하는 문장은 자료와 맞는지 검사해 틀리면 버려요.</li>
       <li><b>소식 이후 가격</b> — 소식 시각부터 Binance 1분 가격(크립토)과 Yahoo Finance(주식·지수·원자재)로 재요. 같은 시간에 다른 일이 겹칠 수 있어 원인이라는 증거는 아니에요.</li>
       <li><b>이야기 줄기</b>(정리) — 같은 인물·기업·장소를 다루고 표현이 가까운 소식을 여러 날에 걸쳐 묶어요.</li>
