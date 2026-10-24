@@ -22,7 +22,7 @@ env:
 jobs:
   run:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 2026-10-24: ubuntu-latest가 26.04로 바뀌어 Python 3.9 · Playwright가 설치되지 않음
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

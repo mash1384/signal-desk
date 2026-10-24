@@ -15,7 +15,7 @@ env:
 jobs:
   lint:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 2026-10-24: ubuntu-latest가 26.04로 바뀌어 Python 3.9 · Playwright가 설치되지 않음
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
       - run: node tests/js/strip_check.mjs
   unit:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 2026-10-24: ubuntu-latest가 26.04로 바뀌어 Python 3.9 · Playwright가 설치되지 않음
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -63,7 +63,7 @@ jobs:
           path: .qa/
   mutation:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 2026-10-24: ubuntu-latest가 26.04로 바뀌어 Python 3.9 · Playwright가 설치되지 않음
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -82,7 +82,7 @@ jobs:
           path: .qa/mutation.json
   public-contracts:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 2026-10-24: ubuntu-latest가 26.04로 바뀌어 Python 3.9 · Playwright가 설치되지 않음
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
           path: .qa/contracts.json
   browser:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 2026-10-24: ubuntu-latest가 26.04로 바뀌어 Python 3.9 · Playwright가 설치되지 않음
     timeout-minutes: 12
     strategy:
       fail-fast: false
@@ -163,7 +163,7 @@ jobs:
 
   performance:
     if: github.repository == 'mash1384/signal-desk'   # 비공개 저장소(signal-ops)에서는 돌지 않는다
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 2026-10-24: ubuntu-latest가 26.04로 바뀌어 Python 3.9 · Playwright가 설치되지 않음
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
