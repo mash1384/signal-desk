@@ -64,22 +64,19 @@ export function makeGlobe({ scene, sec, lay, mob }) {
   // 워드마크 'DELFONA'(stage 2): 글자 점 92% + 주변에 옅게 떠도는 점 8%
   let WM = false; document.fonts.load('400 200px Michroma').catch(() => {});   // 헤더 로고와 같은 글꼴
   // 점이 다 모인 마지막에는 같은 자리 · 같은 크기의 일반 글자로 바뀐다(2026-10-26 운영자). 점과 똑같이 그리도록 textPoints 와 같은 글꼴 · 자간 · 기준선
-  const WFONT = '400 200px Michroma', WSP = 48, wcv = document.createElement('canvas'); wcv.className = 'wmx'; wcv.setAttribute('aria-hidden', 'true'); lay.appendChild(wcv);
-  let WG = null, wDrawn = '';
-  function drawWord(cssW) {
-    const dpr = Math.min(devicePixelRatio || 1, 3), k = cssW / WG.W, cssH = WG.H * k, key = Math.round(cssW) + 'x' + dpr; if (key === wDrawn) return cssH; wDrawn = key;
-    wcv.width = Math.round(cssW * dpr); wcv.height = Math.round(cssH * dpr); wcv.style.width = cssW + 'px'; wcv.style.height = cssH + 'px';
-    const g = wcv.getContext('2d'); g.setTransform(k * dpr, 0, 0, k * dpr, 0, 0); g.clearRect(0, 0, WG.W, WG.H); g.font = WFONT; if ('letterSpacing' in g) g.letterSpacing = WSP + 'px';
-    const gr = g.createLinearGradient(0, 0, WG.W, 0); for (let s = 0; s <= 8; s++) { const f = s / 8; gr.addColorStop(f, tmp.copy(COL.ink).lerp(COL.ind, clamp(f * 1.25 - 0.15) * 0.8).getStyle()); }   // 점 글자와 같은 색 흐름
-    g.fillStyle = gr; g.textBaseline = 'alphabetic'; g.textAlign = 'center'; g.fillText('DELFONA', WG.W / 2 + WSP / 2, WG.pad + WG.asc);
-    return cssH;
-  }
+  const WFONT = '400 200px Michroma', WSP = 48;
+  // 캔버스로 그린 글자는 아이폰에서 살짝 흐렸다(운영자) → 헤더 로고처럼 진짜 글자(웹 텍스트). 글자 폭 · 기준선을 한 번 재서 점 글자와 같은 자리 · 크기에 맞춘다
+  const wcv = document.createElement('div'); wcv.className = 'wmx'; wcv.setAttribute('aria-hidden', 'true'); wcv.innerHTML = '<span>DELFONA</span><i></i>'; lay.appendChild(wcv);
+  wcv.style.setProperty('--wm0', tmp.copy(COL.ink).getStyle()); wcv.style.setProperty('--wm2', tmp.copy(COL.ink).lerp(COL.ind, 0.65).getStyle());   // 점은 겹쳐 보여 더 진하다 — 글자는 0.8 대신 0.65 로 맞춤
+  let WG = null, WR = null;   // 글자 크기 100px 일 때 폭(끝 자간 뺀 것) · 위 끝에서 기준선까지
+  function wordRef() { if (WR) return WR; wcv.style.fontSize = '100px'; const sp = wcv.firstChild, pr = wcv.lastChild; WR = { adv: sp.getBoundingClientRect().width - 24, base: pr.offsetTop }; return WR; }
   function buildWord() { WM = true;
     const pts = textPoints('DELFONA', { font: WFONT, spacing: WSP + 'px', hgt: 1, step: mob ? 3 : 2 }),   // 헤더 로고 글자: Michroma 대문자, 자간 .24em
       M = pts.length, wid = mob ? 6.6 : 12.8, sc = wid / pts.W, cy = mob ? 0.95 : 0.35;
     { const g = document.createElement('canvas').getContext('2d'); g.font = WFONT; if ('letterSpacing' in g) g.letterSpacing = WSP + 'px'; const mm = g.measureText('DELFONA');
-      const asc = mm.actualBoundingBoxAscent || 160, dsc = mm.actualBoundingBoxDescent || 40, pad = Math.ceil(200 * 0.12);
-      WG = { W: Math.ceil(mm.width) + pad * 2, H: Math.ceil(asc + dsc) + pad * 2, asc, pad, wid, cy }; }
+      const asc = mm.actualBoundingBoxAscent || 160, dsc = mm.actualBoundingBoxDescent || 40, pad = Math.ceil(200 * 0.12), W = Math.ceil(mm.width) + pad * 2, H = Math.ceil(asc + dsc) + pad * 2, s = wid / W;
+      // 점 글자(월드): 글자 폭 = (재단 폭 - 끝 자간) · 기준선 = 캔버스 가운데에서 (pad + asc - H/2) 아래
+      WG = { adv: (mm.width - WSP) * s, base: cy - (pad + asc - H / 2) * s, cy }; }
     m.set(2, (i, o) => { const dust = i % 13 === 0;
       if (dust) { const a = Math.random() * 6.283, r = (mob ? 3.2 : 6.5) * (0.6 + Math.random() * 0.8); o[0] = Math.cos(a) * r; o[1] = cy + Math.sin(a) * r * 0.45; o[2] = rnd(2); tmp.copy(COL.lt); o[6] = 0.16; }
       else { const p = pts[i % M], f = p.x / pts.W + 0.5; o[0] = p.x * sc + rnd(0.006); o[1] = p.y * sc + cy + rnd(0.006); o[2] = rnd(0.08); tmp.copy(COL.ink).lerp(COL.ind, clamp(f * 1.25 - 0.15) * 0.8); o[6] = 0.95; }
@@ -158,7 +155,7 @@ export function makeGlobe({ scene, sec, lay, mob }) {
   .glx{position:absolute;left:0;top:0;width:min(480px,38vw);opacity:0;color:var(--ink)}
   .glx .k{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--primary)}
   .glx h2{margin-top:10px;font-size:clamp(30px,3.4vw,50px);font-weight:300;letter-spacing:-.045em;line-height:1.05}:lang(ko) .glx h2{font-weight:600;letter-spacing:-.04em;line-height:1.15}
-  .wmx{position:absolute;left:0;top:0;opacity:0;pointer-events:none;will-change:opacity}.glx .hl{margin-top:14px;padding-left:12px;border-left:2px solid var(--primary);font-size:16px;line-height:1.5;color:var(--ink2)}.glx .hl small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+  .wmx{position:absolute;left:0;top:0;opacity:0;pointer-events:none;white-space:nowrap;line-height:1;font-family:Michroma,var(--sans);font-weight:400;letter-spacing:.24em}.wmx span{background:linear-gradient(90deg,var(--wm0) 12%,var(--wm2) 92%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}.wmx i{display:inline-block;width:0;height:0;vertical-align:baseline}.glx .hl{margin-top:14px;padding-left:12px;border-left:2px solid var(--primary);font-size:16px;line-height:1.5;color:var(--ink2)}.glx .hl small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
   .glx ol{list-style:none;padding:0;margin-top:20px}.glx li{padding:13px 0;border-top:1px solid var(--line);color:#8a96aa;transition:color 300ms ease}
   .glx li .h{display:flex;align-items:baseline;gap:10px}.glx li .h b{font-size:19px;font-weight:500;letter-spacing:-.02em}.glx li .h span{font-family:var(--mono);font-size:11.5px}
   .glx li .h i{margin-left:auto;font-style:normal;font-family:var(--mono);font-size:11px;color:var(--mute)}
@@ -243,8 +240,8 @@ export function makeGlobe({ scene, sec, lay, mob }) {
       halo.material.uniforms.uA.value = SH === 'globe' ? ss(0.15, 0.32, BP) * (1 - ss(0.78, 0.84, BP)) : 0;
       v.copy(cam.position).lerp(camP, go); cam.position.copy(v); lk.copy(look).lerp(camL, go); cam.lookAt(lk); cam.updateMatrixWorld();
       // 일반 글자 자리: 카메라를 마지막 자리로 옮긴 뒤에 잰다(그 전에는 앞 장면 카메라라 작고 엉뚱한 곳에 그려졌다)
-      if (tx > 0) { const [x0, yc] = project(cam, sec, v.set(-WG.wid / 2, WG.cy, 0)), [x1] = project(cam, sec, v.set(WG.wid / 2, WG.cy, 0)), hh = drawWord(x1 - x0);
-        wcv.style.transform = `translate(${x0}px,${yc - hh / 2}px)`; }
+      if (tx > 0) { const [xa, yb] = project(cam, sec, v.set(-WG.adv / 2, WG.base, 0)), [xb] = project(cam, sec, v.set(WG.adv / 2, WG.base, 0)), R = wordRef(), fs = (xb - xa) * 100 / R.adv;
+        wcv.style.fontSize = fs + 'px'; wcv.style.transform = `translate(${xa}px,${yb - R.base * fs / 100}px)`; }
       wcv.style.opacity = tx;
       // 글
       const w = sec.clientWidth, h = sec.clientHeight, show = ss(0.25, 0.31, BP) * (1 - ss(0.77, 0.81, BP));
