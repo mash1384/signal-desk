@@ -26,11 +26,12 @@ export async function intro(name, { flyAt = 4.32, base = '../mo/' } = {}) {
   const v = ov.querySelector('video'), bg = ov.querySelector('.ibg');
   logo.style.opacity = '0'; rest.forEach((e) => { e.style.opacity = '0'; e.style.willChange = 'opacity'; });   // 층을 미리 만들어 둔다
   document.documentElement.classList.add('intro-on');
-  const finishNoIntro = () => { ov.remove(); logo.style.opacity = ''; rest.forEach((e) => { e.style.opacity = ''; }); document.documentElement.classList.remove('intro-on'); showCopy(); done(); };
+  // 영상이 안 돌아 인트로를 건너뛴 뒤에는 '날아가기'를 다시 하지 않는다(2026-10-25 아이폰: 첫 스크롤에 첫 화면이 지워졌다가 다시 올라왔다)
+  let flown = false, ended = false;
+  const finishNoIntro = () => { if (ended) return; ended = flown = true; ov.remove(); logo.style.opacity = ''; rest.forEach((e) => { e.style.opacity = ''; }); document.documentElement.classList.remove('intro-on'); showCopy(); done(); };
   let meta = null; metaP.then((m) => { meta = m; });
-  let flown = false;
   const fly = async () => {
-    if (flown) return; flown = true;
+    if (flown || ended) return; flown = true;
     if (!meta) meta = await Promise.race([metaP, new Promise((r) => setTimeout(() => r(null), 800))]);
     await Promise.race([document.fonts.load('15px Michroma'), new Promise((r) => setTimeout(r, 400))]);   // 헤더 글자가 제 글꼴인지
     if (!meta) { finishNoIntro(); return; }
@@ -55,9 +56,9 @@ export async function intro(name, { flyAt = 4.32, base = '../mo/' } = {}) {
   if ('requestVideoFrameCallback' in v) { const cb = (now, md) => { if (md.mediaTime >= flyAt) fly(); else v.requestVideoFrameCallback(cb); }; v.requestVideoFrameCallback(cb); }
   else v.addEventListener('timeupdate', () => { if (v.currentTime >= flyAt) fly(); });
   v.addEventListener('ended', fly);
-  const skip = () => { if (flown) return; try { v.currentTime = Math.max(0, (v.duration || 4.5) - 0.05); } catch (e) {} v.pause(); setTimeout(fly, 80); };
+  const skip = () => { if (flown || ended) return; try { v.currentTime = Math.max(0, (v.duration || 4.5) - 0.05); } catch (e) {} v.pause(); setTimeout(fly, 80); };
   ov.querySelector('.skip').onclick = skip; addEventListener('keydown', skip, { once: true }); addEventListener('wheel', skip, { once: true, passive: true }); addEventListener('touchmove', skip, { once: true, passive: true });
   if (v.paused && !v.ended) v.play().catch(finishNoIntro);
   if (v.ended || v.currentTime >= flyAt) fly();                    // 이 모듈이 늦게 와서 영상이 이미 끝났으면 바로
-  else setTimeout(() => { if (v.paused && v.currentTime === 0) finishNoIntro(); }, 4000);   // 끝내 재생이 안 되면
+  else setTimeout(() => { if (!flown && v.currentTime === 0) finishNoIntro(); }, 2500);   // 재생 요청이 걸린 채(paused=false) 멈춰도   // 끝내 재생이 안 되면(저전력 모드 등) — 빈 화면을 오래 두지 않게
 }
