@@ -14,9 +14,7 @@ export function loop(el, r, scene, cam, tick, onSize) {
   new IntersectionObserver((e) => { on = e[0].isIntersecting; }, { rootMargin: '200px' }).observe(el);
   const size = () => { const w = el.clientWidth, h = el.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); onSize && onSize(w, h); };
   size(); addEventListener('resize', size);
-  const D = window.__dfLoops && (window.__dfLoops[el.id || 'el'] = { on: false, frames: 0, calls: 0, points: 0, err: 0 });   // ?diag(첫 화면 진단)일 때만
-  const f = (now) => { requestAnimationFrame(f); if (D) D.on = on; if (!on || document.hidden) { last = now; return; } const dt = Math.min(0.05, (now - last) / 1000); last = now; tick(now / 1000, dt); r.render(scene, cam);
-    if (D) { D.frames++; D.calls = r.info.render.calls; D.points = r.info.render.points; if (D.frames % 60 === 1) D.err = r.getContext().getError(); } };
+  const f = (now) => { requestAnimationFrame(f); if (!on || document.hidden) { last = now; return; } const dt = Math.min(0.05, (now - last) / 1000); last = now; tick(now / 1000, dt); r.render(scene, cam); };
   requestAnimationFrame(f);
 }
 export const SANS = '"Pretendard Variable", Pretendard, system-ui, sans-serif', KSANS = '"Pretendard Variable", Pretendard, system-ui, sans-serif', MONO = '"JetBrains Mono", ui-monospace, monospace';
