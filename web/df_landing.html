@@ -202,7 +202,9 @@ const loaded = {}; const load = (src) => loaded[src] || (loaded[src] = new Promi
 // 첫 화면 스크롤 장면(글 → 입자 → 구 → 막대)은 인트로 영상이 도는 동안 미리 준비한다.
 // 영상·로고 날아가기·글 올라오기는 합성 단계에서 돌아 메인 스레드가 바빠도 끊기지 않지만, 인트로가 끝난 뒤의 무거운 일은 글 올라오기를 끊는다.
 let hxReady = false; addEventListener('df-hx-ready', () => { hxReady = true; document.documentElement.classList.remove('hx-wait'); }, { once: true });
-const prepHx = async () => { await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js'); await load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'); import('{{B}}assets/df/hx.js?v={{V}}'); };
+// 두 3D 장면 모두 GSAP · ScrollTrigger 가 먼저 있어야 한다(2026-10-25 아이폰: 영상이 안 돌아 GSAP 이 늦게 왔는데 아래 장면을 먼저 불러 'gsap 없음'으로 멈췄다)
+const gsapP = () => load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js').then(() => load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'));
+const prepHx = async () => { await gsapP(); import('{{B}}assets/df/hx.js?v={{V}}'); };
 const iv = document.querySelector('#intro video');
 if (iv && !window.DF_NOINTRO) iv.addEventListener('playing', () => setTimeout(prepHx, 600), { once: true }); else prepHx();
 if (iv && !window.DF_NOINTRO) setTimeout(() => { if (!window.gsap) prepHx(); }, 2500);   // 재생 신호가 안 와도
@@ -210,9 +212,9 @@ if (iv && !window.DF_NOINTRO) setTimeout(() => { if (!window.gsap) prepHx(); }, 
 // 페이지가 막대 장면에서 끝나 '다 사라진' 것처럼 보였다 → 스크롤을 시작하면 바로 불러오고, 실패하면 빈 화면 대신 브리핑 안내.
 const H = document.documentElement; let p5p = null;
 const p5fail = () => { if (H.classList.contains('nx-on')) return; H.classList.add('nx-fail'); const b = document.querySelector('#nx .px-end b'); if (b && !b.textContent) b.textContent = H.lang === 'en' ? 'Continue in today\'s briefing.' : '오늘의 브리핑에서 이어서 볼 수 있어요.'; };
-const loadP5 = () => p5p || (p5p = import('{{B}}assets/df/p5.js?v={{V}}').then(() => {
+const loadP5 = () => p5p || (p5p = gsapP().then(() => import('{{B}}assets/df/p5.js?v={{V}}')).then(() => {
   H.classList.add('nx-on'); const c = document.getElementById('nxgl'); if (c) c.addEventListener('webglcontextlost', () => { H.classList.remove('nx-on'); p5fail(); }, { once: true });
-}, p5fail));
+}, (e) => { console.error('lower scene failed:', e && (e.message || e)); p5fail(); }));
 const early = () => { if (scrollY > innerHeight * 0.5) { removeEventListener('scroll', early); loadP5(); } };
 addEventListener('scroll', early, { passive: true });
 addEventListener('df-intro-done', () => {
