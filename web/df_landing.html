@@ -88,6 +88,9 @@ body .hero { position: relative; } body .hero::after { opacity: var(--wm, 1); }.
 .px-card .t { margin-top: 6px; font-size: 16px; font-weight: 500; line-height: 1.42; letter-spacing: -0.01em; color: var(--ink); }
 .px-lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); text-align: center; white-space: nowrap; opacity: 0; will-change: transform, opacity; }
 .px-lbl b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); } .px-lbl span { display: block; font-family: var(--mono); font-size: 11px; color: var(--mute); }
+.px-wait { position: absolute; left: 0; right: 0; top: 50%; z-index: 2; text-align: center; font-size: 14px; color: var(--mute, #5b6b82); opacity: 0; transition: opacity .3s; pointer-events: none; }
+html:not(.nx-on):not(.nx-fail) .px-wait { opacity: 1; animation: pxw 1.4s ease-in-out infinite; } @keyframes pxw { 50% { opacity: .35; } }
+html.nx-fail .px-end { opacity: 1; } html.nx-fail .px-end .btn { pointer-events: auto; }
 .px-end { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; padding: 20px; text-align: center; opacity: var(--ep); pointer-events: none; }
 .px-end .box { padding: 32px 42px 36px; border-radius: 28px; background: rgb(247 249 252 / .88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 30px 80px -30px rgb(13 37 61 / .45), 0 0 0 1px rgb(13 37 61 / .06); transform: translateY(calc((1 - var(--ep)) * 30px)); }
 .px-end b { display: block; max-width: 13em; font-size: clamp(28px, 3.8vw, 52px); font-weight: 300; letter-spacing: -0.045em; line-height: 1.08; } :lang(ko) .px-end b { font-weight: 500; }
@@ -159,13 +162,13 @@ html.intro-on { overflow: hidden; }
 <div class="sc" id="sc"><b></b><span></span></div><p class="bl up" id="nL"><b>0</b><span data-t="bl1">Bullish · 24h</span></p><p class="bl down" id="nR"><b>0</b><span data-t="bl2">Bearish · 24h</span></p>
 </section>
 <section class="nx px" id="nx" aria-label="Signals"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas><div class="px-lay"></div>
-<div class="px-cap"></div><div class="px-end"><div class="box"><b></b><a class="btn p" href="{{B}}brief/" data-t="cta">Open today's briefing</a></div></div></section>
+<div class="px-cap"></div><div class="px-wait" data-t="wait" aria-hidden="true">Loading…</div><div class="px-end"><div class="box"><b></b><a class="btn p" href="{{B}}brief/" data-t="cta">Open today's briefing</a></div></div></section>
 <footer class="ft wrap" data-t="ft">Delfona — Live data. AI judgments and summaries, not investment advice.</footer>
 <script>window.DF_BASE = '{{B}}assets/df/'; window.DF_BR = 4; window.DF_THEMES = '{{B}}data/daily/themes.json';</script>
 <script src="{{B}}assets/df/data.js?v={{V}}"></script>
 <script>
 DFI.init(Object.assign({ n1: '라이브', n2: '테마', n3: '브리핑', n4: '일정', n5: '내 자산', cta: '오늘의 브리핑 보기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
-  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정·요약이며 투자 조언이 아니에요.' }, window.KO_EXTRA || {}));
+  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정·요약이며 투자 조언이 아니에요.', wait: '장면을 불러오는 중…' }, window.KO_EXTRA || {}));
 </script>
 
 <script type="module">
@@ -179,10 +182,19 @@ const prepHx = async () => { await load('https://cdn.jsdelivr.net/npm/gsap@3.13.
 const iv = document.querySelector('#intro video');
 if (iv && !window.DF_NOINTRO) iv.addEventListener('playing', () => setTimeout(prepHx, 600), { once: true }); else prepHx();
 if (iv && !window.DF_NOINTRO) setTimeout(() => { if (!window.gsap) prepHx(); }, 2500);   // 재생 신호가 안 와도
+// 아래 3D 장면(파형 · 지구본 · 마지막 화면). 2026-10-25 아이폰: 인트로 끝 + 1.6초 + 한가할 때까지 기다리는 사이 빨리 스크롤하면
+// 페이지가 막대 장면에서 끝나 '다 사라진' 것처럼 보였다 → 스크롤을 시작하면 바로 불러오고, 실패하면 빈 화면 대신 브리핑 안내.
+const H = document.documentElement; let p5p = null;
+const p5fail = () => { if (H.classList.contains('nx-on')) return; H.classList.add('nx-fail'); const b = document.querySelector('#nx .px-end b'); if (b && !b.textContent) b.textContent = H.lang === 'en' ? 'Continue in today\'s briefing.' : '오늘의 브리핑에서 이어서 볼 수 있어요.'; };
+const loadP5 = () => p5p || (p5p = import('{{B}}assets/df/p5.js?v={{V}}').then(() => {
+  H.classList.add('nx-on'); const c = document.getElementById('nxgl'); if (c) c.addEventListener('webglcontextlost', () => { H.classList.remove('nx-on'); p5fail(); }, { once: true });
+}, p5fail));
+const early = () => { if (scrollY > innerHeight * 0.5) { removeEventListener('scroll', early); loadP5(); } };
+addEventListener('scroll', early, { passive: true });
 addEventListener('df-intro-done', () => {
-  if (!hxReady) { document.documentElement.classList.add('hx-wait'); setTimeout(() => document.documentElement.classList.remove('hx-wait'), 2500); }   // 준비 전 스크롤로 장면을 건너뛰지 않게
-  // 아래 3D 장면(파형·지구본)은 글이 다 올라오고 한가할 때
-  setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(() => import('{{B}}assets/df/p5.js?v={{V}}'), { timeout: 1500 }) : import('{{B}}assets/df/p5.js?v={{V}}')), 1600);
+  if (!hxReady) { H.classList.add('hx-wait'); setTimeout(() => H.classList.remove('hx-wait'), 2500); }   // 준비 전 스크롤로 장면을 건너뛰지 않게
+  // 스크롤하지 않고 보고만 있으면 글이 다 올라온 뒤 한가할 때
+  setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(loadP5, { timeout: 1500 }) : loadP5()), 1600);
 }, { once: true });
 intro('c1', { base: '{{B}}assets/df/' });
 </script>
