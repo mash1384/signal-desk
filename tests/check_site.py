@@ -13,7 +13,14 @@ def validate(name, doc):
     path = Path(__file__).parent / "schema" / (name + ".schema.json")
     schema = json.loads(path.read_text())
     Draft202012Validator.check_schema(schema)
-    return [{"schema": name, "path": "/" + "/".join(str(x) for x in e.absolute_path), "validator": e.validator, "message": "schema " + e.validator + " failed"} for e in Draft202012Validator(schema).iter_errors(doc)]
+    return [{"schema": name, "path": "/" + "/".join(str(x) for x in e.absolute_path), "validator": e.validator, "message": "schema " + e.validator + " failed",
+             "got": json_type(e.instance)} for e in Draft202012Validator(schema).iter_errors(doc)]
+
+
+def json_type(x):
+    """값 자체는 남기지 않고 JSON 형식 이름만(로그 · 보고서에 비밀값이 새지 않게)."""
+    return "null" if x is None else "boolean" if isinstance(x, bool) else "number" if isinstance(x, (int, float)) else \
+        "string" if isinstance(x, str) else "array" if isinstance(x, list) else "object" if isinstance(x, dict) else type(x).__name__
 
 
 def check(site, flash):
@@ -53,6 +60,19 @@ def main():
         print("WARNING style", w["scope"], w.get("file"), w.get("path"))
     n = sum(len(r["errors"]) for r in result["policy"].values()) + len(result["schema"])
     result["violations"] = n
+    # 실패 로그만 보고도 어느 파일의 어느 칸인지 알게(2026-10-25 운영자: 개수만 남아 3시간 막혔다). 위치 · 규칙 · 형식만 — 값은 찍지 않는다
+    shown = 0
+    for scope, r in result["policy"].items():
+        for e in r["errors"]:
+            if shown < 50:
+                print("VIOLATION policy %s rule=%s file=%s path=%s" % (scope, e.get("rule"), e.get("file"), e.get("path")))
+            shown += 1
+    for e in result["schema"]:
+        if shown < 50:
+            print("VIOLATION schema %s file=%s path=%s %s got=%s" % (e["schema"], e["file"], e["path"], e["message"], e.get("got")))
+        shown += 1
+    if shown > 50:
+        print("VIOLATION ... and %d more (see report)" % (shown - 50))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     print("policy files=%d schema files=%d violations=%d seconds=%.3f" % (sum(r["files"] for r in result["policy"].values()), len(result["files"]), n, result["seconds"]))

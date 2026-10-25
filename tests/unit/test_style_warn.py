@@ -1,5 +1,6 @@
 """배포 전 검사(--style-warn): 말투 규칙은 경고만, 비밀값 · 출처 · 형식은 계속 막는다. 옵션이 없으면 말투도 막는다."""
 import contextlib
+import json
 import io
 import tempfile
 import unittest
@@ -39,3 +40,32 @@ class StyleWarn(unittest.TestCase):
 
     def test_gate_passes_the_option(self):
         self.assertIn("'--style-warn'", (Path(__file__).resolve().parents[1] / "gate.py").read_text())
+
+
+class ViolationDetails(unittest.TestCase):
+    """2026-10-25: 실패 로그에 'violations=3'만 남아 원인을 찾는 데 3시간 걸렸다 — 위치는 찍고 값은 찍지 않는다."""
+
+    def test_schema_violation_names_file_and_path(self):
+        res = result()
+        res["schema"] = [{"schema": "econ", "path": "/upcoming/2/ko", "validator": "type", "message": "schema type failed", "got": "null", "file": "flash/daily/econ.json"}]
+        code, out = run(res, "--style-warn")
+        self.assertEqual(code, 1)
+        self.assertIn("VIOLATION schema econ file=flash/daily/econ.json path=/upcoming/2/ko schema type failed got=null", out)
+
+    def test_policy_violation_names_rule_and_path_only(self):
+        code, out = run(result("telegram-source"), "--style-warn")
+        self.assertEqual(code, 1)
+        self.assertIn("VIOLATION policy flash rule=telegram-source file=daily/themes.json path=/x", out)
+
+    def test_real_schema_error_reports_type_not_value(self):
+        errs = check_site.validate("econ", {"upcoming": [{"ts": 1, "keys": [], "en": "x", "ko": None, "impact": "high"}]})
+        bad = [e for e in errs if e["path"] == "/upcoming/0/ko"]
+        self.assertEqual(bad[0]["got"], "null")
+        errs = check_site.validate("econ", {"upcoming": [{"ts": 1, "keys": [], "en": "x", "ko": ["sk-secret-value-should-not-print"], "impact": "high"}]})
+        self.assertNotIn("sk-secret", json.dumps(errs))
+
+    def test_long_lists_are_capped(self):
+        res = result(*(["telegram-source"] * 60))
+        out = run(res, "--style-warn")[1]
+        self.assertEqual(out.count("VIOLATION policy"), 50)
+        self.assertIn("and 10 more", out)
