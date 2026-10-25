@@ -52,3 +52,28 @@ def test_failed_lower_scene_shows_briefing_link_not_blank(browser, site_server, 
         assert box.locator("a.btn").is_visible()
     finally:
         ctx.close()
+
+
+def test_early_scroll_waits_for_gsap_instead_of_failing(browser, site_server, request):
+    """2026-10-25 아이폰(iOS 18.7, 영상 재생 안 됨 → GSAP 이 2.5초 뒤에야 옴): 그 전에 스크롤해서 아래 장면을 먼저 불러
+    'gsap 없음'으로 멈췄다(진단: nx-fail, loops 없음). GSAP 이 늦게 와도 기다렸다가 장면이 떠야 한다."""
+    site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
+    ctx = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, locale="ko-KR", service_workers="block")
+    offline = Offline(site, flash, site_server)
+    ctx.route("**/*", offline.handle)
+    held = []
+    ctx.route("**/gsap.min.js*", lambda route: held.append(route))          # GSAP 을 붙잡아 둔다(아이폰처럼 늦게)
+    ctx.add_init_script("localStorage.setItem('df-lang','ko')")
+    page = ctx.new_page()
+    try:
+        page.goto(site_server, wait_until="domcontentloaded")
+        page.wait_for_timeout(600)
+        scroll_down(page)                                                      # GSAP 이 오기 전에 빠르게 내린다
+        page.wait_for_timeout(800)
+        assert not page.evaluate("document.documentElement.classList.contains('nx-fail')"), "lower scene ran before GSAP"
+        for route in held:
+            offline.handle(route)
+        page.wait_for_function("document.documentElement.classList.contains('nx-on')", timeout=15000)
+        assert not page.evaluate("document.documentElement.classList.contains('nx-fail')")
+    finally:
+        ctx.close()
