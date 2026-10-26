@@ -72,8 +72,12 @@ def polling(args):
                 visible = len(worker_urls()) - initial
                 assert visible > 0, 'the visible tab stopped refreshing'
                 if mode == 'modern':
-                    assert visible <= 2 * minutes, ('Worker budget exceeded', visible, minutes, dict(Counter(urlsplit(u).path for u in worker_urls()[initial:])), 'per-step totals', steps, 'initial', initial)
-                    assert all(urlsplit(u).path == '/live' for u in worker_urls()), worker_urls()
+                    # 운영자 승인(2026-10-26, r24): 새 속보 확인(/flash/new, 5초마다 · 작은 응답)은 따로 센다. 전체 받기는 그대로 분당 2번 이하
+                    seen = [urlsplit(u).path for u in worker_urls()[initial:]]
+                    full, fast = sum(x != '/flash/new' for x in seen), sum(x == '/flash/new' for x in seen)
+                    assert full <= 2 * minutes, ('Worker budget exceeded', full, minutes, dict(Counter(seen)), 'per-step totals', steps, 'initial', initial)
+                    assert fast <= 13 * minutes, ('fast check budget exceeded', fast, minutes, dict(Counter(seen)))
+                    assert all(urlsplit(u).path in ('/live', '/flash/new') for u in worker_urls()), worker_urls()
                 else:
                     assert sum(urlsplit(u).path == '/live' for u in worker_urls()) == 1, 'failed feature probe must not repeat'
                     assert sum(urlsplit(u).path == '/flash' for u in worker_urls()) >= 2, 'legacy flash fallback absent'
