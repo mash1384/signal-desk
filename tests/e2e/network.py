@@ -17,6 +17,7 @@ class Offline:
         self.now = json.loads((self.flash / "flash.json").read_text())["at"]
         self.manifest = json.loads((VENDOR / "manifest.json").read_text())
         self.unmapped = []
+        self.flash_new_calls, self.flash_new_extra, self.flash_new_status = [], [], None
         self.beacons = []
         for row in self.manifest.values():
             data = (VENDOR / row["file"]).read_bytes()
@@ -76,6 +77,16 @@ class Offline:
                              'indices': {'nq': {'c': self.series(1000)}, 'es': {'c': self.series(1000)}}})
             elif url.path == "/flash":
                 file_response(self.flash / "flash.json")
+            elif url.path == "/flash/new":
+                # 속보 빠른 확인(2026-10-26): 보낸 after 를 남기고, 시험이 넣은 새 소식(flash_new_extra)까지 after 보다 새 것만
+                after = float(dict(parse_qsl(url.query)).get("after", 0))
+                self.flash_new_calls.append(after)
+                if self.flash_new_status:
+                    route.fulfill(status=self.flash_new_status, body="fixture unavailable", headers={**headers, "retry-after": "60"})
+                    return
+                doc = json.loads((self.flash / "flash.json").read_text())
+                items = [it for it in self.flash_new_extra + doc["items"] if it.get("t", 0) > after]
+                respond({"at": doc.get("at", self.now), "items": items})
             elif url.path in ("/market", "/quotes"):
                 respond(self.market())
             elif url.path == "/index-candles":

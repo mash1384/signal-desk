@@ -63,14 +63,33 @@ function stale(at) {
   if (!el) { el = document.createElement('p'); el.id = 'stale'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
   el.textContent = T(`Updates delayed · last update ${hm(at)}`, `업데이트 지연 · 마지막 갱신 ${hm(at)}`); el.hidden = false;
 }
-async function pull() {
-  let d; try { d = await DFD.flash(); } catch (e) { return; }
-  stale(d.at);
+function merge(items) {
   const seen = store.byId.size > 0;
-  d.items.forEach((it) => { if (!store.byId.has(it.id)) { it.th = themesOf(it); store.byId.set(it.id, it); if (seen) store.fresh.add(it.id); } else Object.assign(store.byId.get(it.id), it, { th: themesOf(it) }); });
+  items.forEach((it) => { if (!store.byId.has(it.id)) { it.th = themesOf(it); store.byId.set(it.id, it); if (seen) store.fresh.add(it.id); } else Object.assign(store.byId.get(it.id), it, { th: themesOf(it) }); });
   store.items = [...store.byId.values()].sort((a, b) => b.t - a.t);
   store.subs.forEach((f) => f());
   setTimeout(() => store.fresh.clear(), 4000);
+}
+async function pull() {
+  let d; try { d = await DFD.flash(); } catch (e) { return; }
+  stale(d.at); merge(d.items);
+}
+// 속보 빠른 확인(2026-10-26): 화면을 보고 있으면 5초마다 '새 소식만' 받아 합친다. 창이 뒤에 있으면 쉬고(30초 전체 받기가 맡음), 숨기면 멈춘다.
+// 서버가 바쁘다(503 · 429)고 하면 Retry-After 만큼, 다른 실패는 1분 쉰다. 마지막 소식보다 10분 앞부터 물어 늦게 판정된 소식도 놓치지 않는다
+let fastBusy = false, fastNext = 0, fastOn = false;
+const changed = (it) => { const o = store.byId.get(it.id); return !o || ['v', 's', 'n', 'ko', 'en', 'kind', 'link'].some((k) => (o[k] ?? '') !== (it[k] ?? '')); };
+async function fast() {
+  if (document.hidden || !document.hasFocus() || fastBusy || Date.now() < fastNext || !store.items.length) return;
+  fastBusy = true;
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 8000);   // 응답이 멈춰도 8초 뒤 풀고 1분 뒤 다시(R24-F1)
+  try {
+    const r = await DFD.flashNew(store.items[0].t - 600, ctl.signal);
+    if (r.status === 503 || r.status === 429) { fastNext = Date.now() + (Number(r.headers.get('retry-after')) || 30) * 1000; return; }
+    if (!r.ok) { fastNext = Date.now() + 60000; return; }
+    const d = await r.json();
+    // 새 소식뿐 아니라 이미 있는 소식의 판정 · 영어 · 보도 수가 바뀐 것도 합친다(R24-F2). 바뀐 게 없으면 다시 그리지 않는다
+    if (Array.isArray(d.items) && d.items.some(changed)) { stale(d.at); merge(d.items); }
+  } catch (e) { fastNext = Date.now() + 60000; } finally { clearTimeout(timer); fastBusy = false; }
 }
 // 주기 요청: 화면이 숨겨진 탭(다른 탭 · 최소화 · 잠금)에서는 쉬고, 다시 보이면 밀린 한 번을 바로 한다 — Worker 요청을 아낀다
 export function every(fn, ms) {
@@ -79,7 +98,7 @@ export function every(fn, ms) {
   setInterval(() => { if (!document.hidden && Date.now() - last >= ms * 0.9) run(); }, ms);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - last >= ms) run(); });
 }
-export function start(onData) { store.subs.push(onData); pull(); every(pull, 30000); DFI.onLang(onData);
+export function start(onData) { store.subs.push(onData); pull(); every(pull, 30000); if (!fastOn) { fastOn = true; setInterval(fast, 5000); } DFI.onLang(onData);
   fetch((window.DF_ROOT || 'https://mash1384.github.io/signal-desk/') + 'data/related.json').then((r) => r.json()).then((d) => { store.feed = d.items || []; }).catch(() => {}); }
 export const day = () => { const s = Date.now() / 1000 - 86400; return store.items.filter((x) => x.t >= s); };
 export const counts = (xs) => ({ n: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length });

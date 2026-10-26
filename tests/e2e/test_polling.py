@@ -41,7 +41,8 @@ def test_hidden_tab_pauses_polling(browser, site_server, request, route):
         page.goto(site_server + path_for(route, site), wait_until="networkidle")
 
         def n(kind):
-            return sum(1 for u in urls if "workers.dev/" + kind in u)
+            # /flash/new(5초 새 소식 확인, test_flash_fast.py)는 /flash 전체 받기와 따로 센다
+            return sum(1 for u in urls if "workers.dev/" + kind in u and "/flash/new" not in u)
 
         def advance(minutes):
             # Drain real network responses between fake polling intervals.

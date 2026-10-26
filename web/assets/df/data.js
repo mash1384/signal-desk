@@ -37,9 +37,11 @@ window.DFD = (() => {
     flashAt = Date.now();
     return (flashP = (async () => { const bundle = await live(); return bundle ? bundle.flash : (await fetch(FLASH, { cache: 'no-store' })).json(); })().catch((e) => { flashP = null; throw e; }));
   }
+  // 새 소식만 작게(보고 있을 때 5초마다, lk.js). 서버가 바쁘면 503 + Retry-After
+  const flashNew = (after, signal) => fetch(FLASH + '/new?after=' + Math.max(0, Math.floor(after)), { cache: 'no-store', signal });
   const day24 = (items) => { const s = Date.now() / 1000 - 86400, xs = items.filter((x) => x.t >= s);
     return { all: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length, n: xs.filter((x) => x.v === '중립').length, big: xs.filter((x) => x.s >= 2).length }; };
-  return { data, live, esc, hm, pct, vcls, flash, day24 };
+  return { data, live, esc, hm, pct, vcls, flash, flashNew, day24 };
 })();
 
 // 영어 기본 + 한국어(data-t 영어 원문 ↔ KO 사전)
