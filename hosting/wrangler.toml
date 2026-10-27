@@ -1,0 +1,12 @@
+# delfona.com 사이트 파일(정적)을 Cloudflare 에서 낸다(2026-10-28, GitHub Pages 에서 옮김).
+# 인터넷에서 직접 닿는 주소가 없다(경로 · workers.dev · 미리보기 주소 모두 끔) — 문지기 Worker(delfona-gate)가 서비스 연결로만 읽는다.
+# 배포: pipeline.yml 이 빌드한 dist/ 를 매 실행 올린다(바뀐 파일만 전송). 손으로 올리면 그 dist/ 가 그대로 사이트가 되니 빈 · 옛 폴더로 올리지 말 것.
+name = "delfona-site"
+compatibility_date = "2026-10-01"
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = "../dist"
+not_found_handling = "404-page"          # GitHub Pages 처럼 없는 주소는 404.html(상태 404)
+html_handling = "auto-trailing-slash"    # /live → /live/ (GitHub Pages 와 같은 꼴)
