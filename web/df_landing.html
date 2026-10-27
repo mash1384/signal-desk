@@ -180,10 +180,12 @@ const loaded = {}; const load = (src) => loaded[src] || (loaded[src] = new Promi
 let hxReady = false; addEventListener('df-hx-ready', () => { hxReady = true; document.documentElement.classList.remove('hx-wait'); }, { once: true });
 // 두 3D 장면 모두 GSAP · ScrollTrigger 가 먼저 있어야 한다(2026-10-25 아이폰: 영상이 안 돌아 GSAP 이 늦게 왔는데 아래 장면을 먼저 불러 'gsap 없음'으로 멈췄다)
 const gsapP = () => load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js').then(() => load('https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'));
-const prepHx = async () => { await gsapP(); import('{{B}}assets/df/hx.js?v={{V}}'); };
+// 한 번만 부른다(여러 곳에서 불러도 같은 약속). 2026-10-27 아이폰: '2.5초 뒤 GSAP 이 없으면'으로 판단했는데 아래 장면이 GSAP 을
+// 먼저 불러 조건이 늘 거짓 → 영상이 막힌 날(저전력 모드 등) hx.js 를 아예 안 불러 글이 흩어지지 않았다
+let hxP = null; const prepHx = () => hxP || (hxP = gsapP().then(() => import('{{B}}assets/df/hx.js?v={{V}}')));
 const iv = document.querySelector('#intro video');
 if (iv && !window.DF_NOINTRO) iv.addEventListener('playing', () => setTimeout(prepHx, 600), { once: true }); else prepHx();
-if (iv && !window.DF_NOINTRO) setTimeout(() => { if (!window.gsap) prepHx(); }, 2500);   // 재생 신호가 안 와도
+if (iv && !window.DF_NOINTRO) setTimeout(prepHx, 2500);   // 재생 신호가 안 와도
 // 아래 3D 장면(파형 · 지구본 · 마지막 화면). 2026-10-25 아이폰: 인트로 끝 + 1.6초 + 한가할 때까지 기다리는 사이 빨리 스크롤하면
 // 페이지가 막대 장면에서 끝나 '다 사라진' 것처럼 보였다 → 스크롤을 시작하면 바로 불러오고, 실패하면 빈 화면 대신 브리핑 안내.
 const H = document.documentElement; let p5p = null;

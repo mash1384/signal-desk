@@ -41,3 +41,27 @@ def test_first_scroll_after_video_fallback_does_not_replay_intro(browser, site_s
         assert not errors, errors
     finally:
         ctx.close()
+
+
+BLOCK_PLAY = ("HTMLMediaElement.prototype.play = function () { return Promise.reject(new DOMException('blocked', 'NotAllowedError')); };"
+              "new MutationObserver(() => document.querySelectorAll('video[autoplay]').forEach((v) => { v.removeAttribute('autoplay'); v.autoplay = false; }))"
+              ".observe(document, {subtree: true, childList: true});")
+
+
+def test_hero_scroll_scene_loads_when_video_cannot_play(browser, site_server, request):
+    """2026-10-27 운영자 아이폰: 영상 자동 재생이 막히면(저전력 모드 등) 첫 화면 글이 스크롤해도 입자로 흩어지지 않았다.
+    원인: '2.5초 뒤 장면 준비' 조건이 'GSAP 이 아직 없으면'이었는데, 아래 장면이 GSAP 을 먼저 불러 조건이 늘 거짓 → hx.js 를 아예 안 불렀다."""
+    for video in (lambda route: route.continue_(), lambda route: route.abort()):
+        ctx = landing(browser, site_server, request, video)
+        ctx.add_init_script(BLOCK_PLAY + "window.__hx = 0; addEventListener('df-hx-ready', () => window.__hx++);")
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e, bag=errors: bag.append(str(e)))
+        try:
+            page.goto(site_server, wait_until="domcontentloaded")
+            page.wait_for_function("!document.getElementById('intro')", timeout=6000)
+            page.wait_for_function("window.__hx === 1", timeout=15000)                      # 첫 화면 스크롤 장면(글 → 입자)이 준비됨
+            assert not page.evaluate("document.documentElement.classList.contains('hx-wait')")
+            assert not errors, errors
+        finally:
+            ctx.close()
