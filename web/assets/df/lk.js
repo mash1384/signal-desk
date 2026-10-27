@@ -106,7 +106,7 @@ export function start(onData) { store.subs.push(onData);
     setInterval(fast, 5000); }
   else pull();
   DFI.onLang(onData);
-  fetch((window.DF_ROOT || 'https://mash1384.github.io/signal-desk/') + 'data/related.json').then((r) => r.json()).then((d) => { store.feed = d.items || []; }).catch(() => {}); }
+  fetch(DFD.data('related.json')).then((r) => r.json()).then((d) => { store.feed = d.items || []; }).catch(() => {}); }
 export const day = () => { const s = Date.now() / 1000 - 86400; return store.items.filter((x) => x.t >= s); };
 export const counts = (xs) => ({ n: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length });
 

@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from urllib.parse import urlsplit
 from tests.e2e.conftest import axe_script
+from tests.e2e.network import SITE
 from tests.e2e.contrast import ratios, regressions
 
 # From template and render functions: r3.js, y2.js, t2.js, br2.js, c3.js,
@@ -109,7 +110,7 @@ def test_page(case, session_page, qa, site_server, request):
 
     def ours(url):
         u = urlsplit(url)
-        return u.netloc == host or (u.hostname == "mash1384.github.io" and u.path.startswith("/signal-desk/"))
+        return u.netloc == host or (u.hostname == "mash1384.github.io" and u.path.startswith("/signal-desk/")) or u.hostname == SITE.hostname
 
     def response(res):
         row["requests"] += 1

@@ -130,10 +130,18 @@ jobs:
       # The complete 48-case matrix and BDD live in qa-harness.yml.
       - name: Validate public artifacts and browser smoke
         timeout-minutes: 3
+        env:   # 자체 도메인이면 시험 서버도 같은 경로로(기본 /signal-desk/)
+          SIGNAL_SITE_URL: ${{ vars.SIGNAL_SITE_URL }}
+          SIGNAL_SITE_BASE: ${{ vars.SIGNAL_SITE_BASE }}
         run: python -m tests.gate --site dist --flash flash --seconds 150
 
       - name: Publish to gh-pages
+        env:
+          SIGNAL_SITE_URL: ${{ vars.SIGNAL_SITE_URL }}
         run: |
+          # 자체 도메인(delfona.com 등)이면 CNAME 파일을 같이 올린다 — 없으면 아래 --delete 가 GitHub Pages 도메인 설정을 지운다
+          host=$(python -c "import os, urllib.parse as u; h = u.urlsplit(os.environ.get('SIGNAL_SITE_URL') or '').hostname or ''; print('' if h.endswith('github.io') else h)")
+          if [ -n "$host" ]; then echo "$host" > dist/CNAME; fi
           # 빌드에 없는 것은 모두 지운다(예전 디자인 시안 /preview/ 포함 — 비공개 저장소의 gh-pages 백업에 보관)
           rsync -a --delete --exclude .git dist/ site/
           cd site

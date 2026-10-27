@@ -3,11 +3,14 @@ No route ever continues to a remote host. External failures are reported separat
 """
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 from urllib.parse import parse_qs, parse_qsl, urlsplit
 
 VENDOR = Path(__file__).parent / "vendor"
+SITE = urlsplit(os.environ.get("SIGNAL_SITE_URL") or "https://mash1384.github.io/signal-desk")
+SITE_PATH = SITE.path.rstrip("/") + "/"
 
 
 class Offline:
@@ -99,6 +102,8 @@ class Offline:
             file_response(self.flash / url.path.split("/flash/", 1)[1])
         elif url.hostname == "mash1384.github.io" and url.path.startswith("/signal-desk/"):
             file_response(self.site / url.path.split("/signal-desk/", 1)[1])
+        elif SITE.hostname and url.hostname == SITE.hostname and url.path.startswith(SITE_PATH):   # 자체 도메인(SIGNAL_SITE_URL)
+            file_response(self.site / url.path[len(SITE_PATH):])
         elif url.hostname == "signal-scheduler.mash1384.workers.dev":
             if url.path == "/live":
                 if self.live_mode == 'disconnect':

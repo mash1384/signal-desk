@@ -209,7 +209,7 @@ export function sectorsHTML(t, cur) {
     <p class="fn">${T('Green bullish · grey neutral · red bearish. Tap a sector to filter the stories.', '초록 호재 · 회색 중립 · 빨강 악재. 누르면 그 섹터 소식만 봐요.')}</p>`;
 }
 export async function eventsHTML() {
-  try { const d = await (await fetch('https://mash1384.github.io/signal-desk/data/events.json')).json(), now = Date.now() / 1000;
+  try { const d = await (await fetch(DFD.data('events.json'))).json(), now = Date.now() / 1000;
     const xs = d.upcoming.filter((x) => x.ts > now).sort((a, b) => a.ts - b.ts).slice(0, 3);
     return `<ul class="evs">${xs.map((x) => `<li><span class="mono">${new Date(x.ts * 1000).toLocaleString(L() ? 'ko-KR' : 'en-GB', { month: 'short', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' })}</span><b>${esc(L() ? x.title_ko || x.title : x.name_en || x.title)}</b>${'●'.repeat(x.level || 1)}</li>`).join('')}</ul>`; } catch (e) { return ''; }
 }

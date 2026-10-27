@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 import pytest
 from playwright.sync_api import sync_playwright
 from tests.e2e.server import serve
-from tests.e2e.network import Offline, VENDOR
+from tests.e2e.network import SITE, Offline, VENDOR
 
 PAGES = ["", "live/", "my/", "themes/crypto/", "brief/", "calendar/", "daily/", "about/"]
 BASELINE = Path(__file__).parent / "baseline.json"
@@ -89,7 +89,7 @@ def session_page(browser, site_server, request):
         if response.status < 400:
             return
         url = urlsplit(response.url)
-        own = url.netloc == urlsplit(site_server).netloc or (url.hostname == "mash1384.github.io" and url.path.startswith("/signal-desk/"))
+        own = url.netloc == urlsplit(site_server).netloc or (url.hostname == "mash1384.github.io" and url.path.startswith("/signal-desk/")) or url.hostname == SITE.hostname
         (failures if own else warnings).append({"status": response.status, "url": response.url})
 
     page.on("response", our_response)

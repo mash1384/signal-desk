@@ -6,6 +6,10 @@ from pathlib import Path
 import threading
 import urllib.request
 from urllib.parse import urlsplit
+import os
+
+# 사이트 경로(기본 /signal-desk/ — 자체 도메인이면 배포 설정 SIGNAL_SITE_BASE=/ 와 같게)
+PREFIX = os.environ.get("SIGNAL_SITE_BASE") or "/signal-desk/"
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -16,9 +20,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def translate_path(self, path):
         path = urlsplit(path).path
-        if not path.startswith("/signal-desk/"):
+        if not path.startswith(PREFIX):
             return str(Path(self.directory) / "__invalid_site_prefix__")
-        return super().translate_path("/" + path[len("/signal-desk/"):])
+        return super().translate_path("/" + path[len(PREFIX):])
 
 
 class Server(ThreadingHTTPServer):
@@ -37,7 +41,7 @@ def serve(site):
     server = Server(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    base = "http://127.0.0.1:%d/signal-desk/" % server.server_port
+    base = "http://127.0.0.1:%d%s" % (server.server_port, PREFIX)
     try:
         with urllib.request.urlopen(base, timeout=5) as response:
             if response.status != 200 or b"<html" not in response.read().lower():
