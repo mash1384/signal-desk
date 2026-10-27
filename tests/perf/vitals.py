@@ -90,6 +90,7 @@ async def transport(context, offline, delay=0, block=False, wire=False):
         else:
             await route.fulfill(**reply.payload)
     await context.route('**/*', handle)
+    await context.route_web_socket(re.compile(r'.*'), lambda ws: None)   # 실시간 연결(r25)은 가짜로 열기만(실제 서버에 붙지 않게, 동기화 안 됨 → 지금 방식)
 
 
 async def prepare(browser, base, site=None, flash=None, width=390, lang='ko', delay=0, block=False, wire=False):

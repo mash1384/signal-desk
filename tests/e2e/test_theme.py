@@ -14,7 +14,7 @@ def open_page(browser, site_server, request, route, saved=None):
     site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
     context = browser.new_context(viewport={"width": 390, "height": 900}, service_workers="block", reduced_motion="reduce")
     offline = Offline(site, flash, site_server)
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     script = "Object.defineProperty(navigator, 'doNotTrack', {get: () => '1'});"
     if saved:
         script += "if (!sessionStorage.getItem('seeded')) { sessionStorage.setItem('seeded', '1'); localStorage.setItem('df-theme', '%s'); }" % saved

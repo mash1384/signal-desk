@@ -21,7 +21,7 @@ def test_hidden_tab_pauses_polling(browser, site_server, request, route):
     context = browser.new_context(viewport={"width": 1440, "height": 1000}, service_workers="block")
     # Keep every existing assertion against the currently deployed legacy routes.
     offline = Offline(site, flash, site_server, live_mode='legacy')
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     context.add_init_script("localStorage.setItem('df-lang','ko'); localStorage.setItem('df-my', JSON.stringify(['BTC','ETH','NVDA']));")
     page = context.new_page()
     urls, pending = [], set()

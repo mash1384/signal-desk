@@ -3,6 +3,7 @@ No route ever continues to a remote host. External failures are reported separat
 """
 import hashlib
 import json
+import re
 from pathlib import Path
 from urllib.parse import parse_qs, parse_qsl, urlsplit
 
@@ -19,6 +20,9 @@ class Offline:
         self.unmapped = []
         self.flash_new_calls, self.flash_new_extra, self.flash_new_status = [], [], None
         self.beacons = []
+        # 실시간 연결(r25) 가짜: 기본 'silent' = 열리지만 아무것도 안 보냄(동기화 안 됨 → 지금 방식 그대로).
+        # 'serve' = hello(스냅샷 문서 전체 + 시세)를 보내고, 시험이 push() 로 다음 seq 메시지를 보낸다
+        self.ws_mode, self.ws_open, self.ws_urls, self.ws_seq = "silent", [], [], 1
         for row in self.manifest.values():
             data = (VENDOR / row["file"]).read_bytes()
             if hashlib.sha256(data).hexdigest() != row["sha256"]:
@@ -31,6 +35,38 @@ class Offline:
     def market(self):
         syms = "NQ=F ES=F NVDA AAPL MSFT AMZN GOOGL META TSLA AVGO AMD TSM PLTR ^TNX ^FVX DX-Y.NYB GC=F CL=F KRW=X".split()
         return {"q": {s: {"p": 100.24, "chg": .24, "c": self.series(300, 300)} for s in syms}, "at": self.now}
+
+    def bundle(self, at=None):
+        at = self.now if at is None else at
+        m = {**self.market(), "at": at}
+        return {"market": {"1h": {**m, "i": "1h"}, "5m": {**m, "i": "5m"}},
+                "indices": {"nq": {"c": self.series(1000), "at": at}, "es": {"c": self.series(1000), "at": at}}}
+
+    def ws(self, ws):
+        # WebSocket 은 route() 로 잡히지 않는다 — 모든 연결을 여기서 가짜로 받아 실제 서버에 붙지 않게 한다.
+        # 주의: Playwright 동기 API 는 이 처리기 안에서 ws.close() 를 부르면 멈춘다 → 닫기는 시험 쪽에서 close_ws()
+        self.ws_urls.append(ws.url)
+        u = urlsplit(ws.url)
+        if u.scheme != "wss" or u.netloc != "signal-scheduler.mash1384.workers.dev" or u.path != "/ws":
+            self.unmapped.append(ws.url)
+            return
+        self.ws_open.append(ws)
+        if self.ws_mode == "serve":
+            ws.send(json.dumps({"t": "hello", "v": 2, "seq": self.ws_seq, "doc": json.loads((self.flash / "flash.json").read_text()), "market": self.bundle()}))
+
+    def push(self, msg, skip=False):
+        self.ws_seq += 2 if skip else 1
+        for ws in self.ws_open:
+            ws.send(json.dumps({**msg, "seq": self.ws_seq}))
+
+    def close_ws(self):
+        for ws in self.ws_open:
+            ws.close()
+        self.ws_open = []
+
+    def attach(self, context):
+        context.route("**/*", self.handle)
+        context.route_web_socket(re.compile(r".*"), self.ws)
 
     def handle(self, route):
         req = route.request

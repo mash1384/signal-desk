@@ -24,7 +24,7 @@ def check(args):
         def session():
             context = browser.new_context(viewport={'width': 390, 'height': 1000}, timezone_id='Asia/Seoul', reduced_motion='reduce')
             offline = Offline(args.site, args.flash, base)
-            context.route('**/*', offline.handle)
+            offline.attach(context)
             context.add_init_script("localStorage.setItem('df-lang','ko');localStorage.setItem('df-my','[\"BTC\",\"ETH\",\"NVDA\"]')")
             page = context.new_page()
             page.clock.set_fixed_time(dt.datetime.fromtimestamp(offline.now, dt.timezone.utc))

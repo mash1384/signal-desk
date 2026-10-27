@@ -74,11 +74,11 @@ async function pull() {
   let d; try { d = await DFD.flash(); } catch (e) { return; }
   stale(d.at); merge(d.items);
 }
-// 속보 빠른 확인(2026-10-26): 화면을 보고 있으면 5초마다 '새 소식만' 받아 합친다. 창이 뒤에 있으면 쉬고(30초 전체 받기가 맡음), 숨기면 멈춘다.
-// 서버가 바쁘다(503 · 429)고 하면 Retry-After 만큼, 다른 실패는 1분 쉰다. 마지막 소식보다 10분 앞부터 물어 늦게 판정된 소식도 놓치지 않는다
+// 속보 빠른 확인(r24): 실시간 연결(r25, ws.js)이 안 될 때 보고 있으면 5초마다 새 소식만. 바쁨(503·429)이면 Retry-After, 실패는 1분 쉼
 let fastBusy = false, fastNext = 0, fastOn = false;
 const changed = (it) => { const o = store.byId.get(it.id); return !o || ['v', 's', 'n', 'ko', 'en', 'kind', 'link'].some((k) => (o[k] ?? '') !== (it[k] ?? '')); };
 async function fast() {
+  if (DFD.stream.quiet()) return;
   if (document.hidden || !document.hasFocus() || fastBusy || Date.now() < fastNext || !store.items.length) return;
   fastBusy = true;
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 8000);   // 응답이 멈춰도 8초 뒤 풀고 1분 뒤 다시(R24-F1)
@@ -98,7 +98,14 @@ export function every(fn, ms) {
   setInterval(() => { if (!document.hidden && Date.now() - last >= ms * 0.9) run(); }, ms);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - last >= ms) run(); });
 }
-export function start(onData) { store.subs.push(onData); pull(); every(pull, 30000); if (!fastOn) { fastOn = true; setInterval(fast, 5000); } DFI.onLang(onData);
+const pushed = (items, at) => { stale(at); if (items.some(changed)) merge(items); };
+let slow = 0;
+export function start(onData) { store.subs.push(onData);
+  if (!fastOn) { fastOn = true; pull().then(() => DFD.stream.connect(pushed));
+    every(() => { if (DFD.stream.healthy() || (DFD.stream.degraded() && slow++ % 2)) return; pull(); }, 30000);
+    setInterval(fast, 5000); }
+  else pull();
+  DFI.onLang(onData);
   fetch((window.DF_ROOT || 'https://mash1384.github.io/signal-desk/') + 'data/related.json').then((r) => r.json()).then((d) => { store.feed = d.items || []; }).catch(() => {}); }
 export const day = () => { const s = Date.now() / 1000 - 86400; return store.items.filter((x) => x.t >= s); };
 export const counts = (xs) => ({ n: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length });

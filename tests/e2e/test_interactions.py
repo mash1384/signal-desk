@@ -11,7 +11,7 @@ def open_page(browser, site_server, request, route, width=1440, theme="light", f
     offline = Offline(site, flash, site_server)
     if falling:   # 가격이 계속 내리는 자료: 마지막 가격이 차트 맨 아래에 온다(가격표가 아래 끝에서 잘리는지 보려고)
         offline.series = lambda n, step=60, start=None: [[(offline.now - (n - 1) * step if start is None else start) + i * step, round(100 - i * .01, 2)] for i in range(n)]
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     context.add_init_script("localStorage.setItem('df-lang','ko'); localStorage.setItem('df-theme','%s');"
                             "Object.defineProperty(navigator, 'doNotTrack', {get: () => '1'});" % theme)
     page = context.new_page()

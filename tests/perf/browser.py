@@ -23,7 +23,7 @@ def polling(args):
         for mode in ('modern', 'legacy', 'error', 'malformed', 'disconnect'):
             context = browser.new_context(viewport={'width': 1440, 'height': 1000}, reduced_motion='reduce')
             offline = Offline(args.site, args.flash, base, live_mode=mode)
-            context.route('**/*', offline.handle)
+            offline.attach(context)
             context.add_init_script("localStorage.setItem('df-lang','ko');localStorage.setItem('df-my','[\"BTC\",\"ETH\",\"NVDA\"]')")
             page = context.new_page()
             urls, errors = [], []

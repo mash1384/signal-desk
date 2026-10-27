@@ -6,7 +6,7 @@ from tests.e2e.network import Offline
 def landing(browser, site_server, request, video):
     site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
     ctx = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, locale="ko-KR", service_workers="block")
-    ctx.route("**/*", Offline(site, flash, site_server).handle)
+    Offline(site, flash, site_server).attach(ctx)
     ctx.route("**/assets/df/c1.mp4*", video)
     return ctx
 

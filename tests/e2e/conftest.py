@@ -81,7 +81,7 @@ def browser(request):
 def session_page(browser, site_server, request):
     context = browser.new_context(viewport={"width": 390, "height": 1000}, locale="en-US", timezone_id="Asia/Seoul", service_workers="block")
     offline = Offline(request.config.getoption("--site"), request.config.getoption("--flash"), site_server)
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     page = context.new_page()
     failures, warnings = [], []
 

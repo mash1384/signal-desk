@@ -10,7 +10,7 @@ TERMS_EN = ("Fed", "WTI", "PCE", "FOMC", "Treasury", "futures", "ETF", "CPI", "V
 def open_brief(browser, site_server, offline_cls, site, flash, lang, mobile):
     ctx = browser.new_context(viewport={"width": 390 if mobile else 1440, "height": 900}, is_mobile=mobile, has_touch=mobile, locale="ko-KR", service_workers="block")
     offline = offline_cls(site, flash, site_server)
-    ctx.route("**/*", offline.handle)
+    offline.attach(ctx)
     ctx.add_init_script("localStorage.setItem('df-lang', %s)" % json.dumps(lang))
     page = ctx.new_page()
     errors = []

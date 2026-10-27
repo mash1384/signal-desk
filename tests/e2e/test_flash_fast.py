@@ -13,7 +13,7 @@ def open_live(browser, site_server, request):
     site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
     context = browser.new_context(viewport={"width": 1440, "height": 1000}, service_workers="block")
     offline = Offline(site, flash, site_server)
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     context.add_init_script(FOCUS)
     page = context.new_page()
     errors = []

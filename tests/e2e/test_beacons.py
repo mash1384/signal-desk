@@ -11,7 +11,7 @@ def visit(browser, site_server, request, route, dnt=False, action=None):
     site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
     context = browser.new_context(viewport={"width": 390, "height": 900}, service_workers="block")
     offline = Offline(site, flash, site_server)
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     script = "localStorage.setItem('df-lang','ko');"
     if dnt:
         script += "Object.defineProperty(navigator, 'doNotTrack', {get: () => '1'});"

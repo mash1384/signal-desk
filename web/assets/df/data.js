@@ -5,7 +5,9 @@ window.DFD = (() => {
   let livePending = null, liveValue = null, liveAt = 0, liveDisabled = false, liveRetryAt = 0;
   async function live() {
     if (!window.DF_LIVE || liveDisabled || Date.now() < liveRetryAt) return null;
-    if (liveValue && Date.now() - liveAt < 29000) return liveValue;
+    const pb = liveValue && stream.bundle(liveValue);
+    if (pb) return pb;
+    if (liveValue && Date.now() - liveAt < (stream.degraded() ? 59000 : 29000)) return liveValue;
     if (livePending) return livePending;
     liveAt = Date.now();
     livePending = (async () => {
@@ -26,6 +28,8 @@ window.DFD = (() => {
     })();
     return livePending;
   }
+  const SRC = globalThis.document?.currentScript?.src, stream = { healthy() {}, quiet() {}, degraded() {}, market() {}, bundle() {},   // r25: ws.js 가 채운다
+    connect(on) { if (!stream.p && SRC && globalThis.WebSocket) stream.p = import(new URL('ws.js', SRC).href + new URL(SRC).search).then((m) => m.start(stream, FLASH, on), () => {}); } };
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const hm = (t) => { const d = new Date(t * 1000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const pct = (v, d = 2) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d) + '%';
@@ -41,7 +45,7 @@ window.DFD = (() => {
   const flashNew = (after, signal) => fetch(FLASH + '/new?after=' + Math.max(0, Math.floor(after)), { cache: 'no-store', signal });
   const day24 = (items) => { const s = Date.now() / 1000 - 86400, xs = items.filter((x) => x.t >= s);
     return { all: xs.length, u: xs.filter((x) => x.v === '호재').length, d: xs.filter((x) => x.v === '악재').length, n: xs.filter((x) => x.v === '중립').length, big: xs.filter((x) => x.s >= 2).length }; };
-  return { data, live, esc, hm, pct, vcls, flash, flashNew, day24 };
+  return { data, live, esc, hm, pct, vcls, flash, flashNew, day24, stream };
 })();
 
 // 영어 기본 + 한국어(data-t 영어 원문 ↔ KO 사전)

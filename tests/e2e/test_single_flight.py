@@ -13,7 +13,7 @@ def test_my_page_fetches_themes_once_while_pending(browser, site_server, request
     site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
     context = browser.new_context(viewport={"width": 390, "height": 900}, service_workers="block")
     offline = Offline(site, flash, site_server)
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     held, dicts = [], []
     context.route("**/data/daily/themes.json*", lambda route: held.append(route))   # 붙잡아 두었다가 나중에 응답
     context.route("**/en.json*", lambda route: dicts.append(route))                # CI 처럼 영어 사전이 늦게 오게
@@ -51,7 +51,7 @@ def test_landing_fetches_flash_once(browser, site_server, request):
     site, flash = request.config.getoption("--site"), request.config.getoption("--flash")
     context = browser.new_context(viewport={"width": 1440, "height": 1000}, service_workers="block")
     offline = Offline(site, flash, site_server)
-    context.route("**/*", offline.handle)
+    offline.attach(context)
     context.add_init_script("localStorage.setItem('df-lang','en'); localStorage.setItem('df-theme','dark');"   # 다크는 인트로를 건너뛴다
                             "Object.defineProperty(navigator, 'doNotTrack', {get: () => '1'});")
     page = context.new_page()
