@@ -13,3 +13,4 @@ node_modules/
 
 # 커버리지 측정 결과(tests.run_unit --coverage)
 .coverage
+.wrangler/

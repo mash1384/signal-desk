@@ -1,4 +1,4 @@
-# 15분마다 뉴스 수집 → 임팩트 측정 → 정적 사이트 빌드 → gh-pages 배포
+# 15분마다 뉴스 수집 → 임팩트 측정 → 정적 사이트 빌드 → gh-pages(상태 보관 · 예비) + Cloudflare(delfona-site, 실제 사이트) 배포
 # 정시 실행은 Cloudflare 스케줄러(worker/)가 workflow_dispatch로 건다. 아래 schedule은 그게 멈췄을 때의 예비다
 name: pipeline
 
@@ -155,3 +155,17 @@ jobs:
           # 이력을 쌓지 않도록 한 커밋을 계속 고쳐 쓴다 (바뀐 파일만 올라간다)
           git commit --amend -q -m "deploy: site snapshot"
           git push -f origin HEAD:gh-pages
+
+      # 2026-10-28: 실제 사이트는 Cloudflare(hosting/wrangler.toml 의 delfona-site — 바깥 주소 없음, 문지기 delfona-gate 뒤)에서 낸다.
+      # 바뀐 파일만 전송한다. 토큰이 아직 없으면 건너뛴다(그동안 사이트는 GitHub Pages 로 나간다)
+      - name: Publish to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::notice::CLOUDFLARE_API_TOKEN 없음 — Cloudflare 배포 건너뜀"; exit 0; fi
+          test -f dist/index.html   # 빈 · 깨진 빌드로 사이트를 덮지 않는다
+          test -f dist/data/articles.json
+          printf 'CNAME\n.nojekyll\n' > dist/.assetsignore
+          deploy() { npx --yes wrangler@4.149.0 deploy --config hosting/wrangler.toml; }
+          deploy || { echo "::warning::Cloudflare 배포 재시도"; sleep 15; deploy; }
