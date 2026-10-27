@@ -32,8 +32,8 @@ const sc = new Map();
 function series(m, iv) {   // [[t, close]] 지난 며칠(5m) 또는 이틀(1m). 60초 보관
   const times = [...app.querySelectorAll(iv === '1m' ? '.bigc[data-t]' : 'canvas[data-t]')].map(el => +el.dataset.t);
   const earliest = Math.min(...times) - (iv === '1m' ? 1800 : 3600), limit = recentLimit(earliest, iv === '1m' ? 60 : 300);
-  const key = m + (m === 'btc' ? iv + ':' + limit : '1m'), hit = sc.get(key); if (hit && Date.now() - hit.at < 60000) return hit.p;
-  const p = (m === 'btc' ? fetch(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=${iv}&limit=${limit}&endTime=${Date.now()}`).then((r) => r.ok ? r.json() : null).then((k) => (k ? k.map((x) => [x[0] / 1000, +x[4]]) : null))
+  const key = m + (V.PAIR[m] ? iv + ':' + limit : '1m'), hit = sc.get(key); if (hit && Date.now() - hit.at < 60000) return hit.p;
+  const p = (V.PAIR[m] ? fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${V.PAIR[m]}&interval=${iv}&limit=${limit}&endTime=${Date.now()}`).then((r) => r.ok ? r.json() : null).then((k) => (k ? k.map((x) => [x[0] / 1000, +x[4]]) : null))
     : DFD.live().then(bundle => bundle ? bundle.indices[m] : fetch(`${WK}?s=${m}&i=1m`).then(r => r.ok ? r.json() : null)).then((d) => (d && d.c ? d.c : null))).catch(() => null);
   sc.set(key, { at: Date.now(), p }); return p;
 }
@@ -42,7 +42,7 @@ async function bigChart(el, t) {   // 맨 위 큰 차트: TradingView Lightweigh
   const all = await series(M, '1m'), lbl = el.parentElement.querySelector('[data-chg]'), pts = all ? all.filter((p) => p[0] >= t - 1800) : null;
   if (!el.isConnected) return;
   const r = lwChart(el, pts, t, { height: innerWidth < 900 ? 200 : 230 });
-  if (lbl) { if (!r || r.change == null) { lbl.className = 'chg mono'; lbl.textContent = T('no trading since the story', '소식 이후 거래 없음'); } else { lbl.className = (r.change >= 0 ? 'up' : 'down') + ' chg mono'; lbl.textContent = DFD.pct(r.change) + (r.closed && M !== 'btc' ? T(' · market closed', ' · 장 마감') : ''); } }
+  if (lbl) { if (!r || r.change == null) { lbl.className = 'chg mono'; lbl.textContent = T('no trading since the story', '소식 이후 거래 없음'); } else { lbl.className = (r.change >= 0 ? 'up' : 'down') + ' chg mono'; lbl.textContent = DFD.pct(r.change) + (r.closed && !V.PAIR[M] ? T(' · market closed', ' · 장 마감') : ''); } }
 }
 async function chart(cv, t, big) {
   const all = await series(M, big ? '1m' : '5m'), lbl = cv.parentElement.querySelector('[data-chg]');
@@ -60,7 +60,7 @@ async function chart(cv, t, big) {
     g.beginPath(); pts.slice(i0).forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])))); g.strokeStyle = col; g.stroke(); }
   const xs = X(t); g.strokeStyle = tone(.35); g.setLineDash([3, 3]); g.beginPath(); g.moveTo(xs, 4); g.lineTo(xs, h); g.stroke(); g.setLineDash([]);
   if (big) { g.fillStyle = (dark() ? '#a3b2c7' : '#5b6b82'); g.font = '500 11px "JetBrains Mono", monospace'; const lw = g.measureText(T('story', '소식')).width; g.fillText(T('story', '소식'), xs + 5 + lw > w ? xs - 5 - lw : xs + 5, 14); }
-  const closed = pts[pts.length - 1][0] < Date.now() / 1000 - 1800 && M !== 'btc';
+  const closed = pts[pts.length - 1][0] < Date.now() / 1000 - 1800 && !V.PAIR[M];
   if (lbl) { const ch = (last / base - 1) * 100; lbl.className = (after ? (ch >= 0 ? 'up' : 'down') : '') + ' chg mono'; lbl.dataset.chg = '1';
     lbl.textContent = after ? `${DFD.pct(ch)}${closed ? T(' · market closed', ' · 장 마감') : ''}` : T('no trading since', '이후 거래 없음'); }
 }
