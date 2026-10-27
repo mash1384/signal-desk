@@ -1,0 +1,99 @@
+import * as THREE from 'three';
+export { renderer, loop, mobile, reduce, fonts, lerp, clamp, ss, EN, SECT } from './nkit.js?v=40f2d0b9';
+import { clamp } from './nkit.js?v=40f2d0b9';
+
+export const DPR = Math.min(devicePixelRatio || 1, 2);
+const DK = document.documentElement.dataset.theme === 'dark';   // 다크: 짙은 남색 입자는 어두운 배경에서 안 보인다 → 밝은 회청색
+export const COL = { navy: new THREE.Color(DK ? '#c9d4e3' : '#1d3557'), ink: new THREE.Color(DK ? '#e8eef6' : '#0d253d'), ind: new THREE.Color(DK ? '#a39dff' : '#6d6cf7'), lt: new THREE.Color('#a9b7ff'), up: new THREE.Color('#12b07c'), dn: new THREE.Color('#e5533f'), gray: new THREE.Color('#9aa7b8') };
+export const sm = (x) => { x = clamp(x); return x * x * x * (x * (x * 6 - 15) + 10); };
+export const rnd = (a = 1) => (Math.random() * 2 - 1) * a;
+
+export class Morph {
+  constructor(N, K = 5) {
+    this.N = N; this.K = K; this.P = []; this.C = [];
+    const g = this.g = new THREE.BufferGeometry();
+    for (let k = 0; k < 5; k++) { const p = new Float32Array(N * 3), c = new Float32Array(N * 4); this.P.push(p); this.C.push(c);
+      g.setAttribute('p' + k, new THREE.BufferAttribute(p, 3)); g.setAttribute('c' + k, new THREE.BufferAttribute(c, 4)); }
+    const r = new Float32Array(N), b = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) { r[i] = Math.random(); const u = Math.random() * 2 - 1, th = Math.random() * 6.283, s = Math.sqrt(1 - u * u); b.set([s * Math.cos(th), u, s * Math.sin(th)], i * 3); }
+    g.setAttribute('aR', new THREE.BufferAttribute(r, 1)); g.setAttribute('aB', new THREE.BufferAttribute(b, 3));
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+    this.U = { uS: { value: 0 }, uT: { value: 0 }, uSz: { value: 1 }, uBurst: { value: 0.9 }, uWob: { value: 0.03 }, uHiX: { value: 1e9 }, uHiW: { value: 0.5 }, uHiOn: { value: 0 }, uA: { value: 1 } };
+    this.mat = new THREE.ShaderMaterial({ uniforms: this.U, transparent: true, depthWrite: false, vertexShader: `
+      attribute vec3 p0, p1, p2, p3, p4, aB; attribute vec4 c0, c1, c2, c3, c4; attribute float aR;
+      uniform float uS, uT, uSz, uBurst, uWob, uHiX, uHiW, uHiOn, uA; varying vec4 vC; varying float vH;
+      float w(float k, float s){ return max(0., 1. - abs(s - k)); }
+      void main(){
+        float k = floor(uS), f = uS - k; float fi = clamp((f - aR * .28) / .72, 0., 1.); fi = fi * fi * fi * (fi * (fi * 6. - 15.) + 10.); float s = k + fi;
+        vec3 p = p0 * w(0., s) + p1 * w(1., s) + p2 * w(2., s) + p3 * w(3., s) + p4 * w(4., s);
+        vec4 c = c0 * w(0., s) + c1 * w(1., s) + c2 * w(2., s) + c3 * w(3., s) + c4 * w(4., s);
+        p += aB * sin(3.14159 * fi) * uBurst * (.5 + aR);                                   // 전환 중간: 살짝 흩어졌다 모인다
+        p += vec3(sin(uT * .7 + aR * 40.), cos(uT * .6 + aR * 31.), sin(uT * .5 + aR * 17.)) * uWob;   // 숨쉬기
+        float hi = uHiOn * exp(-pow((p.x - uHiX) / uHiW, 2.)); vH = hi;
+        vC = vec4(mix(c.rgb, c.rgb * 1.05 + .08, hi), c.a * uA * (1. + hi * .6));
+        vec4 mv = modelViewMatrix * vec4(p, 1.); gl_Position = projectionMatrix * mv;
+        gl_PointSize = max(1.2, uSz * (1.4 + aR * 1.4) * (1. + hi * .9) * (10. / -mv.z) * ${DPR.toFixed(1)}); }`,
+      fragmentShader: `varying vec4 vC; varying float vH; void main(){ vec2 q = gl_PointCoord - .5; float d = dot(q, q); if (d > .25) discard; gl_FragColor = vec4(vC.rgb, vC.a * (1. - d * 2.6)); }` });
+    this.points = new THREE.Points(g, this.mat); this.points.frustumCulled = false;
+  }
+  set(k, fn) { const p = this.P[k], c = this.C[k], o = new Array(7);
+    for (let i = 0; i < this.N; i++) { const v = fn(i, o); p[i * 3] = v[0]; p[i * 3 + 1] = v[1]; p[i * 3 + 2] = v[2]; c[i * 4] = v[3]; c[i * 4 + 1] = v[4]; c[i * 4 + 2] = v[5]; c[i * 4 + 3] = v[6]; }
+    this.g.getAttribute('p' + k).needsUpdate = true; this.g.getAttribute('c' + k).needsUpdate = true; }
+  copy(from, to) { this.P[to].set(this.P[from]); this.C[to].set(this.C[from]); this.g.getAttribute('p' + to).needsUpdate = true; this.g.getAttribute('c' + to).needsUpdate = true; }
+}
+
+export function cloud(m, k, { w = 16, h = 7, y = 3.5, d = 6 } = {}) {
+  m.set(k, (i, o) => { const r = Math.random(), c = r < 0.45 ? COL.navy : r < 0.75 ? COL.ind : COL.lt;
+    o[0] = rnd(w / 2); o[1] = y + rnd(h / 2); o[2] = rnd(d / 2); o[3] = c.r; o[4] = c.g; o[5] = c.b; o[6] = 0.35; return o; });
+}
+
+export function textPoints(text, { font = '300 220px "Pretendard Variable"', hgt = 2, step = 3, align = 'center', spacing = '0px' } = {}) {
+  const c = document.createElement('canvas'), g = c.getContext('2d'); g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing;   // 자간(헤더 로고처럼 넓게)
+  const lines = String(text).split('\n'), size = parseFloat(/(\d+)px/.exec(font)[1]);
+  const ms = lines.map((l) => g.measureText(l)), asc = Math.max(...ms.map((m) => m.actualBoundingBoxAscent || size * 0.8)), dsc = Math.max(...ms.map((m) => m.actualBoundingBoxDescent || size * 0.2));
+  const lh = Math.max(size * 1.05, asc + dsc + size * 0.1), pad = Math.ceil(size * 0.12), W = Math.ceil(Math.max(...ms.map((m) => m.width))) + pad * 2, H = Math.ceil(lh * (lines.length - 1) + asc + dsc) + pad * 2;
+  c.width = W; c.height = H; g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing; g.fillStyle = '#000'; g.textBaseline = 'alphabetic'; g.textAlign = align === 'center' ? 'center' : 'left';
+  const ls = parseFloat(spacing) || 0;   // 자간은 마지막 글자 뒤에도 붙으므로 가운데 맞춤에서 그 절반만큼 옮긴다
+  lines.forEach((l, j) => g.fillText(l, align === 'center' ? W / 2 + ls / 2 : pad, pad + asc + j * lh));
+  const d = g.getImageData(0, 0, W, H).data, pts = [], sc = hgt / H;
+  for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 120) pts.push({ x: (x - W / 2) * sc, y: -(y - H / 2) * sc });
+  for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pts[i]; pts[i] = pts[j]; pts[j] = t; }
+  pts.W = W * sc; pts.H = H * sc; return pts;
+}
+
+export function pin(sec, len, onP) {
+  gsap.registerPlugin(ScrollTrigger); const st = { P: 0, T: 0 };
+  ScrollTrigger.create({ trigger: sec, start: 'top top', end: '+=' + len + '%', pin: true, anticipatePin: 1, onUpdate: (s) => { st.T = s.progress; } });
+  st.pre = 0; st.preT = 0; ScrollTrigger.create({ trigger: sec, start: 'top bottom', end: 'top top', onUpdate: (s) => { st.preT = s.progress; } });
+  st.step = (dt) => { st.P += (st.T - st.P) * Math.min(1, dt * 10); st.pre += (st.preT - st.pre) * Math.min(1, dt * 10); return st.P; };
+  if (/go=1/.test(location.search)) addEventListener('load', () => setTimeout(() => { ScrollTrigger.refresh(); const t = ScrollTrigger.getAll().find((x) => x.trigger === sec); if (t) scrollTo(0, t.start + 2); }, 900));
+  return st;
+}
+export function stageOf(P, keys, hold = 0.35) {
+  if (P <= keys[0]) return 0; for (let k = 0; k < keys.length - 1; k++) { const a = keys[k], b = keys[k + 1]; if (P < b) { const f = (P - a) / (b - a); return k + clamp((f - hold / 2) / (1 - hold)); } }
+  return keys.length - 1;
+}
+
+const v3 = new THREE.Vector3();
+export function project(cam, el, p) { v3.copy(p).project(cam); return [(v3.x + 1) / 2 * el.clientWidth, (1 - v3.y) / 2 * el.clientHeight, v3.z]; }
+
+export function captions(el, list) { let cur = -1; const L = () => DFI.lang() === 'ko' ? 1 : 0;
+  const set = (k) => { if (k === cur) return; cur = k; const c = list[k]; if (!c) { el.innerHTML = ''; return; } el.innerHTML = `<b>${c[L()][0]}</b>${c[L()][1] ? `<span>${c[L()][1]}</span>` : ''}`; };
+  DFI.onLang(() => { const k = cur; cur = -1; set(k); }); return set; }
+
+export const T = (en, ko) => DFI.lang() === 'ko' ? ko : en;
+export const line = (it, ENT) => DFI.lang() === 'ko' ? it.ko : (it.en || ENT[it.id] || it.ko);
+
+export function drawPoints(fn, { W = 512, H = 512, wid = 1, step = 3 } = {}) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); g.fillStyle = '#000'; g.strokeStyle = '#000'; fn(g, W, H);
+  const d = g.getImageData(0, 0, W, H).data, pts = [], sc = wid / W;
+  for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 120) pts.push({ x: (x - W / 2) * sc, y: -(y - H / 2) * sc });
+  return pts;
+}
+export function rrEdge(t, w, h, r) {
+  const L = [w - 2 * r, Math.PI * r / 2, h - 2 * r, Math.PI * r / 2, w - 2 * r, Math.PI * r / 2, h - 2 * r, Math.PI * r / 2], tot = L.reduce((a, b) => a + b); let d = t * tot, k = 0;
+  while (k < 7 && d > L[k]) { d -= L[k]; k++; }
+  const x0 = w / 2 - r, y0 = h / 2 - r, a = (q) => d / r + q;
+  switch (k) { case 0: return [-x0 + d, h / 2]; case 1: return [x0 + r * Math.sin(a(0)), y0 + r * Math.cos(a(0))]; case 2: return [w / 2, y0 - d]; case 3: return [x0 + r * Math.cos(a(0)), -y0 - r * Math.sin(a(0))];
+    case 4: return [x0 - d, -h / 2]; case 5: return [-x0 - r * Math.sin(a(0)), -y0 - r * Math.cos(a(0))]; case 6: return [-w / 2, -y0 + d]; default: return [-x0 - r * Math.cos(a(0)), y0 + r * Math.sin(a(0))]; }
+}

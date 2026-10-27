@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}catch(e){}</script>
+<script>window.DF_PAGE='themes';try{if(navigator.doNotTrack!=='1'&&!navigator.globalPrivacyControl)navigator.sendBeacon('https://api.delfona.com/e?e=view&k=themes&l='+(document.documentElement.lang==='ko'?'ko':'en')+'&d='+(matchMedia('(max-width: 899px)').matches?'m':'d'))}catch(e){}</script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('df-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(localStorage.getItem('df-acct'))document.documentElement.classList.add('acct-on')}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nasdaq theme · Delfona</title>
+<meta name="description" content="Nasdaq theme: the last 24 hours of US tech and index-futures news, which way it leaned, what changed today, and related prices.">
+<link rel="canonical" href="https://delfona.com/themes/nasdaq/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Delfona">
+<meta property="og:title" content="Nasdaq theme · Delfona">
+<meta property="og:description" content="Nasdaq theme: the last 24 hours of US tech and index-futures news, which way it leaned, what changed today, and related prices.">
+<meta property="og:url" content="https://delfona.com/themes/nasdaq/">
+<meta property="og:image" content="https://delfona.com/og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<script>// 대체 글꼴 맞추기: Pretendard(웹 글꼴)가 오기 전 잠깐 쓰이는 기기 글꼴을 Pretendard 와 같은 글자 폭 · 줄 높이로 맞춘다.
+// 그래야 글꼴이 바뀌는 순간 줄바꿈 · 높이가 달라지지 않아 화면이 밀리지 않는다(CLS). 페이지 <head> 에 그대로 끼워 넣는다(build.py).
+// 기기마다 한글 대체 글꼴이 달라서(맑은 고딕 · Apple SD 산돌고딕 · Noto · 나눔 · WenQuanYi …) 있는 것을 찾아 그 자리에서 잰다.
+(()=>{try{
+const F=document.fonts;if(!F||!window.FontFace)return;
+const P={h:0.8643,l:0.4635,a:0.950,d:0.240};
+const H="라물재스스갑사평재다성격제급마테을트다신시전물비습약금경파선기호러하목라한립저재일새스함테식코황소술국군산장자월용이과간했조증판비판러공악탈피집을신리조싱사중운합를코라월용이리월보증장침없기처승항상은승는요만름간승높약청해기시물당치전보리해처값물하표아변균예일월크솔드러미반를확로이막코이무호요기간며이파소스간다고진위보",L="D1btaByaU.n wTh0-uaICtpe.-ouTo ot41i iiht8 oaok ta1 %t nlc alsetkarsdn sfwgaoiiseg ewr uil1 oiersmercn6heani lidbs40lec g9cn tmo mnt%1ms 5s 7ghma, hsnrt rar 1  tlw.esC im4taMia ehw  ee0cacaey36r0J8eb3RV 'eeT' ii bBnit5sC t ltnNfa eB w e sro";
+const c=document.createElement('canvas').getContext('2d'),w=(f,s)=>{c.font='100px '+f;return c.measureText(s).width/s.length/100};
+const has=n=>w('"'+n+'",monospace',H+L)!==w('monospace',H+L)||w('"'+n+'",serif',H+L)!==w('serif',H+L);
+// local() 은 묶음 이름이 아니라 개별 글꼴의 전체 이름 · PostScript 이름으로 찾는다
+const C={'Malgun Gothic':['Malgun Gothic','MalgunGothic','MalgunGothicRegular'],'Apple SD Gothic Neo':['Apple SD Gothic Neo Regular','AppleSDGothicNeo-Regular'],
+'Noto Sans KR':['Noto Sans KR Regular','NotoSansKR-Regular','Noto Sans KR'],'Noto Sans CJK KR':['Noto Sans CJK KR Regular','NotoSansCJKkr-Regular','Noto Sans CJK KR'],
+'Source Han Sans K':['Source Han Sans K Regular','SourceHanSansK-Regular'],'NanumGothic':['NanumGothic','NanumGothicRegular'],
+'WenQuanYi Zen Hei':['WenQuanYi Zen Hei','WenQuanYiZenHei','WenQuanYi Zen Hei Regular'],'Noto Sans CJK JP':['Noto Sans CJK JP Regular','NotoSansCJKjp-Regular','Noto Sans CJK JP']};
+const N=Object.keys(C).find(has);
+if(!N)return;
+const ko=document.documentElement.lang==='ko',r=ko?P.h/w('"'+N+'"',H):P.l/w('"'+N+'"',L);
+if(!(r>0.5&&r<2))return;
+const pc=v=>(v*100).toFixed(2)+'%';
+const f=new FontFace('PF Fallback',C[N].map(x=>'local("'+x+'")').join(','),{display:'swap',sizeAdjust:pc(r),ascentOverride:pc(P.a/r),descentOverride:pc(P.d/r),lineGapOverride:'0%'});
+// swap: 이 글꼴을 불러오는 동안에도 글자를 숨기지 않는다(못 찾으면 그냥 기기 글꼴)
+F.add(f);document.documentElement.dataset.pf=N;f.load().then(()=>{document.documentElement.dataset.pfs='loaded'},()=>{document.documentElement.dataset.pfs='error';F.delete(f)});
+}catch(e){}})();
+</script>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="/assets/fonts/subsets.css?v=40f2d0b9">
+<link rel="stylesheet" href="/assets/df/lk.css?v=40f2d0b9">
+<link rel="modulepreload" href="/assets/df/t2.js?v=40f2d0b9">
+<link rel="modulepreload" href="/assets/df/lk.js?v=40f2d0b9">
+<link rel="modulepreload" href="/assets/df/tk.js?v=40f2d0b9">
+<link rel="modulepreload" href="/assets/df/thr.js?v=40f2d0b9">
+<style>
+
+.ttabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; } .ttabs::-webkit-scrollbar { display: none; }
+.ttabs a { flex: none; display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 99px; font-size: 15px; font-weight: 600; color: var(--ink2); }
+.ttabs a[aria-selected='true'] { background: var(--ink); color: #fff; } @media (hover: hover) { .ttabs a[aria-selected='false']:hover { background: #eef1f6; } }
+.tstat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 14px; color: var(--mute); } .tstat b { color: var(--ink); font-weight: 650; } .tstat b.up { color: var(--up); } .tstat b.down { color: var(--down); }
+.tbal { display: inline-flex; width: 120px; height: 6px; border-radius: 3px; overflow: hidden; background: #e6eaf0; } .tbal i { display: block; } .tbal .u { background: var(--up); } .tbal .d { background: var(--down); }
+.sum .k { font-size: 13px; font-weight: 650; color: var(--primary); } .sum .k span { font-weight: 500; color: var(--faint); }
+.sum ol { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 14px; }
+.sum li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 4px; font-size: 16.5px; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
+.sum li .n { padding-top: 3px; font-size: 12px; color: var(--faint); }
+.ref { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; margin-inline-start: 4px; border-radius: 99px; background: #eef0ff; color: var(--primary); font-size: 11.5px; font-weight: 600; vertical-align: 2px; }
+@media (hover: hover) { .ref:hover { background: #e2e5ff; } }
+.ref { position: relative; } .ref::after { content: ''; position: absolute; inset: -4px -2px; }   
+.dk .dks { margin-top: 10px; font-size: 17px; line-height: 1.6; font-weight: 550; color: var(--ink); text-wrap: pretty; }
+.dk .dkg { display: grid; gap: 16px; margin-top: 16px; }
+.dk h3 { margin: 0 0 6px; font-size: 12.5px; font-weight: 650; color: var(--mute); }
+.dk ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 8px; list-style: disc; } .dk li { display: list-item; font-size: 15.5px; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
+.dk .go { color: var(--primary); font-weight: 600; white-space: nowrap; }
+.fn { margin-top: 12px; font-size: 12px; color: var(--faint); line-height: 1.5; }
+.flow .lgd { height: 24px; line-height: 24px; min-width: 0; overflow: hidden; contain: inline-size; white-space: nowrap; font-size: 12px; color: var(--mute); font-variant-numeric: tabular-nums; } .flow .lgd b { font-weight: 600; color: var(--ink); } .flow .lgd b.up { color: var(--up); } .flow .lgd b.down { color: var(--down); }
+@media (max-width: 480px) { .flow .lgd { height: 48px; white-space: normal; } }
+.flow .lwbox { margin-top: 6px; overflow: hidden; contain: size layout paint; } .mute2 { color: var(--faint); }
+
+.t2 #flow:empty { height: 310px; } @media (max-width: 639px) { .t2 #flow:empty { height: 240px; } } @media (max-width: 480px) { .t2 #flow:empty { height: 264px; } }
+.srows { list-style: none; padding: 0; margin: 0; }
+.srow { display: grid; gap: 6px; width: 100%; padding: 14px 4px; text-align: start; border-bottom: 1px solid var(--line); } .srows li:last-child .srow { border-bottom: 0; }
+.srow .ln { font-size: 15.5px; font-weight: 600; line-height: 1.42; letter-spacing: -0.01em; text-wrap: pretty; } .srow .mt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } .srow .ou { font-size: 12px; color: var(--faint); }
+@media (hover: hover) { .srow:hover .ln { color: var(--primary); } }
+.more { margin-top: 10px; height: 38px; padding: 0 16px; border-radius: 99px; background: #f1f3f7; font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.ast { width: 100%; border-collapse: collapse; font-size: 14px; } .ast th, .ast td { padding: 9px 6px; text-align: end; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ast thead th { font-size: 11.5px; font-weight: 500; color: var(--faint); } .ast th[scope=row], .ast thead th:first-child { text-align: start; }
+.ast th[scope=row] b { font-weight: 600; } .ast .sym { display: block; font-size: 11px; color: var(--faint); font-weight: 400; } .ast td.p { font-variant-numeric: tabular-nums; } .ast td.c { font-size: 13px; }
+.ast td.g { width: 84px; } .ast canvas.spk { display: block; width: 80px; height: 26px; margin-inline-start: auto; } .ast tbody tr:last-child th, .ast tbody tr:last-child td { border-bottom: 0; }
+.ast td.m { width: 74px; } .ast td.m .mono { font-size: 12.5px; } .mb { display: inline-flex; width: 34px; height: 4px; margin-inline-start: 6px; border-radius: 2px; overflow: hidden; background: #e6eaf0; vertical-align: middle; } .mb i { display: block; } .mb .u { background: var(--up); } .mb .d { background: var(--down); margin-inline-start: auto; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.secs { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.sec-b { display: grid; grid-template-columns: minmax(84px, 9em) minmax(0, 1fr) 32px; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border-radius: 10px; text-align: start; font-size: 14px; }
+.sec-b .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #f1f3f7; } .sec-b .bar i { display: block; } .sec-b .u { background: var(--up); } .sec-b .z { background: #c7cfdb; } .sec-b .d { background: var(--down); }
+.sec-b .num { text-align: end; font-size: 12.5px; color: var(--mute); } .sec-b[aria-pressed='true'] { background: #eef0ff; } @media (hover: hover) { .sec-b[aria-pressed='false']:hover { background: #f6f8fb; } }
+.evs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; } .evs li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: baseline; } .evs .mono { font-size: 12px; color: var(--mute); } .evs li { color: var(--primary); font-size: 10px; } .evs li b { font-size: 14px; font-weight: 600; color: var(--ink); }
+.box { padding: 18px 20px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); } .box > h2, .bh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; font-size: 14px; font-weight: 650; color: var(--ink2); }
+.secf { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 99px; background: #eef0ff; color: var(--primary); font-size: 12.5px; font-weight: 600; }
+.skelt { height: 18px; border-radius: 6px; background: linear-gradient(90deg, #eef1f5, #f6f8fb, #eef1f5); background-size: 200% 100%; margin: 10px 0; } @media (prefers-reduced-motion: no-preference) { .skelt { animation: sk 1.4s linear infinite; } } @keyframes sk { to { background-position: -200% 0; } }
+
+
+.mseg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f1f3f7; } .mseg button { height: 28px; padding: 0 11px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.mseg button[aria-pressed='true'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgb(13 37 61 / .12), 0 0 0 1px rgb(13 37 61 / .06); }
+
+@media (max-width: 560px) { .bh .mseg { width: 100%; } .bh .mseg button { flex: 1; padding: 0 6px; } .ast td.g, .ast thead th:nth-child(4) { display: none; } .ast th, .ast td { padding: 9px 4px; } }
+.box, .rail { min-width: 0; } .ast th[scope=row] { white-space: normal; }
+@media (max-width: 360px) { .mb { display: none; } .ast td.m { width: auto; } .box { padding: 16px 14px; } }
+
+
+.chs .k { font-size: 13px; font-weight: 650; color: var(--primary); } .chs .k span { font-weight: 500; color: var(--faint); }
+.chs ol { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.chg { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: start; gap: 8px; width: 100%; padding: 12px 14px; border-radius: 12px; text-align: start; background: #f6f8fb; font-size: 15.5px; line-height: 1.5; color: var(--ink); }
+.chg .ic { font-size: 12px; padding-top: 3px; color: var(--faint); } .chg.up .ic { color: var(--up); } .chg.down .ic { color: var(--down); }
+.chg .go { align-self: center; font-size: 12px; font-weight: 600; color: var(--primary); white-space: nowrap; } .chg[aria-pressed='true'] { background: #eef0ff; box-shadow: inset 0 0 0 1px #c9ccff; } .chg:disabled { cursor: default; }
+@media (hover: hover) { .chg:not(:disabled):hover { background: #eef1f6; } }
+@media (max-width: 560px) { .chg { grid-template-columns: 18px minmax(0, 1fr); } .chg .go { grid-column: 2; justify-self: start; } }
+.t2 { padding-top: 22px; padding-bottom: 64px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); } .t2 > *, .t2 .two > *, .t2 .col > * { min-width: 0; } .t2 .head { display: grid; gap: 12px; }
+.t2 .cards { display: flex; gap: 10px; overflow-x: auto; padding: 4px 4px 8px; scroll-padding-inline: 4px; scroll-snap-type: x mandatory; scrollbar-width: thin; overscroll-behavior-x: contain; }
+@media (min-width: 900px) { .t2 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); overflow: visible; } }   
+.t2 .acard { flex: none; width: 172px; padding: 12px 14px 10px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); scroll-snap-align: start; } .t2 .acard.skel { height: 112px; }
+.t2 .acard .nm { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; } .t2 .acard .nm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .t2 .acard .nm span { font-size: 11px; color: var(--faint); }
+.t2 .acard .pr { margin-top: 6px; font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; } .t2 .acard .ch { font-size: 12.5px; } .t2 .acard canvas { display: block; width: 100%; height: 30px; margin-top: 6px; }
+.t2 .two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; } @media (min-width: 1000px) { .t2 .two { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: start; } }
+.t2 .col { display: grid; gap: 18px; } .t2 .sbox { padding: 22px 24px; } @media (min-width: 1000px) { .t2 .sbox { position: sticky; top: 76px; } }
+@media (max-width: 999px) { .t2 .sbox { order: -1; } }   
+.t2 .sbox:has(.dk) { position: static; }   
+.t2 .sgrid { display: grid; gap: 0 22px; } @media (min-width: 900px) { .t2 .sgrid { grid-template-columns: 1fr 1fr; } }
+
+/* 다크 자동 생성(pipeline/darkcss.py) */
+:where(:root[data-theme="dark"]) .ttabs a[aria-selected='true'] { color: #0b1320; }
+@media (hover: hover) { :where(:root[data-theme="dark"]) .ttabs a[aria-selected='false']:hover { background: #0b1320; } }
+:where(:root[data-theme="dark"]) .tbal { background: #18243a; }
+:where(:root[data-theme="dark"]) .ref { background: #11163b; }
+@media (hover: hover) { :where(:root[data-theme="dark"]) .ref:hover { background: #11163b; } }
+:where(:root[data-theme="dark"]) .more { background: #0b1320; }
+:where(:root[data-theme="dark"]) .mb { background: #18243a; }
+:where(:root[data-theme="dark"]) .sec-b .bar { background: #0b1320; }
+:where(:root[data-theme="dark"]) .sec-b .z { background: #21252b; }
+:where(:root[data-theme="dark"]) .sec-b[aria-pressed='true'] { background: #11163b; }
+@media (hover: hover) { :where(:root[data-theme="dark"]) .sec-b[aria-pressed='false']:hover { background: #1d242f; } }
+:where(:root[data-theme="dark"]) .box { background: #111b2b; }
+:where(:root[data-theme="dark"]) .secf { background: #11163b; }
+:where(:root[data-theme="dark"]) .skelt { background: linear-gradient(90deg, #0b1320, #1d242f, #0b1320); }
+:where(:root[data-theme="dark"]) .mseg { background: #0b1320; }
+:where(:root[data-theme="dark"]) .mseg button[aria-pressed='true'] { background: #111b2b; box-shadow: 0 1px 2px rgb(232 238 246 / 0.12), 0 0 0 1px rgb(232 238 246 / 0.06); }
+:where(:root[data-theme="dark"]) .chg { background: #1d242f; }
+:where(:root[data-theme="dark"]) .chg[aria-pressed='true'] { background: #11163b; box-shadow: inset 0 0 0 1px #262b73; }
+@media (hover: hover) { :where(:root[data-theme="dark"]) .chg:not(:disabled):hover { background: #0b1320; } }
+:where(:root[data-theme="dark"]) .t2 .acard { background: #111b2b; }
+</style>
+</head>
+<body class="pg-t2">
+<header class="hd"><div class="wrap">
+  <a class="logo" href="/"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
+  <nav class="nav" aria-label="Menu"><a href="/brief/" data-t="n3">Briefing</a><a href="/live/" data-t="n1">Live</a><a href="/my/" data-t="n5">My assets</a><a href="/themes/" aria-current="page" data-t="n2">Themes</a><a href="/calendar/" data-t="n4">Calendar</a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div><button type="button" class="thm" data-theme-toggle aria-label="Dark mode" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><div class="acct"><button type="button" class="acct-in" data-acct="login" data-t="ac1">Sign in</button><button type="button" class="acct-ic" data-acct="login"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg><span class="vh" data-t="ac1">Sign in</span></button></div><!-- 회원: 단추를 누르거나 로그인 표시(acct-on) · 소셜에서 돌아왔을 때(#auth=)만 acct.js 를 받는다. data.js 대신 여기(공용 스크립트 용량 상한, 2026-10-29) --><script>(()=>{let m;const L=()=>m=m||import('/assets/df/acct.js?v=40f2d0b9');addEventListener('click',(e)=>{const b=e.target.closest('[data-acct]');if(b)L().then((x)=>x.open(b.dataset.acct,b))});if(/acct-on/.test(document.documentElement.className)||/auth=/.test(location.hash))addEventListener('DOMContentLoaded',()=>L().then((x)=>x.head()))})()</script>
+</div></header>
+<main id="app"></main>
+<nav class="tabs" aria-label="Menu"><a href="/brief/"><i class="ti br"></i><span data-t="n3">Briefing</span></a><a href="/live/"><i class="ti live"></i><span data-t="n1">Live</span></a><a href="/my/"><i class="ti my"></i><span data-t="n5">My</span></a><a href="/themes/" aria-current="page"><i class="ti th"></i><span data-t="n2">Themes</span></a><a href="/calendar/"><i class="ti ca"></i><span data-t="n4">Calendar</span></a></nav>
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-bg" data-close></div><aside class="sheet-in" role="dialog" aria-modal="true"><button class="x" data-close aria-label="Close">×</button><div class="det" id="det"></div></aside></div>
+<script>window.DF_BASE = '/assets/df/'; window.DF_THEME = 'nasdaq'; window.DF_TBASE = '/themes/'; window.DF_ROOT = '/';</script>
+<script src="/assets/df/data.js?v=40f2d0b9"></script>
+<script>DFI.init({ n1: '라이브', n2: '테마', n3: '브리핑', n4: '일정', n5: '내 자산' });</script>
+<script type="module">import '/assets/df/t2.js?v=40f2d0b9';</script>
+</body>
+</html>
