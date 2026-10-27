@@ -102,7 +102,10 @@ html.nx-fail .px-end { opacity: 1; } html.nx-fail .px-end .btn { pointer-events:
 /* 입자 첫 화면 → 인트로 + 가운데 첫 화면 + 글이 입자로 부서지는 스크롤 장면 */
 .hero::after { display: none; }
 .hero .hx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 2; pointer-events: none; }
-html { scrollbar-gutter: stable; }   /* 인트로가 끝나 막대가 생길 때 화면이 옆으로 밀리지 않게 */
+html { scrollbar-gutter: stable; }
+/* 장면이 붙기 전 스크롤 길이를 미리 잡아 둔다(2026-10-27 운영자: 새로고침하면 스크롤 막대가 두 번 줄어든다).
+   hx.js 첫 화면 pin end '+=160%', p5.js 아래 장면 pin (1-0.13)·1250%(PC) / ·1150%(모바일 <900px). 장면이 붙는 순간 지운다 */
+#hxr { height: 160vh; } #nxr { height: 1088vh; } @media (max-width: 899px) { #nxr { height: 1001vh; } }   /* 인트로가 끝나 막대가 생길 때 화면이 옆으로 밀리지 않게 */
 /* M1 · 2D 브랜드 모션 인트로 + 가운데 정렬 첫 화면 */
 .hero { background: #f7f9fc; } .hero canvas.gl { display: none; }
 .copy.center { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 980px; margin: 0 auto; padding-inline: 24px; text-align: center; }
@@ -144,7 +147,8 @@ html.intro-on { overflow: hidden; }
 <div class="intro" id="intro" aria-hidden="true"><div class="ibg"></div><video muted playsinline autoplay preload="auto" data-src="{{B}}assets/df/c1.mp4?v={{V}}"></video><button type="button" class="skip">Skip</button></div>
 <script>(function () { var rm = matchMedia('(prefers-reduced-motion: reduce)').matches, inner = false;
   try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !/[?&]intro\b/.test(location.search); } catch (e) {}
-  if (rm || inner || document.documentElement.dataset.theme === 'dark') { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1; } else { var v = document.querySelector('#intro video'); v.src = v.dataset.src; document.documentElement.classList.add('intro-on'); } })();</script>
+  if (rm || inner || document.documentElement.dataset.theme === 'dark') { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1;
+    [['preload', 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js'], ['preload', 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'], ['modulepreload', '{{B}}assets/df/hx.js?v={{V}}'], ['modulepreload', 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js']].forEach(function (x) { var l = document.createElement('link'); l.rel = x[0]; if (x[0] === 'preload') l.as = 'script'; l.href = x[1]; document.head.appendChild(l); });   /* 장면 코드를 일찍 받아 준비 중 잠금을 줄인다 */ } else { var v = document.querySelector('#intro video'); v.src = v.dataset.src; document.documentElement.classList.add('intro-on'); } })();</script>
 <!-- 영상 주소는 인트로를 실제로 틀 때만 넣는다(건너뛰는 방문 · 다크 모드에서 받다가 끊기지 않게) -->
 <header class="hd"><div class="wrap">
   <a class="logo" href="{{B}}"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg><span class="wm">Delfona</span></a>
@@ -161,8 +165,10 @@ html.intro-on { overflow: hidden; }
   </div>
 <div class="sc" id="sc"><b></b><span></span></div><p class="bl up" id="nL"><b>0</b><span data-t="bl1">Bullish · 24h</span></p><p class="bl down" id="nR"><b>0</b><span data-t="bl2">Bearish · 24h</span></p>
 </section>
+<div class="rsv" id="hxr" aria-hidden="true"></div>
 <section class="nx px" id="nx" aria-label="Signals"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas><div class="px-lay"></div>
 <div class="px-cap"></div><div class="px-wait" data-t="wait" aria-hidden="true">Loading…</div><div class="px-end"><div class="box"><b></b><a class="btn p" href="{{B}}brief/" data-t="cta">Open today's briefing</a></div></div></section>
+<div class="rsv" id="nxr" aria-hidden="true"></div>
 <footer class="ft wrap" data-t="ft">Delfona — Live data. AI judgments and summaries, not investment advice.</footer>
 <script>window.DF_BASE = '{{B}}assets/df/'; window.DF_BR = 4; window.DF_THEMES = '{{B}}data/daily/themes.json';</script>
 <script src="{{B}}assets/df/data.js?v={{V}}"></script>
@@ -189,12 +195,20 @@ if (iv && !window.DF_NOINTRO) setTimeout(prepHx, 2500);   // 재생 신호가 �
 // 아래 3D 장면(파형 · 지구본 · 마지막 화면). 2026-10-25 아이폰: 인트로 끝 + 1.6초 + 한가할 때까지 기다리는 사이 빨리 스크롤하면
 // 페이지가 막대 장면에서 끝나 '다 사라진' 것처럼 보였다 → 스크롤을 시작하면 바로 불러오고, 실패하면 빈 화면 대신 브리핑 안내.
 const H = document.documentElement; let p5p = null;
+const unreserve = (id, secId, wait) => { const el = document.getElementById(id), sec = document.getElementById(secId); if (!el || !sec) return;
+  // 장면 틀(pin-spacer)이 생기고 스크롤 길이(여백)까지 차지한 뒤에 지운다 — 틀만 생긴 순간 지우면 길이가 한 번 줄었다 늘었다
+  const pinned = () => { const sp = sec.parentElement; return !!sp && sp.classList.contains('pin-spacer') && sp.offsetHeight >= sec.offsetHeight + el.offsetHeight * 0.9; };
+  const done = () => { mo.disconnect(); el.remove(); };
+  const mo = new MutationObserver(() => { if (pinned()) done(); });   // DOM · style 이 바뀐 직후(그리기 전)에 불린다
+  mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+  setTimeout(() => { if (el.isConnected) done(); }, wait); };          // 장면이 끝내 안 붙으면 빈 공간을 남기지 않게
+unreserve('hxr', 'hero', 10000); unreserve('nxr', 'nx', 25000);
 // 장면 준비 전(hx-wait) 스크롤은 입력만 막는다 — overflow 를 숨기면 막대가 1초쯤 사라졌다 나타났다(2026-10-27 운영자: 새로고침하면 스크롤바가 늦게 뜬다)
 const hold = (e) => { if (H.classList.contains('hx-wait')) e.preventDefault(); };
 addEventListener('wheel', hold, { passive: false }); addEventListener('touchmove', hold, { passive: false });
 addEventListener('keydown', (e) => { if ([' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) hold(e); });
 addEventListener('scroll', () => { if (H.classList.contains('hx-wait') && scrollY) scrollTo({ top: 0, behavior: 'instant' }); });   // 막대 끌기 · 프로그램 스크롤도 되돌림(예전 overflow 잠금과 같은 범위)
-const p5fail = () => { if (H.classList.contains('nx-on')) return; H.classList.add('nx-fail'); const b = document.querySelector('#nx .px-end b'); if (b && !b.textContent) b.textContent = H.lang === 'en' ? 'Continue in today\'s briefing.' : '오늘의 브리핑에서 이어서 볼 수 있어요.'; };
+const p5fail = () => { if (H.classList.contains('nx-on')) return; H.classList.add('nx-fail'); document.getElementById('nxr')?.remove(); const b = document.querySelector('#nx .px-end b'); if (b && !b.textContent) b.textContent = H.lang === 'en' ? 'Continue in today\'s briefing.' : '오늘의 브리핑에서 이어서 볼 수 있어요.'; };
 const loadP5 = () => p5p || (p5p = gsapP().then(() => import('{{B}}assets/df/p5.js?v={{V}}')).then(() => {
   H.classList.add('nx-on'); const c = document.getElementById('nxgl'); if (c) c.addEventListener('webglcontextlost', () => { H.classList.remove('nx-on'); p5fail(); }, { once: true });
 }, (e) => { console.error('lower scene failed:', e && (e.message || e)); p5fail(); }));
