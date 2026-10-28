@@ -11,7 +11,7 @@ from tests.e2e.test_matrix import path_for
 from tests.e2e.test_polling import HIDE
 
 FOCUS = "document.hasFocus = () => true; localStorage.setItem('df-lang','ko'); localStorage.setItem('df-my','[\"BTC\",\"ETH\",\"NVDA\"]');"
-WORKER = "signal-scheduler.mash1384.workers.dev"
+WORKER = "api.delfona.com"
 
 
 def open_page(browser, site_server, request, route="live/", mode="serve"):

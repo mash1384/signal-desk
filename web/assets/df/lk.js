@@ -44,7 +44,7 @@ export const store = { items: [], byId: new Map(), feed: [], fresh: new Set(), s
 export const line = (it) => (L() ? it.ko : it.en || it.ko);
 export const altLine = (it) => (L() ? it.en || '' : '');   // 영어 화면엔 한국어 원문을 덧붙이지 않는다
 // 익명 이벤트 통계(합계만 · 쿠키 없음, 추적 거부면 안 보냄): 기사 열기 · 원문 이동 · 차트 조작 · 언어 전환
-const STATS = 'https://signal-scheduler.mash1384.workers.dev/e';
+const STATS = 'https://api.delfona.com/e';
 export function track(ev, lang) {
   try { if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl || !window.DF_PAGE) return;
     navigator.sendBeacon(`${STATS}?e=${ev}&k=${window.DF_PAGE}&l=${lang || (L() ? 'ko' : 'en')}&d=${matchMedia('(max-width: 899px)').matches ? 'm' : 'd'}`); } catch (e) {}

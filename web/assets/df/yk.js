@@ -3,7 +3,7 @@
 import { T, L, esc, store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, col } from './lk.js';
 export { every } from './lk.js';
 export { store, start, line, pill, bars, ago, outlets, hm, openSheet, pxChip, fillPx, esc, T, L };
-const WK = 'https://signal-scheduler.mash1384.workers.dev/quotes';
+const WK = 'https://api.delfona.com/quotes';
 // [기호, 종류, 영문, 한글, 출처(b 바이낸스 · y 야후), 소식 찾기 정규식(없으면 코인 기호로), 최소 급변 폭(%), 표시]
 const C = (s, en, ko, min = 1.2) => [s, 'crypto', en, ko, 'b', null, min];
 const S = (s, en, ko, rx) => [s, 'stock', en, ko, 'y', rx, 1.5];

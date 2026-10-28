@@ -27,7 +27,7 @@ const score = (x) => x.s * 3 + Math.min(x.n || 1, 4) * 1.5;
 // ---------- 비교 차트: BTC · 나스닥100 · S&P500 (선택은 저장) ----------
 
 let M = (() => { try { return localStorage.getItem('df-mkt') || 'btc'; } catch (e) { return 'btc'; } })(); if (!MK[M]) M = 'btc';
-const WK = 'https://signal-scheduler.mash1384.workers.dev/index-candles';
+const WK = 'https://api.delfona.com/index-candles';
 const sc = new Map();
 function series(m, iv) {   // [[t, close]] 지난 며칠(5m) 또는 이틀(1m). 60초 보관
   const times = [...app.querySelectorAll(iv === '1m' ? '.bigc[data-t]' : 'canvas[data-t]')].map(el => +el.dataset.t);

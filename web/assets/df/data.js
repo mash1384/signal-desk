@@ -1,7 +1,7 @@
 // 속보 · 시세 · 하루 정리 · 다음 발표 받기
 window.DFD = (() => {
   const data = path => (window.DF_ROOT || (window.DF_BASE || '../').replace(/assets\/df\/$/, '')) + 'data/' + path;
-  const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
+  const FLASH = 'https://api.delfona.com/flash';
   let livePending = null, liveValue = null, liveAt = 0, liveDisabled = false, liveRetryAt = 0;
   async function live() {
     if (!window.DF_LIVE || liveDisabled || Date.now() < liveRetryAt) return null;

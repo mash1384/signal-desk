@@ -20,7 +20,7 @@ def test_release_chart_draws_and_reads_prices(session_page, site_server, lang):
     for market in rel['market'].values():
         for point in market['pts']:
             point[0] += delta
-    context.route('https://signal-scheduler.mash1384.workers.dev/flash',
+    context.route('https://api.delfona.com/flash',
                   lambda route: route.fulfill(json=doc, headers={'access-control-allow-origin': '*'}))
     context.add_init_script("localStorage.setItem('df-lang', %s)" % json.dumps(lang))
     page.goto(site_server + 'calendar/', wait_until='networkidle')

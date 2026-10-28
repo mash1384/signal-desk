@@ -8,7 +8,7 @@ from pathlib import Path
 import traceback
 from urllib.parse import urlsplit
 
-from tests.e2e.network import Offline
+from tests.e2e.network import WORKER_HOSTS, Offline
 from tests.e2e.server import serve
 from tests.e2e.test_polling import HIDE
 from tests.perf.vitals import measure, is_data
@@ -35,12 +35,12 @@ def polling(args):
 
             def worker_urls(bag=urls):
                 # 갱신 요청만 센다 — 익명 통계(/e, 페이지 조회 1번당 1건)는 따로
-                return [u for u in bag if urlsplit(u).hostname == 'signal-scheduler.mash1384.workers.dev' and urlsplit(u).path != '/e']
+                return [u for u in bag if urlsplit(u).hostname in WORKER_HOSTS and urlsplit(u).path != '/e']
 
             steps = []
 
             pending = set()
-            page.on('request', lambda r, bag=pending: bag.add(r) if urlsplit(r.url).hostname == 'signal-scheduler.mash1384.workers.dev' and urlsplit(r.url).path != '/e' else None)
+            page.on('request', lambda r, bag=pending: bag.add(r) if urlsplit(r.url).hostname in WORKER_HOSTS and urlsplit(r.url).path != '/e' else None)
             page.on('requestfinished', lambda r, bag=pending: bag.discard(r))
             page.on('requestfailed', lambda r, bag=pending: bag.discard(r))
 

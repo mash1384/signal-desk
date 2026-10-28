@@ -233,7 +233,7 @@ def related(a, articles, n=5, *, index=None):
 
 
 
-STATS_URL = "https://signal-scheduler.mash1384.workers.dev/e"
+STATS_URL = "https://api.delfona.com/e"
 
 
 def with_beacon(html, page):
