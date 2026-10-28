@@ -5,7 +5,7 @@
 // 맥락은 회색 · 강조만 색, 최신 값 쪽(오른쪽)에 이름표, 숫자는 고정폭. 색만으로 뜻을 전하지 않게 이름 · 화살표를 함께.
 import { T, L, esc, col, tone } from './lk.js';
 
-const FLASH = 'https://signal-scheduler.mash1384.workers.dev/flash';
+const FLASH = 'https://api.delfona.com/flash';
 const lc = () => (L() ? 'ko-KR' : 'en-GB');
 const when = (ts) => new Intl.DateTimeFormat(lc(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(ts * 1000));
 const hm = (ts) => new Intl.DateTimeFormat(lc(), { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(ts * 1000));

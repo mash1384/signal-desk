@@ -6,7 +6,7 @@ import { T, L, esc, line, pill, bars, chips, outlets, ago, openSheet, store, pxC
 export const THEME_KEYS = ['crypto', 'nasdaq', 'econ', 'ai', 'world'];
 export const TNAME = { crypto: ['Crypto', '크립토'], nasdaq: ['Nasdaq', '나스닥'], econ: ['Economy', '경제'], ai: ['AI', 'AI'], world: ['World', '세계'] };
 export const tn = (k) => TNAME[k][L() ? 1 : 0];
-const WK = 'https://signal-scheduler.mash1384.workers.dev/quotes';
+const WK = 'https://api.delfona.com/quotes';
 // 자산 목록: [기호, 출처(b=바이낸스, y=야후), 영문, 한글, 표시 방식]
 export const ASSETS = {
   crypto: [['BTC', 'b', 'Bitcoin', '비트코인'], ['ETH', 'b', 'Ethereum', '이더리움'], ['SOL', 'b', 'Solana', '솔라나'], ['XRP', 'b', 'XRP', '리플'], ['BNB', 'b', 'BNB', 'BNB']],

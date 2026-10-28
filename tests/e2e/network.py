@@ -11,6 +11,8 @@ from urllib.parse import parse_qs, parse_qsl, urlsplit
 VENDOR = Path(__file__).parent / "vendor"
 SITE = urlsplit(os.environ.get("SIGNAL_SITE_URL") or "https://mash1384.github.io/signal-desk")
 SITE_PATH = SITE.path.rstrip("/") + "/"
+# 실시간 서버 주소: 지금 사이트는 api.delfona.com(2026-10-28). 성능 비교의 '이전' 빌드는 옛 workers.dev 를 쓸 수 있어 가짜 서버는 둘 다 받는다
+WORKER_HOSTS = ("api.delfona.com", "signal-scheduler.mash1384.workers.dev")
 
 
 class Offline:
@@ -50,7 +52,7 @@ class Offline:
         # 주의: Playwright 동기 API 는 이 처리기 안에서 ws.close() 를 부르면 멈춘다 → 닫기는 시험 쪽에서 close_ws()
         self.ws_urls.append(ws.url)
         u = urlsplit(ws.url)
-        if u.scheme != "wss" or u.netloc != "signal-scheduler.mash1384.workers.dev" or u.path != "/ws":
+        if u.scheme != "wss" or u.netloc not in WORKER_HOSTS or u.path != "/ws":
             self.unmapped.append(ws.url)
             return
         self.ws_open.append(ws)
@@ -78,7 +80,7 @@ class Offline:
             route.continue_()
             return
         # 익명 방문 통계(Worker /e, sendBeacon POST · 이미지 GET)만 허용: 응답은 가짜로, 보낸 이벤트는 self.beacons 에 남긴다
-        if url.hostname == "signal-scheduler.mash1384.workers.dev" and url.path == "/e":
+        if url.hostname in WORKER_HOSTS and url.path == "/e":
             self.beacons.append(dict(parse_qsl(url.query)))
             route.fulfill(status=204 if req.method == "POST" else 200, body=b"", headers={"access-control-allow-origin": "*"})
             return
@@ -104,7 +106,7 @@ class Offline:
             file_response(self.site / url.path.split("/signal-desk/", 1)[1])
         elif SITE.hostname and url.hostname == SITE.hostname and url.path.startswith(SITE_PATH):   # 자체 도메인(SIGNAL_SITE_URL)
             file_response(self.site / url.path[len(SITE_PATH):])
-        elif url.hostname == "signal-scheduler.mash1384.workers.dev":
+        elif url.hostname in WORKER_HOSTS:
             if url.path == "/live":
                 if self.live_mode == 'disconnect':
                     route.abort()

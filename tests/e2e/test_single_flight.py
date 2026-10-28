@@ -67,7 +67,7 @@ def test_landing_fetches_flash_once(browser, site_server, request):
             page.wait_for_timeout(100)
         assert any("/assets/df/p5.js" in u for u in urls), "lower scene never loaded"
         page.wait_for_timeout(1500)
-        flashes = [u for u in urls if u.split("?")[0].endswith("workers.dev/flash")]
+        flashes = [u for u in urls if u.split("?")[0].endswith("api.delfona.com/flash")]
         assert len(flashes) == 1, flashes
         assert not errors, errors
     finally:

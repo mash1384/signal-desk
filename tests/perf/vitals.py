@@ -17,7 +17,7 @@ import time
 from urllib.parse import quote, urlsplit
 import urllib.request
 
-from tests.e2e.network import Offline
+from tests.e2e.network import WORKER_HOSTS, Offline
 from tests.e2e.test_matrix import CONTENT, path_for
 from tests.perf.wire import LAUNCH_ARGS, serve_wire
 
@@ -50,7 +50,7 @@ def cls_value(shifts):
 
 def is_data(url):
     u = urlsplit(url)
-    return u.hostname in ('raw.githubusercontent.com', 'signal-scheduler.mash1384.workers.dev', 'data-api.binance.vision') or u.path.endswith('.json')
+    return u.hostname in ('raw.githubusercontent.com', 'data-api.binance.vision', *WORKER_HOSTS) or u.path.endswith('.json')
 
 
 class Reply:
@@ -68,7 +68,7 @@ class Reply:
 async def transport(context, offline, delay=0, block=False, wire=False):
     async def handle(route):
         u = urlsplit(route.request.url)
-        if u.hostname == 'signal-scheduler.mash1384.workers.dev' and u.path == '/e':   # 익명 통계 전송 — 측정에는 가짜 응답
+        if u.hostname in WORKER_HOSTS and u.path == '/e':   # 익명 통계 전송 — 측정에는 가짜 응답
             await route.fulfill(status=204, body=b'', headers={'access-control-allow-origin': '*'})
             return
         data = is_data(route.request.url)

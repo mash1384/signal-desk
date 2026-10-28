@@ -28,7 +28,7 @@ def test_hidden_tab_pauses_polling(browser, site_server, request, route):
 
     def started(req):
         urls.append(req.url)
-        if 'workers.dev/' in req.url:
+        if 'api.delfona.com/' in req.url:
             pending.add(req)
 
     page.on("request", started)
@@ -42,7 +42,7 @@ def test_hidden_tab_pauses_polling(browser, site_server, request, route):
 
         def n(kind):
             # /flash/new(5초 새 소식 확인, test_flash_fast.py)는 /flash 전체 받기와 따로 센다
-            return sum(1 for u in urls if "workers.dev/" + kind in u and "/flash/new" not in u)
+            return sum(1 for u in urls if "api.delfona.com/" + kind in u and "/flash/new" not in u)
 
         def advance(minutes):
             # Drain real network responses between fake polling intervals.
