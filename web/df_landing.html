@@ -45,7 +45,7 @@ a { color: inherit; text-decoration: none; } button { font: inherit; color: inhe
 .btn:active { transform: scale(0.96); }
 .btn.p { background: var(--primary); color: #fff; } @media (hover: hover) { .btn.p:hover { background: #4434d4; } }
 .btn.g { background: rgb(255 255 255 / 0.75); backdrop-filter: blur(10px); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
-.hd .btn { display: none; height: 40px; } .btn { font-family: "DF Nav", var(--sans); } @media (min-width: 900px) { .hd .btn { display: inline-flex; } }
+.hd .btn { display: none; height: 40px; } .btn { font-family: "DF Nav", var(--sans); } @media (min-width: 1200px) { .hd .btn { display: inline-flex; } }   /* 900~1199px 에선 메뉴 · 언어 · 테마 · 로그인까지만(넘침, 2026-10-28) — 같은 단추가 본문 · 마지막 장면에 있다 */
 /* 첫 화면 공통 */
 .hero { position: relative; height: 100vh; height: 100svh; min-height: 620px; overflow: hidden; background: #fff; }
 .hero canvas.gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -141,6 +141,22 @@ html.intro-on { overflow: hidden; }
 .thm { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 99px; border: 0; background: transparent; color: var(--ink2); cursor: pointer; }
 .thm:hover { background: rgb(13 37 61 / .06); } :root[data-theme="dark"] .thm:hover { background: rgb(232 238 246 / .08); }
 .thm svg { width: 18px; height: 18px; } .thm .sun { display: none; } :root[data-theme="dark"] .thm .sun { display: block; } :root[data-theme="dark"] .thm .moon { display: none; }
+/* 회원(2026-10-28): 머리글 로그인 — 랜딩은 공용 lk.css 를 안 쓰므로 여기에. 옆의 '오늘의 브리핑 보기'가 주 단추라 로그인은 언어 단추와 같은 유리 모양 */
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.acct { flex: none; display: inline-flex; align-items: center; margin-inline-start: -14px; }
+.acct-in, .acct-ic { background: rgb(255 255 255 / 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgb(13 37 61 / 0.1); color: var(--ink); transition: background-color 150ms ease; }
+.acct-in { min-width: 88px; height: 34px; padding: 0 16px; border-radius: 99px; font-family: "DF Nav", var(--sans); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.acct-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 99px; } .acct-ic svg { width: 18px; height: 18px; }
+@media (hover: hover) { .acct-in:hover, .acct-ic:hover { background: #fff; } }
+.acct .av { width: 32px; height: 32px; border-radius: 99px; background: #efedff; color: var(--primary); font-size: 13px; font-weight: 700; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff, 0 0 0 3px #d9d4ff; }
+:root[data-theme="dark"] .acct-in, :root[data-theme="dark"] .acct-ic { background: rgb(17 27 43 / .7); box-shadow: inset 0 0 0 1px rgb(232 238 246 / .12); }
+:root[data-theme="dark"] .acct-in:hover, :root[data-theme="dark"] .acct-ic:hover { background: rgb(30 44 68 / .9); }
+:root[data-theme="dark"] .acct .av { background: #2a2552; color: #cfc8ff; box-shadow: 0 0 0 2px #0b1320, 0 0 0 3px #4a3fa0; }
+@media (max-width: 899px) { .acct-in { display: none; } .acct { margin-inline-start: -6px; } }
+@media (min-width: 900px) { .acct-ic { display: none; } }
+html.acct-on .acct-in, html.acct-on .acct-ic { visibility: hidden; }
+@media (max-width: 374px) { .hd .wrap { gap: 4px; } .logo { gap: 6px; } .logo .wm { letter-spacing: .14em; font-size: 13px; } .lang button { padding: 0 7px; } .acct-ic, .thm { width: 32px; height: 32px; } .acct { margin-inline-start: 0; } }   /* 320px: 로그인 아이콘까지 한 줄에(다른 화면 lk.css 와 같은 값) */
+.hd .btn { min-width: 216px; justify-content: center; }   /* 'Open today's briefing' 188px(Mac) · 196px(Linux) · '오늘의 브리핑 보기' 151px — 글꼴 차이 여유를 두고 216px. 언어를 바꿔도 머리글이 밀리지 않게 */
 </style>
 </head>
 <body>

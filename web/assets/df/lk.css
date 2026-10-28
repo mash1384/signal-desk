@@ -175,7 +175,8 @@ button:focus:not(:focus-visible) { outline: none; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 html.acct-on .acct-in, html.acct-on .acct-ic { visibility: hidden; }   /* 로그인 표시가 있으면 첫 글자를 그릴 때까지 비워 둔다(로그인 단추가 깜빡이지 않게) */
 .acct { flex: none; display: inline-flex; align-items: center; }
-.acct-in { height: 34px; padding: 0 16px; border-radius: 99px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 650; white-space: nowrap; }
+/* 폭 고정: 'Sign in' 73px(Mac) · 77px(Linux) · '로그인' 66px — 글꼴 차이 여유를 두고 88px. 언어를 바꿔도 언어 · 테마 단추가 밀리지 않게 */
+.acct-in { min-width: 88px; height: 34px; padding: 0 16px; border-radius: 99px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 650; white-space: nowrap; }
 .acct-in:hover { background: #4330e0; }
 .acct-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 99px; color: var(--ink2); box-shadow: inset 0 0 0 1px var(--line); background: #fff; }
 .acct-ic svg { width: 18px; height: 18px; }

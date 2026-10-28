@@ -98,7 +98,7 @@ Promise.all([DFD.flash(), EN, fonts()]).then(([d, en]) => {
 });
 // 다음 장면 후보(?br=1~5): 파형이 흩어졌다 모여 AI 하루 정리를 전한다
 const BR = clamp(Math.round(+(new URLSearchParams(location.search).get('br')) || window.DF_BR || 0), 0, 5);
-if (BR === 4) { sec.classList.add('fin4'); const c4 = document.createElement('style'); c4.textContent = `.fin4 .px-end{place-content:end center;padding-bottom:max(13vh,90px)}.fin4 .px-end .box{background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0}
+if (BR === 4) { sec.classList.add('fin4'); const c4 = document.createElement('style'); c4.textContent = `.fin4 .px-end{place-content:end center;padding-bottom:max(13vh,90px)}.fin4 .px-end .box,:root[data-theme=dark] .fin4 .px-end .box{background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0}
   .fin4 .px-end b{max-width:none;word-break:keep-all;font-size:clamp(17px,1.6vw,22px);font-weight:400;letter-spacing:-.01em;color:var(--ink2)}:lang(ko) .fin4 .px-end b{font-weight:500}.fin4 .px-end .btn{margin-top:18px}
   @media(max-width:899px){.fin4 .px-end{padding-bottom:22vh}.fin4 .px-end b{font-size:16px;padding:0 24px}}`; document.head.appendChild(c4); }
 const BRF = BR ? makeBrief(BR, { scene, sec, lay, mob, sample: (n) => {   // 지금 화면의 파형 입자에서 n개를 뽑는다(오늘 구간 15%)
