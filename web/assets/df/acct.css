@@ -111,3 +111,17 @@ html.au-lock { overflow: hidden; }
 :root[data-theme="dark"] .acc .lo button { background: var(--surf); } :root[data-theme="dark"] .acc .lo button:hover { background: var(--surf2); }
 .acc .lo .del { color: var(--down); box-shadow: none; background: transparent !important; margin-inline-start: auto; }
 @media (min-width: 900px) { .acc { padding-top: 40px; } }
+/* 카카오 · 구글(2026-10-29, 시안 B) — 각 회사 단추 규칙(카카오 노랑 #FEE500 · 구글 흰 바탕 + 회색 테두리) */
+.sbtn { position: relative; display: flex; width: 100%; height: 50px; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; font-size: 15px; font-weight: 650; margin-bottom: 10px; text-decoration: none; }
+.sbtn svg { position: absolute; left: 18px; width: 20px; height: 20px; }
+.sbtn.kakao { background: #FEE500; color: rgb(0 0 0 / .85); } .sbtn.kakao svg { color: #000; }
+.sbtn.google { background: #fff; color: #1f1f1f; box-shadow: inset 0 0 0 1px #dadce0; }
+:root[data-theme="dark"] .sbtn.google { background: #131314; color: #e3e3e3; box-shadow: inset 0 0 0 1px #8e918f; }
+@media (hover: hover) { .sbtn.kakao:hover { background: #f5dc00; } .sbtn.google:hover { background: #f8f9fa; } :root[data-theme="dark"] .sbtn.google:hover { background: #1f1f20; } }
+.sbtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.au .or { display: flex; align-items: center; gap: 12px; margin: 6px 0 16px; font-size: 12px; color: var(--faint); } .au .or::before, .au .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.acc .card .row + .row { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.acc .row .lg.kakao { background: #FEE500; color: #000; } .acc .row .lg.google { background: #fff; box-shadow: inset 0 0 0 1px #dadce0; }
+.acc .row .st { margin-inline-start: auto; font-size: 13px; color: var(--mute); } .acc .row .st.ok { color: var(--up); font-weight: 650; }
+.acc .row .st.ok + .bt { margin-inline-start: 4px; }
+.acc .row a.bt { display: inline-flex; align-items: center; color: inherit; text-decoration: none; }

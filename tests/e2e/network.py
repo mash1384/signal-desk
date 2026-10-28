@@ -27,7 +27,7 @@ class Offline:
         self.unmapped = []
         self.flash_new_calls, self.flash_new_extra, self.flash_new_status = [], [], None
         self.beacons = []
-        self.auth = FakeAuth()   # 회원(2026-10-28): /auth/* 는 이 가짜가 답한다
+        self.auth = FakeAuth(base)   # 회원(2026-10-28): /auth/* 는 이 가짜가 답한다(소셜 로그인 창도)
         # 실시간 연결(r25) 가짜: 기본 'silent' = 열리지만 아무것도 안 보냄(동기화 안 됨 → 지금 방식 그대로).
         # 'serve' = hello(스냅샷 문서 전체 + 시세)를 보내고, 시험이 push() 로 다음 seq 메시지를 보낸다
         self.ws_mode, self.ws_open, self.ws_urls, self.ws_seq = "silent", [], [], 1

@@ -274,3 +274,112 @@ def test_signed_in_shows_initial_and_hides_login_from_first_paint(make):
     page.evaluate("document.querySelector('.hd .acct').innerHTML = '<button class=acct-ic>x</button>'")
     assert page.evaluate("getComputedStyle(document.querySelector('.acct-ic')).visibility") == "hidden", "with acct-on, login buttons never flash"
     assert not errors, errors
+
+
+# ---------- 카카오 · 구글(2026-10-29) ----------
+def test_social_buttons_lead_to_the_provider_and_come_back_here(make):
+    page, offline, errors, _, go = make(390, "ko")
+    go()
+    visible(page, "[data-acct=login]")[0].click()
+    page.wait_for_selector(".au .sbtn.kakao")
+    assert [a.inner_text() for a in page.locator(".au .sbtn").all()] == ["카카오로 시작하기", "Google로 계속하기"]
+    href = page.get_attribute(".au .sbtn.kakao", "href")
+    assert href.startswith("https://api.delfona.com/auth/oauth/kakao/start?next=%2F"), href
+    assert "live" in href and "link=1" not in href
+    assert not errors, errors
+
+
+def test_first_kakao_visit_finishes_with_agreements_then_returning_signs_in(make):
+    page, offline, errors, _, go = make(390, "ko")
+    go()
+    visible(page, "[data-acct=login]")[0].click()
+    page.click(".au .sbtn.kakao")
+    page.wait_for_selector(".au h2:text('가입 마무리')")
+    assert "auth=" not in page.url, "the return fragment is cleared"
+    assert "카카오 계정으로 가입해요" in page.locator(".au .sub").inner_text()
+    btn = page.locator(".au .mbtn")
+    assert btn.is_disabled()
+    page.locator(".agree input[name=marketing] + .ck").click()
+    assert btn.is_disabled(), "optional alone is not enough"
+    page.locator(".agree input[name=marketing] + .ck").click()
+    page.locator(".agree input[name=all] + .ck").click()
+    assert btn.is_enabled()
+    btn.click()
+    page.wait_for_selector(".acct .av")
+    assert page.locator(".acct .av").inner_text() == "지", "no email → the nickname's first letter"
+    sent = [b for p, b in offline.auth.calls if p == "/auth/oauth/finish"][0]
+    assert sent["agree"] == {"age14": True, "terms": True, "privacy": True, "marketing": True}
+    page.click(".acct .av")
+    page.click(".amenu [data-out]")
+    page.wait_for_selector(".acct-ic", state="attached")
+    visible(page, "[data-acct=login]")[0].click()
+    page.click(".au .sbtn.kakao")
+    page.wait_for_selector(".au-toast:text('로그인했어요')")
+    page.wait_for_selector(".acct .av")
+    assert not errors, errors
+
+
+def test_provider_errors_are_explained_and_cleared(make):
+    page, offline, errors, _, go = make(390, "ko")
+    go("live/#auth=error&e=cancel&p=kakao")
+    page.wait_for_selector(".au-toast")
+    assert page.locator(".au-toast").inner_text() == "로그인을 그만뒀어요."
+    assert "#" not in page.url
+    assert not errors, errors
+
+
+def test_account_links_google_and_kakao_only_member_has_no_email_parts(make):
+    page, offline, errors, _, go = make(1440, "ko", signed_in="acc@example.com")
+    go("account/")
+    page.wait_for_selector(".acc .me")
+    rows = page.locator(".acc .card:nth-of-type(2) .row")
+    assert rows.count() == 3
+    link = page.locator(".acc a.bt[href*='/auth/oauth/google/start']")
+    assert "link=1" in link.get_attribute("href") and "account" in link.get_attribute("href")
+    link.click()
+    page.wait_for_selector(".au-toast:text('Google 계정을 연결했어요')")
+    page.wait_for_selector(".acc .row:has(.lg.google) .st.ok")
+    page.click(".acc [data-do=unlink][data-p=google]")
+    page.wait_for_selector(".acc .row:has(.lg.google) a.bt")
+    assert not errors, errors
+
+
+def test_kakao_only_account_page(make):
+    page, offline, errors, _, go = make(390, "ko")
+    offline.auth.add("kakao:1", "")
+    offline.auth.users["kakao:1"].update(email="", name="민", ids={"kakao"})
+    offline.auth.session = "kakao:1"
+    page.context.add_init_script("localStorage.setItem('df-acct', JSON.stringify({e: '민'}))")
+    go("account/")
+    page.wait_for_selector(".acc .me")
+    assert page.locator(".acc .me b").inner_text() == "민"
+    assert page.locator(".acc .tg").count() == 0, "no marketing switch without an email"
+    assert page.locator("[data-do=unlink]").count() == 0, "the only way in cannot be removed"
+    assert "이메일 없음" in page.locator(".acc").inner_text()
+    page.click("[data-do=del]")
+    page.click(".au .mbtn.danger")
+    assert "체크" in page.locator(".au-msg").inner_text()
+    page.locator(".au .keep .ck").click()
+    page.click(".au .mbtn.danger")
+    page.wait_for_selector(".acc .card.empty")
+    assert "kakao:1" not in offline.auth.users
+    assert not errors, errors
+
+
+def test_article_page_login_works_without_versioned_html(make, request):
+    """기사 6,000쪽은 버전 없는 고정 HTML(article_bundle) — 회원 불러오기는 article-v1.js 안에 있다."""
+    import pathlib
+    site = pathlib.Path(request.config.getoption("--site"))
+    art = sorted(p.parent.name for p in (site / "a").glob("*/index.html"))[0]
+    html = (site / "a" / art / "index.html").read_text()
+    assert "acct.js?v=" not in html, "no build version leaks into article HTML"
+    page, offline, errors, _, go = make(390, "ko")
+    go("a/%s/" % art)
+    visible(page, "[data-acct=login]")[0].click()
+    page.wait_for_selector(".au .sbtn.kakao")
+    page.fill(".au input[name=email]", "nobody@example.com")
+    page.fill(".au input[name=password]", "abcd1234")
+    page.click(".au .mbtn")
+    page.wait_for_function("document.querySelector('.au-msg').textContent.length > 0")
+    assert page.locator(".au-msg").inner_text() == "이메일 또는 비밀번호가 맞지 않아요."
+    assert not errors, errors
