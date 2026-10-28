@@ -96,6 +96,7 @@ def test_sign_up_with_email_code(make):
     page.wait_for_selector(".acct .av")
     assert page.locator(".acct .av").inner_text() == "N"
     assert page.locator(".au-toast").inner_text() == "가입을 환영해요!"
+    assert [b for p, b in offline.auth.calls if p == "/auth/code"][0]["ts"] == "fake-turnstile-token", "robot check token goes with the code request"
     sent = [b for p, b in offline.auth.calls if p == "/auth/signup"][0]
     assert sent["agree"] == {"age14": True, "terms": True, "privacy": True, "marketing": False}
     assert sent["lang"] == "ko" and sent["keep"] is True

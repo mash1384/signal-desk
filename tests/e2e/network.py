@@ -87,6 +87,9 @@ class Offline:
             self.beacons.append(dict(parse_qsl(url.query)))
             route.fulfill(status=204 if req.method == "POST" else 200, body=b"", headers={"access-control-allow-origin": "*"})
             return
+        if url.hostname == "challenges.cloudflare.com" and url.path == "/turnstile/v0/api.js":   # 로봇 확인(Turnstile) 가짜: 바로 토큰을 준다
+            route.fulfill(status=200, content_type="text/javascript", body="window.turnstile={render:function(el,o){setTimeout(function(){o.callback('fake-turnstile-token')},10)}};")
+            return
         if url.hostname in WORKER_HOSTS and url.path.startswith("/auth/"):
             self.auth.handle(route)
             return

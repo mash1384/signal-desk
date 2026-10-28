@@ -2,7 +2,7 @@
 // 모양은 운영자가 10-23에 킵한 시안(docs/relay/mockups/auth) — 이번엔 이메일만(카카오 · 구글 · Apple 은 앱 등록 뒤).
 // 서버: api.delfona.com/auth/*(worker/src/auth.js). 쿠키는 HttpOnly 라 이 코드는 로그인 여부를 서버 답으로만 안다.
 const API = 'https://api.delfona.com', KEY = 'df-acct';
-const SITEKEY = '';   // Turnstile 공개 키(운영자가 만들어 알려 줌). 비어 있으면 메일 보내기는 서버가 503 으로 막는다
+const SITEKEY = '0x4AAAAAAFplBMTYBhsDPfe0';   // Turnstile 공개 키(위젯 delfona, 2026-10-28 운영자). 공개용 — 비밀 키는 서버(TURNSTILE_SECRET)
 const ko = () => document.documentElement.lang === 'ko';
 const T = (k, e) => (ko() ? k : e);
 const esc = DFD.esc;
