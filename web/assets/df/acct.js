@@ -5,12 +5,14 @@ const API = 'https://api.delfona.com', KEY = 'df-acct';
 const SITEKEY = '0x4AAAAAAFplBMTYBhsDPfe0';   // Turnstile 공개 키(위젯 delfona, 2026-10-28 운영자). 공개용 — 비밀 키는 서버(TURNSTILE_SECRET)
 const ko = () => document.documentElement.lang === 'ko';
 const T = (k, e) => (ko() ? k : e);
-const esc = DFD.esc;
+const esc = (s) => DFD.esc(s);   // data.js 보다 먼저 불릴 수 있다(머리글 인라인) — 쓸 때 찾는다
 const ICON = {
   logo: '<svg class="au-logo" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><circle cx="46" cy="54" r="30"/><path d="M75.88 70.22 A32.6 32.6 0 1 0 29.78 24.12 A34 34 0 0 1 40.31 20.48 A29.4 29.4 0 0 1 79.52 59.69 A34 34 0 0 1 75.88 70.22 Z"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg>',
   mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M4 7l8 6 8-6"/></svg>',
+  kakao: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3.6c-5.1 0-9.2 3.2-9.2 7.2 0 2.6 1.7 4.8 4.3 6.1l-.9 3.3c-.1.3.3.5.5.3l3.9-2.6c.5.1.9.1 1.4.1 5.1 0 9.2-3.2 9.2-7.2S17.1 3.6 12 3.6z"/></svg>',
+  google: '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>',
   out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"/></svg>',
 };
 
@@ -23,13 +25,29 @@ function paint() {
   if (h) box.innerHTML = `<button type="button" class="av" data-acct="menu" aria-haspopup="menu" aria-label="${T('내 계정', 'Account')}">${esc(h.e.charAt(0).toUpperCase())}</button>`;
   else if (!box.querySelector('.acct-in')) box.innerHTML = `<button type="button" class="acct-in" data-acct="login">${T('로그인', 'Sign in')}</button><button type="button" class="acct-ic" data-acct="login" aria-label="${T('로그인', 'Sign in')}">${ICON.user}</button>`;
 }
-function set(user) { try { if (user) localStorage.setItem(KEY, JSON.stringify({ e: user.email })); else localStorage.removeItem(KEY); } catch (e) { /* 저장 못 하는 브라우저 */ } paint(); }
+const who = (u) => u.email || u.name || T('회원', 'Member');
+function set(user) { try { if (user) localStorage.setItem(KEY, JSON.stringify({ e: who(user) })); else localStorage.removeItem(KEY); } catch (e) { /* 저장 못 하는 브라우저 */ } paint(); }
 let checked = null;
+const PNAME = { kakao: ['카카오', 'Kakao'], google: ['Google', 'Google'] };
+const pn = (p) => T(...(PNAME[p] || ['', '']));
+// 카카오 · 구글 로그인 창에서 돌아오면 주소 끝에 #auth=ok|linked|finish&t=…|error&e=… (서버 oauth.js). 읽고 바로 지운다
+function returned() {
+  const q = new URLSearchParams(location.hash.slice(1));
+  if (!q.get('auth')) return null;
+  history.replaceState(null, '', location.pathname + location.search);
+  const kind = q.get('auth'), p = q.get('p');
+  if (kind === 'finish') { finish(q.get('t'), p); return null; }
+  if (kind === 'error') { setTimeout(() => toast(say({ error: q.get('e'), p })), 300); return null; }
+  return () => { toast(kind === 'linked' ? T(`${pn(p)} 계정을 연결했어요`, `${pn(p)} account connected`) : T('로그인했어요', 'Signed in')); document.dispatchEvent(new CustomEvent('df-auth')); };
+}
+let langOn = false;
 export function head() {
+  const after = location.hash.includes('auth=') ? returned() : null;
   paint();
-  DFI.onLang(paint);
+  if (!langOn) { langOn = true; DFI.onLang(paint); }
   checked = checked || fetch(API + '/auth/me', { credentials: 'include', cache: 'no-store' })
     .then((r) => r.json().catch(() => ({})).then((j) => (r.status === 401 ? set(null) : r.ok ? set(j.user) : 0))).catch(() => {});   // 본문은 늘 읽는다(안 읽으면 요청이 끝나지 않은 채 남는다)
+  if (after) checked.then(after);
   return checked;
 }
 
@@ -51,8 +69,15 @@ function say(j, status) {
     agree: T('필수 항목에 동의해 주세요.', 'Please accept the required items.'),
     login: T('이메일 또는 비밀번호가 맞지 않아요.', 'Email or password is incorrect.'),
     mail: T('메일을 보내지 못했어요. 잠시 뒤 다시 해 주세요.', 'We could not send the email. Try again shortly.'),
-    not_configured: T('지금은 메일 인증을 준비 중이에요.', 'Email verification is not ready yet.'),
+    not_configured: j && j.p ? T(`${pn(j.p)} 로그인을 준비 중이에요.`, `${pn(j.p)} sign-in is not ready yet.`) : T('지금은 메일 인증을 준비 중이에요.', 'Email verification is not ready yet.'),
     signed_out: T('로그인이 풀렸어요. 다시 로그인해 주세요.', 'You were signed out. Please sign in again.'),
+    cancel: T('로그인을 그만뒀어요.', 'Sign-in was cancelled.'),
+    state: T('로그인 시간이 지났어요. 다시 해 주세요.', 'That sign-in expired. Please try again.'),
+    provider: T(`${pn(j && j.p)} 로그인 정보를 받지 못했어요. 잠시 뒤 다시 해 주세요.`, `Could not get your ${pn(j && j.p)} sign-in. Try again shortly.`),
+    linked_elsewhere: T(`이 ${pn(j && j.p)} 계정은 이미 다른 Delfona 계정에 연결돼 있어요.`, `This ${pn(j && j.p)} account is linked to another Delfona account.`),
+    linked_other: T(`이미 다른 ${pn(j && j.p)} 계정이 연결돼 있어요.`, `Another ${pn(j && j.p)} account is already linked.`),
+    last_method: T('마지막 로그인 방법은 끊을 수 없어요.', 'You cannot remove your only way to sign in.'),
+    ticket: T('가입 시간이 지났어요. 처음부터 다시 해 주세요.', 'That sign-up expired. Please start again.'),
   })[e] || (status === 0 ? T('연결이 불안정해요. 다시 시도해 주세요.', 'Connection problem. Please try again.') : T('잠시 문제가 생겼어요. 다시 시도해 주세요.', 'Something went wrong. Please try again.'));
 }
 async function api(path, body) {
@@ -121,9 +146,11 @@ function toast(text) {
 const signedIn = (user, text) => { set(user); close(); toast(text); document.dispatchEvent(new CustomEvent('df-auth', { detail: user })); };
 
 // ---------- 로그인 ----------
+const oauthUrl = (p, link) => `${API}/auth/oauth/${p}/start?next=${encodeURIComponent(link ? (window.DF_ROOT || '/') + 'account/' : location.pathname + location.search)}${link ? '&link=1' : ''}`;
+const socialBtns = () => `<a class="sbtn kakao" href="${oauthUrl('kakao')}">${ICON.kakao}${T('카카오로 시작하기', 'Continue with Kakao')}</a><a class="sbtn google" href="${oauthUrl('google')}">${ICON.google}${T('Google로 계속하기', 'Continue with Google')}</a><div class="or">${T('또는 이메일로', 'or with email')}</div>`;
 async function login(prefill = '') {
   const box = await sheet(ICON.logo + `<h2>${T('Delfona 로그인', 'Sign in to Delfona')}</h2><p class="sub">${T('관심 자산과 저장한 이야기를 어느 기기에서나 그대로.', 'Your watchlist and saved stories on every device.')}</p>
-<form novalidate>${field('email', 'email', T('이메일 주소', 'Email address'), 'autocomplete="username" inputmode="email"')}${field('password', 'password', T('비밀번호', 'Password'), 'autocomplete="current-password"')}
+${socialBtns()}<form novalidate>${field('email', 'email', T('이메일 주소', 'Email address'), 'autocomplete="username" inputmode="email"')}${field('password', 'password', T('비밀번호', 'Password'), 'autocomplete="current-password"')}
 <label class="keep"><input type="checkbox" name="keep" checked><span class="ck">${ICON.check}</span>${T('로그인 상태 유지', 'Keep me signed in')}</label>
 <p class="au-msg" aria-live="polite"></p><button class="mbtn">${T('로그인', 'Sign in')}</button></form>
 <p class="links"><button type="button" data-go="reset">${T('비밀번호 찾기', 'Forgot password?')}</button><span></span><button type="button" class="p" data-go="signup">${T('이메일로 회원가입', 'Sign up with email')}</button></p>`, T('로그인', 'Sign in'));
@@ -188,21 +215,27 @@ function pwWatch(f) {
 
 // ---------- 이메일 회원가입 ----------
 const DOCS = { terms: ['이용약관', 'Terms of service'], privacy: ['개인정보 수집 · 이용', 'Privacy policy'] };
+const agreeRow = (name, tag, ko_, en, view) => `<label><input type="checkbox" name="${name}"><span class="ck">${ICON.check}</span>${tag ? `<span class="tag${tag === 'o' ? ' opt' : ''}">${tag === 'o' ? T('선택', 'Optional') : T('필수', 'Required')}</span>` : ''}<span class="lb">${T(ko_, en)}</span>${view ? `<button type="button" class="vw" data-doc="${view}">${T('보기', 'View')}</button>` : ''}</label>`;
+const agreeBlock = () => `<div class="agree">${agreeRow('all', '', '모두 동의', 'Agree to all')}${agreeRow('age14', 'r', '만 14세 이상입니다', 'I am 14 or older')}${agreeRow('terms', 'r', '이용약관', 'Terms of service', 'terms')}${agreeRow('privacy', 'r', '개인정보 수집 · 이용', 'Privacy policy', 'privacy')}${agreeRow('marketing', 'o', '마케팅 정보 수신', 'Marketing emails')}</div>`;
+function agreeWatch(f, ready) {
+  const each = ['age14', 'terms', 'privacy', 'marketing'];
+  f.all.onchange = () => { each.forEach((k) => { f[k].checked = f.all.checked; }); ready(); };
+  each.forEach((k) => { f[k].onchange = () => { f.all.checked = each.every((x) => f[x].checked); ready(); }; });
+  return ready;
+}
 async function signup(prefill = '') {
-  const row = (name, tag, ko_, en, view) => `<label><input type="checkbox" name="${name}"><span class="ck">${ICON.check}</span>${tag ? `<span class="tag${tag === 'o' ? ' opt' : ''}">${tag === 'o' ? T('선택', 'Optional') : T('필수', 'Required')}</span>` : ''}<span class="lb">${T(ko_, en)}</span>${view ? `<button type="button" class="vw" data-doc="${view}">${T('보기', 'View')}</button>` : ''}</label>`;
   const box = await sheet(`<h2>${T('이메일로 회원가입', 'Sign up with email')}</h2><p class="sub">${T('이메일로 받은 인증번호를 넣으면 바로 시작돼요.', 'Enter the code we email you and you are in.')}</p>
 <form novalidate>${codeBlock()}${pwBlock(T('비밀번호', 'Password'))}
-<div class="agree">${row('all', '', '모두 동의', 'Agree to all')}${row('age14', 'r', '만 14세 이상입니다', 'I am 14 or older')}${row('terms', 'r', '이용약관', 'Terms of service', 'terms')}${row('privacy', 'r', '개인정보 수집 · 이용', 'Privacy policy', 'privacy')}${row('marketing', 'o', '마케팅 정보 수신', 'Marketing emails')}</div>
+${agreeBlock()}
 <p class="au-msg" aria-live="polite"></p><button class="mbtn" disabled>${T('가입하기', 'Create account')}</button></form>
 <p class="links"><button type="button" data-go="login">${T('이미 계정이 있어요 · 로그인', 'Have an account? Sign in')}</button></p>`, T('회원가입', 'Sign up'));
   const f = box.querySelector('form'), m = box.querySelector('.au-msg'), btn = f.querySelector('.mbtn');
   f.email.value = prefill;
   const pwGood = pwWatch(f);
-  const req = ['age14', 'terms', 'privacy'], each = [...req, 'marketing'];
+  const req = ['age14', 'terms', 'privacy'];
   const code = codeFlow(box, 'signup', () => ready());
   const ready = () => { btn.disabled = !(code.verified() && pwGood() && req.every((k) => f[k].checked)); };
-  f.all.onchange = () => { each.forEach((k) => { f[k].checked = f.all.checked; }); ready(); };
-  each.forEach((k) => { f[k].onchange = () => { f.all.checked = each.every((x) => f[x].checked); ready(); }; });
+  agreeWatch(f, () => ready());
   f.password.addEventListener('input', ready); f.password2.addEventListener('input', ready);
   box.querySelectorAll('[data-doc]').forEach((b) => { b.onclick = (e) => { e.preventDefault(); doc(b.dataset.doc); }; });
   box.querySelector('[data-go=login]').onclick = () => { code.stop(); login(f.email.value); };
@@ -239,6 +272,24 @@ async function reset(prefill = '') {
     const r = await api('/auth/reset', { email: f.email.value, code: f.code.value, password: f.password.value, keep: true });
     busy(btn, false); ready();
     if (r.ok) { code.stop(); signedIn(r.j.user, T('새 비밀번호로 바꿨어요. 다른 기기는 로그아웃됐어요.', 'Password changed. Other devices were signed out.')); } else msg(m, say(r.j, r.status));
+  };
+}
+
+// ---------- 가입 마무리(카카오 · 구글로 처음 온 사람, 한 번만) — 시안 C ----------
+async function finish(ticket, p) {
+  const box = await sheet(ICON.logo + `<h2>${T('가입 마무리', 'Finish signing up')}</h2><p class="sub">${T(`${pn(p)} 계정으로 가입해요. 동의만 하면 바로 시작돼요.`, `Signing up with ${pn(p)}. Agree below and you are in.`)}</p>
+<form novalidate>${agreeBlock()}<p class="au-msg" aria-live="polite"></p><button class="mbtn" disabled>${T('가입하고 시작하기', 'Create account')}</button></form>`, T('가입 마무리', 'Finish signing up'));
+  const f = box.querySelector('form'), m = box.querySelector('.au-msg'), btn = f.querySelector('.mbtn');
+  const ready = agreeWatch(f, () => { btn.disabled = !['age14', 'terms', 'privacy'].every((k) => f[k].checked); });
+  void ready;
+  box.querySelectorAll('[data-doc]').forEach((b) => { b.onclick = (e) => { e.preventDefault(); doc(b.dataset.doc); }; });
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    if (btn.disabled) return;
+    busy(btn, true);
+    const r = await api('/auth/oauth/finish', { t: ticket, agree: { age14: f.age14.checked, terms: f.terms.checked, privacy: f.privacy.checked, marketing: f.marketing.checked } });
+    busy(btn, false); btn.disabled = false;
+    if (r.ok) signedIn(r.j.user, T('가입을 환영해요!', 'Welcome to Delfona!')); else msg(m, say(r.j, r.status));
   };
 }
 
@@ -313,13 +364,23 @@ export async function account(main) {
       return;
     }
     main.innerHTML = `<div class="acc"><h1>${T('내 계정', 'Account')}</h1>
-<div class="card"><div class="me"><span class="av" aria-hidden="true">${esc(user.email.charAt(0).toUpperCase())}</span><div><b>${esc(user.email)}</b><span>${T(`${day(user.created)} 가입`, `Joined ${day(user.created)}`)}</span></div></div></div>
-<div class="card"><h3>${T('로그인 방식', 'Sign-in method')}</h3><div class="row"><span class="lg">${ICON.mail}</span>${T('이메일 · 비밀번호', 'Email & password')}<button type="button" class="bt" data-do="pw">${T('비밀번호 변경', 'Change password')}</button></div></div>
-<div class="card"><h3>${T('정보 수신', 'Email')}</h3><div class="row"><div>${T('마케팅 정보 수신', 'Marketing emails')}<small>${T('새 기능 · 이벤트 소식을 이메일로 받아요', 'New features and offers by email')}</small></div>
+<div class="card"><div class="me"><span class="av" aria-hidden="true">${esc(who(user).charAt(0).toUpperCase())}</span><div><b>${esc(user.email || user.name || T('회원', 'Member'))}</b><span>${user.email ? '' : T('이메일 없음 · ', 'No email · ')}${T(`${day(user.created)} 가입`, `Joined ${day(user.created)}`)}</span></div></div></div>
+<div class="card"><h3>${T('로그인 방식', 'Sign-in methods')}</h3>${methodRows()}</div>
+${user.email ? `<div class="card"><h3>${T('정보 수신', 'Email')}</h3><div class="row"><div>${T('마케팅 정보 수신', 'Marketing emails')}<small>${T('새 기능 · 이벤트 소식을 이메일로 받아요', 'New features and offers by email')}</small></div>
 <button type="button" class="tg${user.marketing ? ' on' : ''}" role="switch" aria-checked="${user.marketing}" aria-label="${T('마케팅 정보 수신', 'Marketing emails')}" data-do="mk"></button></div>
-<p class="cons">${user.marketing_at ? (user.marketing ? T(`${day(user.marketing_at)} 동의함`, `Agreed on ${day(user.marketing_at)}`) : T(`${day(user.marketing_at)} 거부함`, `Declined on ${day(user.marketing_at)}`)) : T('동의하지 않음', 'Not agreed')}</p></div>
+<p class="cons">${user.marketing_at ? (user.marketing ? T(`${day(user.marketing_at)} 동의함`, `Agreed on ${day(user.marketing_at)}`) : T(`${day(user.marketing_at)} 거부함`, `Declined on ${day(user.marketing_at)}`)) : T('동의하지 않음', 'Not agreed')}</p></div>` : ''}
 <div class="card"><h3>${T('플랜', 'Plan')}</h3><div class="plan"><span class="pl">${T('무료', 'Free')}</span><span class="soon">${T('유료 플랜 준비 중', 'Pro coming soon')}</span></div></div>
 <div class="lo"><button type="button" data-do="out">${T('로그아웃', 'Sign out')}</button><button type="button" data-do="all">${T('모든 기기에서 로그아웃', 'Sign out everywhere')}</button><button type="button" class="del" data-do="del">${T('회원 탈퇴', 'Delete account')}</button></div></div>`;
+  };
+  // 로그인 방식: 카카오 · Google(연결됨이면 '연결 해제', 아니면 '연결하기' — 그 회사 로그인 창을 다녀온다), 이메일 · 비밀번호
+  const methodRows = () => {
+    const m = user.methods || { password: true }, n = (m.password ? 1 : 0) + (m.kakao ? 1 : 0) + (m.google ? 1 : 0);
+    const soc = (p) => `<div class="row"><span class="lg ${p}">${ICON[p]}</span>${pn(p)}${m[p]
+      ? `<span class="st ok">${T('연결됨', 'Connected')}</span>${n > 1 ? `<button type="button" class="bt" data-do="unlink" data-p="${p}">${T('연결 해제', 'Remove')}</button>` : ''}`
+      : `<a class="bt" href="${oauthUrl(p, true)}">${T('연결하기', 'Connect')}</a>`}</div>`;
+    const pw = m.password ? `<button type="button" class="bt" data-do="pw">${T('비밀번호 변경', 'Change password')}</button>`
+      : user.email ? `<button type="button" class="bt" data-do="mkpw">${T('비밀번호 만들기', 'Set a password')}</button>` : `<span class="st">${T('이메일 없음', 'No email')}</span>`;
+    return soc('kakao') + soc('google') + `<div class="row"><span class="lg">${ICON.mail}</span>${T('이메일 · 비밀번호', 'Email & password')}${pw}</div>`;
   };
   const load = async () => {
     const r = await api('/auth/me');
@@ -340,6 +401,12 @@ export async function account(main) {
       toast(k === 'all' ? T('모든 기기에서 로그아웃했어요', 'Signed out everywhere') : T('로그아웃했어요', 'Signed out'));
     }
     if (k === 'pw') pwChange();
+    if (k === 'mkpw') reset(user.email);
+    if (k === 'unlink') {
+      b.disabled = true;
+      const r = await api('/auth/oauth/unlink', { provider: b.dataset.p });
+      if (r.ok) { toast(T(`${pn(b.dataset.p)} 연결을 해제했어요`, `${pn(b.dataset.p)} removed`)); await load(); } else { b.disabled = false; toast(say({ ...r.j, p: b.dataset.p }, r.status)); }
+    }
     if (k === 'del') remove();
   });
   document.addEventListener('df-auth', () => load());
@@ -364,13 +431,15 @@ export async function account(main) {
     };
   }
   async function remove() {
+    const hasPw = !user.methods || user.methods.password;   // 비밀번호 없는 소셜 회원은 확인 상자로(서버: {confirm: 'delete'})
     const box = await sheet(`<h2>${T('회원 탈퇴', 'Delete account')}</h2><p class="sub">${T('계정과 동의 기록이 바로 지워지고 되돌릴 수 없어요. 같은 이메일로 다시 가입할 수는 있어요.', 'Your account is deleted right away and cannot be restored. You can sign up again with the same email.')}</p>
-<form novalidate>${field('password', 'password', T('비밀번호', 'Password'), 'autocomplete="current-password"')}<p class="au-msg" aria-live="polite"></p><button class="mbtn danger">${T('탈퇴하기', 'Delete my account')}</button></form>`, T('회원 탈퇴', 'Delete account'));
+<form novalidate>${hasPw ? field('password', 'password', T('비밀번호', 'Password'), 'autocomplete="current-password"') : `<label class="keep"><input type="checkbox" name="sure"><span class="ck">${ICON.check}</span>${T('계정을 지우는 데 동의해요', 'I understand my account will be deleted')}</label>`}<p class="au-msg" aria-live="polite"></p><button class="mbtn danger">${T('탈퇴하기', 'Delete my account')}</button></form>`, T('회원 탈퇴', 'Delete account'));
     const f = box.querySelector('form'), m = box.querySelector('.au-msg'), btn = f.querySelector('.mbtn');
     f.onsubmit = async (e) => {
       e.preventDefault();
+      if (!hasPw && !f.sure.checked) return msg(m, T('상자에 체크해 주세요.', 'Please tick the box.'));
       busy(btn, true);
-      const r = await api('/auth/delete', { password: f.password.value });
+      const r = await api('/auth/delete', hasPw ? { password: f.password.value } : { confirm: 'delete' });
       busy(btn, false);
       if (r.ok) { close(); set(null); user = null; draw(); toast(T('탈퇴했어요. 그동안 고마웠어요.', 'Your account was deleted.')); }
       else msg(m, r.j.error === 'login' ? T('비밀번호가 맞지 않아요.', 'Password is incorrect.') : say(r.j, r.status));

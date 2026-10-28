@@ -76,12 +76,3 @@ window.DFI = (() => {
     outlets: (n) => (LANG === 'ko' ? (n > 1 ? `${n}곳 보도` : '단독 보도') : (n > 1 ? `${n} outlets` : 'single source')) };
 })();
 
-// 회원(acct.js)
-window.DFA = (() => {
-  const S = globalThis.document?.currentScript?.src; if (!S) return {};
-  let m;
-  const load = () => (m = m || import(new URL('acct.js', S).href + new URL(S).search));
-  addEventListener('click', (e) => { const b = e.target.closest('[data-acct]'); if (b) load().then((x) => x.open(b.dataset.acct, b)); });
-  if (document.documentElement.classList.contains('acct-on')) load().then((x) => x.head());
-  return { load };
-})();
