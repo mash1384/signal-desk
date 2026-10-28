@@ -63,7 +63,7 @@ window.DFI = (() => {
     subs.forEach((f) => f(LANG));
   };
   const init = (ko) => {
-    KO = ko; document.querySelectorAll('[data-t]').forEach((el) => { EN[el.dataset.t] = el.hasAttribute('data-html') ? el.innerHTML : el.textContent; });
+    KO = { ac1: '로그인', ...ko }; document.querySelectorAll('[data-t]').forEach((el) => { EN[el.dataset.t] = el.hasAttribute('data-html') ? el.innerHTML : el.textContent; });
     // 언어 · 다크 모드 버튼: 같은 apply 로 글과 차트를 다시 그린다
     document.addEventListener('click', (e) => { const b = e.target.closest('[data-lang],[data-theme-toggle]'); if (!b) return;
       const v = b.dataset.lang || (dk() ? 'light' : 'dark'); if (b.dataset.lang) LANG = v; else document.documentElement.dataset.theme = v;
@@ -74,4 +74,14 @@ window.DFI = (() => {
   const ago = (t) => { const s = Date.now() / 1000 - t, ko = LANG === 'ko'; return s < 60 ? (ko ? '방금' : 'just now') : s < 3600 ? (ko ? `${Math.floor(s / 60)}분 전` : `${Math.floor(s / 60)}m ago`) : s < 86400 ? (ko ? `${Math.floor(s / 3600)}시간 전` : `${Math.floor(s / 3600)}h ago`) : (ko ? `${Math.floor(s / 86400)}일 전` : `${Math.floor(s / 86400)}d ago`); };
   return { init, onLang: (f) => subs.push(f), lang: () => LANG, line: (it) => (LANG === 'en' ? it.en || ENT[it.id] || null : it.ko), has: (it) => LANG !== 'en' || !!(it.en || ENT[it.id]), v: (x) => V[LANG][x] || x, ago,
     outlets: (n) => (LANG === 'ko' ? (n > 1 ? `${n}곳 보도` : '단독 보도') : (n > 1 ? `${n} outlets` : 'single source')) };
+})();
+
+// 회원(acct.js)
+window.DFA = (() => {
+  const S = globalThis.document?.currentScript?.src; if (!S) return {};
+  let m;
+  const load = () => (m = m || import(new URL('acct.js', S).href + new URL(S).search));
+  addEventListener('click', (e) => { const b = e.target.closest('[data-acct]'); if (b) load().then((x) => x.open(b.dataset.acct, b)); });
+  if (document.documentElement.classList.contains('acct-on')) load().then((x) => x.head());
+  return { load };
 })();

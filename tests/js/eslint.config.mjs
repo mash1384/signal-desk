@@ -6,7 +6,7 @@ import globals from 'globals';
 export default [
   { files: ['web/assets/df/**/*.js'],
     languageOptions: { ecmaVersion: 2023, sourceType: 'module',
-      globals: { ...globals.browser, DFI: 'readonly', DFD: 'readonly', LightweightCharts: 'readonly', gsap: 'readonly', ScrollTrigger: 'readonly', THREE: 'readonly' } },
+      globals: { ...globals.browser, DFI: 'readonly', DFD: 'readonly', DFA: 'readonly', LightweightCharts: 'readonly', gsap: 'readonly', ScrollTrigger: 'readonly', THREE: 'readonly' } },
     rules: { ...js.configs.recommended.rules, 'no-empty': ['error', { allowEmptyCatch: true }],
       // catch (e) {} 와 콜백의 안 쓰는 인자는 관용 — 안 쓰는 import · 변수 · 함수만 잡는다
       'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }] } },

@@ -1,0 +1,113 @@
+/* 회원 화면(2026-10-28) — 로그인 · 가입 · 비밀번호 찾기 창, 계정 메뉴, 내 계정. 시안(10-23 킵) 값 그대로, acct.js 가 처음 열 때 받는다 */
+html.au-lock { overflow: hidden; }
+.au [hidden] { display: none !important; }   /* .pwok 같은 display 규칙이 hidden 을 덮지 않게 */
+.au { position: fixed; inset: 0; z-index: 70; display: grid; align-items: end; }
+.au-bg { position: absolute; inset: 0; background: rgb(13 31 54 / .38); animation: au-fade .2s ease-out both; }
+.au-in { position: relative; max-height: 94vh; overflow: auto; overscroll-behavior: contain; background: #fff; border-radius: 22px 22px 0 0; padding: 26px 22px calc(26px + env(safe-area-inset-bottom)); box-shadow: 0 -20px 60px -20px rgb(13 37 61 / .35); animation: au-up .26s cubic-bezier(.2, .8, .2, 1) both; }
+.au.out { pointer-events: none; } .au.out .au-bg { animation: au-fade .18s ease-in reverse both; } .au.out .au-in { animation: au-up .18s ease-in reverse both; }
+@media (min-width: 900px) {
+  .au { place-items: center; }
+  .au-in { width: 420px; border-radius: 20px; padding: 34px 34px 30px; animation-name: au-pop; }
+  .au.out .au-in { animation-name: au-pop; }
+}
+@keyframes au-fade { from { opacity: 0; } }
+@keyframes au-up { from { transform: translateY(100%); } }
+@keyframes au-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .au-bg, .au-in, .au-toast { animation: none !important; } }
+:root[data-theme="dark"] .au-in { background: var(--surf); }
+:root[data-theme="dark"] .au-bg { background: rgb(0 0 0 / .55); }
+.au-doc { z-index: 72; }
+.au-x { position: absolute; right: 14px; top: 12px; width: 34px; height: 34px; border-radius: 50%; font-size: 22px; line-height: 1; color: var(--mute); } .au-x:hover { background: var(--soft); }
+.au-grab { position: absolute; left: 50%; top: 8px; width: 38px; height: 4px; margin-left: -19px; border-radius: 9px; background: var(--line); }
+@media (min-width: 900px) { .au-grab { display: none; } }
+.au-logo { width: 34px; height: 34px; color: #000; } :root[data-theme="dark"] .au-logo { color: #fff; }
+.au h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; margin: 12px 0 4px; }
+.au-in > h2:first-of-type { margin-top: 6px; } .au-logo + h2 { margin-top: 12px !important; }
+.au .sub { color: var(--mute); font-size: 14px; line-height: 1.55; margin: 0 0 20px; }
+.au input[type=email], .au input[type=password], .au input[type=text] { display: block; width: 100%; height: 50px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); font: inherit; font-size: 16px; color: var(--ink); margin-bottom: 10px; }
+.au input::placeholder { color: var(--faint); }
+.au input:focus { outline: 2px solid var(--primary); outline-offset: -1px; background: #fff; } :root[data-theme="dark"] .au input:focus { background: var(--surf2); }
+.au input[name=code] { letter-spacing: .24em; font-family: var(--mono); }
+.au input[name=code]::placeholder { letter-spacing: normal; font-family: var(--sans); }
+.au .ln { position: relative; } .au .ln input { padding-right: 112px; }
+.au .ln .sm { position: absolute; right: 8px; top: 8px; height: 34px; padding: 0 12px; border-radius: 9px; font-size: 13px; font-weight: 650; background: #fff; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink2); white-space: nowrap; }
+.au .ln .sm:disabled { color: var(--faint); }
+:root[data-theme="dark"] .au .ln .sm { background: var(--surf2); }
+.au .ln .tm { position: absolute; right: 16px; top: 15px; font-size: 13px; font-family: var(--mono); color: var(--down); }
+.au .pwok, .au .pwrule { display: flex; align-items: center; gap: 6px; margin: -4px 0 10px 4px; font-size: 12px; color: var(--mute); }
+.au .pwok, .au .pwrule.ok { color: var(--up); } .au .pwrule.bad { color: var(--down); }
+.au .pwok svg, .au .pwrule svg { width: 13px; height: 13px; flex: none; }
+.au .keep { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink2); margin: 2px 0 14px; cursor: pointer; }
+.au input[type=checkbox] { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.au .ck { width: 20px; height: 20px; border-radius: 6px; flex: none; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px #c3ccd8; color: transparent; }
+.au .ck svg { width: 13px; height: 13px; }
+.au input:checked + .ck { background: var(--primary); box-shadow: none; color: #fff; }
+.au input:focus-visible + .ck { outline: 2px solid var(--primary); outline-offset: 2px; }
+:root[data-theme="dark"] .au input:checked + .ck { color: #0b1320; } :root[data-theme="dark"] .au .ck { box-shadow: inset 0 0 0 1.5px #44546c; }
+.agree { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 6px 0 14px; }
+.agree label { position: relative; display: flex; align-items: center; gap: 10px; padding: 11px 14px; font-size: 14px; color: var(--ink2); border-top: 1px solid var(--line); cursor: pointer; }
+.agree label:first-child { border-top: 0; background: var(--soft); font-weight: 700; color: var(--ink); }
+:root[data-theme="dark"] .agree label:first-child { background: var(--surf2); }
+.agree .ck { width: 22px; height: 22px; border-radius: 7px; } .agree .ck svg { width: 14px; height: 14px; }
+.agree .tag { font-size: 12px; font-weight: 700; color: var(--primary); } .agree .tag.opt { color: var(--faint); }
+.agree .vw { margin-inline-start: auto; font-size: 12px; color: var(--faint); text-decoration: underline; padding: 4px 0 4px 8px; }
+.au-msg { min-height: 0; margin: 0; font-size: 13px; line-height: 1.5; color: var(--down); }
+.au-msg.on { margin: -2px 0 12px 4px; } .au-msg.ok { color: var(--up); }
+.mbtn { display: block; width: 100%; height: 50px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 15px; font-weight: 650; }
+.mbtn:disabled { opacity: .38; cursor: not-allowed; } .mbtn.busy { opacity: .6; cursor: progress; }
+.mbtn.danger { background: var(--down); }
+:root[data-theme="dark"] .mbtn { background: var(--inv-bg); color: var(--inv-fg); } :root[data-theme="dark"] .mbtn.danger { background: var(--down); color: #0b1320; }
+.au .links { display: flex; justify-content: center; align-items: center; gap: 14px; margin: 16px 0 0; font-size: 14px; color: var(--mute); }
+.au .links span { width: 1px; height: 12px; background: var(--line); } .au .links .p { color: var(--primary); font-weight: 650; }
+.au .links button:hover { text-decoration: underline; }
+.au .doc { max-height: 52vh; overflow: auto; margin: 10px 0 18px; padding-right: 4px; font-size: 14px; line-height: 1.65; color: var(--ink2); }
+.au .doc h3 { margin: 16px 0 4px; font-size: 14px; font-weight: 700; color: var(--ink); } .au .doc p { margin: 0; }
+.au .doc .draft { display: inline-block; margin-bottom: 4px; padding: 3px 10px; border-radius: 99px; background: var(--soft); font-size: 12px; color: var(--mute); }
+.au-ts { position: fixed; left: -9999px; top: 0; }
+.au-toast { position: fixed; z-index: 80; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 12px 18px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 14px; box-shadow: 0 12px 30px -12px rgb(13 37 61 / .45); animation: au-toast .22s cubic-bezier(.2, .8, .2, 1) both; transition: opacity .3s; }
+.au-toast.out { opacity: 0; }
+@keyframes au-toast { from { opacity: 0; transform: translate(-50%, 8px); } }
+@media (min-width: 900px) { .au-toast { bottom: 32px; } }
+:root[data-theme="dark"] .au-toast { background: var(--inv-bg); color: var(--inv-fg); }
+/* 계정 메뉴 */
+.amenu { position: fixed; z-index: 50; width: 260px; background: #fff; border-radius: 14px; box-shadow: 0 0 0 1px var(--line), 0 18px 40px -16px rgb(13 37 61 / .3); padding: 8px; }
+:root[data-theme="dark"] .amenu { background: var(--surf); }
+.amenu .who { padding: 10px 12px 12px; border-bottom: 1px solid var(--line); margin-bottom: 6px; font-size: 13px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.amenu a, .amenu button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; font-size: 14px; color: var(--ink2); text-align: start; }
+.amenu a:hover, .amenu button:hover, .amenu a:focus-visible, .amenu button:focus-visible { background: var(--soft); outline: none; }
+:root[data-theme="dark"] .amenu a:hover, :root[data-theme="dark"] .amenu button:hover { background: var(--surf2); }
+.amenu svg { width: 17px; height: 17px; flex: none; color: var(--mute); }
+.amenu .sep { height: 1px; background: var(--line); margin: 6px 0; }
+.amenu .plan { margin-inline-start: auto; font-size: 11px; font-weight: 700; color: var(--mute); background: var(--soft); padding: 2px 8px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--line); }
+/* 내 계정 */
+.acc { max-width: 720px; margin: 0 auto; padding: 24px 16px 40px; }
+.acc h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 18px; }
+.acc .card { background: #fff; border-radius: 16px; box-shadow: 0 0 0 1px var(--line); padding: 18px; margin-bottom: 14px; }
+:root[data-theme="dark"] .acc .card { background: var(--surf); }
+.acc .card.empty { display: grid; gap: 14px; justify-items: start; } .acc .card.empty p { margin: 0; color: var(--mute); font-size: 15px; } .acc .card.empty .mbtn { width: auto; padding: 0 28px; }
+.acc .card h3 { font-size: 13px; font-weight: 700; color: var(--mute); margin: 0 0 12px; letter-spacing: .02em; }
+.acc .me { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.acc .me .av { width: 52px; height: 52px; flex: none; border-radius: 99px; display: grid; place-items: center; background: #efedff; color: var(--primary); font-size: 20px; font-weight: 700; box-shadow: 0 0 0 2px #fff, 0 0 0 3px #d9d4ff; }
+:root[data-theme="dark"] .acc .me .av { background: #2a2552; color: #cfc8ff; box-shadow: 0 0 0 2px var(--surf), 0 0 0 3px #4a3fa0; }
+.acc .me div { min-width: 0; } .acc .me b { display: block; font-size: 17px; overflow-wrap: anywhere; } .acc .me span { color: var(--mute); font-size: 14px; }
+.acc .row { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.acc .row .lg { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none; background: var(--soft); } .acc .row .lg svg { width: 17px; height: 17px; }
+:root[data-theme="dark"] .acc .row .lg { background: var(--surf2); }
+.acc .row small { display: block; font-size: 12px; color: var(--mute); margin-top: 2px; }
+.acc .row .bt { margin-inline-start: auto; flex: none; height: 32px; padding: 0 14px; border-radius: 99px; font-size: 13px; font-weight: 650; box-shadow: inset 0 0 0 1px var(--line); }
+.acc .row .bt:hover { background: var(--soft); } :root[data-theme="dark"] .acc .row .bt:hover { background: var(--surf2); }
+.acc .tg { margin-inline-start: auto; width: 44px; height: 26px; border-radius: 99px; background: #c8d1dc; position: relative; flex: none; transition: background .2s; }
+.acc .tg::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
+.acc .tg.on { background: var(--primary); } .acc .tg.on::after { transform: translateX(18px); }
+.acc .tg:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:root[data-theme="dark"] .acc .tg { background: #33435c; }
+.acc .cons { font-size: 12px; color: var(--faint); margin: 10px 0 0; }
+.acc .plan { display: flex; align-items: center; gap: 10px; } .acc .plan .pl { font-size: 18px; font-weight: 700; }
+.acc .plan .soon { margin-inline-start: auto; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; background: var(--soft); color: var(--mute); box-shadow: inset 0 0 0 1px var(--line); }
+:root[data-theme="dark"] .acc .plan .soon { background: var(--surf2); }
+.acc .lo { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.acc .lo button { height: 44px; padding: 0 18px; border-radius: 12px; font-size: 14px; font-weight: 650; box-shadow: inset 0 0 0 1px var(--line); background: #fff; }
+.acc .lo button:hover { background: var(--soft); }
+:root[data-theme="dark"] .acc .lo button { background: var(--surf); } :root[data-theme="dark"] .acc .lo button:hover { background: var(--surf2); }
+.acc .lo .del { color: var(--down); box-shadow: none; background: transparent !important; margin-inline-start: auto; }
+@media (min-width: 900px) { .acc { padding-top: 40px; } }

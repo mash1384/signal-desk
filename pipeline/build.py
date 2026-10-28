@@ -311,6 +311,12 @@ def page_my_df():
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "my")
 
 
+def page_account_df():
+    """내 계정(2026-10-28, 회원): 검색에 안 나온다(noindex · sitemap 없음). 내용은 브라우저가 api.delfona.com/auth/me 로 그린다(web/assets/df/acct.js)."""
+    tpl = read_tpl("df_account.html")
+    return tpl.replace("{{B}}", B).replace("{{V}}", df_ver())
+
+
 def page_calendar_df():
     """일정(Delfona C3 · 대시보드): 방금 나온 지표, 지금 경제 요약(AI), 다가오는 발표, 지표 카드, 지표 상세(지난 흐름 · 과거에 비슷했을 때).
     자료는 브라우저가 econ.json(Mac 이 1시간마다, tools/econ_brief.py)을 flash 브랜치에서 읽는다."""
@@ -515,7 +521,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 <head>
 <meta charset="utf-8">
 <script>try{{document.documentElement.lang=localStorage.getItem('df-lang')||(/^ko/i.test(navigator.language)?'ko':'en')}}catch(e){{}}</script>
-<script>try{{document.documentElement.dataset.theme=localStorage.getItem('df-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}}catch(e){{}}</script>
+<script>try{{document.documentElement.dataset.theme=localStorage.getItem('df-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(localStorage.getItem('df-acct'))document.documentElement.classList.add('acct-on')}}catch(e){{}}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{desc}">
@@ -538,7 +544,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 <header class="hd"><div class="wrap">
   <a class="logo" href="{B}">{logo}<span class="wm">Delfona</span></a>
   <nav class="nav" aria-label="Menu">{nav}</nav>
-  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div><button type="button" class="thm" data-theme-toggle aria-label="Dark mode" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ko" aria-pressed="false">한국어</button></div><button type="button" class="thm" data-theme-toggle aria-label="Dark mode" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><div class="acct"><button type="button" class="acct-in" data-acct="login" data-t="ac1">Sign in</button><button type="button" class="acct-ic" data-acct="login"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg><span class="vh" data-t="ac1">Sign in</span></button></div>
 </div></header>
 <main id="main">
 {body}
@@ -972,6 +978,7 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
         util.write_text(os.path.join(out, old_path, "index.html"), redirect_page(new_path))
     # 내 자산: 옛 /me/(관심 코인)는 /my/ 로 옮겼다. 옛 목록(localStorage 'signal-watch')은 새 페이지가 가져온다
     util.write_text(os.path.join(out, "my", "index.html"), page_my_df())
+    util.write_text(os.path.join(out, "account", "index.html"), page_account_df())
     util.write_text(os.path.join(out, "me", "index.html"), redirect_page("my/"))
     util.write_text(os.path.join(out, "about", "index.html"), page_about(health, now))
     util.write_text(os.path.join(out, "404.html"), page_404(now))

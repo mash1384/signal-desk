@@ -171,3 +171,18 @@ button:focus:not(:focus-visible) { outline: none; }
 @keyframes glin { from { opacity: 0; transform: translateY(-4px) scale(.98); } } @keyframes glup { from { opacity: 0; transform: translateY(4px) scale(.98); } }
 @media (prefers-reduced-motion: reduce) { .glpop { animation: none; } }
 :root[data-theme="dark"] .glpop, .glpop.dk { background: #f1f4f8; color: #33465f; } :root[data-theme="dark"] .glpop b, .glpop.dk b { color: #0b1320; }   /* 어두운 화면 · 남색 요약 카드 위에서는 밝은 창 */
+/* 회원(2026-10-28): 머리글 로그인 단추(PC 글자 · 모바일 사람 아이콘) · 로그인 뒤 첫 글자. 창 · 계정 화면 모양은 acct.css(누를 때 받음) */
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+html.acct-on .acct-in, html.acct-on .acct-ic { visibility: hidden; }   /* 로그인 표시가 있으면 첫 글자를 그릴 때까지 비워 둔다(로그인 단추가 깜빡이지 않게) */
+.acct { flex: none; display: inline-flex; align-items: center; }
+.acct-in { height: 34px; padding: 0 16px; border-radius: 99px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 650; white-space: nowrap; }
+.acct-in:hover { background: #4330e0; }
+.acct-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 99px; color: var(--ink2); box-shadow: inset 0 0 0 1px var(--line); background: #fff; }
+.acct-ic svg { width: 18px; height: 18px; }
+.acct .av { width: 32px; height: 32px; border-radius: 99px; background: #efedff; color: var(--primary); font-size: 13px; font-weight: 700; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff, 0 0 0 3px #d9d4ff; }
+:root[data-theme="dark"] .acct-in { color: #0b1320; }
+:root[data-theme="dark"] .acct-ic { background: var(--surf); }
+:root[data-theme="dark"] .acct .av { background: #2a2552; color: #cfc8ff; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #4a3fa0; }
+@media (max-width: 899px) { .acct-in { display: none; } .hd .wrap { gap: 8px; } .thm { margin-inline-start: 0; } }
+@media (min-width: 900px) { .acct-ic { display: none; } .acct { margin-inline-start: 4px; } }
+@media (max-width: 374px) { .hd .wrap { gap: 4px; } .logo { gap: 6px; } .logo .wm { letter-spacing: .14em; font-size: 13px; } .lang button { padding-inline: 7px; } .acct-ic, .thm { width: 32px; height: 32px; } }

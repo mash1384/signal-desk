@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from urllib.parse import parse_qs, parse_qsl, urlsplit
 
+from tests.e2e.fake_auth import FakeAuth
+
 VENDOR = Path(__file__).parent / "vendor"
 SITE = urlsplit(os.environ.get("SIGNAL_SITE_URL") or "https://mash1384.github.io/signal-desk")
 SITE_PATH = SITE.path.rstrip("/") + "/"
@@ -25,6 +27,7 @@ class Offline:
         self.unmapped = []
         self.flash_new_calls, self.flash_new_extra, self.flash_new_status = [], [], None
         self.beacons = []
+        self.auth = FakeAuth()   # 회원(2026-10-28): /auth/* 는 이 가짜가 답한다
         # 실시간 연결(r25) 가짜: 기본 'silent' = 열리지만 아무것도 안 보냄(동기화 안 됨 → 지금 방식 그대로).
         # 'serve' = hello(스냅샷 문서 전체 + 시세)를 보내고, 시험이 push() 로 다음 seq 메시지를 보낸다
         self.ws_mode, self.ws_open, self.ws_urls, self.ws_seq = "silent", [], [], 1
@@ -83,6 +86,9 @@ class Offline:
         if url.hostname in WORKER_HOSTS and url.path == "/e":
             self.beacons.append(dict(parse_qsl(url.query)))
             route.fulfill(status=204 if req.method == "POST" else 200, body=b"", headers={"access-control-allow-origin": "*"})
+            return
+        if url.hostname in WORKER_HOSTS and url.path.startswith("/auth/"):
+            self.auth.handle(route)
             return
         if req.method != "GET":
             raise AssertionError("E2E forbids non-GET external request")
