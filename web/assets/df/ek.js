@@ -18,7 +18,7 @@ const VS = { above: ['▲', 'above forecast', '예상보다 높음'], below: ['�
 const numHi = (s) => esc(s).replace(/([+−-]?\d[\d,.]*\s?(?:%p|%|bp|k|천 명))/g, '<b class="nm">$1</b>');
 
 function canvasOf(cv, h) { const dpr = Math.min(devicePixelRatio || 1, 2), w = cv.clientWidth; cv.width = w * dpr; cv.height = h * dpr; cv.style.height = h + 'px'; const g = cv.getContext('2d'); g.scale(dpr, dpr); return [g, w]; }
-const FONT = '11px "JetBrains Mono", ui-monospace, monospace', FONT_B = '600 11.5px "Pretendard Variable", Pretendard, system-ui, sans-serif';
+const FONT = '11px "JetBrains Mono", ui-monospace, monospace', FONT_B = '600 11.5px "DF Page Text", "Pretendard Variable", Pretendard, system-ui, sans-serif';
 // 선 끝 이름표: 세로로 겹치지 않게 밀어낸다
 function spread(labels, minGap, lo, hi) {
   labels.sort((a, b) => a.y - b.y);
@@ -266,7 +266,7 @@ export function drawRegime(root, doc) {
   g.strokeStyle = col('rgba(13,37,61,.28)'); g.beginPath(); g.moveTo(Math.round(cx) + .5, pad); g.lineTo(Math.round(cx) + .5, H - pad); g.moveTo(pad, Math.round(cy) + .5); g.lineTo(w - pad, Math.round(cy) + .5); g.stroke();
   // 모서리 칸 이름(지금 칸은 진하게)
   let hotLeft = w;
-  g.textBaseline = 'top'; const corner = (k, right, top) => { const on = k === cur[1]; g.font = on ? FONT_B : '500 11.5px "Pretendard Variable", Pretendard, system-ui, sans-serif'; g.fillStyle = on ? col('#0d253d') : col('#64748b');
+  g.textBaseline = 'top'; const corner = (k, right, top) => { const on = k === cur[1]; g.font = on ? FONT_B : '500 11.5px "DF Page Text", "Pretendard Variable", Pretendard, system-ui, sans-serif'; g.fillStyle = on ? col('#0d253d') : col('#64748b');
     const t = qName(r, k), tw = g.measureText(t).width, left = right ? w - pad - 8 - tw : pad + 8;
     if (k === 'hot') hotLeft = left;
     g.fillText(t, left, top ? pad + 8 : H - pad - 22); };

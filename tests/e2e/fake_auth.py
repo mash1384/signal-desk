@@ -43,6 +43,9 @@ class FakeAuth:
         if m:   # 로그인 창에 다녀온 셈 — 바로 사이트로 돌려보낸다(서버 oauth.js 와 같은 #auth=…)
             q = dict(re.findall(r"([^=&]+)=([^&]*)", m.group(2)))
             nxt, prov = unquote(q.get("next", "/")), m.group(1)
+            if not getattr(self, "social_ready", True):   # 키를 아직 안 넣은 운영 상태(서버 oauth.js 와 같은 답)
+                route.fulfill(status=302, headers={"location": self.site + nxt + "#auth=error&e=not_configured&p=" + prov}, body=b"")
+                return
             sub, email, name = self.next_social[prov]
             self.calls.append(("/auth/oauth/start", {"p": prov, "link": q.get("link") == "1", "next": nxt}))
             if q.get("link") == "1":

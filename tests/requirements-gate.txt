@@ -1,8 +1,11 @@
 # Deployment lint + unittest + policy/schema + smoke. Full QA adds coverage and
 # pytest-bdd via requirements.txt; these two are not imported by this gate.
+# fonttools + brotli: the build makes the calendar page font (pipeline/pagefont.py).
 pytest==8.4.2
 playwright==1.60.0
 ruff==0.17.1
 jsonschema==4.25.1
 telethon==1.42.0
 numpy==2.0.2
+fonttools[woff]==4.60.2
+brotli==1.2.0
