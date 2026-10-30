@@ -383,3 +383,14 @@ def test_article_page_login_works_without_versioned_html(make, request):
     page.wait_for_function("document.querySelector('.au-msg').textContent.length > 0")
     assert page.locator(".au-msg").inner_text() == "이메일 또는 비밀번호가 맞지 않아요."
     assert not errors, errors
+
+
+def test_social_not_ready_names_the_provider(make):
+    page, offline, errors, _, go = make(390, "ko")
+    offline.auth.social_ready = False
+    go()
+    visible(page, "[data-acct=login]")[0].click()
+    page.click(".au .sbtn.kakao")
+    page.wait_for_selector(".au-toast")
+    assert page.locator(".au-toast").inner_text() == "카카오 로그인을 준비 중이에요."
+    assert not errors, errors

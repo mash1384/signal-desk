@@ -11,7 +11,7 @@ import re
 import shutil
 import time
 
-from . import config, darkcss, jsstrip, judge, util, prerender, public_data, article_bundle
+from . import config, darkcss, jsstrip, judge, util, prerender, public_data, article_bundle, pagefont
 from .impact import assets_for, subjects
 
 OG_DEFAULT = False
@@ -971,7 +971,10 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
         util.write_text(os.path.join(out, "themes", k, "index.html"), page_themes_df(k))
     util.write_text(os.path.join(out, "themes", "index.html"), page_themes_df("crypto"))
     # 일정: 옛 이벤트 리스크(/events/)는 새 일정(/calendar/)으로 옮겼다
-    util.write_text(os.path.join(out, "calendar", "index.html"), prerender.insert(page_calendar_df(), prerendered.get("calendar")))
+    # 일정 글꼴: 이 페이지 글자만 담은 한 파일(pipeline/pagefont.py) — AI 요약의 드문 글자 하나로 CDN 조각이 더 받아지던 것(10-30 장애)
+    cal_html, cal_font = pagefont.calendar(out, prerender.insert(page_calendar_df(), prerendered.get("calendar")), B, os.path.join(config.FLASH_DIR, "daily", "econ.json"))
+    util.write_text(os.path.join(out, "calendar", "index.html"), cal_html)
+    print("calendar font", json.dumps(cal_font))
     util.write_text(os.path.join(out, "events", "index.html"), redirect_page("calendar/"))
     # 바뀐 주소: 옛 주소는 새 주소로 바로 보낸다
     for old_path, new_path in (("feed", "live/"), ("markets", "themes/crypto/"), ("map", "themes/crypto/"), ("listings", "themes/crypto/"), ("impact", "live/"), ("patterns", "live/"), ("predict", "live/")):
