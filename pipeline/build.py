@@ -11,7 +11,7 @@ import re
 import shutil
 import time
 
-from . import config, darkcss, jsstrip, judge, util, prerender, public_data, article_bundle, pagefont
+from . import config, darkcss, jsstrip, judge, util, prerender, public_data, article_bundle, pagefont, legal
 from .impact import assets_for, subjects
 
 OG_DEFAULT = False
@@ -163,7 +163,7 @@ WEEKDAY = "월화수목금토일"
 
 
 def sitemap(articles, now, dailies=()):
-    urls = [("", now), ("live/", now), ("my/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("brief/", now), ("calendar/", now), ("about/", now)]
+    urls = [("", now), ("live/", now), ("my/", now)] + [("themes/%s/" % k, now) for k in THEME_PAGES] + [("brief/", now), ("calendar/", now), ("about/", now), ("terms/", now), ("privacy/", now)]
     urls += [("daily/%s/" % d["date"], d["made"]) for d in dailies]
     urls += [("a/%s/" % a["id"], a["t0"]) for a in articles]
     body = "".join("<url><loc>%s/%s</loc><lastmod>%s</lastmod></url>" % (config.SITE_URL, p, util.iso(t)[:10]) for p, t in urls)
@@ -550,7 +550,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 {body}
 </main>
 <footer class="ft"><div class="wrap">
-  <nav aria-label="Footer"><a href="{B}about/">{f1}</a><a href="{B}about/#sources">{f2}</a><a href="{B}sitemap.xml">{f3}</a></nav>
+  <nav aria-label="Footer"><a href="{B}about/">{f1}</a><a href="{B}terms/">{f4}</a><a href="{B}privacy/">{f5}</a></nav>
   <p>{note}</p>
 </div></footer>
 <nav class="tabs" aria-label="Menu">{tabs}</nav>
@@ -561,7 +561,7 @@ def df_page(cur, title, desc, path, body, og=None, robots="index,follow", ogtype
 </body>
 </html>
 """.format(title=h(full), desc=h(desc), robots=robots, url=h(url), ogtype=ogtype, site=config.SITE_NAME, og=og_meta, B=B, V=df_ver(), logo=LOGO,
-           nav=nav, tabs=tabs, body=body, f1=L("About &amp; method", "소개·방법론"), f2=L("Sources", "데이터 출처"), f3=L("Sitemap", "사이트맵"),
+           nav=nav, tabs=tabs, body=body, f1=L("About &amp; method", "소개·방법론"), f4=L("Terms", "이용약관"), f5=L("Privacy", "개인정보처리방침"),   # 바닥글은 한 줄(320px까지) — 출처는 소개 안 목차, 사이트맵은 robots.txt
            note=L("Delfona shows headlines, short excerpts and links only — articles belong to their publishers. Prices and past records are for information, not investment advice; the past may not repeat.",
                   "기사 저작권은 각 매체에 있으며 Delfona는 제목·짧은 발췌·원문 링크만 보여 줘요. 시세와 지난 기록은 정보일 뿐 투자 조언이 아니에요. 지난 흐름이 다시 온다는 뜻도 아니에요."))))
 
@@ -984,6 +984,8 @@ def _build_site(out, articles, market, cal, imp, health, now, extra=None, preren
     util.write_text(os.path.join(out, "account", "index.html"), page_account_df())
     util.write_text(os.path.join(out, "me", "index.html"), redirect_page("my/"))
     util.write_text(os.path.join(out, "about", "index.html"), page_about(health, now))
+    for kind, en, desc in (("terms", "Terms of service", "Delfona terms of service."), ("privacy", "Privacy policy", "What Delfona collects, why, and when it is deleted.")):
+        util.write_text(os.path.join(out, kind, "index.html"), df_page("", en, desc, kind + "/", legal.body(kind, B)))
     util.write_text(os.path.join(out, "404.html"), page_404(now))
     util.write_text(os.path.join(out, "sitemap.xml"), sitemap(articles, now, dailies))
     util.write_text(os.path.join(out, "robots.txt"), "User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml\n" % config.SITE_URL)

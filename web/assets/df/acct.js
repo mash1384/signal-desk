@@ -293,7 +293,7 @@ async function finish(ticket, p) {
   };
 }
 
-// ---------- 약관 보기(초안) ----------
+// ---------- 약관 보기(요약 · 전문은 /terms/ · /privacy/) ----------
 // 가입 창 위에 한 겹 더 띄운다(가입 창에 넣던 값은 그대로)
 function doc(kind) {
   const back = document.activeElement;
@@ -306,25 +306,25 @@ function doc(kind) {
   document.body.appendChild(root);
   root.querySelector('.mbtn').focus({ preventScroll: true });
 }
-const TERMS = () => T(`<p class="draft">초안 — 정식 공개 전에 다듬습니다.</p>
+const TERMS = () => T(`<p class="draft">요약이에요. <a href="${window.DF_ROOT || '/'}terms/" target="_blank">이용약관 전문 보기 ↗</a></p>
 <h3>1. 서비스</h3><p>Delfona 는 시장 소식과 소식 뒤 가격 움직임을 정리해 보여 주는 정보 서비스예요. 투자 조언이 아니며, 투자 판단과 결과는 이용자에게 있어요.</p>
 <h3>2. 회원</h3><p>만 14세 이상 누구나 이메일로 가입할 수 있어요. 한 사람이 같은 메일함으로 여러 계정을 만들 수 없어요. 계정 정보는 본인이 안전하게 지켜 주세요.</p>
 <h3>3. 금지</h3><p>자동 프로그램으로 대량 가입 · 수집하거나, 서비스를 방해하거나, 다른 사람인 척하는 행동은 할 수 없어요. 어기면 이용을 멈출 수 있어요.</p>
 <h3>4. 변경 · 중단</h3><p>서비스 내용은 바뀌거나 멈출 수 있어요. 중요한 변경은 미리 알려 드려요.</p>
 <h3>5. 탈퇴</h3><p>내 계정 화면에서 언제든 탈퇴할 수 있고, 탈퇴하면 계정 정보는 바로 지워져요.</p>`,
-`<p class="draft">Draft — to be finalized before launch.</p><h3>Service</h3><p>Delfona summarizes market news and the price moves after it. It is information, not investment advice.</p>
+`<p class="draft">Summary. <a href="${window.DF_ROOT || '/'}terms/" target="_blank">Read the full terms ↗</a></p><h3>Service</h3><p>Delfona summarizes market news and the price moves after it. It is information, not investment advice.</p>
 <h3>Accounts</h3><p>Anyone 14 or older can sign up with an email. One account per mailbox. Keep your credentials safe.</p>
 <h3>Not allowed</h3><p>Automated mass sign-ups or scraping, disrupting the service, or impersonation. We may suspend accounts that do this.</p>
 <h3>Changes</h3><p>The service may change or stop; we announce important changes in advance.</p><h3>Leaving</h3><p>Delete your account anytime from the Account page; your account data is deleted right away.</p>`);
-const PRIVACY = () => T(`<p class="draft">초안 — 정식 공개 전에 다듬습니다.</p>
-<h3>모으는 것</h3><p>이메일 주소, 비밀번호(되돌릴 수 없는 형태로만 저장), 동의한 항목과 시각, 마케팅 수신 여부, 화면 언어.</p>
+const PRIVACY = () => T(`<p class="draft">요약이에요. <a href="${window.DF_ROOT || '/'}privacy/" target="_blank">개인정보처리방침 전문 보기 ↗</a></p>
+<h3>모으는 것</h3><p>이메일 주소, 비밀번호(되돌릴 수 없는 형태로만 저장), 카카오 · 구글로 가입하면 그 회원 번호 · 이름 · 이메일, 동의한 항목과 시각, 마케팅 수신 여부, 화면 언어.</p>
 <h3>쓰는 곳</h3><p>로그인 · 계정 확인, 인증번호 · 보안 알림 메일, 마케팅 수신에 동의한 경우 새 기능 · 이벤트 안내.</p>
 <h3>보관 기간</h3><p>탈퇴할 때까지. 탈퇴하면 바로 지워요. 인증번호는 최대 1시간, 로그인 기록은 만료되면 지워요.</p>
-<h3>맡기는 곳</h3><p>메일 발송: Resend · 서버와 저장소: Cloudflare · 자동 가입 막기: Cloudflare Turnstile.</p>
+<h3>맡기는 곳</h3><p>메일 발송: Resend · 서버와 저장소: Cloudflare · 자동 가입 막기: Cloudflare Turnstile · 소셜 로그인: 카카오 · Google.</p>
 <h3>하지 않는 것</h3><p>기기 추적, 광고용 정보 판매, 휴대폰 번호 수집은 하지 않아요. 방문 통계는 합계만 남기고 개인을 알아볼 수 있는 값은 저장하지 않아요.</p>`,
-`<p class="draft">Draft — to be finalized before launch.</p><h3>What we collect</h3><p>Email, password (stored only as a one-way hash), what you agreed to and when, marketing preference, language.</p>
+`<p class="draft">Summary. <a href="${window.DF_ROOT || '/'}privacy/" target="_blank">Read the full privacy policy ↗</a></p><h3>What we collect</h3><p>Email, password (stored only as a one-way hash), your Kakao or Google ID, name and email if you sign in with them, what you agreed to and when, marketing preference, language.</p>
 <h3>Why</h3><p>Sign-in, verification and security emails, and product news if you opted in.</p><h3>How long</h3><p>Until you delete your account. Codes are kept at most an hour; expired sessions are deleted.</p>
-<h3>Processors</h3><p>Email: Resend · Servers and storage: Cloudflare · Bot protection: Cloudflare Turnstile.</p><h3>What we do not do</h3><p>No device tracking, no selling data, no phone numbers. Visit stats are totals only.</p>`);
+<h3>Processors</h3><p>Email: Resend · Servers and storage: Cloudflare · Bot protection: Cloudflare Turnstile · Social sign-in: Kakao, Google.</p><h3>What we do not do</h3><p>No device tracking, no selling data, no phone numbers. Visit stats are totals only.</p>`);
 
 // ---------- 계정 메뉴(첫 글자를 누르면) ----------
 async function menu(anchor) {

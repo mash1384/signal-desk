@@ -59,7 +59,8 @@ a { color: inherit; text-decoration: none; } button { font: inherit; color: inhe
 .copy .btns { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
 .hud { position: absolute; z-index: 3; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--mute); text-transform: uppercase; }
 .reveal { opacity: 0; transform: translateY(16px); filter: blur(6px); }
-.ft { padding-block: 40px 60px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mute); }
+.ft { padding-block: 40px 60px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mute); } .ft p { margin: 0; }
+.ftl { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-weight: 600; } .ftl a { color: var(--ink2); }
 .replay-unused { position: fixed; right: 16px; bottom: 16px; z-index: 90; height: 32px; padding: 0 14px; border-radius: 99px; background: #0d253d; color: #fff; font: 600 12px/1 "Pretendard Variable", system-ui, sans-serif; opacity: .85; }
 .copy.left { left: 0; right: 0; top: 50%; transform: translateY(-50%); max-width: 1240px; margin: 0 auto; padding-inline: 36px; }
 .copy.left h1 { max-width: 42rem; } .copy.left .sub { max-width: 30rem; }
@@ -161,9 +162,11 @@ html.acct-on .acct-in, html.acct-on .acct-ic { visibility: hidden; }
 </head>
 <body>
 <div class="intro" id="intro" aria-hidden="true"><div class="ibg"></div><video muted playsinline autoplay preload="auto" data-src="{{B}}assets/df/c1.mp4?v={{V}}"></video><button type="button" class="skip">Skip</button></div>
-<script>(function () { var rm = matchMedia('(prefers-reduced-motion: reduce)').matches, inner = false;
-  try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !/[?&]intro\b/.test(location.search); } catch (e) {}
-  if (rm || inner || document.documentElement.dataset.theme === 'dark') { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1;
+<script>(function () { var rm = matchMedia('(prefers-reduced-motion: reduce)').matches, inner = false, force = /[?&]intro\b/.test(location.search), seen = false;
+  try { inner = !!document.referrer && new URL(document.referrer).origin === location.origin && !force; } catch (e) {}
+  // 같은 탭에서 이미 본(또는 건너뛴) 연출 · 소셜 로그인에서 돌아온 방문(#auth=)은 다시 틀지 않는다(10-31 운영자: 카카오 가입 뒤 연출이 또 나옴)
+  try { seen = !force && (sessionStorage.getItem('df-intro') === '1' || /(^#|&)auth=/.test(location.hash)); sessionStorage.setItem('df-intro', '1'); } catch (e) {}
+  if (rm || inner || seen || document.documentElement.dataset.theme === 'dark') { var i = document.getElementById('intro'); i.parentNode.removeChild(i); window.DF_NOINTRO = 1;
     [['preload', 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js'], ['preload', 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js'], ['modulepreload', '{{B}}assets/df/hx.js?v={{V}}'], ['modulepreload', 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js']].forEach(function (x) { var l = document.createElement('link'); l.rel = x[0]; if (x[0] === 'preload') l.as = 'script'; l.href = x[1]; document.head.appendChild(l); });   /* 장면 코드를 일찍 받아 준비 중 잠금을 줄인다 */ } else { var v = document.querySelector('#intro video'); v.src = v.dataset.src; document.documentElement.classList.add('intro-on'); } })();</script>
 <!-- 영상 주소는 인트로를 실제로 틀 때만 넣는다(건너뛰는 방문 · 다크 모드에서 받다가 끊기지 않게) -->
 <header class="hd"><div class="wrap">
@@ -185,12 +188,12 @@ html.acct-on .acct-in, html.acct-on .acct-ic { visibility: hidden; }
 <section class="nx px" id="nx" aria-label="Signals"><canvas class="nx-gl" id="nxgl" aria-hidden="true"></canvas><div class="px-lay"></div>
 <div class="px-cap"></div><div class="px-wait" data-t="wait" aria-hidden="true">Loading…</div><div class="px-end"><div class="box"><b></b><a class="btn p" href="{{B}}brief/" data-t="cta">Open today's briefing</a></div></div></section>
 <div class="rsv" id="nxr" aria-hidden="true"></div>
-<footer class="ft wrap" data-t="ft">Delfona — Live data. AI judgments and summaries, not investment advice.</footer>
+<footer class="ft wrap"><p data-t="ft">Delfona — Live data. AI judgments and summaries, not investment advice.</p><nav class="ftl" aria-label="Footer"><a href="{{B}}about/" data-t="fab">About</a><a href="{{B}}terms/" data-t="ftm">Terms</a><a href="{{B}}privacy/" data-t="fpv">Privacy</a><a href="mailto:support@delfona.com">support@delfona.com</a></nav></footer>
 <script>window.DF_BASE = '{{B}}assets/df/'; window.DF_BR = 4; window.DF_THEMES = '{{B}}data/daily/themes.json';</script>
 <script src="{{B}}assets/df/data.js?v={{V}}"></script>
 <script>
 DFI.init(Object.assign({ n1: '라이브', n2: '테마', n3: '브리핑', n4: '일정', n5: '내 자산', cta: '오늘의 브리핑 보기', kick: '전 세계 시장을 움직이는 소식을 추적 중', h1: '시장을 움직이는 소식,<br>몇 초 만에 판정.',
-  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', ft: 'Delfona — 실시간 데이터. AI 판정·요약이며 투자 조언이 아니에요.', wait: '장면을 불러오는 중…' }, window.KO_EXTRA || {}));
+  sub: '전 세계 크립토·경제·정책 소식을 읽고, 하나하나 호재인지 악재인지 판정하고, 몇 곳에서 보도했는지 보여 줘요.', how: '작동 방식', bl1: '호재 · 24시간', bl2: '악재 · 24시간', fab: '소개', ftm: '이용약관', fpv: '개인정보처리방침', ft: 'Delfona — 실시간 데이터. AI 판정·요약이며 투자 조언이 아니에요.', wait: '장면을 불러오는 중…' }, window.KO_EXTRA || {}));
 </script>
 
 <script type="module">
