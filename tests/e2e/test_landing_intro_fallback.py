@@ -65,3 +65,30 @@ def test_hero_scroll_scene_loads_when_video_cannot_play(browser, site_server, re
             assert not errors, errors
         finally:
             ctx.close()
+
+
+def test_intro_plays_once_per_tab_and_not_after_social_login(browser, site_server, request):
+    """10-31 운영자: 첫 연출을 건너뛰고 카카오로 가입하고 돌아오니 연출이 또 나왔다. 같은 탭에서 두 번째부터 · #auth= 로 돌아온 방문은 없다.
+    판정은 페이지가 연출을 틀지 정한 값(window.DF_NOINTRO) — 영상 재생 여부와 무관하게."""
+    ctx = landing(browser, site_server, request, lambda route: route.abort())
+    skipped = "window.DF_NOINTRO === 1"
+    try:
+        page = ctx.new_page()
+        page.goto(site_server, wait_until="domcontentloaded")
+        assert not page.evaluate(skipped), "first visit shows the intro"
+        page.goto("about:blank")                                    # 카카오로 나갔다가 같은 탭으로 돌아옴
+        page.goto(site_server + "#auth=error&e=not_configured&p=kakao", wait_until="domcontentloaded")
+        assert page.evaluate(skipped), "returning from login replays the intro"
+        page.goto(site_server, wait_until="domcontentloaded")       # 같은 탭 · 그냥 다시 와도 없음
+        assert page.evaluate(skipped), "intro replays in the same tab"
+        fresh = ctx.new_page()                                      # 새 탭이라도 로그인에서 돌아온 주소면 없음
+        fresh.goto(site_server + "#auth=ok&t=x", wait_until="domcontentloaded")
+        assert fresh.evaluate(skipped), "#auth= visit in a new tab replays the intro"
+        other = ctx.new_page()                                      # 새 탭 · 보통 첫 방문은 그대로 나온다
+        other.goto(site_server, wait_until="domcontentloaded")
+        assert not other.evaluate(skipped), "a new tab's first visit should still show the intro"
+        forced = ctx.new_page()                                     # ?intro 는 언제나 튼다(확인용 주소)
+        forced.goto(site_server + "?intro", wait_until="domcontentloaded")
+        assert not forced.evaluate(skipped)
+    finally:
+        ctx.close()
