@@ -187,3 +187,8 @@ html.acct-on .acct-in, html.acct-on .acct-ic { visibility: hidden; }   /* 로그
 @media (max-width: 899px) { .acct-in { display: none; } .hd .wrap { gap: 8px; } .thm { margin-inline-start: 0; } }
 @media (min-width: 900px) { .acct-ic { display: none; } .acct { margin-inline-start: 4px; } }
 @media (max-width: 374px) { .hd .wrap { gap: 4px; } .logo { gap: 6px; } .logo .wm { letter-spacing: .14em; font-size: 13px; } .lang button { padding-inline: 7px; } .acct-ic, .thm { width: 32px; height: 32px; } }
+/* 소식 그림(점묘화, art.js): 그림은 카드 맨 아래 층, 글은 그 위. 사진 출처는 그림 오른쪽 아래 */
+.has-art { position: relative; isolation: isolate; } .has-art > :not(.art) { position: relative; z-index: 1; }
+.art { position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: inherit; animation: art-in .5s ease both; } @keyframes art-in { from { opacity: 0; } }
+.has-art > .art-cr { position: absolute; font-size: 11px; line-height: 16px; color: var(--mute); white-space: nowrap; } .art-cr a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .art { animation: none; } }

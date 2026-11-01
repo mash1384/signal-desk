@@ -93,6 +93,30 @@ function render(force) {
   drawCharts();
   fillPx(app);
   trending(xs, now);
+  leadArt();
+}
+
+// 소식 그림(점묘화): PC는 큰 소식 카드 글 오른쪽, 휴대폰은 접힌 카드 제목 아래 띠. 제목으로 그림 사전에서 고른다(artm.js) — 첫 화면을 다 그린 뒤 불러온다
+let AR;
+const QS = new URL(import.meta.url).search;
+const artMods = () => (AR ||= new Promise((ok) => (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(ok)).then(() => Promise.all([import('./art.js' + QS), import('./artm.js' + QS)])).then((ms) => { ms[0].watch(leadArt); return ms; }));
+function leadArt() {
+  const L0 = $('lead'), id = L0.querySelector('[data-id]')?.dataset.id, it = id && store.byId.get(id), ld = L0.querySelector('.ld'), pv = L0.querySelector('.lead-preview');
+  const pc = matchMedia('(min-width: 1000px)').matches, mob = matchMedia('(max-width: 640px)').matches && pv?.getAttribute('aria-expanded') === 'false', host = pc ? ld : mob ? L0 : null;
+  const k = [id, pc, mob, dark(), DFI.lang(), innerWidth, L0.querySelector('.tx')?.textContent.length].join('|');
+  if (L0.dataset.ak === k || (!it && !L0.dataset.ak)) return;
+  L0.dataset.ak = k;
+  artMods().then(([A, M]) => {
+    if (ld) A.clear(ld); A.clear(L0);
+    if (!it || !host) return;
+    return M.index().then((ix) => A.load(M.pick(ix, it.ko, it.en, it.coins, it.id))).then((m) => {
+      if (L0.dataset.ak !== k || !host.isConnected) return;
+      const r = host.getBoundingClientRect();
+      if (pc) { const t = ld.querySelector('.tx').getBoundingClientRect(), c = ld.querySelector('.ch').getBoundingClientRect();
+        A.paint(ld, { x0: t.left - r.left + t.width * 0.42, x1: c.left - r.left - 16, y0: 0, y1: r.height }, m, { grid: true, ink: ld.querySelector('h1'), u: M.under }); }
+      else { const b = pv.getBoundingClientRect().bottom - r.top; A.paint(L0, { x0: 0, x1: r.width, y0: b - 167, y1: b }, m, { e: [0.12, 0.88, 0.38, 0.8], ink: pv, u: M.under }); }
+    });
+  }).catch(() => {});   // 그림이 없어도 소식은 그대로 보인다
 }
 
 // ---------- 맨 위 가격 띠(업계 표준: 숫자 먼저) · 오른쪽 '내 자산' 칸 ----------
@@ -113,7 +137,7 @@ function drawStrip() {
 addEventListener('df-my', () => { pqAt = 0; if (!document.getElementById('pickdlg')?.open) { loadStrip(); render(true); } });
 
 app.addEventListener('click', (e) => {
-  const fold = e.target.closest('.lead-preview'); if (fold) { leadOpen = !leadOpen; fold.setAttribute('aria-expanded', String(leadOpen)); drawCharts(); return; }
+  const fold = e.target.closest('.lead-preview'); if (fold) { leadOpen = !leadOpen; fold.setAttribute('aria-expanded', String(leadOpen)); drawCharts(); leadArt(); return; }
   if (e.target.closest('#myonly')) { S.mine = !S.mine; render(true); return; }
   if (e.target.closest('[data-pick]')) { Y.openPicker(() => { pqAt = 0; loadStrip(); render(true); }); return; } const so = e.target.closest('[data-sort]'); if (so) { SO = so.dataset.sort; try { localStorage.setItem('df-sort', SO); } catch (x) {} render(true); return; }
   const mk = e.target.closest('[data-mkt]'); if (mk) { M = mk.dataset.mkt; try { localStorage.setItem('df-mkt', M); } catch (x) {} render(true); return; }

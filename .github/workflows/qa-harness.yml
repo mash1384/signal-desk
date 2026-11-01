@@ -54,6 +54,7 @@ jobs:
           cache-dependency-path: tests/requirements.txt
       - run: python -m pip install -r tests/requirements.txt
       - run: if [ -d tests/worker ]; then node --test tests/worker/worker.test.mjs; fi   # Worker 코드는 비공개 저장소에만
+      - run: node --test tests/js/art.test.mjs   # 소식 그림 고르기: 브라우저(artm.js)와 파이썬(pipeline/art.py)이 같은 답
       - run: python -m tests.run_unit --coverage
       - if: always()
         uses: actions/upload-artifact@v4

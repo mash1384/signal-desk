@@ -83,7 +83,7 @@ def main():
     start = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="signal-mutation-") as tmp:
         root = Path(tmp)
-        for dirname in ("pipeline", "tools", "tests"):
+        for dirname in ("pipeline", "tools", "tests", "web"):   # web: 그림 사전(art.json · assets/art) 등 테스트가 읽는 자료
             if (ROOT / dirname).is_dir():   # 공개 저장소에는 tools 가 없다
                 shutil.copytree(ROOT / dirname, root / dirname, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "node_modules"))
         report = root / "result.json"
