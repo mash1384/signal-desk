@@ -45,6 +45,26 @@ def econ_empty(site):
         return False
 
 
+def econ_no_insight(site, lang):
+    """지표는 있는데 '지금 미국 경제' 해설을 그릴 수 없는 econ.json(국면 regime 또는 이 언어 해설 insight 없음)인가.
+    화면(ek.js insightHTML)은 이때 해설 상자(.ins) 대신 개요 상자(#cal-summary.ov)를 그린다. 2026-11-01 사고: ALFRED 가 고용 · 실업률에
+    잠깐 404 → 지표 8개 · 국면 없음 → 화면은 설계대로 개요 상자였는데 검사가 .ins 를 늘 요구해 게시 3번(약 72분)이 막혔다."""
+    try:
+        doc = json.loads((Path(site) / "data/daily/econ.json").read_text())
+    except (OSError, ValueError):
+        return False
+    return bool(doc.get("indicators")) and not (doc.get("regime") and (doc.get("insight") or {}).get(lang))
+
+
+def calendar_selectors(site, lang):
+    """일정 화면이 보여야 할 것: 지표 0개 → '자료 없음' 안내 + 일정, 해설 없음 → 개요 상자(안에 글이 있어야), 평소 → 해설 상자."""
+    if econ_empty(site):
+        return ["#ind-empty", ".schw"]
+    if econ_no_insight(site, lang):
+        return ["#detail", ".schw", "#cal-summary.ov > :first-child"]
+    return SELECTORS["calendar/"]
+
+
 def empty_calendar_targets(site, now):
     """지표 0개 일정 화면의 계약. 입력에 0~21일 안(화면 일정 칸과 같은 구간, 브라우저 시계 = offline.now) 발표가 있으면
     날짜 묶음(li.dg)을, 없으면 '예정된 발표 없음' 한 줄(li.mute, 글자 있음)을 요구한다. 어느 쪽이든 '자료 없음' 안내(#ind-empty).
@@ -137,7 +157,7 @@ def test_page(case, session_page, qa, site_server, request):
         page.locator("#intro .skip").click()
     page.evaluate("document.fonts.ready")
     # Wait for data-backed elements, collecting all failures for one case.
-    for selector in (["#ind-empty", ".schw"] if name == "calendar/" and econ_empty(offline.site) else SELECTORS[name]):
+    for selector in (calendar_selectors(offline.site, lang) if name == "calendar/" else SELECTORS[name]):
         if selector == ".ins2" and lang == "en" and ko_only_insights(offline.site, path):
             continue   # 위 content_checks 가 '영어 화면에서 숨었나'를 대신 본다
         try:
