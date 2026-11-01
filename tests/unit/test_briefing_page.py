@@ -80,7 +80,7 @@ class BriefingStub(unittest.TestCase):
 
 
 class PlainLanguageParts(unittest.TestCase):
-    """쉬운 말 단계(tools/easy.py)가 더한 칸: 한눈에 3줄 · 내 생활에서는(고정 문장) · 영향을 받는 곳. 없으면 그리지 않는다."""
+    """쉬운 말 단계(tools/easy.py)가 더한 칸: 한눈에 3줄 · 영향을 받는 곳. 없으면 그리지 않는다. '내 생활에서는'은 열쇠가 있어도 그리지 않는다(운영자 2026-11-01)."""
 
     def d(self):
         d = doc()
@@ -92,13 +92,13 @@ class PlainLanguageParts(unittest.TestCase):
         d["ko"]["big"][2]["life"] = "no_such_key"
         return d
 
-    def test_three_lines_life_and_chips(self):
+    def test_three_lines_and_chips_without_life_box(self):
         html = build.briefing_html(self.d(), NOW)
         self.assertEqual(html.count('<div class="bf-3">'), 1)
         self.assertIn('<span data-l="ko" lang="ko">한 줄 2</span>', html)
-        self.assertEqual(html.count('class="bf-life"'), 2)                       # 모르는 열쇠는 상자 없음
-        self.assertIn(build.LIFE["chips"]["en"][0], html)
-        self.assertIn('<div class="bf-life" data-l="ko">', html)                 # 영어 문장이 없으면 영어 화면에서 상자째 숨는다
+        self.assertNotIn('bf-life', html)                                       # 열쇠(life)가 있어도 상자 없음
+        self.assertNotIn('내 생활에서는', html)
+        self.assertNotIn('In your daily life', html)
         self.assertIn('<b data-l="en" lang="en">Chip stocks</b><b data-l="ko" lang="ko">반도체 주식</b>', html)
 
     def test_absent_parts_are_not_drawn(self):
@@ -107,14 +107,6 @@ class PlainLanguageParts(unittest.TestCase):
             self.assertNotIn(cls, html)
         d = self.d(); d["ko"]["three"] = d["ko"]["three"][:2]
         self.assertNotIn('class="bf-3"', build.briefing_html(d, NOW))              # 3줄이 다 있어야
-
-    def test_life_sentence_rotates_by_round_and_is_escaped(self):
-        d = self.d()
-        a = build.briefing_html(dict(d, made=NOW - 3600), NOW)
-        b = build.briefing_html(dict(d, made=NOW - 7200), NOW)
-        ks = build.LIFE["chips"]["ko"]
-        self.assertTrue(any(x in a for x in ks) and any(x in b for x in ks))
-        self.assertNotEqual([x for x in ks if x in a], [x for x in ks if x in b])  # 회차마다 다른 문장
 
     def test_missing_english_hides_whole_box_in_english(self):
         d = self.d(); d["en"]["three"][1] = {"s": None}; d["en"]["big"][0]["who"] = []

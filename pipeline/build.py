@@ -329,7 +329,6 @@ def page_calendar_df():
     return with_beacon(with_pf(tpl.replace("{{B}}", B).replace("{{V}}", df_ver()).replace("{{URL}}", config.SITE_URL + "/")), "calendar")
 
 
-LIFE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "life_lines.json")))["keys"]   # 브리핑 '내 생활에서는' 고정 문장
 DESK_NAMES = (("crypto", "Crypto", "크립토"), ("nasdaq", "Nasdaq", "나스닥"), ("econ", "Economy", "경제"), ("ai", "AI", "AI"), ("world", "World", "세계"))
 
 
@@ -377,16 +376,6 @@ def briefing_html(doc, now, dy=None):
         refs = [r for r in (refs or []) if r in (doc.get("stories") or {})][:3]
         return "".join('<button type="button" class="bf-ref" data-bf="%s">%s</button>' % (h(r), L("Source %d ↗" % (i + 1), "근거 %d ↗" % (i + 1))) for i, r in enumerate(refs))
     g, ge = ko.get("regime") or {}, en.get("regime") or {}
-    home = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg>'
-
-    def life(x):   # 내 생활에서는: 쉬운 말 단계가 고른 열쇠 → 고정 문장(pipeline/life_lines.json, 회차마다 돌아가며). 영어 일반 문장이 없으면 영어 화면에선 상자째 숨는다
-        k = LIFE.get(x.get("life") or "")
-        pick = lambda xs: xs[(int(doc.get("made", 0)) // 3600) % len(xs)] if xs else None
-        ko_t, en_t = pick((k or {}).get("ko")), pick((k or {}).get("en"))
-        if not ko_t:
-            return ""
-        body = (L("In your daily life", "내 생활에서는", "b") + bi(en_t, ko_t, "p")) if en_t else ('<b>내 생활에서는</b>' + bi(None, ko_t, "p"))
-        return '<div class="bf-life"%s>%s<div>%s</div></div>' % ("" if en_t else ' data-l="ko"', home, body)
 
     def who(i, x):   # 영향을 받는 곳(쉬운 말 단계) — 영어 칩은 영어판 같은 자리
         ws = [w.get("s") for w in (x.get("who") or []) if isinstance(w, dict) and w.get("s")][:3]
@@ -404,8 +393,9 @@ def briefing_html(doc, now, dy=None):
         srcs.append([(x.get("t") or "", at("big", i, "t") or "", ())] + [(r.get("ko") or "", r.get("en") or "", r.get("coins") or ()) for r in refs] + [(x.get("s") or "", at("big", i, "s") or "", ())])
         pics.append(art.pick_from(ix, srcs[-1], "%s:%d" % (sid, i), pics))
     da = lambda x: ' data-art="%s"' % x if x else ""
-    big = "".join('<article class="bf-c"%s><p class="n mono">%d</p>%s%s%s%s<div class="rf">%s</div></article>' % (
-        da(pics[i]), i + 1, two(at("big", i, "t"), x.get("t"), "h3"), two(at("big", i, "s"), x.get("s"), "p"), life(x), who(i, x), chips(x.get("refs")))
+    # '내 생활에서는' 상자는 그리지 않는다(운영자 2026-11-01 "빼는 게 나을 것 같아"). 쉬운 말 단계는 열쇠(big[].life)를 계속 고르지만 쓰지 않는다
+    big = "".join('<article class="bf-c"%s><p class="n mono">%d</p>%s%s%s<div class="rf">%s</div></article>' % (
+        da(pics[i]), i + 1, two(at("big", i, "t"), x.get("t"), "h3"), two(at("big", i, "s"), x.get("s"), "p"), who(i, x), chips(x.get("refs")))
         for i, x in enumerate((ko.get("big") or [])[:3]))
     three = [t.get("s") for t in (ko.get("three") or []) if isinstance(t, dict) and t.get("s")]
     en3 = [at("three", j, "s") for j in range(3)]
