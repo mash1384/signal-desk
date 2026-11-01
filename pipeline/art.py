@@ -110,17 +110,15 @@ def pick(ix, ko, en="", coins=(), sid="", avoid=()):
     return choose(ids, sid, avoid)
 
 
-def pick_from(ix, sources, sid, avoid=(), other=False):
-    """브리핑: sources = [(한국어, 영어, 코인)] 앞에서부터 사전에 걸리고 아직 안 쓴 그림이 있는 첫 것. 없으면 지구.
-    other=True 면 avoid 그림이 속한 대상(같은 인물의 다른 사진 등)도 건너뛴다 — 머리 그림이 카드와 겹쳐 보이지 않게."""
+def pick_from(ix, sources, sid, avoid=()):
+    """브리핑: sources = [(한국어, 영어, 코인)] 앞에서부터 사전에 걸리고 아직 안 쓴 그림이 있는 첫 것. 없으면 지구."""
     if not ix:
         return None
-    used = {j for j, e in enumerate(ix["e"]) if other and set(e[4]) & set(avoid)}
     for ko, en, coins in sources:
         i = entity(ix, ko, en)
         if i is None:
             i = _coin(ix, coins)
-        if i is not None and ix["e"][i][4] and i not in used:
+        if i is not None and ix["e"][i][4]:
             x = choose(ix["e"][i][4], sid, avoid)
             if x not in avoid:
                 return x

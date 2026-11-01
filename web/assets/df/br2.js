@@ -28,13 +28,11 @@ if (bf) {
     go(0);
   }
 }
-// 소식 그림(점묘화, art.js): PC에서만, 한가할 때 — 빌드가 고른 그림(data-art)을 제목 옆 · 카드 위 띠에(자리는 CSS가 미리 비워 둠)
+// 소식 그림(점묘화, art.js): PC에서만, 한가할 때 — 빌드가 고른 그림(data-art)을 이야기 카드 위 띠에(자리는 CSS가 미리 비워 둠)
 if (bf && bf.querySelector('[data-art]')) {
   const mq = matchMedia('(min-width: 900px)'); let A;
   const draw = () => { if (!mq.matches) { if (A) bf.querySelectorAll('.has-art').forEach(A.clear); return; }
     (A ? Promise.resolve(A) : import('./art.js' + new URL(import.meta.url).search).then((m) => { A = m; m.watch(draw); return m; })).then(() => {
-      const w = bf.querySelector('.wrap'), h = document.getElementById('bf-h'), k = bf.querySelector('.bf-k'), nx = h && h.nextElementSibling;
-      if (bf.dataset.artH && k && nx) A.load(bf.dataset.artH).then((m) => { const r = w.getBoundingClientRect(); A.paint(w, { x0: r.width * 0.5, x1: r.width - 4, y0: k.getBoundingClientRect().top - r.top - 6, y1: nx.getBoundingClientRect().top - r.top - 14 }, m, { ink: h }); });
       bf.querySelectorAll('.bf-c[data-art]').forEach((c) => A.load(c.dataset.art).then((m) => A.paint(c, { x0: 0, x1: c.clientWidth, y0: 0, y1: 179 }, m, { e: [0.12, 0.88, 0.08, 0.62], ink: c.querySelector('h3') })));
     }).catch(() => {}); };   // 그림이 없어도 글은 그대로
   (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(draw); mq.addEventListener('change', draw);

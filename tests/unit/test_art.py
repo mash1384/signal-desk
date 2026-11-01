@@ -110,17 +110,15 @@ class Briefing(unittest.TestCase):
         return {"v": 1, "made": NOW - 3600, "next": NOW + 3600, "stories": st,
                 "ko": {"headline": "금리는 멈췄고 크립토는 빠져요", "regime": {"label": "l", "s": "s"}, "big": big}, "en": {}}, NOW
 
-    def test_cards_get_distinct_pictures_and_head_avoids_card_subjects(self):
+    def test_cards_get_distinct_pictures_and_head_has_none(self):
         d, now = self.doc()
         html = build.briefing_html(d, now)
         cards = re.findall(r'<article class="bf-c" data-art="([0-9a-f]+)"', html)
-        head = re.findall(r'id="bf" data-art-h="([0-9a-f]+)"', html)
         self.assertEqual(len(cards), 3)
         self.assertEqual(len(set(cards)), 3, "세 카드는 서로 다른 그림")
         rev = {i: e[0] for e in IX["e"] for i in e[4]}
         self.assertEqual([rev.get(i) for i in cards], ["연준", "이더리움", "호르무즈"])
-        self.assertEqual(len(head), 1)
-        self.assertNotIn(rev.get(head[0]), {"연준", "케빈 워시", "이더리움", "호르무즈"}, "머리 그림은 카드와 같은 대상이 아니다")
+        self.assertNotIn("data-art-h", html, "맨 위 머리에는 그림을 넣지 않는다(운영자 11-01)")
 
     def test_no_index_means_no_attributes(self):
         d, now = self.doc()
