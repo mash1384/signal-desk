@@ -397,13 +397,12 @@ def briefing_html(doc, now, dy=None):
         if all(en_w(j) for j in range(len(ws))):
             return '<p class="bf-who">%s%s</p>' % (L("Affects", "영향을 받는 곳"), "".join(bi(en_w(j), w, "b") for j, w in enumerate(ws)))
         return '<p class="bf-who" data-l="ko"><span>영향을 받는 곳</span>%s</p>' % "".join("<b>%s</b>" % h(w) for w in ws)   # 영어 칩이 다 없으면 영어 화면에서 줄째 숨김
-    # 소식 그림(점묘화, web/assets/df/art.js): 카드마다 제목 → 근거 소식 → 본문 순으로 그림 사전에서 고른다. 세 카드 · 머리 그림은 서로 다른 장
+    # 소식 그림(점묘화, web/assets/df/art.js): 카드마다 제목 → 근거 소식 → 본문 순으로 그림 사전에서 고른다. 세 카드는 서로 다른 장(맨 위 머리에는 그림 없음, 운영자 11-01)
     ix, sid, srcs, pics = art.load(), str(doc.get("made", 0)), [], []
     for i, x in enumerate((ko.get("big") or [])[:3]):
         refs = [(doc.get("stories") or {}).get(r) or {} for r in x.get("refs") or []]
         srcs.append([(x.get("t") or "", at("big", i, "t") or "", ())] + [(r.get("ko") or "", r.get("en") or "", r.get("coins") or ()) for r in refs] + [(x.get("s") or "", at("big", i, "s") or "", ())])
         pics.append(art.pick_from(ix, srcs[-1], "%s:%d" % (sid, i), pics))
-    head_art = art.pick_from(ix, [(ko.get("headline") or "", en.get("headline") or "", ())] + [y for z in srcs for y in z], sid + ":h", pics, other=True) if srcs else None
     da = lambda x: ' data-art="%s"' % x if x else ""
     big = "".join('<article class="bf-c"%s><p class="n mono">%d</p>%s%s%s%s<div class="rf">%s</div></article>' % (
         da(pics[i]), i + 1, two(at("big", i, "t"), x.get("t"), "h3"), two(at("big", i, "s"), x.get("s"), "p"), life(x), who(i, x), chips(x.get("refs")))
@@ -439,7 +438,7 @@ def briefing_html(doc, now, dy=None):
                     for i, x in enumerate(ko.get("watch") or []))
     old = now - doc["made"] > 18 * 3600
     stories = json.dumps(doc.get("stories") or {}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    return """<section class="bf" id="bf"{art} aria-labelledby="bf-h"><div class="wrap">
+    return """<section class="bf" id="bf" aria-labelledby="bf-h"><div class="wrap">
   <p class="bf-k"><span class="tag">{lbl}</span> {made} · {nxt}{old}</p>
   <h1 id="bf-h">{head}</h1>{ez}
   <div class="bf-rg"><span class="lb">{label}</span>{rs}</div>
@@ -449,7 +448,7 @@ def briefing_html(doc, now, dy=None):
   <p class="bf-fn">{fn}</p>
 </div></section>
 <script type="application/json" id="bf-stories">{stories}</script>
-""".format(art=(' data-art-h="%s"' % head_art) if head_art else "", lbl=L("Briefing", "브리핑"), made=L("updated %s" % hm(doc["made"]), "%s 기준" % hm(doc["made"])),
+""".format(lbl=L("Briefing", "브리핑"), made=L("updated %s" % hm(doc["made"]), "%s 기준" % hm(doc["made"])),
            nxt=L("next %s" % hm(doc["next"]), "다음 %s" % hm(doc["next"])) if doc.get("next") else "",
            old=(" · " + L("an earlier briefing — the next one is late", "지난 브리핑이에요. 다음 회차가 늦어지고 있어요")) if old else "",
            head=two(en.get("headline"), ko.get("headline")), ez=ez, label=two(ge.get("label"), g.get("label")), rs=two(ge.get("s"), g.get("s"), "p"), big=big,
