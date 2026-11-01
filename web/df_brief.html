@@ -130,6 +130,8 @@
 .bf-rg p { margin-top: 10px; font-size: 16.5px; line-height: 1.65; color: rgb(255 255 255 / .92); text-wrap: pretty; }
 .bf-big { display: grid; gap: 12px; } @media (min-width: 900px) { .bf-big { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .bf-c { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+/* 소식 그림(art.js): 빌드가 그림을 골랐으면(data-art) PC에서 제목 옆 · 카드 위 168px 띠 자리를 미리 비운다(그린 뒤 밀리지 않게) */
+@media (min-width: 900px) { #bf[data-art-h] #bf-h { max-width: 58%; } .bf-c[data-art] { padding-top: 186px; } }
 .bf-c .n { color: var(--primary); font-size: 13px; font-weight: 650; } .bf-c h3 { font-size: 18px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.3; } .bf-c p { font-size: 15px; line-height: 1.65; color: var(--ink2); text-wrap: pretty; }
 .bf-c .rf { margin-top: auto; padding-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
 .bf-ref { height: 26px; padding: 0 10px; border-radius: 99px; background: #eceaff; color: #4b3fd1; font-size: 12px; font-weight: 600; cursor: pointer; }
