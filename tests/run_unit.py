@@ -37,6 +37,23 @@ def main():
     loader = unittest.TestLoader()
     if args.focus:
         suite = unittest.TestSuite() if args.legacy else loader.discover(str(ROOT / "tests" / "unit"), top_level_dir=str(ROOT))
+        # 고장 주입 대상이 없는 느린 모듈(글꼴 만들기 7초 · 그림 사전 2초)은 고장 주입 묶음에서만 뺀다 — 전체 단위 시험에서는 그대로 돈다.
+        # 대상 목록(tests/mutation/run.py CATALOG)에 그 모듈이 들어오면 다시 넣는다. 11-02: 뺀 것 없이 25초 × 58개가 CI 15분을 넘었다
+        try:
+            from tests.mutation.run import CATALOG
+            targets = {c[0] for c in CATALOG}
+        except ImportError:
+            targets = set()
+        slow = {"tests.unit.test_pagefont": "pipeline/pagefont.py", "tests.unit.test_art": "pipeline/art.py"}
+        skip = {m for m, src in slow.items() if src not in targets}
+
+        def keep(s):
+            for t in s:
+                if isinstance(t, unittest.TestSuite):
+                    yield from keep(t)
+                elif type(t).__module__ not in skip:
+                    yield t
+        suite = unittest.TestSuite(list(keep(suite)))
         focus = ["tests.test_judge", "tests.test_classify", "tests.test_econ_brief", "tests.test_daily_brief", "tests.test_story_threads", "tests.test_newdata", "tests.test_tg_publish"]
         # 공개 저장소에는 Mac 작업(tools) 검사가 없다 — 있는 것만
         suite.addTests(loader.loadTestsFromNames([n for n in focus if (ROOT / (n.replace(".", "/") + ".py")).is_file()]))
