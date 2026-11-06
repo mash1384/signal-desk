@@ -98,9 +98,10 @@ jobs:
 
       - name: Korean fonts for share cards
         continue-on-error: true
+        timeout-minutes: 3   # apt 미러가 멈추면 이 단계가 14분 넘게 잡혀 실행 전체가 15분 제한에 걸려 취소됐다(11-05~06 120회 중 16회) — 3분 넘으면 글꼴 없이 계속
         run: |
           if ! fc-list :lang=ko | grep -q .; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends fonts-noto-cjk
+            sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 update -qq && sudo apt-get -o Acquire::http::Timeout=20 install -y -qq --no-install-recommends fonts-noto-cjk
           fi
 
       - name: Run pipeline
