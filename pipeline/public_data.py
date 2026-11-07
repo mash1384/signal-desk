@@ -36,5 +36,16 @@ def split_threads(dest):
     text = {i: [s.get('ko') or '', s.get('en') or ''] for i, s in stories.items()}
     core = dict(doc, stories={i: {k: v for k, v in s.items() if k not in ('ko', 'en')} for i, s in stories.items()})
     dump = lambda x: json.dumps(x, ensure_ascii=False, separators=(',', ':'))
-    (dest / 'threads-core.json').write_text(dump(core))
+    (dest / 'threads-core.json').write_text(dump(core))   # 예전 화면(캐시된 brk.js)용 — 전환 기간 뒤 지운다
+    (dest / 'threads-pack.json').write_text(dump(pack_threads(core)))
     (dest / 'threads-text.json').write_text(dump({'made': doc.get('made'), 'text': text}))
+
+
+def pack_threads(core):
+    """브리핑이 처음 받는 자료를 더 가볍게(11-07: 소식이 1,588개로 늘어 PC 브리핑이 무게 기준 1,210,362바이트를 넘었다).
+    소식마다 되풀이되던 이름표(t · v · coins …)를 cols 한 번으로 — stories = {cols: [...], rows: {id: [값…]}}, 없는 값은 null.
+    줄기(threads)의 names(화면에서 안 씀)는 뺀다. brk.js unpack() 이 원래 모양으로 되돌린다."""
+    stories = core.get('stories') or {}
+    cols = sorted({k for s in stories.values() for k in s})
+    threads = [{k: v for k, v in t.items() if k != 'names'} for t in core.get('threads') or []]
+    return dict(core, threads=threads, stories={'cols': cols, 'rows': {i: [s.get(k) for k in cols] for i, s in stories.items()}})

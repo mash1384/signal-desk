@@ -9,15 +9,24 @@ let TH = null, TXT = null, HAS_TXT = false;
 export async function loadThreads() {
   if (TH) return TH;
   const q = '?t=' + Math.floor(Date.now() / 300000);
-  let r = window.DF_THREADS ? await fetch(window.DF_THREADS + q) : await fetch(DATA + 'threads-core.json' + q);
+  let r = window.DF_THREADS ? await fetch(window.DF_THREADS + q) : await fetch(DATA + 'threads-pack.json' + q);
+  if (!window.DF_THREADS && !r.ok) r = await fetch(DATA + 'threads-core.json' + q);
   if (!window.DF_THREADS && !r.ok) r = await fetch(DATA + 'threads.json' + q);
   if (!r.ok) throw new Error('threads ' + r.status);
-  TH = await r.json();
+  TH = unpack(await r.json());
   HAS_TXT = Object.values(TH.stories).some((x) => x.ko);
   // 소식 상세 창(openSheet)이 같은 소식을 찾을 수 있게 store 에 넣는다
   Object.entries(TH.stories).forEach(([id, x]) => { if (!store.byId.has(id)) store.byId.set(id, Object.assign({ id, th: x.th || [] }, x)); });
   const seen = new Set(); TH.list = TH.threads.filter((x) => x.ai && !seen.has(x.id) && seen.add(x.id));   // 같은 번호가 두 번 오면 앞의 것만(두 카드가 함께 펼쳐지지 않게)
   return TH;
+}
+// threads-pack.json(pipeline/public_data.py pack_threads): stories = {cols, rows} → 소식마다 {이름표: 값} 으로(null 은 없는 값)
+export function unpack(d) {
+  const S = d && d.stories;
+  if (!S || !Array.isArray(S.cols) || !S.rows) return d;
+  const out = {};
+  Object.entries(S.rows).forEach(([id, row]) => { const o = {}; S.cols.forEach((k, j) => { if (row[j] != null) o[k] = row[j]; }); out[id] = o; });
+  return Object.assign({}, d, { stories: out });
 }
 export const hasText = () => HAS_TXT;
 export function loadText() {
