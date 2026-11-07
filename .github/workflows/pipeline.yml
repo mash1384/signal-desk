@@ -98,11 +98,17 @@ jobs:
 
       - name: Korean fonts for share cards
         continue-on-error: true
-        timeout-minutes: 3   # apt 미러가 멈추면 이 단계가 14분 넘게 잡혀 실행 전체가 15분 제한에 걸려 취소됐다(11-05~06 120회 중 16회) — 3분 넘으면 글꼴 없이 계속
+        timeout-minutes: 4   # 바깥 안전망. 실제 제한은 아래 timeout(apt 를 직접 끝냄)
+        # apt 미러가 멈추면 이 단계가 14분 넘게 잡혀 실행 전체가 15분 제한에 걸려 취소됐다(11-05~06 120회 중 16회).
+        # 11-06 단계 제한(3분)만 걸었더니 단계는 끊겨도 apt-get 이 뒤에 살아 dpkg 잠금을 쥐어, 다음 'Install QA browser'(apt 사용)가
+        # "Could not get lock /var/lib/dpkg/lock-frontend" 로 실패했다(11-06~07 9회). 그래서 apt 자체를 timeout 으로 끝내고, 남은 잠금을 정리한다.
         run: |
           if ! fc-list :lang=ko | grep -q .; then
-            sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 update -qq && sudo apt-get -o Acquire::http::Timeout=20 install -y -qq --no-install-recommends fonts-noto-cjk
+            sudo timeout -k 10 150 sh -c 'apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 update -qq && apt-get -o Acquire::http::Timeout=20 install -y -qq --no-install-recommends fonts-noto-cjk' \
+              || echo "::warning::한글 글꼴 설치를 건너뜀(apt 응답 없음) — 공유 카드는 기본 글꼴로"
           fi
+          sudo pkill -9 -x apt-get || true
+          sudo dpkg --configure -a || true
 
       - name: Run pipeline
         env:
@@ -125,7 +131,11 @@ jobs:
           key: pw-${{ runner.os }}-${{ hashFiles('tests/requirements-gate.txt') }}
 
       - name: Install QA browser
-        run: python -m playwright install --with-deps --only-shell chromium
+        run: |
+          # 앞 단계에서 남은 apt 가 dpkg 잠금을 쥐고 있으면 최대 60초 기다린 뒤 정리한다
+          for i in $(seq 1 30); do sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || break; sleep 2; done
+          if sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; then sudo pkill -9 -x apt-get || true; sudo dpkg --configure -a || true; fi
+          python -m playwright install --with-deps --only-shell chromium
 
       # Local build gate: no credentials are passed to the browser/tests.
       # The complete 48-case matrix and BDD live in qa-harness.yml.

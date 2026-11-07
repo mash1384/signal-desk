@@ -1,4 +1,4 @@
-"""7회차: 브리핑은 제목 뺀 이야기 자료(threads-core.json)만 처음 받고, 제목(threads-text.json)은 이야기를 열거나 언어를 바꿀 때 받는다.
+"""7회차: 브리핑은 제목 뺀 이야기 자료(threads-core.json → 11-07 부터 threads-pack.json)만 처음 받고, 제목(threads-text.json)은 이야기를 열거나 언어를 바꿀 때 받는다.
 보이는 화면은 그대로여야 한다 — 이야기 목록 제목, 소식 상세 창의 제목 · 영어 원문 줄(한국어 화면)."""
 import pytest
 
@@ -16,8 +16,8 @@ def open_brief(session_page, site_server, width, lang="ko"):
 @pytest.mark.parametrize("width", [390, 1440])
 def test_first_load_skips_titles_and_full_file(width, session_page, site_server):
     page, seen = open_brief(session_page, site_server, width)
-    assert "threads-core.json" in seen
-    assert "threads-text.json" not in seen and "threads.json" not in seen
+    assert "threads-pack.json" in seen                            # 11-07: 이름표를 한 번만 쓰는 가벼운 자료
+    assert "threads-core.json" not in seen and "threads-text.json" not in seen and "threads.json" not in seen
     if width >= 1040:                                             # 미리 그린 PC 오른쪽 칸에도 제목이 있다
         assert page.locator(".pane .ri .l").first.inner_text().strip()
 
