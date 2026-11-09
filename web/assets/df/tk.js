@@ -89,9 +89,9 @@ export async function loadAssets(k, t) {
       base.push({ sym: s, src: 'b', en: s, ko: s, fmt: '', extra: true }); have.add(s); }
     else if ((k === 'nasdaq' || k === 'ai') && YAHOO_OK.has(s)) { base.push({ sym: s, src: 'y', en: s, ko: s, fmt: '', extra: true }); have.add(s); } });
   const [b, y] = await Promise.all([binance(base.filter((a) => a.src === 'b').map((a) => a.sym)), yahoo(base.filter((a) => a.src === 'y').map((a) => a.sym))]);
-  // 야후 '하루 변동'은 미국 장 밖에선 0 이거나 엉뚱해서, 1시간 봉에서 24시간 전 값과 비교해 직접 센다(바이낸스 24시간과 같은 뜻)
-  Object.values(y).forEach((q) => { const c = q.c || [], now = Date.now() / 1000; if (c.length < 2) return; const last = c[c.length - 1][1];
-    let ref = c[0]; for (const p of c) { if (p[0] <= now - 86400) ref = p; else break; } q.p = last; q.chg = ref[1] ? (last / ref[1] - 1) * 100 : null; q.dlt = last - ref[1]; q.c = c.filter((p) => p[0] >= now - 86400 - 3600); });
+  // 직전 거래일 종가 대비(24시간 전과 비교하면 주말엔 0%), 마지막 봉 2시간 지나면 장 마감
+  Object.values(y).forEach((q) => { const c = q.c || [], now = Date.now() / 1000; if (!c.length) return; const last = c[c.length - 1][1], prev = q.prev;
+    q.p = last; q.chg = prev ? (last / prev - 1) * 100 : null; q.dlt = prev ? last - prev : null; q.closed = now - c[c.length - 1][0] > 7200; q.c = c.filter((p) => p[0] >= now - 86400 - 3600); });
   return base.map((a) => Object.assign(a, { q: (a.src === 'b' ? b : y)[a.sym] || null, m: M[a.sym] || null })).filter((a) => a.q || !a.extra);
 }
 export async function benchSeries(k) {
@@ -109,7 +109,8 @@ export function fmtP(a) {
 }
 export const fmtC = (c) => (c == null ? '' : `<span class="${c > 0 ? 'up' : c < 0 ? 'down' : ''}">${DFD.pct(c, 2)}</span>`);
 // 금리는 % 변동 대신 bp(0.01%p) 변동으로
-export const fmtCh = (a) => { if (!a.q) return ''; if (a.fmt === 'pct' && a.q.dlt != null) { const bp = a.q.dlt * 100; return `<span class="${bp > 0 ? 'up' : bp < 0 ? 'down' : ''}">${bp > 0 ? '+' : bp < 0 ? '−' : ''}${Math.abs(bp).toFixed(1)}bp</span>`; } return fmtC(a.q.chg); };
+export const fmtCh = (a) => { if (!a.q) return ''; const cl = a.q.closed ? `<span style="color:var(--faint);font-size:.85em"> ${T('closed', '장 마감')}</span>` : '';
+  if (a.fmt === 'pct' && a.q.dlt != null) { const bp = a.q.dlt * 100; return `<span class="${bp > 0 ? 'up' : bp < 0 ? 'down' : ''}">${bp > 0 ? '+' : bp < 0 ? '−' : ''}${Math.abs(bp).toFixed(1)}bp</span>` + cl; } return fmtC(a.q.chg) + cl; };
 // ---------- 작은 그래프(캔버스) ----------
 export function spark(cv, pts, { up = null } = {}) {
   const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2), W = Math.max(1, r.width), H = Math.max(1, r.height); cv.width = W * dpr; cv.height = H * dpr;
@@ -200,7 +201,7 @@ export function assetsHTML(list, { compact = false } = {}) {
     return `<tr><th scope="row"><b>${esc(L() ? a.ko : a.en)}</b><span class="sym mono">${esc(a.sym.replace('=F', '').replace('^', '').replace('-Y.NYB', 'Y'))}</span></th>
       <td class="p mono">${fmtP(a)}</td><td class="c mono">${fmtCh(a)}</td>${compact ? '' : `<td class="g"><canvas class="spk" data-sym="${esc(a.sym)}" aria-hidden="true"></canvas></td>`}
       <td class="m">${m ? `<span class="mono">${m.n}</span><span class="mb" aria-label="${T(`${m.u} bullish, ${m.d} bearish`, `호재 ${m.u}, 악재 ${m.d}`)}"><i class="u" style="width:${m.u / tot * 100}%"></i><i class="d" style="width:${m.d / tot * 100}%"></i></span>` : '<span class="mute2">–</span>'}</td></tr>`; };
-  return `<table class="ast"><thead><tr><th scope="col">${T('Asset', '자산')}</th><th scope="col">${T('Price', '가격')}</th><th scope="col">${T('24h', '24시간')}</th>${compact ? '' : `<th scope="col"><span class="vh">${T('Chart', '그래프')}</span></th>`}<th scope="col">${T('Mentions', '언급')}</th></tr></thead><tbody>${list.map(row).join('')}</tbody></table>`;
+  return `<table class="ast"><thead><tr><th scope="col">${T('Asset', '자산')}</th><th scope="col">${T('Price', '가격')}</th><th scope="col">${list.every((a) => a.src === 'b') ? T('24h', '24시간') : T('Day', '하루')}</th>${compact ? '' : `<th scope="col"><span class="vh">${T('Chart', '그래프')}</span></th>`}<th scope="col">${T('Mentions', '언급')}</th></tr></thead><tbody>${list.map(row).join('')}</tbody></table>`;
 }
 export function drawSparks(root, list) { root.querySelectorAll('canvas.spk').forEach((cv) => { const a = list.find((x) => x.sym === cv.dataset.sym); if (a && a.q) spark(cv, a.q.c); }); }
 export function sectorsHTML(t, cur) {
