@@ -62,9 +62,10 @@ async function yahoo(syms) {
   // 모든 사용자가 같은 '전체 시세' 파일을 받고 필요한 것만 골라 쓴다(사용자가 늘어도 야후 요청은 1분에 한 번)
   const get = async (i) => { try { const p = DFD.stream.market(i); if (p) return p.q || {}; const c = slowQ[i]; if (c && DFD.stream.degraded() && Date.now() - c.t < 119000) return c.q; const bundle = await DFD.live(); if (bundle) return bundle.market[i].q; const r = await fetch(`${WK.replace('/quotes', '/market')}?i=${i}`); const q = r.ok ? (await r.json()).q || {} : {}; slowQ[i] = { q, t: Date.now() }; return q; } catch (e) { return {}; } };
   const [h, m] = await Promise.all([get('1h'), get('5m')]), now = Date.now() / 1000, out = {};
-  syms.forEach((s) => { const c = (h[s] || {}).c || [], mm = (m[s] || {}).c || []; if (!c.length && !mm.length) return; const last = (mm.length ? mm : c)[(mm.length ? mm : c).length - 1][1];
-    let ref = c[0] || mm[0]; for (const p of c) { if (p[0] <= now - 86400) ref = p; else break; }
-    out[s] = { p: last, chg: ref && ref[1] ? (last / ref[1] - 1) * 100 : null, dlt: ref ? last - ref[1] : null, c: c.filter((p) => p[0] >= now - 86400 - 3600), m: mm, closed: mm.length ? now - mm[mm.length - 1][0] > 1800 : true }; });
+  // 변화는 직전 거래일 종가(야후 prev) 대비 — 24시간 전과 비교하면 주말 · 공휴일엔 0% 가 된다(11-09). 휴장: 마지막 봉이 2시간 넘게 지남
+  syms.forEach((s) => { const c = (h[s] || {}).c || [], mm = (m[s] || {}).c || []; if (!c.length && !mm.length) return; const lastP = (mm.length ? mm : c)[(mm.length ? mm : c).length - 1], last = lastP[1];
+    const prev = (m[s] || {}).prev || (h[s] || {}).prev;
+    out[s] = { p: last, chg: prev ? (last / prev - 1) * 100 : null, dlt: prev ? last - prev : null, c: c.filter((p) => p[0] >= now - 86400 - 3600), m: mm, closed: mm.length ? now - mm[mm.length - 1][0] > 1800 : true, shut: now - lastP[0] > 7200 }; });
   return out;
 }
 export async function loadQuotes(syms, withSeries = true) {
@@ -94,8 +95,9 @@ export function fmtP(a, q) {
   return (usd ? '$' : '') + p.toLocaleString('en-US', { minimumFractionDigits: Math.min(d, 2), maximumFractionDigits: d });
 }
 export function fmtCh(a, q) {
-  if (!q || q.chg == null) return ''; if (a.sym === '^TNX' && q.dlt != null) { const bp = q.dlt * 100; return `<span class="${bp > 0 ? 'up' : bp < 0 ? 'down' : ''}">${bp > 0 ? '+' : bp < 0 ? '−' : ''}${Math.abs(bp).toFixed(1)}bp</span>`; }
-  return `<span class="${q.chg > 0 ? 'up' : q.chg < 0 ? 'down' : ''}">${DFD.pct(q.chg, 2)}</span>`;
+  if (!q || q.chg == null) return ''; const cl = q.shut ? `<span style="color:var(--faint);font-size:.85em"> ${T('closed', '장 마감')}</span>` : '';
+  if (a.sym === '^TNX' && q.dlt != null) { const bp = q.dlt * 100; return `<span class="${bp > 0 ? 'up' : bp < 0 ? 'down' : ''}">${bp > 0 ? '+' : bp < 0 ? '−' : ''}${Math.abs(bp).toFixed(1)}bp</span>` + cl; }
+  return `<span class="${q.chg > 0 ? 'up' : q.chg < 0 ? 'down' : ''}">${DFD.pct(q.chg, 2)}</span>` + cl;
 }
 export function spark(cv, pts) {
   const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2), W = Math.max(1, r.width), H = Math.max(1, r.height); cv.width = W * dpr; cv.height = H * dpr;
