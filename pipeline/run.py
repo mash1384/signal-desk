@@ -186,6 +186,9 @@ def main(argv=None):
     articles = prune(fresh + articles, now)
 
     summarize.summarize(articles)
+    articles, n_fix, n_drop = collect.scrub_sources(articles)   # 공개 검사(텔레그램 출처)에 걸릴 남의 글은 배포 전에 걸러 낸다(11-09 배포 8회 실패)
+    if n_fix or n_drop:
+        util.log("telegram-like text scrubbed", n_fix, "dropped", n_drop)
 
     snap, k_alerts = market_snapshot(old_market, state, now)
     alerts += k_alerts
