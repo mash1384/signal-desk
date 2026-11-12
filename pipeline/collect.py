@@ -4,13 +4,42 @@ from concurrent.futures import ThreadPoolExecutor
 import html
 import re
 import xml.etree.ElementTree as ET
-from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode, unquote
 
 from . import config, classify, util
 
 _TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
 _TRACKING = ("utm_", "fbclid", "gclid", "ref", "cmpid", "mod")
+# 사이트 공개 검사(tests/policy/scan.py SOURCE)와 같은 '텔레그램 출처 · 링크' 모양. 남의 기사 글에 이게 있으면 공개 검사가 사이트 전체 배포를 막는다
+# (11-09 23:17~01:02 한국 시간: RSS 기사 한 건의 발췌문 때문에 8회 연속 배포 실패, 사이트 2시간 멈춤). 검사는 그대로 두고, 들어오는 쪽에서 거른다
+TG_SOURCE = re.compile(r"t\.me/|telegram\.(?:me|org)/|tg://|(?:출처|source)\s*[:：]?\s*(?:텔레그램|telegram)|(?:텔레그램|telegram)\s*[:：]?\s*(?:채널|출처|channel|source)", re.I)
+
+
+def _tg(value):
+    if isinstance(value, str):
+        return bool(TG_SOURCE.search(unquote(html.unescape(value))))
+    if isinstance(value, list):
+        return any(_tg(v) for v in value)
+    if isinstance(value, dict):
+        return any(_tg(v) for v in value.values())
+    return False
+
+
+def scrub_sources(articles):
+    """텔레그램 출처 · 링크 모양이 든 글을 뺀다: 발췌문은 비우고, 요약은 그 줄만 빼고, 그래도 남으면(제목 · 주소 등) 기사째 뺀다.
+    돌려줌: (남은 기사, 손본 수, 뺀 수)."""
+    out, fixed, dropped = [], 0, 0
+    for a in articles:
+        if _tg(a.get("excerpt")):
+            a["excerpt"], fixed = "", fixed + 1
+        if isinstance(a.get("summary"), list) and _tg(a["summary"]):
+            a["summary"], fixed = [x for x in a["summary"] if not _tg(x)], fixed + 1
+        if _tg(a):
+            dropped += 1
+            continue
+        out.append(a)
+    return out, fixed, dropped
 
 
 def clean_text(raw, limit=None):
